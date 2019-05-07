@@ -69,12 +69,12 @@ exception(ctx, parent, exception) ::= <<
 $if(ctx.printexception)$
 $exception.scopedname$::$exception.name$() : UserException()
 {
-    $exception.members : { member |$member_default_init(member=member)$}; separator="\n"$
+    $exception.members : { member |$member_default_init(ctx=ctx, member=member, loopvar=ctx.newLoopVarName)$}; separator="\n"$
 }
 
 $exception.scopedname$::$exception.name$(const $exception.name$ &x) : UserException(x)
 {
-    $exception.members : { member |$member_copy(member=member)$}; separator="\n"$
+    $exception.members : { member |$member_copy(ctx=ctx, member=member)$}; separator="\n"$
 }
 
 $exception.scopedname$::$exception.name$($exception.name$&& x) : UserException(std::move(x))
@@ -85,7 +85,7 @@ $exception.scopedname$::$exception.name$($exception.name$&& x) : UserException(s
 $exception.scopedname$& $exception.scopedname$::operator=(const $exception.name$ &x)
 {
 	UserException::operator=(x);
-    $exception.members : { member |$member_copy(member=member)$}; separator="\n"$
+    $exception.members : { member |$member_copy(ctx=ctx, member=member)$}; separator="\n"$
 	return *this;
 }
 
@@ -181,7 +181,7 @@ typedef_decl(ctx, parent, typedefs) ::= <<>>
 struct_type(ctx, parent, struct, extensions) ::= <<
 $struct.scopedname$::$struct.name$()$if(struct.inheritances)$ : $struct.inheritances : {$struct_inherit_default_init(it)$}; separator=",\n"$ $endif$
 {
-    $struct.members:{ member |$member_default_init(member=member)$}; separator="\n"$
+    $struct.members:{ member |$member_default_init(ctx=ctx, member=member, loopvar=ctx.newLoopVarName)$}; separator="\n"$
 
     $if(ctx.generateTypeObject)$
     // Just to register all known types
@@ -191,24 +191,24 @@ $struct.scopedname$::$struct.name$()$if(struct.inheritances)$ : $struct.inherita
 
 $struct.scopedname$::~$struct.name$()
 {
-    $struct.members:{ member |$member_destructor(member=member)$}; separator="\n"$
+    $struct.members:{ member |$member_destructor(ctx=ctx, member=member)$}; separator="\n"$
 }
 
 $struct.scopedname$::$struct.name$(const $struct.name$ &x)$if(struct.inheritances)$ : $struct.inheritances : {$struct_inherit_copy_init(it)$}; separator=",\n"$ $endif$
 {
-    $struct.members:{$member_copy(it)$}; separator="\n"$
+    $struct.members:{$member_copy(ctx=ctx, member=it)$}; separator="\n"$
 }
 
 $struct.scopedname$::$struct.name$($struct.name$ &&x)$if(struct.inheritances)$ : $struct.inheritances : {$struct_inherit_move_init(it)$}; separator=",\n"$ $endif$
 {
-    $struct.members:{$member_move(it)$}; separator="\n"$
+    $struct.members:{$member_move(member=it)$}; separator="\n"$
 }
 
 $struct.scopedname$& $struct.scopedname$::operator=(const $struct.name$ &x)
 {
     $if(struct.inheritances)$    $struct.inheritances : {$it.scopedname$::operator=(x);}; separator="\n"$ $endif$
 
-    $struct.members:{$member_copy(it)$}; separator="\n"$
+    $struct.members:{$member_copy(ctx=ctx, member=it)$}; separator="\n"$
 
     return *this;
 }
@@ -217,7 +217,7 @@ $struct.scopedname$& $struct.scopedname$::operator=($struct.name$ &&x)
 {
     $if(struct.inheritances)$    $struct.inheritances : {$it.scopedname$::operator=(std::move(x));}; separator="\n"$ $endif$
 
-    $struct.members:{$member_move(it)$}; separator="\n"$
+    $struct.members:{$member_move(member=it)$}; separator="\n"$
 
     return *this;
 }
@@ -438,7 +438,7 @@ $union.scopedname$::$union.name$()
     $else$
     m__d = $first(first(union.members).labels)$;
     $endif$
-    $union.members:{ member |$member_default_init(member=member)$}; separator="\n"$
+    $union.members:{ member |$member_default_init(ctx=ctx, member=member, loopvar=ctx.newLoopVarName)$}; separator="\n"$
 }
 
 $union.scopedname$::~$union.name$()
@@ -621,10 +621,21 @@ bitmask_type(ctx, parent, bitmask) ::= <<>>
 
 /***** Utils *****/
 
-
-
 public_member_declaration(class, member) ::= <<
 $if(member.typecode.primitive)$
+$public_primitive_member_declaration(class=class, member=member)$
+$elseif(ctx.generateTypesC)$
+$if(member.typecode.isStringType)$
+$public_cstring_member_declaration(class=class, member=member)$
+$else$
+$public_object_member_declaration(class=class, member=member)$
+$endif$
+$else$
+$public_object_member_declaration(class=class, member=member)$
+$endif$
+>>
+
+public_primitive_member_declaration(class, member) ::= <<
 /*!
  * @brief This function sets a value in member $member.name$
  * @param _$member.name$ New value for member $member.name$
@@ -651,7 +662,31 @@ $member.typecode.cppTypename$& $class$::$member.name$()
 {
     return $if(member.typecode.forwarded)$*$endif$m_$member.name$;
 }
-$else$
+>>
+
+public_cstring_member_declaration(class, member) ::= <<
+/*!
+ * @brief This function sets a value in member $member.name$
+ * @param _$member.name$ New value for member $member.name$
+ */
+void $class$::$member.name$(const $member.typecode.cppTypename$ _$member.name$)
+{
+    free(m_$member.name$);
+    m_$member.name$ = new char[strlen(_$member.name$) + 1];
+    strncpy(m_$member.name$, _$member.name$, strlen(_$member.name$) + 1);
+}
+
+/*!
+ * @brief This function returns the value of member $member.name$
+ * @return Value of member $member.name$
+ */
+const $member.typecode.cppTypename$ $class$::$member.name$() const
+{
+    return m_$member.name$;
+}
+>>
+
+public_object_member_declaration(class, member) ::= <<
 /*!
  * @brief This function copies the value in member $member.name$
  * @param _$member.name$ New value to be copied in member $member.name$
@@ -687,10 +722,30 @@ $member.typecode.cppTypename$& $class$::$member.name$()
 {
     return $if(member.typecode.forwarded)$*$endif$m_$member.name$;
 }
-$endif$
 >>
 
 public_unionmember_declaration(class, member, totallabels, defaultvalue) ::= <<
+$if(ctx.generateTypesC)$$if(member.typecode.isStringType)$$unionmember_cstring_declaration(class=class, member=member, totallabels=totallabels, defaultvalue=defaultvalue)$$else$$public_unionmember_cpp_declaration(class=class, member=member, totallabels=totallabels, defaultvalue=defaultvalue)$$endif$$else$$public_unionmember_cpp_declaration(class=class, member=member, totallabels=totallabels, defaultvalue=defaultvalue)$$endif$
+>>
+
+unionmember_cstring_declaration(class, member, totallabels, defaultvalue) ::= <<
+void $class$::$member.name$(const char* _$member.name$)
+{
+    free(m_$member.name$);
+    m_$member.name$ = new char[strlen(_$member.name$) + 1];
+    strncpy(m_$member.name$, _$member.name$, strlen(_$member.name$));
+    $unionmember_set_discriminator(member=member, defaultvalue=defaultvalue)$
+}
+
+const char* $class$::$member.name$() const
+{
+    $unionmember_check_case_list(member=member, totallabels=totallabels)$
+
+    return m_$member.name$;
+}
+>>
+
+public_unionmember_cpp_declaration(class, member, totallabels, defaultvalue) ::= <<
 $if(member.typecode.primitive)$
 void $class$::$member.name$($member.typecode.cppTypename$ _$member.name$)
 {
@@ -740,10 +795,18 @@ $member.typecode.cppTypename$& $class$::$member.name$()
 $endif$
 >>
 
-member_copy(member) ::= <<
+member_copy(ctx, member) ::= <<
 $if(member.typecode.forwarded)$
 m_$member.name$ = new $member.typecode.cppTypename$();
 *m_$member.name$ = *x.m_$member.name$;
+$elseif(ctx.generateTypesC)$
+$if(member.typecode.isStringType)$
+free(m_$member.name$);
+m_$member.name$ = (char*)malloc(strlen(x.m_$member.name$) + 1);
+strncpy(m_$member.name$, x.m_$member.name$, strlen(x.m_$member.name$) + 1);
+$else$
+m_$member.name$ = x.m_$member.name$;
+$endif$
 $else$
 m_$member.name$ = x.m_$member.name$;
 $endif$
