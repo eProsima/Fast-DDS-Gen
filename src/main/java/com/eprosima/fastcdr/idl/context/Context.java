@@ -41,6 +41,8 @@ public interface Context
 
     public boolean isGenerateTypeObject();
 
+    public boolean isGenerateTypesC();
+
     public boolean isCdr();
 
     public boolean isFastcdr();

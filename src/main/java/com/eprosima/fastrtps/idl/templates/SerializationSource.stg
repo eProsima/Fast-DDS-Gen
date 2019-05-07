@@ -149,6 +149,8 @@ topic->$name$(static_cast<$typecode.cppTypename$>(idx));
 $elseif(typecode.isType_d)$
 $if(typecode.isWStringType)$
 topic->$name$(std::to_wstring(idx));
+$elseif(ctx.generateTypesC)$
+topic->$name$(std::to_string(idx).c_str());
 $else$
 topic->$name$(std::to_string(idx));
 $endif$
@@ -202,6 +204,10 @@ topic->$name$ = static_cast<$typecode.cppTypename$>(rand());
 $elseif(typecode.isType_d)$
 $if(typecode.isWStringType)$
 topic->$name$ = L"WWWWWW";
+$elseif(ctx.generateTypesC)$
+free(topic->$name$);
+topic->$name$ = (char*)malloc(6); // AAAAA\0
+strncpy(topic->$name$, "AAAAA", 6);
 $else$
 topic->$name$ = "AAAAA";
 $endif$
@@ -257,7 +263,7 @@ $if(keytypecode.isWStringType)$
 $keytypecode.cppTypename$ $originName$Key$loopvar$ = (L"WWWWWW");
 $map_member_value_assignment(ctx=ctx, valueTypeCode=valueTypeCode, name=name, originName=originName, p=p, loopvar=loopvar)$
 $else$
-$keytypecode.cppTypename$ $originName$Key$loopvar$ = ("AAAAA");
+$keytypecode.cppTypename$ $originName$Key$loopvar$ = "AAAAA";
 $map_member_value_assignment(ctx=ctx, valueTypeCode=valueTypeCode, name=name, originName=originName, p=p, loopvar=loopvar)$
 $endif$
 $elseif(keytypecode.isSequenceType)$
@@ -292,6 +298,10 @@ topic->$name$$p$[$originName$Key$loopvar$] = static_cast<$valueTypeCode.cppTypen
 $elseif(valueTypeCode.isType_d)$
 $if(valueTypeCode.isWStringType)$
 topic->$name$$p$[$originName$Key$loopvar$] = L"WWWWWW";
+$elseif(ctx.generateTypesC)$
+free(topic->$name$$p$[$originName$Key$loopvar$]);
+topic->$name$$p$[$originName$Key$loopvar$] = (char*)malloc(6); // AAAAA\0
+strncpy(topic->$name$$p$[$originName$Key$loopvar$], "AAAAA", 6);
 $else$
 topic->$name$$p$[$originName$Key$loopvar$] = "AAAAA";
 $endif$
@@ -368,6 +378,8 @@ printf("$name$: 0x%" PRIx64 "\n", (uint64_t)topic->$name$());
 $elseif(typecode.isType_d)$
 $if(typecode.isWStringType)$
 printf("$name$: %S\n", topic->$name$().c_str());
+$elseif(ctx.generateTypesC)$
+printf("$name$: %s\n", topic->$name$());
 $else$
 printf("$name$: %s\n", topic->$name$().c_str());
 $endif$
@@ -390,6 +402,8 @@ printf("$name$: 0x%" PRIx64 "\n", (uint64_t)topic->$name$);
 $elseif(typecode.isType_d)$
 $if(typecode.isWStringType)$
 printf("$name$: %S\n", topic->$name$.c_str());
+$elseif(ctx.generateTypesC)$
+printf("$name$: %s\n", topic->$name$);
 $else$
 printf("$name$: %s\n", topic->$name$.c_str());
 $endif$
@@ -413,6 +427,8 @@ printf("$name$: 0x%" PRIx64 "\n", (uint64_t)topic->$name$);
 $elseif(typecode.valueTypeCode.isType_d)$
 $if(typecode.valueTypeCode.isWStringType)$
 printf("$name$: %S\n", topic->$name$.c_str());
+$elseif(ctx.generateTypesC)$
+printf("$name$: %s\n", topic->$name$());
 $else$
 printf("$name$: %s\n", topic->$name$.c_str());
 $endif$
@@ -466,6 +482,8 @@ $print_map(name=name, p=p, loopvar=loopvar)$
 $elseif(typecode.isType_d)$
 $if(typecode.isWStringType)$
 printf("[%" PRIx64 "]: %S ", (uint64_t)(it_$loopvar$.first), (uint64_t)topic->$name$$p$.c_str());
+$elseif(ctx.generateTypesC)$
+printf("[%" PRIx64 "]: %s ", (uint64_t)(it_$loopvar$.first), (uint64_t)topic->$name$$p$);
 $else$
 printf("[%" PRIx64 "]: %s ", (uint64_t)(it_$loopvar$.first), (uint64_t)topic->$name$$p$.c_str());
 $endif$
@@ -541,7 +559,15 @@ member_comparision(ctx, typecode, name, originName) ::= <<
 $if(typecode.primitive)$
 if (topic_a->$name$() != topic_b->$name$()) return 0;
 $elseif(typecode.isType_d)$
+$if(typecode.isStringType)$
+$if(ctx.generateTypesC)$
+if (strncmp(topic_a->$name$(), topic_b->$name$(), strlen(topic_b->$name$())) != 0) return 0;
+$else$
 if (topic_a->$name$() != topic_b->$name$()) return 0;
+$endif$
+$else$
+if (topic_a->$name$() != topic_b->$name$()) return 0;
+$endif$
 $elseif(typecode.isSequenceType)$
 $sequence_comparision(ctx=ctx, typecode=typecode, name=name, p="()", loopvar=ctx.newLoopVarName)$
 $elseif(typecode.isMapType)$
@@ -559,7 +585,15 @@ array_member_comparision(ctx, typecode, name, originName, loopvar) ::= <<
 $if(typecode.primitive)$
 if (topic_a->$name$ != topic_b->$name$) return 0;
 $elseif(typecode.isType_d)$
+$if(typecode.isStringType)$
+$if(ctx.generateTypesC)$
+if (strncmp(topic_a->$name$, topic_b->$name$, strlen(topic_b->$name$)) != 0) return 0;
+$else$
 if (topic_a->$name$ != topic_b->$name$) return 0;
+$endif$
+$else$
+if (topic_a->$name$ != topic_b->$name$) return 0;
+$endif$
 $elseif(typecode.isSequenceType)$
 $sequence_comparision(ctx=ctx, typecode=typecode, name=name, p="", loopvar=loopvar)$
 $elseif(typecode.isMapType)$
@@ -577,7 +611,15 @@ map_member_comparision(ctx, typecode, name, originName, loopvar) ::= <<
 $if(typecode.valueTypeCode.primitive)$
 if (topic_a->$name$ != topic_b->$name$) return 0;
 $elseif(typecode.valueTypeCode.isType_d)$
+$if(typecode.valueTypeCode.isStringType)$
+$if(ctx.generateTypesC)$
+if (strncmp(topic_a->$name$, topic_b->$name$, strlen(topic_b->$name$)) != 0) return 0;
+$else$
 if (topic_a->$name$ != topic_b->$name$) return 0;
+$endif$
+$else$
+if (topic_a->$name$ != topic_b->$name$) return 0;
+$endif$
 $elseif(typecode.valueTypeCode.isSequenceType)$
 $sequence_comparision(ctx=ctx, typecode=typecode.valueTypeCode, name=name, p="", loopvar=loopvar)$
 $elseif(typecode.valueTypeCode.isMapType)$

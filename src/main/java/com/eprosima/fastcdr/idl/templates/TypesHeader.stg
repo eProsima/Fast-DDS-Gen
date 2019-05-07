@@ -420,6 +420,19 @@ public_bitset_inheritances(parent) ::= <<$parent.scopedname$>>
 
 public_member_declaration(member) ::= <<
 $if(member.typecode.primitive)$
+$public_member_primitive_declaration(member=member)$
+$elseif(ctx.generateTypesC)$
+$if(member.typecode.isStringType)$
+$public_member_cstring_declaration(member=member)$
+$else$
+$public_member_common_declaration(member=member)$
+$endif$
+$else$
+$public_member_common_declaration(member=member)$
+$endif$
+>>
+
+public_member_primitive_declaration(member) ::= <<
 /*!
  * @brief This function sets a value in member $member.name$
  * @param _$member.name$ New value for member $member.name$
@@ -437,7 +450,23 @@ eProsima_user_DllExport $member.typecode.cppTypename$ $member.name$() const;
  * @return Reference to member $member.name$
  */
 eProsima_user_DllExport $member.typecode.cppTypename$& $member.name$();
-$else$
+>>
+
+public_member_cstring_declaration(member) ::= <<
+/*!
+ * @brief This function sets a value in member $member.name$
+ * @param _$member.name$ New value for member $member.name$
+ */
+eProsima_user_DllExport void $member.name$(const $member.typecode.cppTypename$ _$member.name$);
+
+/*!
+ * @brief This function returns the value of member $member.name$
+ * @return Value of member $member.name$
+ */
+eProsima_user_DllExport const $member.typecode.cppTypename$ $member.name$() const;
+>>
+
+public_member_common_declaration(member) ::= <<
 /*!
  * @brief This function copies the value in member $member.name$
  * @param _$member.name$ New value to be copied in member $member.name$
@@ -461,7 +490,6 @@ eProsima_user_DllExport const $member.typecode.cppTypename$& $member.name$() con
  * @return Reference to member $member.name$
  */
 eProsima_user_DllExport $member.typecode.cppTypename$& $member.name$();
-$endif$
 >>
 
 public_bitfield_declaration(member) ::= <<
@@ -484,6 +512,19 @@ private_member_declaration(member) ::= <<$private_declaration(typecode=member.ty
 
 public_unionmember_declaration(member) ::= <<
 $if(member.typecode.primitive)$
+$public_unionmember_primitive_declaration(member=member)$
+$elseif(ctx.generateTypesC)$
+$if(member.typecode.isStringType)$
+$public_unionmember_cstring_declaration(member=member)$
+$else$
+$public_unionmember_common_declaration(member=member)$
+$endif$
+$else$
+$public_unionmember_common_declaration(member=member)$
+$endif$
+>>
+
+public_unionmember_primitive_declaration(member) ::= <<
 /*!
  * @brief This function sets a value in member $member.name$
  * @param _$member.name$ New value for member $member.name$
@@ -503,7 +544,24 @@ eProsima_user_DllExport $member.typecode.cppTypename$ $member.name$() const;
  * @exception eprosima::fastcdr::BadParamException This exception is thrown if the requested union member is not the current selection.
  */
 eProsima_user_DllExport $member.typecode.cppTypename$& $member.name$();
-$else$
+>>
+
+public_unionmember_cstring_declaration(member) ::= <<
+/*!
+ * @brief This function sets a value in member $member.name$
+ * @param _$member.name$ New value for member $member.name$
+ */
+eProsima_user_DllExport void $member.name$(const $member.typecode.cppTypename$ _$member.name$);
+
+/*!
+ * @brief This function returns the value of member $member.name$
+ * @return Value of member $member.name$
+ * @exception eprosima::fastcdr::BadParamException This exception is thrown if the requested union member is not the current selection.
+ */
+eProsima_user_DllExport const $member.typecode.cppTypename$ $member.name$() const;
+>>
+
+public_unionmember_common_declaration(member) ::= <<
 /*!
  * @brief This function copies the value in member $member.name$
  * @param _$member.name$ New value to be copied in member $member.name$
@@ -529,7 +587,6 @@ eProsima_user_DllExport const $member.typecode.cppTypename$& $member.name$() con
  * @exception eprosima::fastcdr::BadParamException This exception is thrown if the requested union member is not the current selection.
  */
 eProsima_user_DllExport $member.typecode.cppTypename$& $member.name$();
-$endif$
 >>
 
 private_declaration(typecode, name) ::= <<

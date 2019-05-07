@@ -105,6 +105,9 @@ public class fastrtpsgen {
     // Generate TypeObject files?
     private boolean m_type_object_files = false;
 
+    // Generate string and sequence types compatible with C?
+    private boolean m_typesc = false;
+
     // Testing
     private boolean m_test = false;
 
@@ -217,6 +220,10 @@ public class fastrtpsgen {
             else if(arg.equals("-typeobject"))
             {
                 m_type_object_files = true;
+            }
+            else if(arg.equals("-typesc"))
+            {
+                m_typesc = true;
             }
             else if(arg.equals("-test"))
             {
@@ -509,7 +516,7 @@ public class fastrtpsgen {
         }
 
         if (idlParseFileName != null) {
-            Context ctx = new Context(onlyFileName, idlFilename, m_includePaths, m_subscribercode, m_publishercode, m_localAppProduct, m_type_object_files);
+            Context ctx = new Context(onlyFileName, idlFilename, m_includePaths, m_subscribercode, m_publishercode, m_localAppProduct, m_type_object_files, m_typesc);
 
             if(fusion_) ctx.setActivateFusion(true);
 
@@ -522,7 +529,7 @@ public class fastrtpsgen {
             topicann.addMember(new AnnotationMember("value", new PrimitiveTypeCode(Kind.KIND_BOOLEAN), "true"));
 
             // Create template manager
-            TemplateManager tmanager = new TemplateManager("FastCdrCommon:eprosima:Common");
+            TemplateManager tmanager = new TemplateManager("FastCdrCommon:eprosima:Common", m_typesc);
 
             List<TemplateExtension> extensions = new ArrayList<TemplateExtension>();
 
