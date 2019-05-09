@@ -19,7 +19,16 @@ import com.eprosima.idl.parser.tree.Annotation;
 import com.eprosima.idl.parser.tree.Interface;
 import com.eprosima.idl.parser.tree.TypeDeclaration;
 import com.eprosima.idl.parser.typecode.Kind;
+import com.eprosima.idl.parser.typecode.TypeCode;
+import com.eprosima.idl.parser.typecode.Member;
+import com.eprosima.idl.parser.typecode.MapTypeCode;
+import com.eprosima.idl.parser.typecode.MemberedTypeCode;
+import com.eprosima.idl.parser.typecode.SequenceTypeCode;
+import com.eprosima.idl.parser.typecode.EnumTypeCode;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Map.Entry;
+import java.util.AbstractMap.SimpleEntry;
 import java.util.Stack;
 
 
@@ -112,6 +121,72 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
     public String getLastRandomName()
     {
         return m_randomGenNames.pop();
+    }
+
+    public ArrayList<Entry<String, TypeCode>> getTypeCodesToDefine()
+    {
+        ArrayList<Entry<String, TypeCode>> typecodes = new ArrayList<Entry<String, TypeCode>>();
+
+        for (TypeDeclaration type : m_types.values())
+        {
+            if (type.getTypeCode() instanceof MemberedTypeCode && !(type.getTypeCode() instanceof EnumTypeCode))
+            {
+                for (Member member : ((MemberedTypeCode)type.getTypeCode()).getMembers())
+                {
+                    if (member.getTypecode().getKind() == Kind.KIND_SEQUENCE)
+                    {
+                        getSequencesToDefine(typecodes, (SequenceTypeCode)member.getTypecode());
+                    }
+                    else if (member.getTypecode().getKind() == Kind.KIND_MAP)
+                    {
+                        MapTypeCode map = (MapTypeCode)member.getTypecode();
+                        if(map.getKeyTypeCode().getKind() == Kind.KIND_SEQUENCE)
+                        {
+                            getSequencesToDefine(typecodes, (SequenceTypeCode)map.getKeyTypeCode());
+                        }
+                        if(map.getValueTypeCode().getKind() == Kind.KIND_SEQUENCE)
+                        {
+                            getSequencesToDefine(typecodes, (SequenceTypeCode)map.getValueTypeCode());
+                        }
+                    }
+                }
+            }
+        }
+
+        return typecodes;
+    }
+
+    private void getSequencesToDefine(ArrayList<Entry<String, TypeCode>> typecodes, SequenceTypeCode sequence)
+    {
+        // Search
+        for (Entry entry : typecodes)
+        {
+            if (entry.getKey().equals(sequence.getCppTypename()))
+            {
+                return;
+            }
+        }
+
+        TypeCode content = sequence.getContentTypeCode();
+
+        if (content.getKind() == Kind.KIND_SEQUENCE)
+        {
+            getSequencesToDefine(typecodes, (SequenceTypeCode)content);
+        }
+        else if (content.getKind() == Kind.KIND_MAP)
+        {
+            MapTypeCode map = (MapTypeCode)content;
+            if(map.getKeyTypeCode().getKind() == Kind.KIND_SEQUENCE)
+            {
+                getSequencesToDefine(typecodes, (SequenceTypeCode)map.getKeyTypeCode());
+            }
+            if(map.getValueTypeCode().getKind() == Kind.KIND_SEQUENCE)
+            {
+                getSequencesToDefine(typecodes, (SequenceTypeCode)map.getValueTypeCode());
+            }
+        }
+
+        typecodes.add(new SimpleEntry(sequence.getCppTypename(), sequence));
     }
 
     /*** Functions inherated from FastCDR Context ***/

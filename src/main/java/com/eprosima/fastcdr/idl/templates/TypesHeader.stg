@@ -80,6 +80,13 @@ namespace eprosima
 
 $endif$
 
+$if(ctx.generateTypesC)$
+$ctx.typeCodesToDefine : {
+$sequences_definition(it.value)$
+}; separator="\n"$
+$endif$
+
+
 $definitions; separator="\n"$
 
 #endif // _$ctx.headerGuardName$_H_
@@ -137,37 +144,37 @@ class $exception.name$ : public eprosima::rpc::exception::UserException
 public:
 
     //! @brief Default constructor.
-	eProsima_user_DllExport $exception.name$();
+    eProsima_user_DllExport $exception.name$();
 
     /*!
      * @brief Copy constructor.
      * @param ex Exception to be copied.
      */
-	eProsima_user_DllExport $exception.name$(const $exception.name$ &ex);
+    eProsima_user_DllExport $exception.name$(const $exception.name$ &ex);
 
     /*!
      * @brief Move constructor.
      * @param ex Exception to be moved.
      */
-	eProsima_user_DllExport $exception.name$($exception.name$&& ex);
+    eProsima_user_DllExport $exception.name$($exception.name$&& ex);
 
     /*!
      * @brief Copy assignment.
      * @param ex Exception to be copied.
      */
-	eProsima_user_DllExport $exception.name$& operator=(const $exception.name$ &ex);
+    eProsima_user_DllExport $exception.name$& operator=(const $exception.name$ &ex);
 
     /*!
      * @brief Move assignment.
      * @param ex Exception to be moved.
      */
-	eProsima_user_DllExport $exception.name$& operator=($exception.name$&& ex);
+    eProsima_user_DllExport $exception.name$& operator=($exception.name$&& ex);
 
     //! @brief Destructor.
-	eProsima_user_DllExport virtual ~$exception.name$() throw();
+    eProsima_user_DllExport virtual ~$exception.name$() throw();
 
     //! @brief This function throws the object as exception.
-	eProsima_user_DllExport virtual void raise() const;
+    eProsima_user_DllExport virtual void raise() const;
 
     $exception.members:{ member |$public_member_declaration(member=member)$}; separator="\n"$
 
@@ -176,7 +183,7 @@ public:
     $serialization_functions(exception)$
 
 private:
-	// Exception members
+    // Exception members
     $exception.members:{ member |$private_member_declaration(member=member)$}; separator="\n"$
 };
 $endif$
@@ -198,7 +205,18 @@ $if(const.parent)$$if(const.parent.isInterface)$static $endif$$endif$const $cons
 >>
 
 typedef_decl(ctx, parent, typedefs) ::= <<
-$typedefs : { typedef |typedef $typedef.typedefContentTypeCode.cppTypename$ $typedef.name$;}; separator="\n"$
+$typedefs :
+{ typedef | 
+$if(ctx.generateTypesC)$
+$if(typedef.typedefContentTypeCode.isSequenceType)$
+$sequences_definition_impl(typecode=typedef.typedefContentTypeCode, typename=typedef.name)$
+$else$
+typedef $typedef.typedefContentTypeCode.cppTypename$ $typedef.name$;
+$endif$
+$else$
+typedef $typedef.typedefContentTypeCode.cppTypename$ $typedef.name$;
+$endif$
+}; separator="\n"$
 >>
 
 struct_type(ctx, parent, struct, extensions) ::= <<
@@ -253,7 +271,7 @@ public:
     $extensions : {$it$}; separator="\n"$
 
 private:
-    $struct.members:{$private_member_declaration(it)$}; separator="\n"$
+    $struct.members:{$private_member_declaration(member=it)$}; separator="\n"$
 };
 >>
 
@@ -330,7 +348,7 @@ public:
 private:
     $private_declaration(typecode=union.discriminator, name="_d")$
 
-    $union.members:{$private_member_declaration(it)$}; separator="\n"$
+    $union.members:{$private_member_declaration(member=it)$}; separator="\n"$
 };
 >>
 
@@ -508,7 +526,9 @@ eProsima_user_DllExport $member.spec.cppTypename$ $member.name$() const;
 $endif$
 >>
 
-private_member_declaration(member) ::= <<$private_declaration(typecode=member.typecode, name=member.name)$>>
+private_member_declaration(member) ::= <<
+$private_declaration(typecode=member.typecode, name=member.name)$
+>>
 
 public_unionmember_declaration(member) ::= <<
 $if(member.typecode.primitive)$
@@ -662,4 +682,82 @@ eProsima_user_DllExport void serialize(eprosima::fastcdr::FastCdr &cdr) const;
 eProsima_user_DllExport void deserialize(eprosima::fastcdr::FastCdr &cdr);
 
 $endif$
+>>
+
+sequences_definition(typecode) ::= <<
+$if(typecode.contentTypeCode.isStructType)$
+$typecode.contentTypeCode.namespaces : { namespace $it$ \{ }; separator="\n"$
+class $typecode.contentTypeCode.name$;
+$typecode.contentTypeCode.namespaces : { \} }; separator="\n"$
+$endif$
+$if(typecode.contentTypeCode.isUnionType)$
+$typecode.contentTypeCode.namespaces : { namespace $it$ \{ }; separator="\n"$
+class $typecode.contentTypeCode.name$;
+$typecode.contentTypeCode.namespaces : { \} }; separator="\n"$
+$endif$
+
+$sequences_definition_impl(typecode=typecode, typename=typecode.cppTypename)$
+>>
+
+sequences_definition_impl(typecode, typename) ::= <<
+
+class eProsima_user_DllExport $typename$
+{
+    public:
+
+        $typename$();
+
+        $typename$(uint32_t maximum);
+
+        ~$typename$();
+
+        void size(uint32_t size);
+
+        uint32_t size() const;
+
+        uint32_t& size();
+
+        void length(uint32_t size);
+
+        uint32_t length() const;
+
+        uint32_t& length();
+
+        void maximum(uint32_t maximum);
+
+        uint32_t maximum() const;
+
+        uint32_t& maximum();
+
+        void value($typecode.contentTypeCode.cppTypename$* value);
+
+        $typecode.contentTypeCode.cppTypename$* value() const;
+
+        void release(bool release);
+
+        bool release() const;
+
+        bool& release();
+
+$if(ctx.anyCdr)$
+        static size_t getMaxCdrSerializedSize(size_t current_alignment = 0);
+
+        static size_t getCdrSerializedSize(const $typename$& data, size_t current_alignment = 0);
+
+$endif$
+
+        void serialize(eprosima::fastcdr::Cdr &cdr) const;
+
+        void deserialize(eprosima::fastcdr::Cdr &cdr);
+
+    private:
+
+        uint32_t length_ = 0;
+
+        uint32_t maximum_ = $typecode.maxsize$;
+
+        $typecode.contentTypeCode.cppTypename$* value_ = nullptr;
+
+        bool release_ = true;
+};
 >>

@@ -17,6 +17,8 @@ package com.eprosima.fastrtps.idl.parser.typecode;
 import com.eprosima.idl.parser.typecode.Member;
 import com.eprosima.idl.parser.tree.Annotation;
 
+import java.util.ArrayList;
+
 public class StructTypeCode extends com.eprosima.idl.parser.typecode.StructTypeCode
 {
     public StructTypeCode(String scope, String name)
@@ -66,6 +68,27 @@ public class StructTypeCode extends com.eprosima.idl.parser.typecode.StructTypeC
     public boolean isIsTopic()
     {
         return istopic_;
+    }
+
+    public ArrayList<String> getNamespaces()
+    {
+        ArrayList<String> namespaces = new ArrayList<String>();
+        String scopes = getScope();
+        int ch_pos = scopes.indexOf("::");
+
+        while(0 < ch_pos)
+        {
+            namespaces.add(scopes.substring(0, ch_pos));
+            scopes = scopes.substring(ch_pos + 2);
+            ch_pos = scopes.indexOf("::");
+        }
+
+        if(!scopes.isEmpty())
+        {
+            namespaces.add(scopes);
+        }
+
+        return namespaces;
     }
 
     private boolean istopic_ = true;
