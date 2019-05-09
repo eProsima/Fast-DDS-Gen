@@ -529,7 +529,7 @@ public class fastrtpsgen {
             topicann.addMember(new AnnotationMember("value", new PrimitiveTypeCode(Kind.KIND_BOOLEAN), "true"));
 
             // Create template manager
-            TemplateManager tmanager = new TemplateManager("FastCdrCommon:eprosima:Common", m_typesc);
+            TemplateManager tmanager = new TemplateManager("FastCdrCommon:eprosima:Common", ctx, m_typesc);
 
             List<TemplateExtension> extensions = new ArrayList<TemplateExtension>();
 

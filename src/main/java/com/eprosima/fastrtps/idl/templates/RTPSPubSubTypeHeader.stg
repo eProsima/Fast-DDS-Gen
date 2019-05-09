@@ -68,9 +68,7 @@ param(parameter) ::= <<>>
 const_decl(ctx, parent, const) ::= <<
 >>
 
-typedef_decl(ctx, parent, typedefs) ::= <<
-$typedefs : { typedef |typedef $typedef.typedefContentTypeCode.cppTypename$ $typedef.name$;}; separator="\n"$
->>
+typedef_decl(ctx, parent, typedefs) ::= <<>>
 
 struct_type(ctx, parent, struct) ::= <<
 /*!

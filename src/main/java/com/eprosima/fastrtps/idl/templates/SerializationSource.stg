@@ -226,14 +226,30 @@ $endif$
 
 sequence_member_assignment(ctx, typecode, name, originName, p, loopvar) ::= <<
 $if(typecode.isType_7)$
+$if(ctx.generateTypesC)$
+topic->$name$$p$.value()[topic->$name$$p$.size()] = static_cast<$typecode.cppTypename$>(rand()%2==1);
+$else$
 topic->$name$$p$.push_back(static_cast<$typecode.cppTypename$>(rand()%2==1));
+$endif$
 $elseif(typecode.primitive)$
+$if(ctx.generateTypesC)$
+topic->$name$$p$.value()[topic->$name$$p$.size()] = static_cast<$typecode.cppTypename$>(rand());
+$else$
 topic->$name$$p$.push_back(static_cast<$typecode.cppTypename$>(rand()));
+$endif$
 $elseif(typecode.isType_d)$
 $if(typecode.isWStringType)$
+$if(ctx.generateTypesC)$
+topic->$name$$p$.value()[topic->$name$$p$.size()] = L"WWWWWW";
+$else$
 topic->$name$$p$.push_back(L"WWWWWW");
+$endif$
+$else$
+$if(ctx.generateTypesC)$
+topic->$name$$p$.value()[topic->$name$$p$.size()] = "AAAAA";
 $else$
 topic->$name$$p$.push_back("AAAAA");
+$endif$
 $endif$
 $elseif(typecode.isSequenceType)$
 $sequence_assigment(ctx=ctx, typecode=typecode, name=name, loopvar=loopvar, p="")$
@@ -244,9 +260,17 @@ $map_assigment(ctx=ctx, typecode=typecode, name=name, originName=originName, loo
 $elseif(typecode.isType_10)$
 $sequence_member_assignment(ctx=ctx, typecode=typecode.typedefContentTypeCode, name=name, originName=originName, p=p, loopvar=loopvar)$
 $else$
-$typecode.cppTypename$ aux$typecode.cppTypename$_$name$;
-initialize$typecode.cppTypename$(&aux$typecode.cppTypename$_$name$);
-topic->$name$$p$.push_back(aux$typecode.cppTypename$_$name$);
+$typecode.cppTypename$ aux$typecode.cTypename$_$name$;
+initialize$typecode.name$(&aux$typecode.cTypename$_$name$);
+$if(ctx.generateTypesC)$
+topic->$name$$p$.value()[topic->$name$$p$.size()] = aux$typecode.cTypename$_$name$;
+$else$
+topic->$name$$p$.push_back(aux$typecode.cTypename$_$name$);
+$endif$
+$endif$
+
+$if(ctx.generateTypesC)$
+topic->$name$$p$.size()++;
 $endif$
 >>
 
@@ -324,7 +348,11 @@ sequence_assigment(ctx, typecode, name, p, loopvar) ::= <<
 for(int $loopvar$ = 0; $loopvar$ < $typecode.maxsize$; ++$loopvar$)
 {
     $if(typecode.contentTypeCode.isSequenceType)$
+    $if(ctx.generateTypesC)$
+    $sequence_member_assignment(ctx=ctx, typecode=typecode.contentTypeCode, name=indexName(name=name, p=[p, ".value()"], loopvar=loopvar), originName=name, p="", loopvar=ctx.nextLoopVarName)$
+    $else$
     $sequence_member_assignment(ctx=ctx, typecode=typecode.contentTypeCode, name=indexName(name=name, p=p, loopvar=loopvar), originName=name, p="", loopvar=ctx.nextLoopVarName)$
+    $endif$
     $elseif(typecode.contentTypeCode.isArrayType)$
     $sequence_member_assignment(ctx=ctx, typecode=typecode.contentTypeCode, name=indexName(name=name, p=p, loopvar=loopvar), originName=name, p="", loopvar=ctx.nextLoopVarName)$
     $else$
@@ -462,7 +490,11 @@ $else$
 printf("$name$: \n");
 for(int $loopvar$ = 0; $loopvar$ < topic->$name$$p$.size(); ++$loopvar$)
 {
+    $if(ctx.generateTypesC)$
+    $array_member_print(ctx=ctx, typecode=typecode.contentTypeCode, name=indexName(name=name, p=[p, ".value()"], loopvar=loopvar), originName=originName, loopvar=ctx.nextLoopVarName)$
+    $else$
     $array_member_print(ctx=ctx, typecode=typecode.contentTypeCode, name=indexName(name=name, p=p, loopvar=loopvar), originName=originName, loopvar=ctx.nextLoopVarName)$
+    $endif$
 }
 $endif$
 >>
@@ -534,7 +566,7 @@ $endif$
 print_sequence(name, p, loopvar) ::= <<
 for(int $loopvar$ = 0; $loopvar$ < topic->$name$$p$.size(); ++$loopvar$)
 {
-    printf("%" PRIx64 " ", (uint64_t)topic->$name$$p$[$loopvar$]);
+    printf("%" PRIx64 " ", (uint64_t)topic->$name$$p$$if(ctx.generateTypesC)$.value()$endif$[$loopvar$]);
 }
 printf("\n");
 >>
@@ -636,7 +668,11 @@ $endif$
 sequence_comparision(ctx, typecode, name, p, loopvar) ::= <<
 for(int $loopvar$ = 0; $loopvar$ < topic_a->$name$$p$.size(); ++$loopvar$)
 {
+    $if(ctx.generateTypesC)$
+    $array_member_comparision(ctx=ctx, typecode=typecode.contentTypeCode, name=indexName(name=name, p=[p, ".value()"], loopvar=loopvar), originName=originName, loopvar=ctx.nextLoopVarName)$
+    $else$
     $array_member_comparision(ctx=ctx, typecode=typecode.contentTypeCode, name=indexName(name=name, p=p, loopvar=loopvar), originName=originName, loopvar=ctx.nextLoopVarName)$
+    $endif$
 }
 >>
 

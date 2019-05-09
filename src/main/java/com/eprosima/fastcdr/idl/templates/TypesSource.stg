@@ -42,6 +42,12 @@ using namespace eprosima::fastcdr::exception;
 
 #include <utility>
 
+$if(ctx.generateTypesC)$
+$ctx.typeCodesToDefine : {
+$sequences_definition(it.value)$
+}; separator="\n"$
+$endif$
+
 $definitions; separator="\n"$
 >>
 
@@ -176,7 +182,16 @@ $endif$
 $endif$
 >>
 
-typedef_decl(ctx, parent, typedefs) ::= <<>>
+typedef_decl(ctx, parent, typedefs) ::= <<
+$typedefs :
+{ typedef |
+$if(ctx.generateTypesC)$
+$if(typedef.typedefContentTypeCode.isSequenceType)$
+$sequences_definition_impl(typecode=typedef.typedefContentTypeCode, scopedtypename=typedef.scopedname, typename=typedef.name)$
+$endif$
+$endif$
+}; separator="\n"$
+>>
 
 struct_type(ctx, parent, struct, extensions) ::= <<
 $struct.scopedname$::$struct.name$()$if(struct.inheritances)$ : $struct.inheritances : {$struct_inherit_default_init(it)$}; separator=",\n"$ $endif$
@@ -994,4 +1009,164 @@ $endif$
 $endif$
 
 break;
+>>
+
+sequences_definition(typecode) ::= <<
+$sequences_definition_impl(typecode=typecode, scopedtypename=typecode.cppTypename, typename=typecode.cppTypename)$
+>>
+
+sequences_definition_impl(typecode, scopedtypename, typename) ::= <<
+
+$scopedtypename$::$typename$()
+{
+    value_ = new $typecode.contentTypeCode.cppTypename$[maximum_];
+}
+
+$scopedtypename$::$typename$(uint32_t maximum) : maximum_(maximum)
+{
+    value_ = new $typecode.contentTypeCode.cppTypename$[maximum_];
+}
+
+$scopedtypename$::~$typename$()
+{
+    if(release_)
+    {
+        delete[](value_);
+        value_ = nullptr;
+    }
+}
+
+void $scopedtypename$::size(uint32_t size)
+{
+    if(size > maximum_)
+    {
+        throw BadParamException("Length is greater than maximum length of the sequence");
+    }
+
+    length_ = size;
+}
+
+uint32_t $scopedtypename$::size() const
+{
+    return length_;
+}
+
+uint32_t& $scopedtypename$::size()
+{
+    return length_;
+}
+
+void $scopedtypename$::length(uint32_t length)
+{
+    if(length > maximum_)
+    {
+        throw BadParamException("Length is greater than maximum length of the sequence");
+    }
+
+    length_ = length;
+}
+
+uint32_t $scopedtypename$::length() const
+{
+    return length_;
+}
+
+uint32_t& $scopedtypename$::length()
+{
+    return length_;
+}
+
+void $scopedtypename$::maximum(uint32_t maximum)
+{
+    maximum_ = maximum;
+
+    if(length_ > maximum_)
+    {
+        length_ = maximum_;
+    }
+}
+
+uint32_t $scopedtypename$::maximum() const
+{
+    return maximum_;
+}
+
+uint32_t& $scopedtypename$::maximum()
+{
+    return maximum_;
+}
+
+void
+$scopedtypename$::value($typecode.contentTypeCode.cppTypename$* value)
+{
+    value_ = value;
+}
+
+$typecode.contentTypeCode.cppTypename$*
+$scopedtypename$::value() const
+{
+    return value_;
+}
+
+void $scopedtypename$::release(bool release)
+{
+    release_ = release;
+}
+
+bool $scopedtypename$::release() const
+{
+    return release_;
+}
+
+bool& $scopedtypename$::release()
+{
+    return release_;
+}
+
+$if(ctx.anyCdr)$
+size_t $scopedtypename$::getMaxCdrSerializedSize(size_t current_alignment)
+{
+    size_t initial_alignment = current_alignment;
+
+    $max_serialized_size(ctx=ctx, typecode=typecode, var="current_alignment")$
+
+    return current_alignment - initial_alignment;
+}
+
+size_t $scopedtypename$::getCdrSerializedSize(const $scopedtypename$& data, size_t current_alignment)
+{
+    (void)data;
+    size_t initial_alignment = current_alignment;
+
+    current_alignment += 4$if(ctx.cdr)$ + eprosima::fastcdr::Cdr::alignment(current_alignment, 4)$endif$;
+
+    $sequence_serialized_size(ctx=ctx, typecodeSeq=typecode, data="data", var="current_alignment", loopvar=ctx.newLoopVarName)$
+
+    return current_alignment - initial_alignment;
+}
+
+$endif$
+
+$if(ctx.cdr)$
+void $scopedtypename$::serialize(eprosima::fastcdr::Cdr &scdr) const
+{
+    scdr <<  length_;
+
+    for (uint32_t count = 0; count < length_; ++count)
+    {
+        scdr << value_[count];
+    }
+}
+
+void $scopedtypename$::deserialize(eprosima::fastcdr::Cdr &dcdr)
+{
+    dcdr \>>  length_;
+
+    for (uint32_t count = 0; count < length_; ++count)
+    {
+        dcdr \>> value_[count];
+    }
+}
+
+$endif$
 >>

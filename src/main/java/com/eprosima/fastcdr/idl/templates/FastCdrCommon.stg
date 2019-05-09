@@ -56,7 +56,7 @@ object_array_serialization(ctx, object, preffix) ::= <<
 $if(object.typecode.contentTypeCode.isType_c)$
 scdr.serializeArray(reinterpret_cast<const uint32_t*>($preffix$$object.name$.data()), $preffix$$object.name$.size());
 $elseif(object.typecode.contentTypeCode.isStringType)$
-$string_collection_serialization(ctx=ctx, object=object, preffix=preffix, array="true")$
+$string_collection_serialization(ctx=ctx, object=object, preffix=preffix)$
 $else$
 scdr << $serializeCasting(typecode=object.typecode)$$preffix$$object.name$;
 $endif$
@@ -75,7 +75,18 @@ $endif$
 
 string_collection_serialization(ctx, object, preffix, array) ::= <<
 $if(ctx.generateTypesC)$
-$if(array)$$recursive_string_array_serialization(ctx=ctx, name=cdrMemberName(name=object.name, preffix=preffix),  loopvar=ctx.nextLoopVarName, dims=object.typecode.dimensions)$$else$
+$if(object.typecode.isType_f)$
+$recursive_string_array_serialization(ctx=ctx, name=cdrMemberName(name=object.name, preffix=preffix),  loopvar=ctx.nextLoopVarName, dims=object.typecode.dimensions)$
+$elseif(object.typecode.isType_e)$
+{
+    std::vector<std::string> temp_$object.name$;
+    for (int count = 0; count < $preffix$$object.name$.size(); ++count)
+    {
+        temp_$object.name$.push_back(std::string($preffix$$object.name$.value()[count] != nullptr ?  $preffix$$object.name$.value()[count] : ""));
+    }
+    scdr << temp_$object.name$;
+}
+$else$
 {
     std::vector<std::string> temp_$object.name$;
     for (char* str : $preffix$$object.name$)
@@ -83,7 +94,8 @@ $if(array)$$recursive_string_array_serialization(ctx=ctx, name=cdrMemberName(nam
         temp_$object.name$.push_back(std::string(str != nullptr ? str : ""));
     }
     scdr << temp_$object.name$;
-}$endif$
+}
+$endif$
 $else$
 scdr << $serializeCasting(typecode=object.typecode)$$preffix$$object.name$;
 $endif$
@@ -121,7 +133,7 @@ object_array_deserialization(ctx, object, preffix) ::= <<
 $if(object.typecode.contentTypeCode.isType_c)$
 dcdr.deserializeArray(reinterpret_cast<uint32_t*>($preffix$$object.name$.data()), $preffix$$object.name$.size());
 $elseif(object.typecode.contentTypeCode.isStringType)$
-$string_collection_deserialization(ctx=ctx, object=object, preffix=preffix, array="true")$
+$string_collection_deserialization(ctx=ctx, object=object, preffix=preffix)$
 $else$
 dcdr \>> $preffix$$object.name$;
 $endif$
@@ -147,9 +159,28 @@ dcdr \>> $preffix$$object.name$;
 $endif$
 >>
 
-string_collection_deserialization(ctx, object, preffix, array) ::= <<
+string_collection_deserialization(ctx, object, preffix) ::= <<
 $if(ctx.generateTypesC)$
-$if(array)$$recursive_string_array_deserialization(ctx=ctx, name=cdrMemberName(name=object.name, preffix=preffix),  loopvar=ctx.nextLoopVarName, dims=object.typecode.dimensions)$$else$
+$if(object.typecode.isType_f)$
+$recursive_string_array_deserialization(ctx=ctx, name=cdrMemberName(name=object.name, preffix=preffix),  loopvar=ctx.nextLoopVarName, dims=object.typecode.dimensions)$
+$elseif(object.typecode.isType_e)$
+{
+    // Free old memory allocation
+    for (int count = 0; count < $preffix$$object.name$.size(); ++count)
+    {
+        free($preffix$$object.name$.value()[count]);
+    }
+    std::vector<std::string> temp_$object.name$;
+    dcdr \>> temp_$object.name$;
+    $preffix$$object.name$.size() = temp_$object.name$.size();
+    for (int count = 0; count < temp_$object.name$.size(); ++count)
+    {
+        char* aux = new char[temp_$object.name$.at(count).size() + 1];
+        strncpy(aux, temp_$object.name$.at(count).c_str(), temp_$object.name$.at(count).size() + 1);
+        $preffix$$object.name$.value()[count] = aux;
+    }
+}
+$else$
 {
     // Free old memory allocation
     for (char* str : $preffix$$object.name$)
@@ -165,7 +196,8 @@ $if(array)$$recursive_string_array_deserialization(ctx=ctx, name=cdrMemberName(n
         strncpy(aux, str.c_str(), str.size() + 1);
         $preffix$$object.name$.push_back(aux);
     }
-}$endif$
+}
+$endif$
 $else$
 dcdr \>> $preffix$$object.name$;
 $endif$
@@ -300,7 +332,8 @@ $elseif(typecodeSeq.contentTypeCode.isType_d)$
 
 for(size_t $loopvar$ = 0; $loopvar$ < $data$.size(); ++$loopvar$)
 {
-    $var$ += 4$if(ctx.cdr)$ + eprosima::fastcdr::Cdr::alignment($var$, 4)$endif$ + $if(ctx.generateTypesC)$strlen($data$.at($loopvar$))$else$$data$.at($loopvar$).size()$endif$ + 1;
+    $var$ += 4$if(ctx.cdr)$ + eprosima::fastcdr::Cdr::alignment($var$, 4)$endif$ +
+        $if(ctx.generateTypesC)$strlen($data$.value()[$loopvar$])$else$$data$.at($loopvar$).size()$endif$ + 1;
 }
 $else$
 
@@ -309,15 +342,27 @@ for(size_t $loopvar$ = 0; $loopvar$ < $data$.size(); ++$loopvar$)
 $if(typecodeSeq.contentTypeCode.isMapType)$
     $var$ += 4$if(ctx.cdr)$ + eprosima::fastcdr::Cdr::alignment($var$, 4)$endif$;
 
+    $if(ctx.generateTypesC)$
+    $map_serialized_size(ctx=ctx, typecodeMap=typecodeSeq.contentTypeCode, data=[data, ".value()[", loopvar, "]"], var=var, loopvar=ctx.nextLoopVarName)$
+    $else$
     $map_serialized_size(ctx=ctx, typecodeMap=typecodeSeq.contentTypeCode, data=[data, ".at(", loopvar, ")"], var=var, loopvar=ctx.nextLoopVarName)$
+    $endif$
 $elseif(typecodeSeq.contentTypeCode.isType_e)$
     $var$ += 4$if(ctx.cdr)$ + eprosima::fastcdr::Cdr::alignment($var$, 4)$endif$;
 
+    $if(ctx.generateTypesC)$
+    $sequence_serialized_size(ctx=ctx, typecodeSeq=typecodeSeq.contentTypeCode, data=[data, ".value()[", loopvar, "]"], var=var, loopvar=ctx.nextLoopVarName)$
+    $else$
     $sequence_serialized_size(ctx=ctx, typecodeSeq=typecodeSeq.contentTypeCode, data=[data, ".at(", loopvar, ")"], var=var, loopvar=ctx.nextLoopVarName)$
+    $endif$
 $elseif(typecodeSeq.contentTypeCode.isType_f)$
-$array_serialized_size(ctx=ctx, typecodeArr=typecodeSeq.contentTypeCode, data=[data, ".at(", loopvar, ")"], var=var, loopvar=ctx.nextLoopVarName, dimensions=typecodeSeq.contentTypeCode.dimensions)$
+    $if(ctx.generateTypesC)$
+    $array_serialized_size(ctx=ctx, typecodeArr=typecodeSeq.contentTypeCode, data=[data, ".value()[", loopvar, "]"], var=var, loopvar=ctx.nextLoopVarName, dimensions=typecodeSeq.contentTypeCode.dimensions)$
+    $else$
+    $array_serialized_size(ctx=ctx, typecodeArr=typecodeSeq.contentTypeCode, data=[data, ".at(", loopvar, ")"], var=var, loopvar=ctx.nextLoopVarName, dimensions=typecodeSeq.contentTypeCode.dimensions)$
+    $endif$
 $else$
-    $var$ += $typecodeSeq.contentTypeCode.scopedname$::getCdrSerializedSize($data$.at($loopvar$), $var$);
+    $var$ += $typecodeSeq.contentTypeCode.scopedname$::getCdrSerializedSize($if(ctx.generateTypesC)$$data$.value()[$loopvar$]$else$$data$.at($loopvar$)$endif$, $var$);
 $endif$
 }
 $endif$
