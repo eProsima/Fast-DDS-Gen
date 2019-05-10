@@ -206,7 +206,7 @@ $if(const.parent)$$if(const.parent.isInterface)$static $endif$$endif$const $cons
 
 typedef_decl(ctx, parent, typedefs) ::= <<
 $typedefs :
-{ typedef | 
+{ typedef |
 $if(ctx.generateTypesC)$
 $if(typedef.typedefContentTypeCode.isSequenceType)$
 $sequences_definition_impl(typecode=typedef.typedefContentTypeCode, typename=typedef.name)$
@@ -236,7 +236,7 @@ public:
     /*!
      * @brief Default destructor.
      */
-    eProsima_user_DllExport virtual ~$struct.name$();
+    eProsima_user_DllExport $if(struct.inheritances)$virtual $endif$~$struct.name$();
 
     /*!
      * @brief Copy constructor.
@@ -703,61 +703,60 @@ sequences_definition_impl(typecode, typename) ::= <<
 
 class eProsima_user_DllExport $typename$
 {
-    public:
+public:
+    $typename$();
 
-        $typename$();
+    $typename$(uint32_t maximum);
 
-        $typename$(uint32_t maximum);
+    ~$typename$();
 
-        ~$typename$();
+    void size(uint32_t size);
 
-        void size(uint32_t size);
+    uint32_t size() const;
 
-        uint32_t size() const;
+    uint32_t& size();
 
-        uint32_t& size();
+    void length(uint32_t size);
 
-        void length(uint32_t size);
+    uint32_t length() const;
 
-        uint32_t length() const;
+    uint32_t& length();
 
-        uint32_t& length();
+    void maximum(uint32_t maximum);
 
-        void maximum(uint32_t maximum);
+    uint32_t maximum() const;
 
-        uint32_t maximum() const;
+    uint32_t& maximum();
 
-        uint32_t& maximum();
+    void value($typecode.contentTypeCode.cppTypename$* value);
 
-        void value($typecode.contentTypeCode.cppTypename$* value);
+    $typecode.contentTypeCode.cppTypename$* value() const;
 
-        $typecode.contentTypeCode.cppTypename$* value() const;
+    void release(bool release);
 
-        void release(bool release);
+    bool release() const;
 
-        bool release() const;
-
-        bool& release();
+    bool& release();
 
 $if(ctx.anyCdr)$
-        static size_t getMaxCdrSerializedSize(size_t current_alignment = 0);
+    static size_t getMaxCdrSerializedSize(size_t current_alignment = 0);
 
-        static size_t getCdrSerializedSize(const $typename$& data, size_t current_alignment = 0);
+    static size_t getCdrSerializedSize(const $typename$& data, size_t current_alignment = 0);
 
 $endif$
 
-        void serialize(eprosima::fastcdr::Cdr &cdr) const;
+    void serialize(eprosima::fastcdr::Cdr &cdr) const;
 
-        void deserialize(eprosima::fastcdr::Cdr &cdr);
+    void deserialize(eprosima::fastcdr::Cdr &cdr);
 
-    private:
+private:
 
-        uint32_t length_ = 0;
+    uint32_t maximum_ = $typecode.maxsize$;
 
-        uint32_t maximum_ = $typecode.maxsize$;
+    uint32_t length_ = 0;
 
-        $typecode.contentTypeCode.cppTypename$* value_ = nullptr;
+    $typecode.contentTypeCode.cppTypename$* value_ = nullptr;
 
-        bool release_ = true;
+    bool release_ = true;
 };
 >>
