@@ -348,9 +348,9 @@ public class fastrtpsgen {
             for (String included : includedIDL)
             {
                 Project inner = process(included);
-                System.out.println("Adding project: " + inner.getFile());
                 if (inner != null && !solution.existsProject(inner.getFile()))
                 {
+                    System.out.println("Adding project: " + inner.getFile());
                     solution.addProject(inner);
                 }
             }
