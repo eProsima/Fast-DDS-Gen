@@ -28,6 +28,10 @@ $definitions; separator="\n"$
 >>
 
 struct_type(ctx, parent, struct) ::= <<
+$if((ctx.generateTypesC))$
+void free_string$struct.name$($struct.name$* topic);
+
+$endif$
 void print$struct.name$($struct.name$* topic);
 void initialize$struct.name$($struct.name$* topic, int idx = 0);
 int compare$struct.name$($struct.name$* a, $struct.name$* b);
