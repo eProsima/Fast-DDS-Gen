@@ -77,6 +77,10 @@ int test$ctx.lastStructure.name$()
     printf("Topic $ctx.lastStructure.name$ size: %s => payloadIn: %d, payloadOut: %d, type: %ld\n", size_equal ? "OK" : "ERROR", payloadSize, payloadOutSize, sizeof($ctx.lastStructure.name$));
     printf("Topic $ctx.lastStructure.name$ comparation: %s\n", topic_equal ? "OK" : "ERROR");
 
+    $if((ctx.generateTypesC))$
+    free_string$ctx.lastStructure.name$(&$ctx.lastStructure.name$_serialization_topic);
+    $endif$
+
     if (!topic_equal)
     {
         return 0;

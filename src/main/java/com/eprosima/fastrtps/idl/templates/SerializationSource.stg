@@ -33,10 +33,17 @@ $definitions; separator="\n"$
 >>
 
 struct_type(ctx, parent, struct) ::= <<
+$if((ctx.generateTypesC))$
+void $if(struct.hasScope)$$struct.scope$::$endif$free_string$struct.name$($struct.name$* topic)
+{
+    $struct.allMembers:{$free_member_string(ctx=ctx, typecode=it.typecode, name=it.name)$}; separator=""$
+}
+
+$endif$
 void $if(struct.hasScope)$$struct.scope$::$endif$print$struct.name$($struct.name$* topic)
 {
     printf("$struct.name$: { \n");
-    $struct.allMembers:{$member_print(ctx=ctx, typecode=it.typecode, name=it.name, name=it.name)$}; separator="\n"$
+    $struct.allMembers:{$member_print(ctx=ctx, typecode=it.typecode, name=it.name)$}; separator="\n"$
     printf("}\n");
 }
 
@@ -181,7 +188,7 @@ $elseif(typecode.isType_d)$
 $if(typecode.isWStringType)$
 topic->$name$(L"WWWWWW");
 $else$
-topic->$name$("AAAAA");
+topic->$name$(u8"AAAu8u8ñññöAA\u2602");
 $endif$
 $elseif(typecode.isSequenceType)$
 $sequence_assigment(ctx=ctx, typecode=typecode, name=name, p="()", loopvar=ctx.newLoopVarName)$
@@ -224,31 +231,31 @@ $typecode.scope$::initialize$typecode.name$(&topic->$name$);
 $endif$
 >>
 
-sequence_member_assignment(ctx, typecode, name, originName, p, loopvar) ::= <<
+sequence_member_assignment(ctx, typecode, name, originName, p, loopvar, currentvar) ::= <<
 $if(typecode.isType_7)$
 $if(ctx.generateTypesC)$
-topic->$name$$p$.value()[topic->$name$$p$.size()] = static_cast<$typecode.cppTypename$>(rand()%2==1);
+topic->$name$$p$.value()[$currentvar$] = static_cast<$typecode.cppTypename$>(rand()%2==1);
 $else$
 topic->$name$$p$.push_back(static_cast<$typecode.cppTypename$>(rand()%2==1));
 $endif$
 $elseif(typecode.primitive)$
 $if(ctx.generateTypesC)$
-topic->$name$$p$.value()[topic->$name$$p$.size()] = static_cast<$typecode.cppTypename$>(rand());
+topic->$name$$p$.value()[$currentvar$] = static_cast<$typecode.cppTypename$>(rand());
 $else$
 topic->$name$$p$.push_back(static_cast<$typecode.cppTypename$>(rand()));
 $endif$
 $elseif(typecode.isType_d)$
 $if(typecode.isWStringType)$
 $if(ctx.generateTypesC)$
-topic->$name$$p$.value()[topic->$name$$p$.size()] = L"WWWWWW";
+topic->$name$$p$.value()[$currentvar$] = L"WWWWWW";
 $else$
 topic->$name$$p$.push_back(L"WWWWWW");
 $endif$
 $else$
 $if(ctx.generateTypesC)$
-topic->$name$$p$.value()[topic->$name$$p$.size()] = "AAAAA";
+topic->$name$$p$.value()[$currentvar$] = u8"AA\u2602A\u2602AA";
 $else$
-topic->$name$$p$.push_back("AAAAA");
+topic->$name$$p$.push_back(u8"AA\u2602A\u2602AA");
 $endif$
 $endif$
 $elseif(typecode.isSequenceType)$
@@ -258,20 +265,17 @@ $array_assigment(ctx=ctx, typecode=typecode, name=name, originName=originName, d
 $elseif(typecode.isMapType)$
 $map_assigment(ctx=ctx, typecode=typecode, name=name, originName=originName, loopvar=loopvar, p="")$
 $elseif(typecode.isType_10)$
-$sequence_member_assignment(ctx=ctx, typecode=typecode.typedefContentTypeCode, name=name, originName=originName, p=p, loopvar=loopvar)$
+$sequence_member_assignment(ctx=ctx, typecode=typecode.typedefContentTypeCode, name=name, originName=originName, p=p, loopvar=loopvar, currentvar=currentvar)$
 $else$
 $typecode.cppTypename$ aux$typecode.cTypename$_$name$;
 initialize$typecode.name$(&aux$typecode.cTypename$_$name$);
 $if(ctx.generateTypesC)$
-topic->$name$$p$.value()[topic->$name$$p$.size()] = aux$typecode.cTypename$_$name$;
+topic->$name$$p$.value()[$currentvar$] = aux$typecode.cTypename$_$name$;
 $else$
 topic->$name$$p$.push_back(aux$typecode.cTypename$_$name$);
 $endif$
 $endif$
 
-$if(ctx.generateTypesC)$
-topic->$name$$p$.size()++;
-$endif$
 >>
 
 map_member_assignment(ctx, keytypecode, valueTypeCode, name, originName, p, loopvar) ::= <<
@@ -345,18 +349,28 @@ $endif$
 >>
 
 sequence_assigment(ctx, typecode, name, p, loopvar) ::= <<
+$if(ctx.generateTypesC)$
+$if(typecode.unbound)$
+topic->$name$$p$.size(50);
+for(int $loopvar$ = 0; $loopvar$ < topic->$name$$p$.size(); ++$loopvar$)
+$else$
+topic->$name$$p$.size($typecode.maxsize$);
 for(int $loopvar$ = 0; $loopvar$ < $typecode.maxsize$; ++$loopvar$)
+$endif$
+$else$
+for(int $loopvar$ = 0; $loopvar$ < $typecode.maxsize$; ++$loopvar$)
+$endif$
 {
     $if(typecode.contentTypeCode.isSequenceType)$
     $if(ctx.generateTypesC)$
-    $sequence_member_assignment(ctx=ctx, typecode=typecode.contentTypeCode, name=indexName(name=name, p=[p, ".value()"], loopvar=loopvar), originName=name, p="", loopvar=ctx.nextLoopVarName)$
+    $sequence_member_assignment(ctx=ctx, typecode=typecode.contentTypeCode, name=indexName(name=name, p=[p, ".value()"], loopvar=loopvar), originName=name, p="", loopvar=ctx.nextLoopVarName, currentvar=loopvar)$
     $else$
-    $sequence_member_assignment(ctx=ctx, typecode=typecode.contentTypeCode, name=indexName(name=name, p=p, loopvar=loopvar), originName=name, p="", loopvar=ctx.nextLoopVarName)$
+    $sequence_member_assignment(ctx=ctx, typecode=typecode.contentTypeCode, name=indexName(name=name, p=p, loopvar=loopvar), originName=name, p="", loopvar=ctx.nextLoopVarName, currentvar=loopvar)$
     $endif$
     $elseif(typecode.contentTypeCode.isArrayType)$
-    $sequence_member_assignment(ctx=ctx, typecode=typecode.contentTypeCode, name=indexName(name=name, p=p, loopvar=loopvar), originName=name, p="", loopvar=ctx.nextLoopVarName)$
+    $sequence_member_assignment(ctx=ctx, typecode=typecode.contentTypeCode, name=indexName(name=name, p=p, loopvar=loopvar), originName=name, p="", loopvar=ctx.nextLoopVarName, currentvar=loopvar)$
     $else$
-    $sequence_member_assignment(ctx=ctx, typecode=typecode.contentTypeCode, name=name, originName=name, p=p, loopvar=ctx.nextLoopVarName)$
+    $sequence_member_assignment(ctx=ctx, typecode=typecode.contentTypeCode, name=name, originName=name, p=p, loopvar=ctx.nextLoopVarName, currentvar=loopvar)$
     $endif$
 }
 >>
@@ -710,3 +724,16 @@ $endif$
 indexName(name, p, loopvar) ::= <<$name$$p$[$loopvar$]>>
 mapName(name, p, key1, key2) ::= <<$name$$p$[$key1$Key$key2$]>>
 itMapName(name, p, loopvar) ::= <<$name$$p$[it_$loopvar$.first]>>
+
+// ========================================================================================
+//                                      C STRING
+// ========================================================================================
+// TODO: Add more cases if tests evolve...
+free_member_string(ctx, typecode, name) ::= <<
+$if(ctx.generateTypesC)$
+$if(typecode.isType_a)$
+free_string$typecode.name$(&topic->$name$());
+$elseif(typecode.isSequenceType)$$if(typecode.contentTypeCode.isType_d)$
+char** $name$_buffer = topic->$name$().value(true);
+delete[] $name$_buffer;
+$endif$$endif$$endif$>>

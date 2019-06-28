@@ -687,7 +687,7 @@ public_cstring_member_declaration(class, member) ::= <<
 void $class$::$member.name$(const $member.typecode.cppTypename$ _$member.name$)
 {
     free(m_$member.name$);
-    m_$member.name$ = new char[strlen(_$member.name$) + 1];
+    m_$member.name$ = (char*)malloc(sizeof(char) * (strlen(_$member.name$) + 1));
     strncpy(m_$member.name$, _$member.name$, strlen(_$member.name$) + 1);
 }
 
@@ -747,7 +747,7 @@ unionmember_cstring_declaration(class, member, totallabels, defaultvalue) ::= <<
 void $class$::$member.name$(const char* _$member.name$)
 {
     free(m_$member.name$);
-    m_$member.name$ = new char[strlen(_$member.name$) + 1];
+    m_$member.name$ = (char*)malloc(sizeof(char) * (strlen(_$member.name$) + 1));
     strncpy(m_$member.name$, _$member.name$, strlen(_$member.name$));
     $unionmember_set_discriminator(member=member, defaultvalue=defaultvalue)$
 }
@@ -817,7 +817,7 @@ m_$member.name$ = new $member.typecode.cppTypename$();
 $elseif(ctx.generateTypesC)$
 $if(member.typecode.isStringType)$
 free(m_$member.name$);
-m_$member.name$ = (char*)malloc(strlen(x.m_$member.name$) + 1);
+m_$member.name$ = (char*)malloc(sizeof(char) * (strlen(x.m_$member.name$) + 1));
 strncpy(m_$member.name$, x.m_$member.name$, strlen(x.m_$member.name$) + 1);
 $else$
 m_$member.name$ = x.m_$member.name$;
@@ -1019,28 +1019,154 @@ sequences_definition_impl(typecode, scopedtypename, typename) ::= <<
 
 $scopedtypename$::$typename$()
 {
-    value_ = new $typecode.contentTypeCode.cppTypename$[maximum_];
+    // value_ = new $typecode.contentTypeCode.cppTypename$[maximum_];
+    value_ = nullptr;
 }
 
 $scopedtypename$::$typename$(uint32_t maximum) : maximum_(maximum)
 {
-    value_ = new $typecode.contentTypeCode.cppTypename$[maximum_];
+    // value_ = new $typecode.contentTypeCode.cppTypename$[maximum_];
+    value_ = nullptr;
+}
+
+$scopedtypename$::$typename$(
+        uint32_t length,
+        $typecode.contentTypeCode.cppTypename$* data,
+        bool release)
+    : length_(length)
+    , value_(data)
+    , release_(release)
+{
+}
+
+$scopedtypename$::$typename$(const $typename$& $typename$_)
+    : maximum_($typename$_.maximum_)
+    , length_($typename$_.length_)
+    , release_(true)
+{
+    value_ = new $typecode.contentTypeCode.cppTypename$[length_];
+    for (uint32_t i = 0; i < length_; ++i)
+    {
+        $if(ctx.generateTypesC)$$if(typecode.contentTypeCode.isStringType)$
+        strncpy(value_[i], $typename$_.value_[i], strlen($typename$_.value_[i]) + 1);
+        $else$
+        value_[i] = $typename$_.value_[i];$endif$$else$
+        value_[i] = $typename$_.value_[i];$endif$
+    }
+}
+
+$scopedtypename$& $scopedtypename$::operator=(const $typename$& $typename$_)
+{
+    maximum_ = $typename$_.maximum_;
+    length_ = $typename$_.length_;
+    free_memory();
+    release_ = true;
+
+    value_ = new $typecode.contentTypeCode.cppTypename$[length_];
+    for (uint32_t i = 0; i < length_; ++i)
+    {
+        $if(ctx.generateTypesC)$$if(typecode.contentTypeCode.isStringType)$
+        strncpy(value_[i], $typename$_.value_[i], strlen($typename$_.value_[i]) + 1);
+        $else$
+        value_[i] = $typename$_.value_[i];$endif$$else$
+        value_[i] = $typename$_.value_[i];$endif$
+    }
+
+    return *this;
 }
 
 $scopedtypename$::~$typename$()
 {
-    if(release_)
+    free_memory();
+}
+
+$typecode.contentTypeCode.cppTypename$$if(ctx.generateTypesC)$$if(typecode.contentTypeCode.isStringType)$$else$&$endif$$else$&$endif$ $scopedtypename$::operator[](uint32_t index)
+{
+    if (value_ == nullptr)
     {
-        delete[](value_);
-        value_ = nullptr;
+        if (maximum_ == 0)
+        {
+            if (length_ != 0) // Must be set. If not, will return nullptr[index] and crash.
+            {
+                value_ = new $typecode.contentTypeCode.cppTypename$[length_];
+            }
+        }
+        else
+        {
+            value_ = new $typecode.contentTypeCode.cppTypename$[maximum_];
+        }
+
+        $if(ctx.generateTypesC)$$if(typecode.contentTypeCode.isStringType)$
+        for (uint32_t count = 0; count < length_; ++count)
+        {
+            value_[count] = nullptr;
+        }
+        $else$$endif$$else$$endif$
     }
+
+    return value_[index];
+}
+
+const $typecode.contentTypeCode.cppTypename$$if(ctx.generateTypesC)$$if(typecode.contentTypeCode.isStringType)$$else$&$endif$$else$&$endif$ $scopedtypename$::operator[](uint32_t index) const
+{
+    if (value_ == nullptr)
+    {
+        if (maximum_ == 0)
+        {
+            if (length_ != 0) // Must be set. If not, will return nullptr[index] and crash.
+            {
+                value_ = new $typecode.contentTypeCode.cppTypename$[length_];
+            }
+        }
+        else
+        {
+            value_ = new $typecode.contentTypeCode.cppTypename$[maximum_];
+        }
+
+        $if(ctx.generateTypesC)$$if(typecode.contentTypeCode.isStringType)$
+        for (uint32_t count = 0; count < length_; ++count)
+        {
+            value_[count] = nullptr;
+        }
+        $else$$endif$$else$$endif$
+    }
+
+    return value_[index];
 }
 
 void $scopedtypename$::size(uint32_t size)
 {
-    if(size > maximum_)
+    if (maximum_ == 0)
     {
-        throw BadParamException("Length is greater than maximum length of the sequence");
+        if(value_ != nullptr && size > length_)
+        {
+            $typecode.contentTypeCode.cppTypename$* temp = new $typecode.contentTypeCode.cppTypename$[size];
+            for (uint32_t i = 0; i < length_; ++i)
+            {
+                $if(ctx.generateTypesC)$$if(typecode.contentTypeCode.isStringType)$
+                if (value_[i] != nullptr)
+                {
+                    strncpy(temp[i], value_[i], strlen(value_[i]) + 1);
+                }
+                else
+                {
+                    temp[i] = nullptr;
+                }
+                $else$
+                temp[i] = value_[i];$endif$$else$
+                temp[i] = value_[i];$endif$
+            }
+            free_memory();
+            value_ = temp;
+            release_ = true;
+        }
+    }
+    else
+    {
+        if(size > maximum_)
+        {
+            throw BadParamException("Length is greater than maximum length of the sequence");
+        }
     }
 
     length_ = size;
@@ -1051,16 +1177,39 @@ uint32_t $scopedtypename$::size() const
     return length_;
 }
 
-uint32_t& $scopedtypename$::size()
-{
-    return length_;
-}
-
 void $scopedtypename$::length(uint32_t length)
 {
-    if(length > maximum_)
+    if (maximum_ == 0)
     {
-        throw BadParamException("Length is greater than maximum length of the sequence");
+        if(value_ != nullptr && length > length_)
+        {
+            $typecode.contentTypeCode.cppTypename$* temp = new $typecode.contentTypeCode.cppTypename$[length];
+            for (uint32_t i = 0; i < length_; ++i)
+            {
+                $if(ctx.generateTypesC)$$if(typecode.contentTypeCode.isStringType)$
+                if (value_[i] != nullptr)
+                {
+                    strncpy(temp[i], value_[i], strlen(value_[i]) + 1);
+                }
+                else
+                {
+                    temp[i] = nullptr;
+                }
+                $else$
+                temp[i] = value_[i];$endif$$else$
+                temp[i] = value_[i];$endif$
+            }
+            free_memory();
+            value_ = temp;
+            release_ = true;
+        }
+    }
+    else
+    {
+        if(length > maximum_)
+        {
+            throw BadParamException("Length is greater than maximum length of the sequence");
+        }
     }
 
     length_ = length;
@@ -1071,40 +1220,90 @@ uint32_t $scopedtypename$::length() const
     return length_;
 }
 
-uint32_t& $scopedtypename$::length()
-{
-    return length_;
-}
-
-void $scopedtypename$::maximum(uint32_t maximum)
-{
-    maximum_ = maximum;
-
-    if(length_ > maximum_)
-    {
-        length_ = maximum_;
-    }
-}
-
 uint32_t $scopedtypename$::maximum() const
 {
-    return maximum_;
-}
-
-uint32_t& $scopedtypename$::maximum()
-{
-    return maximum_;
+    if (maximum_ == 0)
+    {
+        return length_;
+    }
+    else
+    {
+        return maximum_;
+    }
 }
 
 void
 $scopedtypename$::value($typecode.contentTypeCode.cppTypename$* value)
 {
+    free_memory();
     value_ = value;
 }
 
 $typecode.contentTypeCode.cppTypename$*
+$scopedtypename$::value(bool orphan)
+{
+    if (orphan && !release_)
+    {
+        return nullptr;
+    }
+
+    if (value_ == nullptr)
+    {
+        if (maximum_ == 0)
+        {
+            if (length_ == 0) // Not yet set
+            {
+                return nullptr; // To be coherent with accessing value[length];
+            }
+            value_ = new $typecode.contentTypeCode.cppTypename$[length_];
+        }
+        else
+        {
+            value_ = new $typecode.contentTypeCode.cppTypename$[maximum_];
+        }
+
+        $if(ctx.generateTypesC)$$if(typecode.contentTypeCode.isStringType)$
+        for (uint32_t count = 0; count < length_; ++count)
+        {
+            value_[count] = nullptr;
+        }
+        $else$$endif$$else$$endif$
+    }
+
+    if (orphan)
+    {
+        release_ = false;
+    }
+
+    return value_;
+}
+
+const $typecode.contentTypeCode.cppTypename$$if(ctx.generateTypesC)$$if(typecode.contentTypeCode.isStringType)$ const$else$$endif$$else$$endif$*
 $scopedtypename$::value() const
 {
+    if (value_ == nullptr)
+    {
+        if (maximum_ == 0)
+        {
+            if (length_ == 0) // Not yet set
+            {
+                return nullptr; // To be coherent with accessing value[length];
+            }
+            value_ = new $typecode.contentTypeCode.cppTypename$[length_];
+        }
+        else
+        {
+            value_ = new $typecode.contentTypeCode.cppTypename$[maximum_];
+        }
+
+        $if(ctx.generateTypesC)$$if(typecode.contentTypeCode.isStringType)$
+        for (uint32_t count = 0; count < length_; ++count)
+        {
+            value_[count] = nullptr;
+        }
+        $else$$endif$$else$$endif$
+    }
+
     return value_;
 }
 
@@ -1152,6 +1351,19 @@ void $scopedtypename$::serialize(eprosima::fastcdr::Cdr &scdr) const
 {
     scdr <<  length_;
 
+    if (value_ == nullptr && length_ > 0)
+    {
+        uint32_t size = (maximum_ == 0) ? length_ : maximum_;
+        value_ = new $typecode.contentTypeCode.cppTypename$[size];
+
+        $if(ctx.generateTypesC)$$if(typecode.contentTypeCode.isStringType)$
+        for (uint32_t count = 0; count < length_; ++count)
+        {
+            value_[count] = nullptr;
+        }
+        $else$$endif$$else$$endif$
+    }
+
     for (uint32_t count = 0; count < length_; ++count)
     {
         scdr << value_[count];
@@ -1160,12 +1372,56 @@ void $scopedtypename$::serialize(eprosima::fastcdr::Cdr &scdr) const
 
 void $scopedtypename$::deserialize(eprosima::fastcdr::Cdr &dcdr)
 {
-    dcdr \>>  length_;
+    uint32_t old_length = length_;
+    uint32_t new_length;
+
+    dcdr \>>  new_length;
+
+    if (maximum_ != 0 && new_length > maximum_)
+    {
+        throw BadParamException("Deserialized length is greater than maximum length of the sequence. Incompatible \
+            sequences.");
+    }
+
+    if ((value_ == nullptr && new_length > 0) || (old_length < new_length))
+    {
+        free_memory();
+
+        uint32_t size = (maximum_ == 0) ? new_length : maximum_;
+        value_ = new $typecode.contentTypeCode.cppTypename$[size];
+    }
+
+    length_ = new_length;
 
     for (uint32_t count = 0; count < length_; ++count)
     {
-        dcdr \>> value_[count];
+        $if(ctx.generateTypesC)$$if(typecode.contentTypeCode.isStringType)$
+        {
+            std::string temp;
+            dcdr \>> temp;
+            value_[count] = (char*)malloc(temp.size() + 1);
+            strncpy(value_[count], temp.c_str(), temp.size() + 1);
+        }
+        $else$
+        dcdr \>> value_[count];$endif$$else$
+        dcdr \>> value_[count];$endif$
     }
+}
+
+void $scopedtypename$::free_memory()
+{
+    if (release_)
+    {
+        $if(ctx.generateTypesC)$$if(typecode.contentTypeCode.isStringType)$
+        for (uint32_t count = 0; count < length_; ++count)
+        {
+            free(value_[count]);
+            value_[count] = nullptr;
+        }
+        $else$$endif$$else$$endif$
+        delete[](value_);
+    }
+    value_ = nullptr;
 }
 
 $endif$
