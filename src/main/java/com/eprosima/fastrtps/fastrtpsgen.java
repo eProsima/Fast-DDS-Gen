@@ -390,23 +390,16 @@ public class fastrtpsgen {
 
         fastrtpsgen.m_platforms = new ArrayList<String>();
 
-        try {
+        fastrtpsgen.m_platforms.add("i86Win32VS2013");
+        fastrtpsgen.m_platforms.add("x64Win64VS2013");
+        fastrtpsgen.m_platforms.add("i86Win32VS2015");
+        fastrtpsgen.m_platforms.add("x64Win64VS2015");
+        fastrtpsgen.m_platforms.add("i86Linux2.6gcc");
+        fastrtpsgen.m_platforms.add("x64Linux2.6gcc");
+        fastrtpsgen.m_platforms.add("armLinux2.6gcc");
+        fastrtpsgen.m_platforms.add("CMake");
 
-            InputStream input = fastrtpsgen.class.getClassLoader().getResourceAsStream("platforms"); // TODO Modificar esto antes de exportarlo
-            InputStreamReader ir = new InputStreamReader(input);
-            BufferedReader reader = new BufferedReader(ir);
-            String line = null;
-            while ((line = reader.readLine()) != null) {
-                fastrtpsgen.m_platforms.add(line);
-            }
-
-            returnedValue = true;
-
-        } catch (Exception e) {
-
-            System.out.println(ColorMessage.error() + "Getting platforms. " + e.getMessage());
-
-        }
+        returnedValue = true;
 
         return returnedValue;
     }
