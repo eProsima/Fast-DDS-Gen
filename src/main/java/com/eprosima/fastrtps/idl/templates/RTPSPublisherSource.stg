@@ -25,7 +25,8 @@ $fileHeader(ctx=ctx,  file=[ctx.filename, "Publisher.cpp"], description=["This f
 
 #include <fastrtps/Domain.h>
 
-#include <fastrtps/utils/eClock.h>
+#include <thread>
+#include <chrono>
 
 #include "$ctx.filename$Publisher.h"
 
@@ -94,7 +95,7 @@ void $ctx.filename$Publisher::run()
 {
     while(m_listener.n_matched == 0)
     {
-        eClock::my_sleep(250); // Sleep 250 ms
+        std::this_thread::sleep_for(std::chrono::milliseconds(250)); // Sleep 250 ms
     }
 
     // Publication code
