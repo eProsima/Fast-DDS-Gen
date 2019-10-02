@@ -10,6 +10,8 @@ import com.eprosima.integration.TestManager.TestLevel;
 import static org.junit.Assert.assertEquals;
 
 import java.util.ArrayList;
+import java.nio.file.Paths;
+import java.nio.file.Files;
 
 public class FastRTPSGenTest
 {
@@ -40,12 +42,19 @@ public class FastRTPSGenTest
 
         //Configure Fast-RTPS for the tests
         ArrayList<String[]> commands = new ArrayList<String[]>();
-        commands.add(new String[]{"mkdir -p " + OUTPUT_PATH, "."});
-        commands.add(new String[]{"rm -rf Fast-RTPS", OUTPUT_PATH});
-        commands.add(new String[]{"git clone -b " + branch + " https://github.com/eProsima/Fast-RTPS.git", OUTPUT_PATH});
-        commands.add(new String[]{"mkdir build", OUTPUT_PATH + "/Fast-RTPS"});
+        if (Files.notExists(Paths.get(OUTPUT_PATH + "/Fast-RTPS/build")))
+        {
+            commands.add(new String[]{"mkdir -p " + OUTPUT_PATH, "."});
+            commands.add(new String[]{"rm -rf Fast-RTPS", OUTPUT_PATH});
+            commands.add(new String[]{"git clone -b " + branch + " https://github.com/eProsima/Fast-RTPS.git", OUTPUT_PATH});
+            commands.add(new String[]{"mkdir build", OUTPUT_PATH + "/Fast-RTPS"});
+        }
+        else
+        {
+            commands.add(new String[]{"git checkout -f " + branch, OUTPUT_PATH + "/Fast-RTPS"});
+        }
         commands.add(new String[]{"cmake .. -DTHIRDPARTY=ON -DCMAKE_INSTALL_PREFIX=install", OUTPUT_PATH + "/Fast-RTPS/build"});
-        commands.add(new String[]{"make install", OUTPUT_PATH + "/Fast-RTPS/build"});
+        commands.add(new String[]{"make -j" + Runtime.getRuntime().availableProcessors() + " install", OUTPUT_PATH + "/Fast-RTPS/build"});
 
         for(String[] command: commands)
         {
