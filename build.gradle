@@ -17,7 +17,7 @@ apply plugin: 'java'
 apply plugin: 'eclipse' // Eclipse integration
 
 description = """"""
-def version_str = "1.0.0"
+def version_str = "1.0.1"
 
 repositories {
     mavenCentral()
@@ -38,15 +38,17 @@ task copyResources {
     // Copy platforms file
     File outputDir = file(new File("${project.buildDir}", "resources/main"))
     outputDir.exists() || outputDir.mkdirs()
-
-    // Create version file
-    Properties pversion = new Properties()
-    project.hasProperty('customversion')
-        ? pversion.setProperty('version', project.customversion.toString())
-        : pversion.setProperty('version', version_str)
     File versionFile = new File("${project.buildDir}/resources/main/version")
-    versionFile.withWriter {
-        pversion.store(it, null)
+    outputs.file versionFile
+    doLast {
+        // Create version file
+        Properties pversion = new Properties()
+        project.hasProperty('customversion')
+            ? pversion.setProperty('version', project.customversion.toString())
+            : pversion.setProperty('version', version_str)
+        versionFile.withWriter {
+            pversion.store(it, null)
+        }
     }
 
 }
