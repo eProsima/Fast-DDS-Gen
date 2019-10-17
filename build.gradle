@@ -17,7 +17,7 @@ apply plugin: 'java'
 apply plugin: 'eclipse' // Eclipse integration
 
 description = """"""
-def version_str = "1.0.1"
+def version_str = "1.0.2"
 
 repositories {
     mavenCentral()
