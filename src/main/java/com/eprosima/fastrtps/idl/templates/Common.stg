@@ -101,7 +101,7 @@ size_t $struct.scopedname$::getKeyMaxCdrSerializedSize(size_t current_alignment)
 {
 	size_t current_align = current_alignment;
 
-    $if(struct.inheritances)$    $struct.inheritances : {current_alignment += $it.scopedname$::getKeyMaxCdrSerializedSize(current_alignment);}; separator="\n"$ $endif$
+    $if(struct.inheritances)$    $struct.inheritances : {current_align += $it.scopedname$::getKeyMaxCdrSerializedSize(current_align);}; separator="\n"$ $endif$
 
     $struct.members : { member | $if(boolean_converter.(member.annotations.("Key").values.("value").value))$ $max_serialized_size(ctx=ctx, typecode=member.typecode, var="current_align")$ $endif$}; separator="\n"$
 
