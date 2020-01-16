@@ -29,10 +29,16 @@ dependencies {
     compile 'junit:junit:4.+'
 }
 
+task submodulesUpdate(type: Exec) {
+    description 'Updates (and inits) git submodules'
+    commandLine 'git', 'submodule', 'update', '--init'
+}
+
 task buildIDLParser(type: GradleBuild) {
     buildFile = 'thirdparty/idl-parser/idl.gradle'
     tasks = ['clean', 'build']
 }
+buildIDLParser.dependsOn submodulesUpdate
 
 task copyResources {
     // Copy platforms file
@@ -75,7 +81,6 @@ sourceSets {
 jar {
     from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
     baseName = 'fastrtpsgen'
-    destinationDir = file(new File(projectDir, 'share/fastrtps'))
     manifest {
         attributes("Created-By": "eProsima", "Main-Class": "com.eprosima.fastrtps.fastrtpsgen")
     }
@@ -90,6 +95,5 @@ compileJava {
 }
 
 test {
-    systemProperty 'branch', System.getProperty('branch')
     useJUnit()
 }

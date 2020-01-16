@@ -12,5 +12,5 @@ if [ $? != 0 ]; then
 fi
 
 prefix="@prefix@"
-exec $java_exec -jar "@datadir@/fastrtps/fastrtpsgen.jar" "$@"
+exec $java_exec -jar "@datadir@/fastrtpsgen/java/fastrtpsgen.jar" "$@"
 
