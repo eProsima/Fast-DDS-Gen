@@ -540,7 +540,6 @@ public class fastrtpsgen {
 
             // Load common types template
             extensions.add(new TemplateExtension("struct_type", "keyFunctionHeadersStruct"));
-            extensions.add(new TemplateExtension("union_type", "keyFunctionHeadersUnion"));
             tmanager.addGroup("TypesHeader", extensions);
             if (m_type_object_files)
             {
