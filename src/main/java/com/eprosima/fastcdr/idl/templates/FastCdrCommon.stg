@@ -448,7 +448,21 @@ for(auto $loopvar$ : $data$)
 $if(typecodeMap.keyTypeCode.primitive)$
     $var$ += $typecodeMap.keyTypeCode.size$$if(ctx.cdr)$ + eprosima::fastcdr::Cdr::alignment($var$, $typecodeMap.keyTypeCode.size$)$endif$;
 $else$
-    // KEY TYPE ISN'T PRIMITIVE $typecodeMap.keyTypeCode.cppTypename$
+
+$elseif(typecodeMap.keyTypeCode.isType_d)$
+    $var$ += 4$if(ctx.cdr)$ + eprosima::fastcdr::Cdr::alignment($var$, 4)$endif$ + $if(ctx.generateTypesC)$strlen($loopvar$.first)$else$$loopvar$.first.size()$endif$ + 1;
+$elseif(typecodeMap.keyTypeCode.isMapType)$
+    $var$ += 4$if(ctx.cdr)$ + eprosima::fastcdr::Cdr::alignment($var$, 4)$endif$;
+
+    $map_serialized_size(ctx=ctx, typecodeMap=typecodeMap.keyTypeCode, data=[loopvar, ".first"], var=var, loopvar=ctx.nextLoopVarName)$
+$elseif(typecodeMap.keyTypeCode.isType_e)$
+    $var$ += 4$if(ctx.cdr)$ + eprosima::fastcdr::Cdr::alignment($var$, 4)$endif$;
+
+    $sequence_serialized_size(ctx=ctx, typecodeSeq=typecodeMap.keyTypeCode, data=[loopvar, ".first"], var=var, loopvar=ctx.nextLoopVarName)$
+$elseif(typecodeMap.keyTypeCode.isType_f)$
+    $array_serialized_size(ctx=ctx, typecodeArr=typecodeMap.keyTypeCode, data=[loopvar, ".first"], var=var, loopvar=ctx.nextLoopVarName, dimensions=typecodeMap.keyTypeCode.dimensions)$
+$else$
+    $var$ += $typecodeMap.keyTypeCode.scopedname$::getCdrSerializedSize(($loopvar$.first), $var$);
 $endif$
 
 $if(typecodeMap.valueTypeCode.primitive)$
