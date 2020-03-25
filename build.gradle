@@ -84,6 +84,13 @@ jar {
     manifest {
         attributes("Created-By": "eProsima", "Main-Class": "com.eprosima.fastrtps.fastrtpsgen")
     }
+    doLast
+    {
+        copy {
+            from jar
+            into "share/fastrtpsgen/java"
+        }
+    }
 }
 
 compileJava.dependsOn buildIDLParser,copyResources
