@@ -36,7 +36,7 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
 {
     // TODO Remove middleware parameter. It is temporal while cdr and rest don't have async functions.
     public Context(String filename, String file, ArrayList<String> includePaths, boolean subscribercode, boolean publishercode,
-            String appProduct, boolean generate_type_object, boolean generate_typesc)
+            String appProduct, boolean generate_type_object, boolean generate_typesc, boolean generate_type_ros2)
     {
         super(filename, file, includePaths);
         m_fileNameUpper = filename.toUpperCase();
@@ -51,6 +51,7 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
 
         m_type_object = generate_type_object;
         m_typesc = generate_typesc;
+        m_type_ros2 = generate_type_ros2;
     }
 
     public void setTypelimitation(String lt)
@@ -299,6 +300,8 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
 
     private boolean m_typesc = false;
 
+    private boolean m_type_ros2 = false;
+
     @Override
     public boolean isGenerateTypeObject()
     {
@@ -309,6 +312,12 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
     public boolean isGenerateTypesC()
     {
         return m_typesc;
+    }
+
+    @Override
+    public boolean isGenerateTypesROS2()
+    {
+        return m_type_ros2;
     }
 
     public String getHeaderGuardName ()

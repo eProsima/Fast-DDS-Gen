@@ -43,6 +43,8 @@ public interface Context
 
     public boolean isGenerateTypesC();
 
+    public boolean isGenerateTypesROS2();
+
     public boolean isCdr();
 
     public boolean isFastcdr();
