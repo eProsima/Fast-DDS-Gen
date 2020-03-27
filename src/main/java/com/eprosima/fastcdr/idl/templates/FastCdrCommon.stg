@@ -310,7 +310,10 @@ $endif$
 
 sequence_serialized_size(ctx, typecodeSeq, data, var, loopvar) ::= <<
 $if(typecodeSeq.contentTypeCode.primitive)$
-$var$ += ($data$.size() * $typecodeSeq.contentTypeCode.size$)$if(ctx.cdr)$ + eprosima::fastcdr::Cdr::alignment($var$, $typecodeSeq.contentTypeCode.size$)$endif$;
+if ($data$.size() > 0)
+{
+    $var$ += ($data$.size() * $typecodeSeq.contentTypeCode.size$)$if(ctx.cdr)$ + eprosima::fastcdr::Cdr::alignment($var$, $typecodeSeq.contentTypeCode.size$)$endif$;
+}
 
 $elseif(typecodeSeq.contentTypeCode.isType_d)$
 
@@ -384,7 +387,10 @@ $endif$
 
 array_serialized_size(ctx, typecodeArr, data, var, loopvar, dimensions) ::= <<
 $if(typecodeArr.contentTypeCode.primitive)$
-$var$ += ($typecodeArr.size$ * $typecodeArr.contentTypeCode.size$)$if(ctx.cdr)$ + eprosima::fastcdr::Cdr::alignment($var$, $typecodeArr.contentTypeCode.size$)$endif$;
+if ($typecodeArr.size$ > 0)
+{
+    $var$ += ($typecodeArr.size$ * $typecodeArr.contentTypeCode.size$)$if(ctx.cdr)$ + eprosima::fastcdr::Cdr::alignment($var$, $typecodeArr.contentTypeCode.size$)$endif$;
+}
 
 $else$
 $if(first(dimensions))$
