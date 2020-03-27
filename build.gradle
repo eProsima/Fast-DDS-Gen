@@ -101,6 +101,17 @@ compileJava {
     options.compilerArgs.add('-Xlint:unchecked')
 }
 
+task install(group: "Install", description: "Install fastrtpsgen script and fastrtpsgen.jar in /usr/local/") {
+    copy {
+        from file("scripts/fastrtpsgen")
+        into file("/usr/local/bin/")
+    }
+    copy {
+        from file("share/fastrtpsgen/java/fastrtpsgen.jar")
+        into file("/usr/local/share/fastrtpsgen/java/")
+    }
+}
+
 test {
     useJUnitPlatform()
 }
