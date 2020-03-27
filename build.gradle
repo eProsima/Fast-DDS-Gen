@@ -19,6 +19,8 @@ apply plugin: 'eclipse' // Eclipse integration
 description = """"""
 def version_str = "1.0.3"
 
+import org.apache.tools.ant.taskdefs.condition.Os
+
 repositories {
     mavenCentral()
 }
@@ -102,13 +104,24 @@ compileJava {
 }
 
 task install(group: "Install", description: "Install fastrtpsgen script and fastrtpsgen.jar in /usr/local/") {
-    copy {
-        from file("scripts/fastrtpsgen")
-        into file("/usr/local/bin/")
-    }
-    copy {
-        from file("share/fastrtpsgen/java/fastrtpsgen.jar")
-        into file("/usr/local/share/fastrtpsgen/java/")
+    if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+        copy {
+            from file("scripts\\fastrtpsgen.bat")
+            into file("C:\\Program Files\\fastrtpsgen\\bin")
+        }
+        copy {
+            from file("share\\fastrtpsgen\\java\\fastrtpsgen.jar")
+            into file("C:\\Program Files\\fastrtpsgen\\share\\fastrtpsgen\\java\\")
+        }
+    } else if (Os.isFamily(Os.FAMILY_UNIX)) {
+        copy {
+            from file("scripts/fastrtpsgen")
+            into file("/usr/local/bin/")
+        }
+        copy {
+            from file("share/fastrtpsgen/java/fastrtpsgen.jar")
+            into file("/usr/local/share/fastrtpsgen/java/")
+        }
     }
 }
 
