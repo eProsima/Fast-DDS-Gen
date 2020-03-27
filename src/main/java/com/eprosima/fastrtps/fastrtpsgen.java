@@ -102,6 +102,9 @@ public class fastrtpsgen {
     //! Default package used in Java files.
     private String m_package = "";
 
+    // Generates type naming compatible with ROS 2
+    private boolean m_type_ros2 = false;
+
     // Generate TypeObject files?
     private boolean m_type_object_files = false;
 
@@ -218,6 +221,10 @@ public class fastrtpsgen {
             else if(arg.equals("-fusion"))
             {
                 fusion_ = true;
+            }
+            else if(arg.equals("-typeros2"))
+            {
+                m_type_ros2 = true;
             }
             else if(arg.equals("-typeobject"))
             {
@@ -446,6 +453,7 @@ public class fastrtpsgen {
         System.out.println("\t\t-replace: replaces existing generated files.");
         System.out.println("\t\t-ppDisable: disables the preprocessor.");
         System.out.println("\t\t-ppPath: specifies the preprocessor path.");
+        System.out.println("\t\t-typeros2: generates type naming compatible with ROS2.");
         System.out.println("\t\t-I <path>: add directory to preprocessor include paths.");
         System.out.println("\t\t-d <path>: sets an output directory for generated files.");
         System.out.println("\t\t-t <temp dir>: sets a specific directory as a temporary directory.");
@@ -516,7 +524,7 @@ public class fastrtpsgen {
         }
 
         if (idlParseFileName != null) {
-            Context ctx = new Context(onlyFileName, idlFilename, m_includePaths, m_subscribercode, m_publishercode, m_localAppProduct, m_type_object_files, m_typesc);
+            Context ctx = new Context(onlyFileName, idlFilename, m_includePaths, m_subscribercode, m_publishercode, m_localAppProduct, m_type_object_files, m_typesc, m_type_ros2);
 
             if(m_case_sensitive)
             {
