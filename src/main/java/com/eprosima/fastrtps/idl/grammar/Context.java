@@ -160,7 +160,7 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
     private void getSequencesToDefine(ArrayList<Entry<String, TypeCode>> typecodes, SequenceTypeCode sequence)
     {
         // Search
-        for (Entry entry : typecodes)
+        for (Entry<String, TypeCode> entry : typecodes)
         {
             if (entry.getKey().equals(sequence.getCppTypename()))
             {
@@ -187,7 +187,7 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
             }
         }
 
-        typecodes.add(new SimpleEntry(sequence.getCppTypename(), sequence));
+        typecodes.add(new SimpleEntry<String, TypeCode>(sequence.getCppTypename(), sequence));
     }
 
     /*** Functions inherated from FastCDR Context ***/
