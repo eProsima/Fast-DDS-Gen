@@ -113,7 +113,7 @@ task install(group: "Install", description: "Install fastrtpsgen script and fast
             from file("share\\fastrtpsgen\\java\\fastrtpsgen.jar")
             into file("C:\\Program Files\\fastrtpsgen\\share\\fastrtpsgen\\java\\")
         }
-    } else if (Os.isFamily(Os.FAMILY_UNIX)) {
+    } else if (Os.isFamily(Os.FAMILY_UNIX) || Os.isFamily(Os.FAMILY_MAC)) {
         copy {
             from file("scripts/fastrtpsgen")
             into file("/usr/local/bin/")
