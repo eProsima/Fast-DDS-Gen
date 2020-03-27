@@ -1,13 +1,13 @@
 package test.com.eprosima.fastrtps;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import com.eprosima.integration.Command;
 import com.eprosima.integration.IDL;
 import com.eprosima.integration.TestManager;
 import com.eprosima.integration.TestManager.TestLevel;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.ArrayList;
 import java.nio.file.Paths;
