@@ -34,7 +34,7 @@ public class FastRTPSGenTest
         }
 
         //Configure idl tests
-        TestManager tests = new TestManager(TestLevel.RUN, "share/fastrtps/fastrtpsgen", INPUT_PATH,
+        TestManager tests = new TestManager(TestLevel.RUN, "share/fastrtpsgen/java/fastrtpsgen", INPUT_PATH,
                         OUTPUT_PATH + "/idls", "CMake");
         tests.removeTests(IDL.ARRAY_NESTED, IDL.SEQUENCE_NESTED);
         boolean testResult = tests.runTests();
