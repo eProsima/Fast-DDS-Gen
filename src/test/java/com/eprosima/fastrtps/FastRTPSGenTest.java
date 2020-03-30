@@ -1,13 +1,13 @@
 package test.com.eprosima.fastrtps;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import com.eprosima.integration.Command;
 import com.eprosima.integration.IDL;
 import com.eprosima.integration.TestManager;
 import com.eprosima.integration.TestManager.TestLevel;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.ArrayList;
 import java.nio.file.Paths;
@@ -34,7 +34,7 @@ public class FastRTPSGenTest
         }
 
         //Configure idl tests
-        TestManager tests = new TestManager(TestLevel.RUN, "share/fastrtps/fastrtpsgen", INPUT_PATH,
+        TestManager tests = new TestManager(TestLevel.RUN, "share/fastrtpsgen/java/fastrtpsgen", INPUT_PATH,
                         OUTPUT_PATH + "/idls", "CMake");
         tests.removeTests(IDL.ARRAY_NESTED, IDL.SEQUENCE_NESTED);
         boolean testResult = tests.runTests();
