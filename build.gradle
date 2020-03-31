@@ -1,4 +1,4 @@
-// Copyright 2016 Proyectos y Sistemas de Mantenimiento SL (eProsima).
+// Copyright 2016-2020 Proyectos y Sistemas de Mantenimiento SL (eProsima).
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,7 +19,71 @@ apply plugin: 'eclipse' // Eclipse integration
 description = """"""
 def version_str = "1.0.3"
 
-import org.apache.tools.ant.taskdefs.condition.Os
+import org.apache.tools.ant.taskdefs.condition.Os;
+import org.gradle.api.tasks.options.Option;
+
+/**
+ * Task class to install fastrtpsgen in a specific path
+ * @author eProsima
+ * @author Nuno Marques <nuno.marques@dronesolutions.io>
+ * @version 1.0.3
+ * @since 2020-03-31
+ */
+public class InstallPath extends DefaultTask {
+    private String path = "";
+
+    /**
+     * Setter for the install path
+     * @param path install path given by the task option "install_path"
+     */
+    @Option(option = "install_path", description = "Absolute path to the install dir")
+    public void setInstallPath(String path) {
+        this.path = path;
+    }
+
+    /**
+     * Getter of the install path
+     */
+    @Input
+    public String getInstallPath() {
+        return path;
+    }
+
+    /**
+     * Uses Gradle project Copy() to copy files
+     * @param input file to copy
+     * @param ouput destination directory
+     */
+    private void copy(String input, String output) {
+        project.copy {
+            from project.file(input)
+            into project.file(output)
+        }
+    }
+
+    /**
+     * Install Task Action that copies the script and jar files
+     */
+    @TaskAction
+    private void install() {
+        if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+            final String install_path = (path != null && !path.isEmpty()) ? path : "C:\\Program Files\\fastrtpsgen\\";
+
+            // Copy script
+            copy("scripts\\fastrtpsgen.bat", new File(install_path, "bin\\").getAbsolutePath())
+            // Copy jar
+            copy("share\\fastrtpsgen\\java\\fastrtpsgen.jar", new File(install_path, "share\\fastrtpsgen\\java\\").getAbsolutePath())
+
+        } else if (Os.isFamily(Os.FAMILY_UNIX) || Os.isFamily(Os.FAMILY_MAC)) {
+            final String install_path = (path != null && !path.isEmpty()) ? path : "/usr/local/";
+
+            // Copy script
+            copy("scripts/fastrtpsgen", new File(install_path, "bin/").getAbsolutePath())
+            // Copy jar
+            copy("share/fastrtpsgen/java/fastrtpsgen.jar", new File(install_path, "share/fastrtpsgen/java/").getAbsolutePath())
+        }
+    }
+}
 
 repositories {
     mavenCentral()
@@ -103,27 +167,7 @@ compileJava {
     options.compilerArgs.add('-Xlint:unchecked')
 }
 
-task install(group: "Install", description: "Install fastrtpsgen script and fastrtpsgen.jar in /usr/local/") {
-    if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-        copy {
-            from file("scripts\\fastrtpsgen.bat")
-            into file("C:\\Program Files\\fastrtpsgen\\bin")
-        }
-        copy {
-            from file("share\\fastrtpsgen\\java\\fastrtpsgen.jar")
-            into file("C:\\Program Files\\fastrtpsgen\\share\\fastrtpsgen\\java\\")
-        }
-    } else if (Os.isFamily(Os.FAMILY_UNIX) || Os.isFamily(Os.FAMILY_MAC)) {
-        copy {
-            from file("scripts/fastrtpsgen")
-            into file("/usr/local/bin/")
-        }
-        copy {
-            from file("share/fastrtpsgen/java/fastrtpsgen.jar")
-            into file("/usr/local/share/fastrtpsgen/java/")
-        }
-    }
-}
+task install(type: InstallPath, group: "Install", description: "Install fastrtpsgen script and fastrtpsgen.jar")
 
 test {
     useJUnitPlatform()
