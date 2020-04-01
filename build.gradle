@@ -17,7 +17,7 @@ apply plugin: 'java'
 apply plugin: 'eclipse' // Eclipse integration
 
 description = """"""
-def version_str = "1.0.3"
+def version_str = "1.0.4"
 
 import org.apache.tools.ant.taskdefs.condition.Os;
 import org.gradle.api.tasks.options.Option;
@@ -26,7 +26,7 @@ import org.gradle.api.tasks.options.Option;
  * Task class to install fastrtpsgen in a specific path
  * @author eProsima
  * @author Nuno Marques <nuno.marques@dronesolutions.io>
- * @version 1.0.3
+ * @version 1.0.4
  * @since 2020-03-31
  */
 public class InstallPath extends DefaultTask {
