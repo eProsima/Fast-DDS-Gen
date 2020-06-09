@@ -21,31 +21,43 @@ $fileHeader(ctx=ctx,  file=[ctx.filename, "Publisher.h"], description=["This hea
 #ifndef _$ctx.headerGuardName$_PUBLISHER_H_
 #define _$ctx.headerGuardName$_PUBLISHER_H_
 
-#include <fastrtps/fastrtps_fwd.h>
-#include <fastrtps/publisher/PublisherListener.h>
-
-#include "$ctx.filename$PubSubTypes.h"
+#include <fastdds/dds/domain/DomainParticipant.hpp>
+#include <fastdds/dds/publisher/DataWriter.hpp>
+#include <fastdds/dds/publisher/DataWriterListener.hpp>
+#include <fastdds/dds/publisher/Publisher.hpp>
+#include <fastdds/dds/topic/TypeSupport.hpp>
 
 class $ctx.filename$Publisher
 {
 public:
 	$ctx.filename$Publisher();
-	virtual ~$ctx.filename$Publisher();
-	bool init();
-	void run();
-private:
-	eprosima::fastrtps::Participant *mp_participant;
-	eprosima::fastrtps::Publisher *mp_publisher;
 
-	class PubListener : public eprosima::fastrtps::PublisherListener
+	virtual ~$ctx.filename$Publisher();
+
+	bool init();
+
+	void run();
+
+private:
+    eprosima::fastdds::dds::DomainParticipant* participant_;
+    eprosima::fastdds::dds::Publisher* publisher_;
+    eprosima::fastdds::dds::Topic* topic_;
+    eprosima::fastdds::dds::DataWriter* writer_;
+    eprosima::fastdds::dds::TypeSupport type_;
+
+	class PubListener : public eprosima::fastdds::dds::DataWriterListener
 	{
 	public:
-		PubListener() : n_matched(0){};
-		~PubListener(){};
-		void onPublicationMatched(eprosima::fastrtps::Publisher* pub,eprosima::fastrtps::rtps::MatchingInfo& info);
-		int n_matched;
-	} m_listener;
-	$ctx.m_lastStructureTopicDataTypeName$PubSubType myType;
+		PubListener() = default;
+
+		~PubListener() override {}
+
+        void on_publication_matched(
+                eprosima::fastdds::dds::DataWriter* writer,
+                const eprosima::fastdds::dds::PublicationMatchedStatus& info) override;
+
+		int matched = 0;
+	} listener_;
 };
 
 #endif // _$ctx.headerGuardName$_PUBLISHER_H_

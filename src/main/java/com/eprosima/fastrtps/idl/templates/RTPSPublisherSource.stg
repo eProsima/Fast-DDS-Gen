@@ -18,82 +18,112 @@ main(ctx, definitions) ::= <<
 $fileHeader(ctx=ctx,  file=[ctx.filename, "Publisher.cpp"], description=["This file contains the implementation of the publisher functions."])$
 
 
-#include <fastrtps/participant/Participant.h>
-#include <fastrtps/attributes/ParticipantAttributes.h>
-#include <fastrtps/publisher/Publisher.h>
-#include <fastrtps/attributes/PublisherAttributes.h>
+#include "$ctx.filename$Publisher.h"
+#include "$ctx.filename$PubSubTypes.h"
 
-#include <fastrtps/Domain.h>
+#include <fastdds/dds/domain/DomainParticipantFactory.hpp>
+#include <fastdds/dds/publisher/Publisher.hpp>
+#include <fastdds/dds/publisher/qos/PublisherQos.hpp>
+#include <fastdds/dds/publisher/DataWriter.hpp>
+#include <fastdds/dds/publisher/qos/DataWriterQos.hpp>
 
 #include <thread>
 #include <chrono>
 
-#include "$ctx.filename$Publisher.h"
+using namespace eprosima::fastdds::dds;
 
-using namespace eprosima::fastrtps;
-using namespace eprosima::fastrtps::rtps;
+$ctx.filename$Publisher::$ctx.filename$Publisher()
+    : participant_(nullptr)
+    , publisher_(nullptr)
+    , topic_(nullptr)
+    , writer_(nullptr)
+    , type_(new $ctx.m_lastStructureTopicDataTypeName$PubSubType())
+{
+}
 
-$ctx.filename$Publisher::$ctx.filename$Publisher() : mp_participant(nullptr), mp_publisher(nullptr) {}
-
-$ctx.filename$Publisher::~$ctx.filename$Publisher() {	Domain::removeParticipant(mp_participant);}
+$ctx.filename$Publisher::~$ctx.filename$Publisher()
+{
+    if (writer_ != nullptr)
+    {
+        publisher_->delete_datawriter(writer_);
+    }
+    if (publisher_ != nullptr)
+    {
+        participant_->delete_publisher(publisher_);
+    }
+    if (topic_ != nullptr)
+    {
+        participant_->delete_topic(topic_);
+    }
+    DomainParticipantFactory::get_instance()->delete_participant(participant_);
+}
 
 bool $ctx.filename$Publisher::init()
 {
-    // Create RTPSParticipant
+    /* Initialize data_ here */
 
-    ParticipantAttributes PParam;
-    PParam.rtps.setName("Participant_publisher");  //You can put here the name you want
-    mp_participant = Domain::createParticipant(PParam);
-    if(mp_participant == nullptr)
+    //CREATE THE PARTICIPANT
+    DomainParticipantQos pqos;
+    pqos.name("Participant_pub");
+    participant_ = DomainParticipantFactory::get_instance()->create_participant(0, pqos);
+    if (participant_ == nullptr)
     {
         return false;
     }
 
-    //Register the type
+    //REGISTER THE TYPE
+    type_.register_type(participant_);
 
-    Domain::registerType(mp_participant, static_cast<TopicDataType*>(&myType));
-
-    // Create Publisher
-
-    PublisherAttributes Wparam;
-    $if(ctx.lastStructure.typeCode.hasKey)$
-    Wparam.topic.topicKind = WITH_KEY;
-    $else$
-    Wparam.topic.topicKind = NO_KEY;
-    $endif$
-    Wparam.topic.topicDataType = myType.getName();  //This type MUST be registered
-    Wparam.topic.topicName = "$ctx.filename$PubSubTopic";
-
-    mp_publisher = Domain::createPublisher(mp_participant,Wparam,static_cast<PublisherListener*>(&m_listener));
-
-    if(mp_publisher == nullptr)
+    //CREATE THE PUBLISHER
+    publisher_ = participant_->create_publisher(PUBLISHER_QOS_DEFAULT, nullptr);
+    if (publisher_ == nullptr)
     {
         return false;
     }
 
-    std::cout << "Publisher created, waiting for Subscribers." << std::endl;
+    //CREATE THE TOPIC
+    topic_ = participant_->create_topic("HelloWorldTopic", "HelloWorld", TOPIC_QOS_DEFAULT);
+    if (topic_ == nullptr)
+    {
+        return false;
+    }
+
+    // CREATE THE WRITER
+    writer_ = publisher_->create_datawriter(topic_, DATAWRITER_QOS_DEFAULT, &listener_);
+    if (writer_ == nullptr)
+    {
+        return false;
+    }
+
+    std::cout << "$ctx.m_lastStructureScopedName$ DataWriter created." << std::endl;
     return true;
 }
 
-void $ctx.filename$Publisher::PubListener::onPublicationMatched(Publisher* pub,MatchingInfo& info)
+void $ctx.filename$Publisher::PubListener::on_publication_matched(
+        eprosima::fastdds::dds::DataWriter*,
+        const eprosima::fastdds::dds::PublicationMatchedStatus& info)
 {
-    (void)pub;
-
-    if (info.status == MATCHED_MATCHING)
+    if (info.current_count_change == 1)
     {
-        n_matched++;
-        std::cout << "Publisher matched" << std::endl;
+        matched = info.total_count;
+        std::cout << "DataWriter matched." << std::endl;
+    }
+    else if (info.current_count_change == -1)
+    {
+        matched = info.total_count;
+        std::cout << "DataWriter unmatched." << std::endl;
     }
     else
     {
-        n_matched--;
-        std::cout << "Publisher unmatched" << std::endl;
+        std::cout << info.current_count_change
+                  << " is not a valid value for PublicationMatchedStatus current count change" << std::endl;
     }
 }
 
 void $ctx.filename$Publisher::run()
 {
-    while(m_listener.n_matched == 0)
+    std::cout << "$ctx.m_lastStructureScopedName$ DataWriter waiting for DataReaders." << std::endl;
+    while(listener_.matched == 0)
     {
         std::this_thread::sleep_for(std::chrono::milliseconds(250)); // Sleep 250 ms
     }
@@ -110,7 +140,8 @@ void $ctx.filename$Publisher::run()
     {
         if(ch == 'y')
         {
-            mp_publisher->write(&st);  ++msgsent;
+            writer_->write(&st);
+            ++msgsent;
             std::cout << "Sending sample, count=" << msgsent << ", send another sample?(y-yes,n-stop): ";
         }
         else if(ch == 'n')
