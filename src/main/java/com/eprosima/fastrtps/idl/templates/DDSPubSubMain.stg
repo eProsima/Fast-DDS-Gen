@@ -21,12 +21,6 @@ $fileHeader(ctx=ctx,  file=[ctx.filename, "PubSubMain.cpp"], description=["This 
 #include "$ctx.filename$Publisher.h"
 #include "$ctx.filename$Subscriber.h"
 
-
-#include <fastrtps/Domain.h>
-
-using namespace eprosima;
-using namespace eprosima::fastrtps;
-
 int main(int argc, char** argv)
 {
 	int type = 0;
