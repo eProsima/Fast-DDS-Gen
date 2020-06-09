@@ -17,91 +17,128 @@ group ProtocolHeader;
 main(ctx, definitions) ::= <<
 $fileHeader(ctx=ctx,  file=[ctx.filename, "Subscriber.cpp"], description=["This file contains the implementation of the subscriber functions."])$
 
-#include <fastrtps/participant/Participant.h>
-#include <fastrtps/attributes/ParticipantAttributes.h>
-#include <fastrtps/subscriber/Subscriber.h>
-#include <fastrtps/attributes/SubscriberAttributes.h>
-
-#include <fastrtps/Domain.h>
+#include <fastdds/dds/domain/DomainParticipantFactory.hpp>
+#include <fastdds/dds/subscriber/DataReader.hpp>
+#include <fastdds/dds/subscriber/SampleInfo.hpp>
+#include <fastdds/dds/subscriber/Subscriber.hpp>
+#include <fastdds/dds/subscriber/qos/DataReaderQos.hpp>
 
 #include "$ctx.filename$Subscriber.h"
+#include "$ctx.filename$PubSubTypes.h"
 
-using namespace eprosima::fastrtps;
-using namespace eprosima::fastrtps::rtps;
+using namespace eprosima::fastdds::dds;
 
-$ctx.filename$Subscriber::$ctx.filename$Subscriber() : mp_participant(nullptr), mp_subscriber(nullptr) {}
+$ctx.filename$Subscriber::$ctx.filename$Subscriber()
+    : participant_(nullptr)
+    , subscriber_(nullptr)
+    , topic_(nullptr)
+    , reader_(nullptr)
+    , type_(new $ctx.m_lastStructureTopicDataTypeName$PubSubType())
+{
+}
 
-$ctx.filename$Subscriber::~$ctx.filename$Subscriber() {	Domain::removeParticipant(mp_participant);}
+$ctx.filename$Subscriber::~$ctx.filename$Subscriber()
+{
+    if (reader_ != nullptr)
+    {
+        subscriber_->delete_datareader(reader_);
+    }
+    if (topic_ != nullptr)
+    {
+        participant_->delete_topic(topic_);
+    }
+    if (subscriber_ != nullptr)
+    {
+        participant_->delete_subscriber(subscriber_);
+    }
+    DomainParticipantFactory::get_instance()->delete_participant(participant_);
+}
 
 bool $ctx.filename$Subscriber::init()
 {
-    // Create RTPSParticipant
-
-    ParticipantAttributes PParam;
-    PParam.rtps.setName("Participant_subscriber"); //You can put the name you want
-    mp_participant = Domain::createParticipant(PParam);
-    if(mp_participant == nullptr)
+    //CREATE THE PARTICIPANT
+    DomainParticipantQos pqos;
+    pqos.name("Participant_sub");
+    participant_ = DomainParticipantFactory::get_instance()->create_participant(0, pqos);
+    if (participant_ == nullptr)
     {
         return false;
     }
 
-    //Register the type
+    //REGISTER THE TYPE
+    type_.register_type(participant_);
 
-    Domain::registerType(mp_participant, static_cast<TopicDataType*>(&myType));
-
-    // Create Subscriber
-
-    SubscriberAttributes Rparam;
-    $if(ctx.lastStructure.typeCode.hasKey)$
-    Rparam.topic.topicKind = WITH_KEY;
-    $else$
-    Rparam.topic.topicKind = NO_KEY;
-    $endif$
-    Rparam.topic.topicDataType = myType.getName(); //Must be registered before the creation of the subscriber
-    Rparam.topic.topicName = "$ctx.filename$PubSubTopic";
-    mp_subscriber = Domain::createSubscriber(mp_participant,Rparam, static_cast<SubscriberListener*>(&m_listener));
-    if(mp_subscriber == nullptr)
+    //CREATE THE SUBSCRIBER
+    subscriber_ = participant_->create_subscriber(SUBSCRIBER_QOS_DEFAULT, nullptr);
+    if (subscriber_ == nullptr)
     {
         return false;
     }
+
+    //CREATE THE TOPIC
+    topic_ = participant_->create_topic(
+            "HelloWorldTopic",
+            "HelloWorld",
+            TOPIC_QOS_DEFAULT);
+    if (topic_ == nullptr)
+    {
+        return false;
+    }
+
+    //CREATE THE READER
+    DataReaderQos rqos = DATAREADER_QOS_DEFAULT;
+    rqos.reliability().kind = RELIABLE_RELIABILITY_QOS;
+    reader_ = subscriber_->create_datareader(topic_, rqos, &listener_);
+    if (reader_ == nullptr)
+    {
+        return false;
+    }
+
     return true;
 }
 
-void $ctx.filename$Subscriber::SubListener::onSubscriptionMatched(Subscriber* sub,MatchingInfo& info)
+void $ctx.filename$Subscriber::SubListener::on_subscription_matched(
+        DataReader*,
+        const SubscriptionMatchedStatus& info)
 {
-    (void)sub;
-
-    if (info.status == MATCHED_MATCHING)
+    if (info.current_count_change == 1)
     {
-        n_matched++;
-        std::cout << "Subscriber matched" << std::endl;
+        matched = info.total_count;
+        std::cout << "Subscriber matched." << std::endl;
+    }
+    else if (info.current_count_change == -1)
+    {
+        matched = info.total_count;
+        std::cout << "Subscriber unmatched." << std::endl;
     }
     else
     {
-        n_matched--;
-        std::cout << "Subscriber unmatched" << std::endl;
+        std::cout << info.current_count_change
+                  << " is not a valid value for SubscriptionMatchedStatus current count change" << std::endl;
     }
 }
 
-void $ctx.filename$Subscriber::SubListener::onNewDataMessage(Subscriber* sub)
+void $ctx.filename$Subscriber::SubListener::on_data_available(
+        DataReader* reader)
 {
     // Take data
     $ctx.m_lastStructureScopedName$ st;
+    SampleInfo info;
 
-    if(sub->takeNextData(&st, &m_info))
+    if (reader->take_next_sample(&st, &info) == ReturnCode_t::RETCODE_OK)
     {
-        if(m_info.sampleKind == ALIVE)
+        if (info.instance_state == ALIVE)
         {
             // Print your structure data here.
-            ++n_msg;
-            std::cout << "Sample received, count=" << n_msg << std::endl;
+            ++samples;
+            std::cout << "Sample received, count=" << samples << std::endl;
         }
     }
 }
 
 void $ctx.filename$Subscriber::run()
 {
-    std::cout << "Waiting for Data, press Enter to stop the Subscriber. "<<std::endl;
+    std::cout << "Waiting for Data, press Enter to stop the DataReader. "<<std::endl;
     std::cin.ignore();
     std::cout << "Shutting down the Subscriber." << std::endl;
 }
