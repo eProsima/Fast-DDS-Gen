@@ -21,13 +21,13 @@ $fileHeader(ctx=ctx,  file=[ctx.filename, "PubSubTypes.h"], description=["This h
 #ifndef _$ctx.headerGuardName$_PUBSUBTYPES_H_
 #define _$ctx.headerGuardName$_PUBSUBTYPES_H_
 
-#include <fastrtps/config.h>
-#include <fastrtps/TopicDataType.h>
+#include <fastdds/dds/topic/TopicDataType.hpp>
+#include <fastrtps/utils/md5.h>
 
 #include "$ctx.filename$.h"
 
 #if !defined(GEN_API_VER) || (GEN_API_VER != 1)
-#error Generated $ctx.filename$ is not compatible with current installed Fast-RTPS. Please, regenerate it with fastrtpsgen.
+#error Generated $ctx.filename$ is not compatible with current installed Fast DDS. Please, regenerate it with fastddsgen.
 #endif
 
 $definitions; separator="\n"$
@@ -77,7 +77,7 @@ struct_type(ctx, parent, struct) ::= <<
  * @brief This class represents the TopicDataType of the type $struct.name$ defined by the user in the IDL file.
  * @ingroup $ctx.trimfilename$
  */
-class $if(parent.IsInterface)$$parent.name$_$endif$$struct.name$PubSubType : public eprosima::fastrtps::TopicDataType {
+class $if(parent.IsInterface)$$parent.name$_$endif$$struct.name$PubSubType : public eprosima::fastdds::dds::TopicDataType {
 public:
     typedef $if(parent.IsInterface)$$parent.name$_$endif$$struct.name$ type;
 
