@@ -15,40 +15,57 @@
 group ProtocolHeader;
 
 main(ctx, definitions) ::= <<
-$fileHeader(ctx=ctx,  file=[ctx.filename, "Publisher.h"], description=["This header file contains the declaration of the publisher functions."])$
+$fileHeader(ctx=ctx,  file=[ctx.filename, "Subscriber.h"], description=["This header file contains the declaration of the subscriber functions."])$
 
 
-#ifndef _$ctx.headerGuardName$_PUBLISHER_H_
-#define _$ctx.headerGuardName$_PUBLISHER_H_
+#ifndef _$ctx.headerGuardName$_SUBSCRIBER_H_
+#define _$ctx.headerGuardName$_SUBSCRIBER_H_
 
-#include <fastrtps/fastrtps_fwd.h>
-#include <fastrtps/publisher/PublisherListener.h>
+#include <fastdds/dds/domain/DomainParticipant.hpp>
+#include <fastdds/dds/subscriber/DataReader.hpp>
+#include <fastdds/dds/subscriber/DataReaderListener.hpp>
+#include <fastdds/dds/subscriber/Subscriber.hpp>
 
-#include "$ctx.filename$PubSubTypes.h"
-
-class $ctx.filename$Publisher
+class $ctx.filename$Subscriber
 {
 public:
-	$ctx.filename$Publisher();
-	virtual ~$ctx.filename$Publisher();
-	bool init();
-	void run();
-private:
-	eprosima::fastrtps::Participant *mp_participant;
-	eprosima::fastrtps::Publisher *mp_publisher;
+	$ctx.filename$Subscriber();
 
-	class PubListener : public eprosima::fastrtps::PublisherListener
+	virtual ~$ctx.filename$Subscriber();
+
+	bool init();
+
+	void run();
+
+private:
+    eprosima::fastdds::dds::DomainParticipant* participant_;
+    eprosima::fastdds::dds::Subscriber* subscriber_;
+    eprosima::fastdds::dds::Topic* topic_;
+    eprosima::fastdds::dds::DataReader* reader_;
+    eprosima::fastdds::dds::TypeSupport type_;
+
+    class SubListener : public eprosima::fastdds::dds::DataReaderListener
 	{
 	public:
-		PubListener() : n_matched(0){};
-		~PubListener(){};
-		void onPublicationMatched(eprosima::fastrtps::Publisher* pub,eprosima::fastrtps::rtps::MatchingInfo& info);
-		int n_matched;
-	} m_listener;
-	$ctx.m_lastStructureTopicDataTypeName$PubSubType myType;
+		SubListener() = default;
+
+		~SubListener() override
+		{
+		}
+
+        void on_data_available(
+                eprosima::fastdds::dds::DataReader* reader) override;
+
+        void on_subscription_matched(
+                eprosima::fastdds::dds::DataReader* reader,
+                const eprosima::fastdds::dds::SubscriptionMatchedStatus& info) override;
+
+        int matched = 0;
+        uint32_t samples = 0 ;
+	} listener_;
 };
 
-#endif // _$ctx.headerGuardName$_PUBLISHER_H_
+#endif // _$ctx.headerGuardName$_SUBSCRIBER_H_
 >>
 
 module(ctx, parent, module, definition_list) ::= <<

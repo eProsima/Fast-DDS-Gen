@@ -562,19 +562,19 @@ public class fastrtpsgen {
             }
 
             // Load Types common templates
-            tmanager.addGroup("RTPSPubSubTypeHeader");
-            tmanager.addGroup("RTPSPubSubTypeSource");
+            tmanager.addGroup("DDSPubSubTypeHeader");
+            tmanager.addGroup("DDSPubSubTypeSource");
 
             // Load Publisher templates
-            tmanager.addGroup("RTPSPublisherHeader");
-            tmanager.addGroup("RTPSPublisherSource");
+            tmanager.addGroup("DDSPublisherHeader");
+            tmanager.addGroup("DDSPublisherSource");
 
             // Load Subscriber templates
-            tmanager.addGroup("RTPSSubscriberHeader");
-            tmanager.addGroup("RTPSSubscriberSource");
+            tmanager.addGroup("DDSSubscriberHeader");
+            tmanager.addGroup("DDSSubscriberSource");
 
             // Load PubSubMain template
-            tmanager.addGroup("RTPSPubSubMain");
+            tmanager.addGroup("DDSPubSubMain");
 
             if (m_test)
             {
@@ -670,9 +670,9 @@ public class fastrtpsgen {
                     project.setHasStruct(true);
 
                     System.out.println("Generating TopicDataTypes files...");
-                    if (returnedValue = Utils.writeFile(m_outputDir + onlyFileName + "PubSubTypes.h", maintemplates.getTemplate("RTPSPubSubTypeHeader"), m_replace))
+                    if (returnedValue = Utils.writeFile(m_outputDir + onlyFileName + "PubSubTypes.h", maintemplates.getTemplate("DDSPubSubTypeHeader"), m_replace))
                     {
-                        if (returnedValue = Utils.writeFile(m_outputDir + onlyFileName + "PubSubTypes.cxx", maintemplates.getTemplate("RTPSPubSubTypeSource"), m_replace))
+                        if (returnedValue = Utils.writeFile(m_outputDir + onlyFileName + "PubSubTypes.cxx", maintemplates.getTemplate("DDSPubSubTypeSource"), m_replace))
                         {
                             project.addProjectIncludeFile(onlyFileName + "PubSubTypes.h");
                             project.addProjectSrcFile(onlyFileName + "PubSubTypes.cxx");
@@ -682,23 +682,23 @@ public class fastrtpsgen {
                     if (m_exampleOption != null)
                     {
                         System.out.println("Generating Publisher files...");
-                        if (returnedValue = Utils.writeFile(m_outputDir + onlyFileName + "Publisher.h", maintemplates.getTemplate("RTPSPublisherHeader"), m_replace)) {
-                            if (returnedValue = Utils.writeFile(m_outputDir + onlyFileName + "Publisher.cxx", maintemplates.getTemplate("RTPSPublisherSource"), m_replace)) {
+                        if (returnedValue = Utils.writeFile(m_outputDir + onlyFileName + "Publisher.h", maintemplates.getTemplate("DDSPublisherHeader"), m_replace)) {
+                            if (returnedValue = Utils.writeFile(m_outputDir + onlyFileName + "Publisher.cxx", maintemplates.getTemplate("DDSPublisherSource"), m_replace)) {
                                 project.addProjectIncludeFile(onlyFileName + "Publisher.h");
                                 project.addProjectSrcFile(onlyFileName + "Publisher.cxx");
                             }
                         }
 
                         System.out.println("Generating Subscriber files...");
-                        if (returnedValue = Utils.writeFile(m_outputDir + onlyFileName + "Subscriber.h", maintemplates.getTemplate("RTPSSubscriberHeader"), m_replace)) {
-                            if (returnedValue = Utils.writeFile(m_outputDir + onlyFileName + "Subscriber.cxx", maintemplates.getTemplate("RTPSSubscriberSource"), m_replace)) {
+                        if (returnedValue = Utils.writeFile(m_outputDir + onlyFileName + "Subscriber.h", maintemplates.getTemplate("DDSSubscriberHeader"), m_replace)) {
+                            if (returnedValue = Utils.writeFile(m_outputDir + onlyFileName + "Subscriber.cxx", maintemplates.getTemplate("DDSSubscriberSource"), m_replace)) {
                                 project.addProjectIncludeFile(onlyFileName + "Subscriber.h");
                                 project.addProjectSrcFile(onlyFileName + "Subscriber.cxx");
                             }
                         }
 
                         System.out.println("Generating main file...");
-                        if (returnedValue = Utils.writeFile(m_outputDir + onlyFileName + "PubSubMain.cxx", maintemplates.getTemplate("RTPSPubSubMain"), m_replace)) {
+                        if (returnedValue = Utils.writeFile(m_outputDir + onlyFileName + "PubSubMain.cxx", maintemplates.getTemplate("DDSPubSubMain"), m_replace)) {
                             project.addProjectSrcFile(onlyFileName + "PubSubMain.cxx");
                         }
                     }

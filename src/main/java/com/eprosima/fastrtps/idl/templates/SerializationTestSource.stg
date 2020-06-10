@@ -68,13 +68,14 @@ int test$ctx.lastStructure.name$()
     printf("SerializedPayload_t: \n");
     printf("length: %d - %d\n", payloadSize, payload.length);
     printf("data: ");
-    for(int i = 0; i < payloadSize; ++i)
+    for(uint32_t i = 0; i < payloadSize; ++i)
     {
         printf("%02X ", payload.data[i]);
     }
     printf("\n\n");
 
-    printf("Topic $ctx.lastStructure.name$ size: %s => payloadIn: %d, payloadOut: %d, type: %ld\n", size_equal ? "OK" : "ERROR", payloadSize, payloadOutSize, sizeof($ctx.lastStructure.name$));
+    uint32_t type_size = sizeof($ctx.lastStructure.name$);
+    printf("Topic $ctx.lastStructure.name$ size: %s => payloadIn: %d, payloadOut: %d, type: %d\n", size_equal ? "OK" : "ERROR", payloadSize, payloadOutSize, type_size);
     printf("Topic $ctx.lastStructure.name$ comparation: %s\n", topic_equal ? "OK" : "ERROR");
 
     $if((ctx.generateTypesC))$
