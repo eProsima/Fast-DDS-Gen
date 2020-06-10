@@ -23,10 +23,11 @@ import org.apache.tools.ant.taskdefs.condition.Os;
 import org.gradle.api.tasks.options.Option;
 
 /**
- * Task class to install fastrtpsgen in a specific path
+ * Task class to install fastddsgen in a specific path
  * @author eProsima
  * @author Nuno Marques <nuno.marques@dronesolutions.io>
- * @version 1.0.4
+ * @author Miguel Company <MiguelCompany@eprosima.com>
+ * @version 2.0.0
  * @since 2020-03-31
  */
 public class InstallPath extends DefaultTask {
@@ -67,20 +68,20 @@ public class InstallPath extends DefaultTask {
     @TaskAction
     private void install() {
         if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-            final String install_path = (path != null && !path.isEmpty()) ? path : "C:\\Program Files\\fastrtpsgen\\";
+            final String install_path = (path != null && !path.isEmpty()) ? path : "C:\\Program Files\\fastddsgen\\";
 
             // Copy script
-            copy("scripts\\fastrtpsgen.bat", new File(install_path, "bin\\").getAbsolutePath())
+            copy("scripts\\fastddsgen.bat", new File(install_path, "bin\\").getAbsolutePath())
             // Copy jar
-            copy("share\\fastrtpsgen\\java\\fastrtpsgen.jar", new File(install_path, "share\\fastrtpsgen\\java\\").getAbsolutePath())
+            copy("share\\fastddsgen\\java\\fastddsgen.jar", new File(install_path, "share\\fastddsgen\\java\\").getAbsolutePath())
 
         } else if (Os.isFamily(Os.FAMILY_UNIX) || Os.isFamily(Os.FAMILY_MAC)) {
             final String install_path = (path != null && !path.isEmpty()) ? path : "/usr/local/";
 
             // Copy script
-            copy("scripts/fastrtpsgen", new File(install_path, "bin/").getAbsolutePath())
+            copy("scripts/fastddsgen", new File(install_path, "bin/").getAbsolutePath())
             // Copy jar
-            copy("share/fastrtpsgen/java/fastrtpsgen.jar", new File(install_path, "share/fastrtpsgen/java/").getAbsolutePath())
+            copy("share/fastddsgen/java/fastddsgen.jar", new File(install_path, "share/fastddsgen/java/").getAbsolutePath())
         }
     }
 }
@@ -146,15 +147,15 @@ sourceSets {
 
 jar {
     from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
-    baseName = 'fastrtpsgen'
+    baseName = 'fastddsgen'
     manifest {
-        attributes("Created-By": "eProsima", "Main-Class": "com.eprosima.fastrtps.fastrtpsgen")
+        attributes("Created-By": "eProsima", "Main-Class": "com.eprosima.fastdds.fastddsgen")
     }
     doLast
     {
         copy {
             from jar
-            into "share/fastrtpsgen/java"
+            into "share/fastddsgen/java"
         }
     }
 }
@@ -167,7 +168,7 @@ compileJava {
     options.compilerArgs.add('-Xlint:unchecked')
 }
 
-task install(type: InstallPath, group: "Install", description: "Install fastrtpsgen script and fastrtpsgen.jar")
+task install(type: InstallPath, group: "Install", description: "Install fastddsgen script and fastddsgen.jar")
 
 test {
     useJUnitPlatform()
