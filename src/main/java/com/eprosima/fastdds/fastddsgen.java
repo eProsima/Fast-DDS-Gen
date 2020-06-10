@@ -12,15 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.eprosima.fastrtps;
+package com.eprosima.fastdds;
 
 import com.eprosima.fastcdr.idl.generator.TypesGenerator;
-import com.eprosima.fastrtps.exceptions.BadArgumentException;
-import com.eprosima.fastrtps.idl.grammar.Context;
-import com.eprosima.fastrtps.solution.Project;
-import com.eprosima.fastrtps.solution.Solution;
-import com.eprosima.fastrtps.util.Utils;
-import com.eprosima.fastrtps.util.VSConfiguration;
+import com.eprosima.fastdds.exceptions.BadArgumentException;
+import com.eprosima.fastdds.idl.grammar.Context;
+import com.eprosima.fastdds.solution.Project;
+import com.eprosima.fastdds.solution.Solution;
+import com.eprosima.fastdds.util.Utils;
+import com.eprosima.fastdds.util.VSConfiguration;
 import com.eprosima.idl.generator.manager.TemplateExtension;
 import com.eprosima.idl.generator.manager.TemplateGroup;
 import com.eprosima.idl.generator.manager.TemplateManager;
@@ -55,9 +55,9 @@ import org.antlr.v4.runtime.CommonTokenStream;
 
 
 
-// TODO: Implement Solution & Project in com.eprosima.fastrtps.solution
+// TODO: Implement Solution & Project in com.eprosima.fastdds.solution
 
-public class fastrtpsgen {
+public class fastddsgen {
 
     /*
      * ----------------------------------------------------------------------------------------
@@ -76,7 +76,7 @@ public class fastrtpsgen {
     private final String m_defaultOutputDir = "." + File.separator;
     private String m_outputDir = m_defaultOutputDir;
     private String m_tempDir = null;
-    protected static String m_appName = "fastrtpsgen";
+    protected static String m_appName = "fastddsgen";
 
     private boolean m_publishercode = true;
     private boolean m_subscribercode = true;
@@ -131,7 +131,7 @@ public class fastrtpsgen {
      * Constructor
      */
 
-    public fastrtpsgen(String [] args) throws BadArgumentException {
+    public fastddsgen(String [] args) throws BadArgumentException {
 
         int count = 0;
         String arg;
@@ -308,7 +308,7 @@ public class fastrtpsgen {
 
             // Load string templates
             System.out.println("Loading templates...");
-            TemplateManager.setGroupLoaderDirectories("com/eprosima/fastrtps/idl/templates:com/eprosima/fastcdr/idl/templates");
+            TemplateManager.setGroupLoaderDirectories("com/eprosima/fastdds/idl/templates:com/eprosima/fastcdr/idl/templates");
 
             // In local for all products
             if(m_os.contains("Windows"))
@@ -395,16 +395,16 @@ public class fastrtpsgen {
 
         boolean returnedValue = false;
 
-        fastrtpsgen.m_platforms = new ArrayList<String>();
+        fastddsgen.m_platforms = new ArrayList<String>();
 
-        fastrtpsgen.m_platforms.add("i86Win32VS2013");
-        fastrtpsgen.m_platforms.add("x64Win64VS2013");
-        fastrtpsgen.m_platforms.add("i86Win32VS2015");
-        fastrtpsgen.m_platforms.add("x64Win64VS2015");
-        fastrtpsgen.m_platforms.add("i86Linux2.6gcc");
-        fastrtpsgen.m_platforms.add("x64Linux2.6gcc");
-        fastrtpsgen.m_platforms.add("armLinux2.6gcc");
-        fastrtpsgen.m_platforms.add("CMake");
+        fastddsgen.m_platforms.add("i86Win32VS2013");
+        fastddsgen.m_platforms.add("x64Win64VS2013");
+        fastddsgen.m_platforms.add("i86Win32VS2015");
+        fastddsgen.m_platforms.add("x64Win64VS2015");
+        fastddsgen.m_platforms.add("i86Linux2.6gcc");
+        fastddsgen.m_platforms.add("x64Linux2.6gcc");
+        fastddsgen.m_platforms.add("armLinux2.6gcc");
+        fastddsgen.m_platforms.add("CMake");
 
         returnedValue = true;
 
@@ -444,7 +444,7 @@ public class fastrtpsgen {
         System.out.println("\t" + m_appName + " [options] <file> [<file> ...]");
         System.out.println("\twhere the options are:");
         System.out.println("\t\t-help: shows this help");
-        System.out.println("\t\t-version: shows the current version of eProsima Fast RTPS.");
+        System.out.println("\t\t-version: shows the current version of eProsima Fast DDS gen.");
         System.out.println("\t\t-example <platform>: Generates a solution for a specific platform (example: x64Win64VS2015)");
         System.out.println("\t\t\tSupported platforms:");
         for(int count = 0; count < m_platforms.size(); ++count)
@@ -460,7 +460,7 @@ public class fastrtpsgen {
         System.out.print("\t\t-typeobject: generates TypeObject files to automatically register the types as");
         System.out.println(" dynamic.");
         System.out.println("\t\t-cs: IDL grammar apply case sensitive matching.");
-        System.out.println("\t\t-test: executes FastRTPSGen tests.");
+        System.out.println("\t\t-test: executes FastDDSGen tests.");
         System.out.println("\tand the supported input files are:");
         System.out.println("\t* IDL files.");
 
@@ -500,7 +500,7 @@ public class fastrtpsgen {
 
         try {
             // Protocol CDR
-            project = parseIDL(idlFilename); // TODO: Quitar archivos copiados TypesHeader.stg, TypesSource.stg, PubSubTypeHeader.stg de la carpeta com.eprosima.fastrtps.idl.templates
+            project = parseIDL(idlFilename); // TODO: Quitar archivos copiados TypesHeader.stg, TypesSource.stg, PubSubTypeHeader.stg de la carpeta com.eprosima.fastdds.idl.templates
         } catch (Exception ioe) {
             System.out.println(ColorMessage.error() + "Cannot generate the files");
             if (!ioe.getMessage().equals("")) {
@@ -1203,7 +1203,7 @@ public class fastrtpsgen {
 
             try {
 
-                fastrtpsgen main = new fastrtpsgen(args);
+                fastddsgen main = new fastddsgen(args);
                 if (main.execute()) {
                     System.exit(0);
                 }

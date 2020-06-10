@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.eprosima.fastrtps.idl.grammar;
+package com.eprosima.fastdds.idl.grammar;
 
-import com.eprosima.fastrtps.idl.parser.typecode.StructTypeCode;
+import com.eprosima.fastdds.idl.parser.typecode.StructTypeCode;
 import com.eprosima.idl.parser.tree.Annotation;
 import com.eprosima.idl.parser.tree.Interface;
 import com.eprosima.idl.parser.tree.TypeDeclaration;

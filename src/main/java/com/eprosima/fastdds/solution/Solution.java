@@ -12,15 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.eprosima.fastrtps.solution;
+package com.eprosima.fastdds.solution;
 
-import com.eprosima.fastrtps.fastrtpsgen;
+import com.eprosima.fastdds.fastddsgen;
 
 import java.util.ArrayList;
 
 public class Solution extends com.eprosima.solution.Solution
 {
-    public Solution(fastrtpsgen.LANGUAGE language, String example, String version, boolean serverside, boolean clientside)
+    public Solution(fastddsgen.LANGUAGE language, String example, String version, boolean serverside, boolean clientside)
     {
         super();
 
@@ -112,12 +112,12 @@ public class Solution extends com.eprosima.solution.Solution
 
     public boolean isIsJavaLanguage()
     {
-        return m_language == fastrtpsgen.LANGUAGE.JAVA;
+        return m_language == fastddsgen.LANGUAGE.JAVA;
     }
 
     private boolean m_publisherside = true;
     private boolean m_subscriberside = true;
     private String m_version = null;
     private String m_example = null;
-    private fastrtpsgen.LANGUAGE m_language = fastrtpsgen.LANGUAGE.CPP; // Default language -> c++
+    private fastddsgen.LANGUAGE m_language = fastddsgen.LANGUAGE.CPP; // Default language -> c++
 }

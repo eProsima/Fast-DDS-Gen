@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package com.eprosima.fastrtps.solution;
+package com.eprosima.fastdds.solution;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
