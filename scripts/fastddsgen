@@ -11,6 +11,5 @@ if [ $? != 0 ]; then
     java_exec="${JAVA_HOME}/bin/java"
 fi
 
-prefix="@prefix@"
-exec $java_exec -jar "@datadir@/fastrtpsgen/java/fastrtpsgen.jar" "$@"
+exec $java_exec -jar "$dir/../share/fastddsgen/java/fastddsgen.jar" "$@"
 

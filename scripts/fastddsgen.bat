@@ -27,4 +27,4 @@ if not %ERRORLEVEL%==0 (
    )
 )
 
-%java_exec% -jar "%dir%\..\share\fastrtpsgen\java\fastrtpsgen.jar" %args%
+%java_exec% -jar "%dir%\..\share\fastddsgen\java\fastddsgen.jar" %args%
