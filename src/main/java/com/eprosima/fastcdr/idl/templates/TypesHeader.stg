@@ -268,6 +268,8 @@ public:
 
     $extensions : {$it$}; separator="\n"$
 
+    $instrospection_functions(struct)$
+
 private:
     $struct.members:{$private_member_declaration(member=it)$}; separator="\n"$
 };
@@ -680,6 +682,18 @@ eProsima_user_DllExport void serialize(eprosima::fastcdr::FastCdr &cdr) const;
 eProsima_user_DllExport void deserialize(eprosima::fastcdr::FastCdr &cdr);
 
 $endif$
+>>
+
+instrospection_functions(type) ::= <<
+/*!
+* @brief Checks if the type is bounded.
+*/
+eProsima_user_DllExport inline bool is_bounded() const override;
+
+/*!
+* @brief Checks if the type is plain.
+*/
+eProsima_user_DllExport inline bool is_plain() const override;
 >>
 
 sequences_definition(typecode) ::= <<
