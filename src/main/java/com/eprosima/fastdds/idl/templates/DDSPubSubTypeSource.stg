@@ -169,6 +169,7 @@ bool $if(parent.IsInterface)$$parent.name$_$endif$$struct.name$PubSubType::getKe
     return true;
 }
 
+#if (FASTRTPS_VERSION_MAJOR > 2 || (FASTRTPS_VERSION_MAJOR == 2 && FASTRTPS_VERSION_MINOR > 0))
 bool $if(parent.IsInterface)$$parent.name$_$endif$$struct.name$::is_bounded() const
 {
     return $if(struct.isBounded)$true$else$false$endif$;
@@ -178,6 +179,7 @@ bool $if(parent.IsInterface)$$parent.name$_$endif$$struct.name$::is_plain() cons
 {
     return $if(struct.isPlain)$true$else$false$endif$;
 }
+#endif
 
 >>
 
