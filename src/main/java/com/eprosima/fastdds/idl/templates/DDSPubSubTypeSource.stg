@@ -169,6 +169,16 @@ bool $if(parent.IsInterface)$$parent.name$_$endif$$struct.name$PubSubType::getKe
     return true;
 }
 
+bool $if(parent.IsInterface)$$parent.name$_$endif$$struct.name$::is_bounded() const
+{
+    return $if(struct.isBounded)$true$else$false$endif$;
+}
+
+bool $if(parent.IsInterface)$$parent.name$_$endif$$struct.name$::is_plain() const
+{
+    return $if(struct.isPlain)$true$else$false$endif$;
+}
+
 >>
 
 union_type(ctx, parent, union) ::= <<>>

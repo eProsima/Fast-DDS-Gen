@@ -297,16 +297,6 @@ void $struct.scopedname$::deserialize(eprosima::fastcdr::FastCdr &dcdr)
 
 $endif$
 
-bool $struct.scopedname$::is_bounded() const
-{
-    return $if(struct.isBounded)$true$else$false$endif$;
-}
-
-bool $struct.scopedname$::is_plain() const
-{
-    return $if(struct.isPlain)$true$else$false$endif$;
-}
-
 $struct.members:{$public_member_declaration(class=struct.scopedname, member=it)$}; separator="\n"$
 
 $extensions : {$it$}; separator="\n"$

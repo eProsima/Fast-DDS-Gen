@@ -30,6 +30,10 @@ $fileHeader(ctx=ctx,  file=[ctx.filename, "PubSubTypes.h"], description=["This h
 #error Generated $ctx.filename$ is not compatible with current installed Fast DDS. Please, regenerate it with fastddsgen.
 #endif
 
+#if (FASTRTPS_VERSION_MAJOR < 2 || (FASTRTPS_VERSION_MAJOR == 2 && FASTRTPS_VERSION_MINOR < 1))
+#error Generated $ctx.filename$ needs Fast DDS v2.1.0 or greater.
+#endif
+
 $definitions; separator="\n"$
 
 #endif // _$ctx.headerGuardName$_PUBSUBTYPES_H_
@@ -91,6 +95,9 @@ public:
         bool force_md5 = false) override;
     eProsima_user_DllExport virtual void* createData() override;
     eProsima_user_DllExport virtual void deleteData(void * data) override;
+    eProsima_user_DllExport inline bool is_bounded() const override;
+    eProsima_user_DllExport inline bool is_plain() const override;
+
     MD5 m_md5;
     unsigned char* m_keyBuffer;
 };
