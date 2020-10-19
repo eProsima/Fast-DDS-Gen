@@ -169,12 +169,14 @@ bool $if(parent.IsInterface)$$parent.name$_$endif$$struct.name$PubSubType::getKe
     return true;
 }
 
-#if (FASTRTPS_VERSION_MAJOR > 2 || (FASTRTPS_VERSION_MAJOR == 2 && FASTRTPS_VERSION_MINOR > 0))
+#if TOPIC_DATA_TYPE_API_HAS_IS_BOUNDED
 bool $if(parent.IsInterface)$$parent.name$_$endif$$struct.name$::is_bounded() const
 {
     return $if(struct.isBounded)$true$else$false$endif$;
 }
+#endif
 
+#if TOPIC_DATA_TYPE_API_HAS_IS_PLAIN
 bool $if(parent.IsInterface)$$parent.name$_$endif$$struct.name$::is_plain() const
 {
     return $if(struct.isPlain)$true$else$false$endif$;

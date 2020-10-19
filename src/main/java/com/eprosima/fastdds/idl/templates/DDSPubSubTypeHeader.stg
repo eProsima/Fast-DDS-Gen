@@ -91,8 +91,10 @@ public:
         bool force_md5 = false) override;
     eProsima_user_DllExport virtual void* createData() override;
     eProsima_user_DllExport virtual void deleteData(void * data) override;
-#if (FASTRTPS_VERSION_MAJOR > 2 || (FASTRTPS_VERSION_MAJOR == 2 && FASTRTPS_VERSION_MINOR > 0))
+#if TOPIC_DATA_TYPE_API_HAS_IS_BOUNDED
     eProsima_user_DllExport inline bool is_bounded() const override;
+#endif
+#if TOPIC_DATA_TYPE_API_HAS_IS_PLAIN
     eProsima_user_DllExport inline bool is_plain() const override;
 #endif
 
