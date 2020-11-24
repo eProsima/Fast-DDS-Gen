@@ -97,6 +97,9 @@ public:
 #if TOPIC_DATA_TYPE_API_HAS_IS_PLAIN
     eProsima_user_DllExport inline bool is_plain() const override;
 #endif
+#if TOPIC_DATA_TYPE_API_HAS_CONSTRUCT_SAMPLE
+    eProsima_user_DllExport inline bool construct_sample(void* memory) const override;
+#endif
 
     MD5 m_md5;
     unsigned char* m_keyBuffer;

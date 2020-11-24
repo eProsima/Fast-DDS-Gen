@@ -183,6 +183,14 @@ bool $if(parent.IsInterface)$$parent.name$_$endif$$struct.name$::is_plain() cons
 }
 #endif
 
+#if TOPIC_DATA_TYPE_API_HAS_CONSTRUCT_SAMPLE
+bool $if(parent.IsInterface)$$parent.name$_$endif$$struct.name$::construct_sample(
+        void* memory) const
+{
+    new (memory) $if(parent.IsInterface)$$struct.scopedname$$else$$struct.name$$endif$();
+}
+#endif
+
 >>
 
 union_type(ctx, parent, union) ::= <<>>
