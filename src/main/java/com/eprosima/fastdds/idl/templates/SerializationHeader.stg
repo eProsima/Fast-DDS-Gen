@@ -29,20 +29,36 @@ $definitions; separator="\n"$
 
 struct_type(ctx, parent, struct) ::= <<
 $if((ctx.generateTypesC))$
-void free_string$struct.name$($struct.name$* topic);
+void free_string$struct.name$(
+        $struct.name$* topic);
 
 $endif$
-void print$struct.name$($struct.name$* topic);
-void initialize$struct.name$($struct.name$* topic, int idx = 0);
-int compare$struct.name$($struct.name$* a, $struct.name$* b);
-$struct.name$ createKey$struct.name$(int idx);
+void print$struct.name$(
+        $struct.name$* topic);
+
+void initialize$struct.name$(
+        $struct.name$* topic,
+        int idx = 0);
+
+int compare$struct.name$(
+        $struct.name$* a,
+        $struct.name$* b);
+
+$struct.name$ createKey$struct.name$(
+        int idx);
 
 >>
 
 union_type(ctx, parent, union) ::= <<
-void print$union.name$($union.name$* topic);
-void initialize$union.name$($union.name$* topic);
-int compare$union.name$($union.name$* a, $union.name$* b);
+void print$union.name$(
+        $union.name$* topic);
+
+void initialize$union.name$(
+        $union.name$* topic);
+
+int compare$union.name$(
+        $union.name$* a,
+        $union.name$* b);
 
 >>
 
@@ -53,19 +69,24 @@ typedef_decl(ctx, parent, typedefs) ::= <<>>
 bitmask_type(ctx, parent, bitmask) ::= <<>>
 
 bitset_type(ctx, parent, bitset) ::= <<
-void print$bitset.name$($bitset.name$* topic);
-void initialize$bitset.name$($bitset.name$* topic);
-int compare$bitset.name$($bitset.name$* a, $bitset.name$* b);
+void print$bitset.name$(
+        $bitset.name$* topic);
+
+void initialize$bitset.name$(
+        $bitset.name$* topic);
+
+int compare$bitset.name$(
+        $bitset.name$* a,
+        $bitset.name$* b);
 
 >>
 
 annotation(ctx, annotation) ::= <<>>
 
 module(ctx, parent, module, definition_list) ::= <<
-namespace $module.name$
-{
+namespace $module.name$ {
     $definition_list$
-}
+}  // namespace $module.name$
 >>
 
 definition_list(definitions) ::= <<
