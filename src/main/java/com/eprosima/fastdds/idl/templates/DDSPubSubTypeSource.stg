@@ -169,27 +169,27 @@ bool $if(parent.IsInterface)$$parent.name$_$endif$$struct.name$PubSubType::getKe
     return true;
 }
 
-#if TOPIC_DATA_TYPE_API_HAS_IS_BOUNDED
+#ifdef TOPIC_DATA_TYPE_API_HAS_IS_BOUNDED
 bool $if(parent.IsInterface)$$parent.name$_$endif$$struct.name$::is_bounded() const
 {
     return $if(struct.isBounded)$true$else$false$endif$;
 }
-#endif
+#endif  // TOPIC_DATA_TYPE_API_HAS_IS_BOUNDED
 
-#if TOPIC_DATA_TYPE_API_HAS_IS_PLAIN
+#ifdef TOPIC_DATA_TYPE_API_HAS_IS_PLAIN
 bool $if(parent.IsInterface)$$parent.name$_$endif$$struct.name$::is_plain() const
 {
     return $if(struct.isPlain)$true$else$false$endif$;
 }
-#endif
+#endif  // TOPIC_DATA_TYPE_API_HAS_IS_PLAIN
 
-#if TOPIC_DATA_TYPE_API_HAS_CONSTRUCT_SAMPLE
+#ifdef TOPIC_DATA_TYPE_API_HAS_CONSTRUCT_SAMPLE
 bool $if(parent.IsInterface)$$parent.name$_$endif$$struct.name$::construct_sample(
         void* memory) const
 {
     new (memory) $if(parent.IsInterface)$$struct.scopedname$$else$$struct.name$$endif$();
 }
-#endif
+#endif  // TOPIC_DATA_TYPE_API_HAS_CONSTRUCT_SAMPLE
 
 >>
 

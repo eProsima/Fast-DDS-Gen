@@ -91,15 +91,18 @@ public:
         bool force_md5 = false) override;
     eProsima_user_DllExport virtual void* createData() override;
     eProsima_user_DllExport virtual void deleteData(void * data) override;
-#if TOPIC_DATA_TYPE_API_HAS_IS_BOUNDED
+
+#ifdef TOPIC_DATA_TYPE_API_HAS_IS_BOUNDED
     eProsima_user_DllExport inline bool is_bounded() const override;
-#endif
-#if TOPIC_DATA_TYPE_API_HAS_IS_PLAIN
+#endif  // TOPIC_DATA_TYPE_API_HAS_IS_BOUNDED
+
+#ifdef TOPIC_DATA_TYPE_API_HAS_IS_PLAIN
     eProsima_user_DllExport inline bool is_plain() const override;
-#endif
-#if TOPIC_DATA_TYPE_API_HAS_CONSTRUCT_SAMPLE
+#endif  // TOPIC_DATA_TYPE_API_HAS_IS_PLAIN
+
+#ifdef TOPIC_DATA_TYPE_API_HAS_CONSTRUCT_SAMPLE
     eProsima_user_DllExport inline bool construct_sample(void* memory) const override;
-#endif
+#endif  // TOPIC_DATA_TYPE_API_HAS_CONSTRUCT_SAMPLE
 
     MD5 m_md5;
     unsigned char* m_keyBuffer;
