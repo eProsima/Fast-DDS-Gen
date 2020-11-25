@@ -73,29 +73,36 @@ $exports; separator="\n"$
 
 exception(ctx, parent, exception) ::= <<
 $if(ctx.printexception)$
-$exception.scopedname$::$exception.name$() : UserException()
+$exception.scopedname$::$exception.name$()
+    : UserException()
 {
     $exception.members : { member |$member_default_init(ctx=ctx, member=member, loopvar=ctx.newLoopVarName)$}; separator="\n"$
 }
 
-$exception.scopedname$::$exception.name$(const $exception.name$ &x) : UserException(x)
+$exception.scopedname$::$exception.name$(
+        const $exception.name$& x)
+    : UserException(x)
 {
     $exception.members : { member |$member_copy(ctx=ctx, member=member)$}; separator="\n"$
 }
 
-$exception.scopedname$::$exception.name$($exception.name$&& x) : UserException(std::move(x))
+$exception.scopedname$::$exception.name$(
+        $exception.name$&& x)
+    : UserException(std::move(x))
 {
     $exception.members : { member |$member_move(member=member)$}; separator="\n"$
 }
 
-$exception.scopedname$& $exception.scopedname$::operator=(const $exception.name$ &x)
+$exception.scopedname$& $exception.scopedname$::operator=(
+        const $exception.name$& x)
 {
 	UserException::operator=(x);
     $exception.members : { member |$member_copy(ctx=ctx, member=member)$}; separator="\n"$
 	return *this;
 }
 
-$exception.scopedname$& $exception.scopedname$::operator=($exception.name$&& x)
+$exception.scopedname$& $exception.scopedname$::operator=(
+        $exception.name$&& x)
 {
 	UserException::operator=(std::move(x));
 	$exception.members : { member |$member_move(member=member)$}; separator="\n"$
@@ -113,7 +120,8 @@ void $exception.scopedname$::raise() const
 }
 
 $if(ctx.anyCdr)$
-size_t $exception.scopedname$::getMaxCdrSerializedSize(size_t current_alignment)
+size_t $exception.scopedname$::getMaxCdrSerializedSize(
+        size_t current_alignment)
 {
     size_t initial_alignment = current_alignment;
 
@@ -122,7 +130,9 @@ size_t $exception.scopedname$::getMaxCdrSerializedSize(size_t current_alignment)
     return current_alignment - initial_alignment;
 }
 
-size_t $exception.scopedname$::getCdrSerializedSize(const $exception.scopedname$& data, size_t current_alignment)
+size_t $exception.scopedname$::getCdrSerializedSize(
+        const $exception.scopedname$& data,
+        size_t current_alignment)
 {
     (void)data;
     size_t initial_alignment = current_alignment;
@@ -135,12 +145,14 @@ size_t $exception.scopedname$::getCdrSerializedSize(const $exception.scopedname$
 $endif$
 
 $if(ctx.cdr)$
-void $exception.scopedname$::serialize(eprosima::fastcdr::Cdr &scdr) const
+void $exception.scopedname$::serialize(
+        eprosima::fastcdr::Cdr& scdr) const
 {
     $exception.members : { member |$object_serialization(ctx=ctx, object=member, preffix="m_")$}; separator="\n"$
 }
 
-void $exception.scopedname$::deserialize(eprosima::fastcdr::Cdr &dcdr)
+void $exception.scopedname$::deserialize(
+        eprosima::fastcdr::Cdr& dcdr)
 {
     $exception.members : { member |$object_deserialization(ctx=ctx, object=member, preffix="m_")$}; separator="\n"$
 }
@@ -148,12 +160,14 @@ void $exception.scopedname$::deserialize(eprosima::fastcdr::Cdr &dcdr)
 $endif$
 
 $if(ctx.fastcdr)$
-void $exception.scopedname$::serialize(eprosima::fastcdr::FastCdr &scdr) const
+void $exception.scopedname$::serialize(
+        eprosima::fastcdr::FastCdr& scdr) const
 {
     $exception.members : { member |$object_serialization(ctx=ctx, object=member, preffix="m_")$}; separator="\n"$
 }
 
-void $exception.scopedname$::deserialize(eprosima::fastcdr::FastCdr &dcdr)
+void $exception.scopedname$::deserialize(
+        eprosima::fastcdr::FastCdr& dcdr)
 {
     $exception.members : { member |$object_deserialization(ctx=ctx, object=member, preffix="m_")$}; separator="\n"$
 }
@@ -194,7 +208,8 @@ $endif$
 >>
 
 struct_type(ctx, parent, struct, extensions) ::= <<
-$struct.scopedname$::$struct.name$()$if(struct.inheritances)$ : $struct.inheritances : {$struct_inherit_default_init(it)$}; separator=",\n"$ $endif$
+$struct.scopedname$::$struct.name$()$if(struct.inheritances)$
+    : $struct.inheritances : {$struct_inherit_default_init(it)$}; separator=",\n"$ $endif$
 {
     $struct.members:{ member |$member_default_init(ctx=ctx, member=member, loopvar=ctx.newLoopVarName)$}; separator="\n"$
 
@@ -209,17 +224,22 @@ $struct.scopedname$::~$struct.name$()
     $struct.members:{ member |$member_destructor(ctx=ctx, member=member)$}; separator="\n"$
 }
 
-$struct.scopedname$::$struct.name$(const $struct.name$ &x)$if(struct.inheritances)$ : $struct.inheritances : {$struct_inherit_copy_init(it)$}; separator=",\n"$ $endif$
+$struct.scopedname$::$struct.name$(
+        const $struct.name$& x)$if(struct.inheritances)$
+    : $struct.inheritances : {$struct_inherit_copy_init(it)$}; separator=",\n"$ $endif$
 {
     $struct.members:{$member_copy(ctx=ctx, member=it)$}; separator="\n"$
 }
 
-$struct.scopedname$::$struct.name$($struct.name$ &&x)$if(struct.inheritances)$ : $struct.inheritances : {$struct_inherit_move_init(it)$}; separator=",\n"$ $endif$
+$struct.scopedname$::$struct.name$(
+        $struct.name$&& x)$if(struct.inheritances)$
+    : $struct.inheritances : {$struct_inherit_move_init(it)$}; separator=",\n"$ $endif$
 {
     $struct.members:{$member_move(member=it)$}; separator="\n"$
 }
 
-$struct.scopedname$& $struct.scopedname$::operator=(const $struct.name$ &x)
+$struct.scopedname$& $struct.scopedname$::operator=(
+        const $struct.name$& x)
 {
     $if(struct.inheritances)$    $struct.inheritances : {$it.scopedname$::operator=(x);}; separator="\n"$ $endif$
 
@@ -228,7 +248,8 @@ $struct.scopedname$& $struct.scopedname$::operator=(const $struct.name$ &x)
     return *this;
 }
 
-$struct.scopedname$& $struct.scopedname$::operator=($struct.name$ &&x)
+$struct.scopedname$& $struct.scopedname$::operator=(
+        $struct.name$&& x)
 {
     $if(struct.inheritances)$    $struct.inheritances : {$it.scopedname$::operator=(std::move(x));}; separator="\n"$ $endif$
 
@@ -238,7 +259,8 @@ $struct.scopedname$& $struct.scopedname$::operator=($struct.name$ &&x)
 }
 
 $if(ctx.anyCdr)$
-size_t $struct.scopedname$::getMaxCdrSerializedSize(size_t current_alignment)
+size_t $struct.scopedname$::getMaxCdrSerializedSize(
+        size_t current_alignment)
 {
     size_t initial_alignment = current_alignment;
 
@@ -249,7 +271,9 @@ size_t $struct.scopedname$::getMaxCdrSerializedSize(size_t current_alignment)
     return current_alignment - initial_alignment;
 }
 
-size_t $struct.scopedname$::getCdrSerializedSize(const $struct.scopedname$& data, size_t current_alignment)
+size_t $struct.scopedname$::getCdrSerializedSize(
+        const $struct.scopedname$& data,
+        size_t current_alignment)
 {
     (void)data;
     size_t initial_alignment = current_alignment;
@@ -264,14 +288,16 @@ size_t $struct.scopedname$::getCdrSerializedSize(const $struct.scopedname$& data
 $endif$
 
 $if(ctx.cdr)$
-void $struct.scopedname$::serialize(eprosima::fastcdr::Cdr &scdr) const
+void $struct.scopedname$::serialize(
+        eprosima::fastcdr::Cdr& scdr) const
 {
     $if(struct.inheritances)$    $struct.inheritances : {$it.scopedname$::serialize(scdr);}; separator="\n"$ $endif$
 
     $struct.members : { member |$if(!member.annotationNonSerialized)$$object_serialization(ctx=ctx, object=member, preffix="m_")$$endif$}; separator="\n"$
 }
 
-void $struct.scopedname$::deserialize(eprosima::fastcdr::Cdr &dcdr)
+void $struct.scopedname$::deserialize(
+        eprosima::fastcdr::Cdr& dcdr)
 {
     $if(struct.inheritances)$    $struct.inheritances : {$it.scopedname$::deserialize(dcdr);}; separator="\n"$ $endif$
 
@@ -281,14 +307,16 @@ void $struct.scopedname$::deserialize(eprosima::fastcdr::Cdr &dcdr)
 $endif$
 
 $if(ctx.fastcdr)$
-void $struct.scopedname$::serialize(eprosima::fastcdr::FastCdr &scdr) const
+void $struct.scopedname$::serialize(
+        eprosima::fastcdr::FastCdr &scdr) const
 {
     $if(struct.inheritances)$    $struct.inheritances : {$it.scopedname$::serialize(scdr);}; separator="\n"$ $endif$
 
     $struct.members : { member |$if(!member.annotationNonSerialized)$$object_serialization(ctx=ctx, object=member, preffix="m_")$$endif$}; separator="\n"$
 }
 
-void $struct.scopedname$::deserialize(eprosima::fastcdr::FastCdr &dcdr)
+void $struct.scopedname$::deserialize(
+        eprosima::fastcdr::FastCdr& dcdr)
 {
     $if(struct.inheritances)$    $struct.inheritances : {$it.scopedname$::deserialize(dcdr);}; separator="\n"$ $endif$
 
@@ -303,7 +331,8 @@ $extensions : {$it$}; separator="\n"$
 >>
 
 bitset_type(ctx, parent, bitset) ::= <<
-$bitset.scopedname$::$bitset.name$()$if(bitset.parents)$ : $bitset.parents : {$bitset_inherit_default_init(it)$}; separator=",\n"$ $endif$
+$bitset.scopedname$::$bitset.name$()$if(bitset.parents)$
+    : $bitset.parents : {$bitset_inherit_default_init(it)$}; separator=",\n"$ $endif$
 {
     $if(ctx.generateTypeObject)$
     // Just to register all known types
@@ -315,17 +344,22 @@ $bitset.scopedname$::~$bitset.name$()
 {
 }
 
-$bitset.scopedname$::$bitset.name$(const $bitset.name$ &x)$if(bitset.parents)$ : $bitset.parents : {$bitset_inherit_copy_init(it)$}; separator=",\n"$ $endif$
+$bitset.scopedname$::$bitset.name$(
+        const $bitset.name$& x)$if(bitset.parents)$
+    : $bitset.parents : {$bitset_inherit_copy_init(it)$}; separator=",\n"$ $endif$
 {
     m_bitset = x.m_bitset;
 }
 
-$bitset.scopedname$::$bitset.name$($bitset.name$ &&x)$if(bitset.parents)$ : $bitset.parents : {$bitset_inherit_move_init(it)$}; separator=",\n"$ $endif$
+$bitset.scopedname$::$bitset.name$(
+        $bitset.name$&& x)$if(bitset.parents)$
+    : $bitset.parents : {$bitset_inherit_move_init(it)$}; separator=",\n"$ $endif$
 {
     m_bitset = x.m_bitset;
 }
 
-$bitset.scopedname$& $bitset.scopedname$::operator=(const $bitset.name$ &x)
+$bitset.scopedname$& $bitset.scopedname$::operator=(
+        const $bitset.name$& x)
 {
     $if(bitset.parents)$    $bitset.parents : {$it.scopedname$::operator=(x);}; separator="\n"$ $endif$
 
@@ -334,7 +368,8 @@ $bitset.scopedname$& $bitset.scopedname$::operator=(const $bitset.name$ &x)
     return *this;
 }
 
-$bitset.scopedname$& $bitset.scopedname$::operator=($bitset.name$ &&x)
+$bitset.scopedname$& $bitset.scopedname$::operator=(
+        $bitset.name$&& x)
 {
     $if(bitset.parents)$    $bitset.parents : {$it.scopedname$::operator=(std::move(x));}; separator="\n"$ $endif$
 
@@ -344,7 +379,8 @@ $bitset.scopedname$& $bitset.scopedname$::operator=($bitset.name$ &&x)
 }
 
 $if(ctx.anyCdr)$
-size_t $bitset.scopedname$::getMaxCdrSerializedSize(size_t current_alignment)
+size_t $bitset.scopedname$::getMaxCdrSerializedSize(
+        size_t current_alignment)
 {
     size_t initial_alignment = current_alignment;
 
@@ -355,7 +391,9 @@ size_t $bitset.scopedname$::getMaxCdrSerializedSize(size_t current_alignment)
     return current_alignment - initial_alignment;
 }
 
-size_t $bitset.scopedname$::getCdrSerializedSize(const $bitset.scopedname$& $if(bitset.parents)$data$endif$, size_t current_alignment)
+size_t $bitset.scopedname$::getCdrSerializedSize(
+        const $bitset.scopedname$& $if(bitset.parents)$data$endif$,
+        size_t current_alignment)
 {
     size_t initial_alignment = current_alignment;
 
@@ -369,14 +407,16 @@ size_t $bitset.scopedname$::getCdrSerializedSize(const $bitset.scopedname$& $if(
 $endif$
 
 $if(ctx.cdr)$
-void $bitset.scopedname$::serialize(eprosima::fastcdr::Cdr &scdr) const
+void $bitset.scopedname$::serialize(
+        eprosima::fastcdr::Cdr& scdr) const
 {
     $if(bitset.parents)$    $bitset.parents : {$it.scopedname$::serialize(scdr);}; separator="\n"$ $endif$
 
     $bitset.bitfields : { member |$if(!member.annotationNonSerialized)$$bitfield_serialization(ctx=ctx, object=member)$$endif$}; separator="\n"$
 }
 
-void $bitset.scopedname$::deserialize(eprosima::fastcdr::Cdr &dcdr)
+void $bitset.scopedname$::deserialize(
+        eprosima::fastcdr::Cdr& dcdr)
 {
     $if(bitset.parents)$    $bitset.parents : {$it.scopedname$::deserialize(dcdr);}; separator="\n"$ $endif$
 
@@ -386,14 +426,16 @@ void $bitset.scopedname$::deserialize(eprosima::fastcdr::Cdr &dcdr)
 $endif$
 
 $if(ctx.fastcdr)$
-void $bitset.scopedname$::serialize(eprosima::fastcdr::FastCdr &scdr) const
+void $bitset.scopedname$::serialize(
+        eprosima::fastcdr::FastCdr& scdr) const
 {
     $if(bitset.parents)$    $bitset.parents : {$it.scopedname$::serialize(scdr);}; separator="\n"$ $endif$
 
     $bitset.bitfields : { member |$if(!member.annotationNonSerialized)$$bitfield_serialization(ctx=ctx, object=member)$$endif$}; separator="\n"$
 }
 
-void $bitset.scopedname$::deserialize(eprosima::fastcdr::FastCdr &dcdr)
+void $bitset.scopedname$::deserialize(
+        eprosima::fastcdr::FastCdr& dcdr)
 {
     $if(bitset.parents)$    $bitset.parents : {$it.scopedname$::deserialize(dcdr);}; separator="\n"$ $endif$
 
@@ -409,7 +451,8 @@ $bitset.bitfields:{$public_bitfield_definition(it)$}; separator="\n"$
 
 public_bitfield_definition(member) ::= <<
 $if(member.name)$
-void $bitset.scopedname$::$member.name$($member.spec.cppTypename$ _$member.name$)
+void $bitset.scopedname$::$member.name$(
+        $member.spec.cppTypename$ _$member.name$)
 {
     int base = $member.basePosition$;
 $if(member.spec.typecode.isType_7)$
@@ -460,7 +503,8 @@ $union.scopedname$::~$union.name$()
 {
 }
 
-$union.scopedname$::$union.name$(const $union.name$ &x)
+$union.scopedname$::$union.name$(
+        const $union.name$& x)
 {
     m__d = x.m__d;
 
@@ -471,7 +515,8 @@ $union.scopedname$::$union.name$(const $union.name$ &x)
     }
 }
 
-$union.scopedname$::$union.name$($union.name$ &&x)
+$union.scopedname$::$union.name$(
+        $union.name$&& x)
 {
     m__d = x.m__d;
 
@@ -482,7 +527,8 @@ $union.scopedname$::$union.name$($union.name$ &&x)
     }
 }
 
-$union.scopedname$& $union.scopedname$::operator=(const $union.name$ &x)
+$union.scopedname$& $union.scopedname$::operator=(
+        const $union.name$& x)
 {
     m__d = x.m__d;
 
@@ -495,7 +541,8 @@ $union.scopedname$& $union.scopedname$::operator=(const $union.name$ &x)
     return *this;
 }
 
-$union.scopedname$& $union.scopedname$::operator=($union.name$ &&x)
+$union.scopedname$& $union.scopedname$::operator=(
+        $union.name$&& x)
 {
     m__d = x.m__d;
 
@@ -508,7 +555,8 @@ $union.scopedname$& $union.scopedname$::operator=($union.name$ &&x)
     return *this;
 }
 
-void $union.scopedname$::_d($union.discriminator.cppTypename$ __d)
+void $union.scopedname$::_d(
+        $union.discriminator.cppTypename$ __d)
 {
     bool b = false;
 
@@ -538,7 +586,8 @@ $union.discriminator.cppTypename$& $union.scopedname$::_d()
 $union.members:{$public_unionmember_declaration(class=union.scopedname, member=it, defaultvalue=union.defaultvalue, totallabels=union.totallabels)$}; separator="\n"$
 
 $if(ctx.anyCdr)$
-size_t $union.scopedname$::getMaxCdrSerializedSize(size_t current_alignment)
+size_t $union.scopedname$::getMaxCdrSerializedSize(
+        size_t current_alignment)
 {
     size_t initial_alignment = current_alignment;
     size_t reset_alignment = 0;
@@ -560,7 +609,9 @@ size_t $union.scopedname$::getMaxCdrSerializedSize(size_t current_alignment)
 }
 
 // TODO(Ricardo) Review
-size_t $union.scopedname$::getCdrSerializedSize(const $union.scopedname$& data, size_t current_alignment)
+size_t $union.scopedname$::getCdrSerializedSize(
+        const $union.scopedname$& data,
+        size_t current_alignment)
 {
     (void)data;
     size_t initial_alignment = current_alignment;
@@ -579,7 +630,8 @@ size_t $union.scopedname$::getCdrSerializedSize(const $union.scopedname$& data, 
 $endif$
 
 $if(ctx.cdr)$
-void $union.scopedname$::serialize(eprosima::fastcdr::Cdr &scdr) const
+void $union.scopedname$::serialize(
+        eprosima::fastcdr::Cdr& scdr) const
 {
     scdr << $serializeCasting(typecode=union.discriminator)$m__d;
 
@@ -590,7 +642,8 @@ void $union.scopedname$::serialize(eprosima::fastcdr::Cdr &scdr) const
     }
 }
 
-void $union.scopedname$::deserialize(eprosima::fastcdr::Cdr &dcdr)
+void $union.scopedname$::deserialize(
+        eprosima::fastcdr::Cdr& dcdr)
 {
     $deserializePossibleEnum(typecode=union.discriminator, name="m__d")$
 
@@ -604,7 +657,8 @@ void $union.scopedname$::deserialize(eprosima::fastcdr::Cdr &dcdr)
 $endif$
 
 $if(ctx.fastcdr)$
-void $union.scopedname$::serialize(eprosima::fastcdr::FastCdr &scdr) const
+void $union.scopedname$::serialize(
+        eprosima::fastcdr::FastCdr& scdr) const
 {
     scdr << $serializeCasting(typecode=union.discriminator)$m__d;
 
@@ -615,7 +669,8 @@ void $union.scopedname$::serialize(eprosima::fastcdr::FastCdr &scdr) const
     }
 }
 
-void $union.scopedname$::deserialize(eprosima::fastcdr::FastCdr &dcdr)
+void $union.scopedname$::deserialize(
+        eprosima::fastcdr::FastCdr& dcdr)
 {
     $deserializePossibleEnum(typecode=union.discriminator, name="m__d")$
 
@@ -655,7 +710,8 @@ public_primitive_member_declaration(class, member) ::= <<
  * @brief This function sets a value in member $member.name$
  * @param _$member.name$ New value for member $member.name$
  */
-void $class$::$member.name$($member.typecode.cppTypename$ _$member.name$)
+void $class$::$member.name$(
+        $member.typecode.cppTypename$ _$member.name$)
 {
     $if(member.typecode.forwarded)$*$endif$m_$member.name$ = _$member.name$;
 }
@@ -684,7 +740,8 @@ public_cstring_member_declaration(class, member) ::= <<
  * @brief This function sets a value in member $member.name$
  * @param _$member.name$ New value for member $member.name$
  */
-void $class$::$member.name$(const $member.typecode.cppTypename$ _$member.name$)
+void $class$::$member.name$(
+        const $member.typecode.cppTypename$ _$member.name$)
 {
     free(m_$member.name$);
     m_$member.name$ = (char*)malloc(sizeof(char) * (strlen(_$member.name$) + 1));
@@ -706,7 +763,8 @@ public_object_member_declaration(class, member) ::= <<
  * @brief This function copies the value in member $member.name$
  * @param _$member.name$ New value to be copied in member $member.name$
  */
-void $class$::$member.name$(const $member.typecode.cppTypename$ &_$member.name$)
+void $class$::$member.name$(
+        const $member.typecode.cppTypename$& _$member.name$)
 {
     $if(member.typecode.forwarded)$*$endif$m_$member.name$ = _$member.name$;
 }
@@ -715,7 +773,8 @@ void $class$::$member.name$(const $member.typecode.cppTypename$ &_$member.name$)
  * @brief This function moves the value in member $member.name$
  * @param _$member.name$ New value to be moved in member $member.name$
  */
-void $class$::$member.name$($member.typecode.cppTypename$ &&_$member.name$)
+void $class$::$member.name$(
+        $member.typecode.cppTypename$&& _$member.name$)
 {
     $if(member.typecode.forwarded)$*$endif$m_$member.name$ = std::move(_$member.name$);
 }
@@ -744,7 +803,8 @@ $if(ctx.generateTypesC)$$if(member.typecode.isStringType)$$unionmember_cstring_d
 >>
 
 unionmember_cstring_declaration(class, member, totallabels, defaultvalue) ::= <<
-void $class$::$member.name$(const char* _$member.name$)
+void $class$::$member.name$(
+        const char* _$member.name$)
 {
     free(m_$member.name$);
     m_$member.name$ = (char*)malloc(sizeof(char) * (strlen(_$member.name$) + 1));
@@ -762,7 +822,8 @@ const char* $class$::$member.name$() const
 
 public_unionmember_cpp_declaration(class, member, totallabels, defaultvalue) ::= <<
 $if(member.typecode.primitive)$
-void $class$::$member.name$($member.typecode.cppTypename$ _$member.name$)
+void $class$::$member.name$(
+        $member.typecode.cppTypename$ _$member.name$)
 {
     m_$member.name$ = _$member.name$;
     $unionmember_set_discriminator(member=member, defaultvalue=defaultvalue)$
@@ -782,13 +843,15 @@ $member.typecode.cppTypename$& $class$::$member.name$()
     return m_$member.name$;
 }
 $else$
-void $class$::$member.name$(const $member.typecode.cppTypename$ &_$member.name$)
+void $class$::$member.name$(
+        const $member.typecode.cppTypename$& _$member.name$)
 {
     m_$member.name$ = _$member.name$;
     $unionmember_set_discriminator(member=member, defaultvalue=defaultvalue)$
 }
 
-void $class$::$member.name$($member.typecode.cppTypename$ &&_$member.name$)
+void $class$::$member.name$(
+        $member.typecode.cppTypename$&& _$member.name$)
 {
     m_$member.name$ = std::move(_$member.name$);
     $unionmember_set_discriminator(member=member, defaultvalue=defaultvalue)$
@@ -1023,7 +1086,9 @@ $scopedtypename$::$typename$()
     value_ = nullptr;
 }
 
-$scopedtypename$::$typename$(uint32_t maximum) : maximum_(maximum)
+$scopedtypename$::$typename$(
+        uint32_t maximum)
+    : maximum_(maximum)
 {
     // value_ = new $typecode.contentTypeCode.cppTypename$[maximum_];
     value_ = nullptr;
@@ -1039,7 +1104,8 @@ $scopedtypename$::$typename$(
 {
 }
 
-$scopedtypename$::$typename$(const $typename$& $typename$_)
+$scopedtypename$::$typename$(
+        const $typename$& $typename$_)
     : maximum_($typename$_.maximum_)
     , length_($typename$_.length_)
     , release_(true)
@@ -1055,7 +1121,8 @@ $scopedtypename$::$typename$(const $typename$& $typename$_)
     }
 }
 
-$scopedtypename$& $scopedtypename$::operator=(const $typename$& $typename$_)
+$scopedtypename$& $scopedtypename$::operator=(
+        const $typename$& $typename$_)
 {
     maximum_ = $typename$_.maximum_;
     length_ = $typename$_.length_;
@@ -1080,7 +1147,8 @@ $scopedtypename$::~$typename$()
     free_memory();
 }
 
-$typecode.contentTypeCode.cppTypename$$if(ctx.generateTypesC)$$if(typecode.contentTypeCode.isStringType)$$else$&$endif$$else$&$endif$ $scopedtypename$::operator[](uint32_t index)
+$typecode.contentTypeCode.cppTypename$$if(ctx.generateTypesC)$$if(typecode.contentTypeCode.isStringType)$$else$&$endif$$else$&$endif$ $scopedtypename$::operator[](
+        uint32_t index)
 {
     if (value_ == nullptr)
     {
@@ -1107,7 +1175,8 @@ $typecode.contentTypeCode.cppTypename$$if(ctx.generateTypesC)$$if(typecode.conte
     return value_[index];
 }
 
-const $typecode.contentTypeCode.cppTypename$$if(ctx.generateTypesC)$$if(typecode.contentTypeCode.isStringType)$$else$&$endif$$else$&$endif$ $scopedtypename$::operator[](uint32_t index) const
+const $typecode.contentTypeCode.cppTypename$$if(ctx.generateTypesC)$$if(typecode.contentTypeCode.isStringType)$$else$&$endif$$else$&$endif$ $scopedtypename$::operator[](
+        uint32_t index) const
 {
     if (value_ == nullptr)
     {
@@ -1134,7 +1203,8 @@ const $typecode.contentTypeCode.cppTypename$$if(ctx.generateTypesC)$$if(typecode
     return value_[index];
 }
 
-void $scopedtypename$::size(uint32_t size)
+void $scopedtypename$::size(
+        uint32_t size)
 {
     if (maximum_ == 0)
     {
@@ -1177,7 +1247,8 @@ uint32_t $scopedtypename$::size() const
     return length_;
 }
 
-void $scopedtypename$::length(uint32_t length)
+void $scopedtypename$::length(
+        uint32_t length)
 {
     if (maximum_ == 0)
     {
@@ -1232,15 +1303,15 @@ uint32_t $scopedtypename$::maximum() const
     }
 }
 
-void
-$scopedtypename$::value($typecode.contentTypeCode.cppTypename$* value)
+void $scopedtypename$::value(
+        $typecode.contentTypeCode.cppTypename$* value)
 {
     free_memory();
     value_ = value;
 }
 
-$typecode.contentTypeCode.cppTypename$*
-$scopedtypename$::value(bool orphan)
+$typecode.contentTypeCode.cppTypename$* $scopedtypename$::value(
+        bool orphan)
 {
     if (orphan && !release_)
     {
@@ -1278,8 +1349,7 @@ $scopedtypename$::value(bool orphan)
     return value_;
 }
 
-const $typecode.contentTypeCode.cppTypename$$if(ctx.generateTypesC)$$if(typecode.contentTypeCode.isStringType)$ const$else$$endif$$else$$endif$*
-$scopedtypename$::value() const
+const $typecode.contentTypeCode.cppTypename$$if(ctx.generateTypesC)$$if(typecode.contentTypeCode.isStringType)$ const$else$$endif$$else$$endif$* $scopedtypename$::value() const
 {
     if (value_ == nullptr)
     {
@@ -1307,7 +1377,8 @@ $scopedtypename$::value() const
     return value_;
 }
 
-void $scopedtypename$::release(bool release)
+void $scopedtypename$::release(
+        bool release)
 {
     release_ = release;
 }
@@ -1323,7 +1394,8 @@ bool& $scopedtypename$::release()
 }
 
 $if(ctx.anyCdr)$
-size_t $scopedtypename$::getMaxCdrSerializedSize(size_t current_alignment)
+size_t $scopedtypename$::getMaxCdrSerializedSize(
+        size_t current_alignment)
 {
     size_t initial_alignment = current_alignment;
 
@@ -1332,7 +1404,9 @@ size_t $scopedtypename$::getMaxCdrSerializedSize(size_t current_alignment)
     return current_alignment - initial_alignment;
 }
 
-size_t $scopedtypename$::getCdrSerializedSize(const $scopedtypename$& data, size_t current_alignment)
+size_t $scopedtypename$::getCdrSerializedSize(
+        const $scopedtypename$& data,
+        size_t current_alignment)
 {
     (void)data;
     size_t initial_alignment = current_alignment;
@@ -1347,7 +1421,8 @@ size_t $scopedtypename$::getCdrSerializedSize(const $scopedtypename$& data, size
 $endif$
 
 $if(ctx.cdr)$
-void $scopedtypename$::serialize(eprosima::fastcdr::Cdr &scdr) const
+void $scopedtypename$::serialize(
+        eprosima::fastcdr::Cdr& scdr) const
 {
     scdr <<  length_;
 
@@ -1370,7 +1445,8 @@ void $scopedtypename$::serialize(eprosima::fastcdr::Cdr &scdr) const
     }
 }
 
-void $scopedtypename$::deserialize(eprosima::fastcdr::Cdr &dcdr)
+void $scopedtypename$::deserialize(
+        eprosima::fastcdr::Cdr& dcdr)
 {
     uint32_t old_length = length_;
     uint32_t new_length;
