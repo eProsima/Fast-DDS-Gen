@@ -19,8 +19,10 @@ $fileHeader(file=[ctx.filename, ".cpp"], description=["This source file contains
 
 #ifdef _WIN32
 // Remove linker warning LNK4221 on Visual Studio
-namespace { char dummy; }
-#endif
+namespace {
+char dummy;
+}  // namespace
+#endif  // _WIN32
 
 #include "$ctx.filename$.h"
 $if(ctx.generateTypeObject)$
@@ -93,18 +95,18 @@ $exception.scopedname$::$exception.name$(
     $exception.members : { member |$member_move(member=member)$}; separator="\n"$
 }
 
-$exception.scopedname$& $exception.scopedname$::operator=(
+$exception.scopedname$& $exception.scopedname$::operator =(
         const $exception.name$& x)
 {
-	UserException::operator=(x);
+	UserException::operator =(x);
     $exception.members : { member |$member_copy(ctx=ctx, member=member)$}; separator="\n"$
 	return *this;
 }
 
-$exception.scopedname$& $exception.scopedname$::operator=(
+$exception.scopedname$& $exception.scopedname$::operator =(
         $exception.name$&& x)
 {
-	UserException::operator=(std::move(x));
+	UserException::operator =(std::move(x));
 	$exception.members : { member |$member_move(member=member)$}; separator="\n"$
 	return *this;
 }
@@ -238,20 +240,20 @@ $struct.scopedname$::$struct.name$(
     $struct.members:{$member_move(member=it)$}; separator="\n"$
 }
 
-$struct.scopedname$& $struct.scopedname$::operator=(
+$struct.scopedname$& $struct.scopedname$::operator =(
         const $struct.name$& x)
 {
-    $if(struct.inheritances)$    $struct.inheritances : {$it.scopedname$::operator=(x);}; separator="\n"$ $endif$
+    $if(struct.inheritances)$    $struct.inheritances : {$it.scopedname$::operator =(x);}; separator="\n"$ $endif$
 
     $struct.members:{$member_copy(ctx=ctx, member=it)$}; separator="\n"$
 
     return *this;
 }
 
-$struct.scopedname$& $struct.scopedname$::operator=(
+$struct.scopedname$& $struct.scopedname$::operator =(
         $struct.name$&& x)
 {
-    $if(struct.inheritances)$    $struct.inheritances : {$it.scopedname$::operator=(std::move(x));}; separator="\n"$ $endif$
+    $if(struct.inheritances)$    $struct.inheritances : {$it.scopedname$::operator =(std::move(x));}; separator="\n"$ $endif$
 
     $struct.members:{$member_move(member=it)$}; separator="\n"$
 
@@ -358,20 +360,20 @@ $bitset.scopedname$::$bitset.name$(
     m_bitset = x.m_bitset;
 }
 
-$bitset.scopedname$& $bitset.scopedname$::operator=(
+$bitset.scopedname$& $bitset.scopedname$::operator =(
         const $bitset.name$& x)
 {
-    $if(bitset.parents)$    $bitset.parents : {$it.scopedname$::operator=(x);}; separator="\n"$ $endif$
+    $if(bitset.parents)$    $bitset.parents : {$it.scopedname$::operator =(x);}; separator="\n"$ $endif$
 
     m_bitset = x.m_bitset;
 
     return *this;
 }
 
-$bitset.scopedname$& $bitset.scopedname$::operator=(
+$bitset.scopedname$& $bitset.scopedname$::operator =(
         $bitset.name$&& x)
 {
-    $if(bitset.parents)$    $bitset.parents : {$it.scopedname$::operator=(std::move(x));}; separator="\n"$ $endif$
+    $if(bitset.parents)$    $bitset.parents : {$it.scopedname$::operator =(std::move(x));}; separator="\n"$ $endif$
 
     m_bitset = x.m_bitset;
 
@@ -527,7 +529,7 @@ $union.scopedname$::$union.name$(
     }
 }
 
-$union.scopedname$& $union.scopedname$::operator=(
+$union.scopedname$& $union.scopedname$::operator =(
         const $union.name$& x)
 {
     m__d = x.m__d;
@@ -541,7 +543,7 @@ $union.scopedname$& $union.scopedname$::operator=(
     return *this;
 }
 
-$union.scopedname$& $union.scopedname$::operator=(
+$union.scopedname$& $union.scopedname$::operator =(
         $union.name$&& x)
 {
     m__d = x.m__d;
@@ -713,7 +715,7 @@ public_primitive_member_declaration(class, member) ::= <<
 void $class$::$member.name$(
         $member.typecode.cppTypename$ _$member.name$)
 {
-    $if(member.typecode.forwarded)$*$endif$m_$member.name$ = _$member.name$;
+    $if(member.typecode.forwarded)$    *$else$    $endif$m_$member.name$ = _$member.name$;
 }
 
 /*!
@@ -766,7 +768,7 @@ public_object_member_declaration(class, member) ::= <<
 void $class$::$member.name$(
         const $member.typecode.cppTypename$& _$member.name$)
 {
-    $if(member.typecode.forwarded)$*$endif$m_$member.name$ = _$member.name$;
+    $if(member.typecode.forwarded)$    *$else$    $endif$m_$member.name$ = _$member.name$;
 }
 
 /*!
@@ -776,7 +778,7 @@ void $class$::$member.name$(
 void $class$::$member.name$(
         $member.typecode.cppTypename$&& _$member.name$)
 {
-    $if(member.typecode.forwarded)$*$endif$m_$member.name$ = std::move(_$member.name$);
+    $if(member.typecode.forwarded)$    *$else$    $endif$m_$member.name$ = std::move(_$member.name$);
 }
 
 /*!
@@ -1121,7 +1123,7 @@ $scopedtypename$::$typename$(
     }
 }
 
-$scopedtypename$& $scopedtypename$::operator=(
+$scopedtypename$& $scopedtypename$::operator =(
         const $typename$& $typename$_)
 {
     maximum_ = $typename$_.maximum_;

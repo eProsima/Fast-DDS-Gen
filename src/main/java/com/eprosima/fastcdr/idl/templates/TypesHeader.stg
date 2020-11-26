@@ -157,14 +157,14 @@ public:
      * @brief Copy assignment.
      * @param ex Exception to be copied.
      */
-    eProsima_user_DllExport $exception.name$& operator=(
+    eProsima_user_DllExport $exception.name$& operator =(
             const $exception.name$ &ex);
 
     /*!
      * @brief Move assignment.
      * @param ex Exception to be moved.
      */
-    eProsima_user_DllExport $exception.name$& operator=(
+    eProsima_user_DllExport $exception.name$& operator =(
             $exception.name$&& ex);
 
     //! @brief Destructor.
@@ -251,14 +251,14 @@ public:
      * @brief Copy assignment.
      * @param x Reference to the object $struct.scopedname$ that will be copied.
      */
-    eProsima_user_DllExport $struct.name$& operator=(
+    eProsima_user_DllExport $struct.name$& operator =(
             const $struct.name$& x);
 
     /*!
      * @brief Move assignment.
      * @param x Reference to the object $struct.scopedname$ that will be copied.
      */
-    eProsima_user_DllExport $struct.name$& operator=(
+    eProsima_user_DllExport $struct.name$& operator =(
             $struct.name$&& x);
 
     $struct.members:{$public_member_declaration(it)$}; separator="\n"$
@@ -311,14 +311,14 @@ public:
      * @brief Copy assignment.
      * @param x Reference to the object $union.scopedname$ that will be copied.
      */
-    eProsima_user_DllExport $union.name$& operator=(
+    eProsima_user_DllExport $union.name$& operator =(
             const $union.name$& x);
 
     /*!
      * @brief Move assignment.
      * @param x Reference to the object $union.scopedname$ that will be copied.
      */
-    eProsima_user_DllExport $union.name$& operator=(
+    eProsima_user_DllExport $union.name$& operator =(
             $union.name$&& x);
 
     /*!
@@ -393,14 +393,14 @@ public:
      * @brief Copy assignment.
      * @param x Reference to the object $bitset.scopedname$ that will be copied.
      */
-    eProsima_user_DllExport $bitset.name$& operator=(
+    eProsima_user_DllExport $bitset.name$& operator =(
             const $bitset.name$& x);
 
     /*!
      * @brief Move assignment.
      * @param x Reference to the object $bitset.scopedname$ that will be copied.
      */
-    eProsima_user_DllExport $bitset.name$& operator=(
+    eProsima_user_DllExport $bitset.name$& operator =(
             $bitset.name$&& x);
 
     $bitset.bitfields:{$public_bitfield_declaration(it)$}; separator="\n"$
@@ -741,7 +741,7 @@ public:
     $typename$(
             const $typename$& $typename$_);
 
-    $typename$& operator=(
+    $typename$& operator =(
             const $typename$& $typename$_);
 
     ~$typename$();
