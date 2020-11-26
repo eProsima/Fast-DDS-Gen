@@ -82,7 +82,10 @@ bool $ctx.filename$Publisher::init()
     }
 
     //CREATE THE TOPIC
-    topic_ = participant_->create_topic("HelloWorldTopic", "HelloWorld", TOPIC_QOS_DEFAULT);
+    topic_ = participant_->create_topic(
+        "$ctx.filename$Topic",
+        type_.get_type_name(),
+        TOPIC_QOS_DEFAULT);
     if (topic_ == nullptr)
     {
         return false;
@@ -123,7 +126,7 @@ void $ctx.filename$Publisher::PubListener::on_publication_matched(
 void $ctx.filename$Publisher::run()
 {
     std::cout << "$ctx.m_lastStructureScopedName$ DataWriter waiting for DataReaders." << std::endl;
-    while(listener_.matched == 0)
+    while (listener_.matched == 0)
     {
         std::this_thread::sleep_for(std::chrono::milliseconds(250)); // Sleep 250 ms
     }
@@ -138,13 +141,13 @@ void $ctx.filename$Publisher::run()
     char ch = 'y';
     do
     {
-        if(ch == 'y')
+        if (ch == 'y')
         {
             writer_->write(&st);
             ++msgsent;
             std::cout << "Sending sample, count=" << msgsent << ", send another sample?(y-yes,n-stop): ";
         }
-        else if(ch == 'n')
+        else if (ch == 'n')
         {
             std::cout << "Stopping execution " << std::endl;
             break;
@@ -153,7 +156,7 @@ void $ctx.filename$Publisher::run()
         {
             std::cout << "Command " << ch << " not recognized, please enter \"y/n\":";
         }
-    } while(std::cin \>> ch);
+    } while (std::cin \>> ch);
 }
 
 >>

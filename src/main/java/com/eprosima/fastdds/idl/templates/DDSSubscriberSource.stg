@@ -77,9 +77,9 @@ bool $ctx.filename$Subscriber::init()
 
     //CREATE THE TOPIC
     topic_ = participant_->create_topic(
-            "HelloWorldTopic",
-            "HelloWorld",
-            TOPIC_QOS_DEFAULT);
+        "$ctx.filename$Topic",
+        type_.get_type_name(),
+        TOPIC_QOS_DEFAULT);
     if (topic_ == nullptr)
     {
         return false;
@@ -138,11 +138,10 @@ void $ctx.filename$Subscriber::SubListener::on_data_available(
 
 void $ctx.filename$Subscriber::run()
 {
-    std::cout << "Waiting for Data, press Enter to stop the DataReader. "<<std::endl;
+    std::cout << "Waiting for Data, press Enter to stop the DataReader. " << std::endl;
     std::cin.ignore();
     std::cout << "Shutting down the Subscriber." << std::endl;
 }
-
 
 >>
 
