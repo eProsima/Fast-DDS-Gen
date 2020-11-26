@@ -150,7 +150,7 @@ $if(ctx.cdr)$
 void $exception.scopedname$::serialize(
         eprosima::fastcdr::Cdr& scdr) const
 {
-    $exception.members : { member |$object_serialization(ctx=ctx, object=member, preffix="m_")$}; separator="\n"$
+    $exception.members : { member |$object_serialization(ctx=ctx, object=member, preffix="m_")$}; separator=""$
 }
 
 void $exception.scopedname$::deserialize(
@@ -165,7 +165,7 @@ $if(ctx.fastcdr)$
 void $exception.scopedname$::serialize(
         eprosima::fastcdr::FastCdr& scdr) const
 {
-    $exception.members : { member |$object_serialization(ctx=ctx, object=member, preffix="m_")$}; separator="\n"$
+    $exception.members : { member |$object_serialization(ctx=ctx, object=member, preffix="m_")$}; separator=""$
 }
 
 void $exception.scopedname$::deserialize(
@@ -295,7 +295,7 @@ void $struct.scopedname$::serialize(
 {
     $if(struct.inheritances)$    $struct.inheritances : {$it.scopedname$::serialize(scdr);}; separator="\n"$ $endif$
 
-    $struct.members : { member |$if(!member.annotationNonSerialized)$$object_serialization(ctx=ctx, object=member, preffix="m_")$$endif$}; separator="\n"$
+    $struct.members : { member |$if(!member.annotationNonSerialized)$$object_serialization(ctx=ctx, object=member, preffix="m_")$$endif$}; separator=""$
 }
 
 void $struct.scopedname$::deserialize(
@@ -314,7 +314,7 @@ void $struct.scopedname$::serialize(
 {
     $if(struct.inheritances)$    $struct.inheritances : {$it.scopedname$::serialize(scdr);}; separator="\n"$ $endif$
 
-    $struct.members : { member |$if(!member.annotationNonSerialized)$$object_serialization(ctx=ctx, object=member, preffix="m_")$$endif$}; separator="\n"$
+    $struct.members : { member |$if(!member.annotationNonSerialized)$$object_serialization(ctx=ctx, object=member, preffix="m_")$$endif$}; separator=""$
 }
 
 void $struct.scopedname$::deserialize(

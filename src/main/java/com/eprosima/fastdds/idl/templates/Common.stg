@@ -117,7 +117,7 @@ void $struct.scopedname$::serializeKey(
 {
     (void) scdr;
     $if(struct.inheritances)$    $struct.inheritances : {$it.scopedname$::serializeKey(scdr);}; separator="\n"$ $endif$
-    $struct.members : { member |$if(boolean_converter.(member.annotations.("Key").values.("value").value))$ $object_serialization(ctx=ctx, object=member, preffix="m_")$ $endif$ }; separator="\n"$
+    $struct.members : { member |$if(boolean_converter.(member.annotations.("Key").values.("value").value))$ $object_serialization(ctx=ctx, object=member, preffix="m_")$ $endif$ }; separator=""$
 }
 
 >>
