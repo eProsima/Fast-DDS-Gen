@@ -34,20 +34,24 @@ $definitions; separator="\n"$
 
 struct_type(ctx, parent, struct) ::= <<
 $if((ctx.generateTypesC))$
-void $if(struct.hasScope)$$struct.scope$::$endif$free_string$struct.name$($struct.name$* topic)
+void $if(struct.hasScope)$$struct.scope$::$endif$free_string$struct.name$(
+        $struct.name$* topic)
 {
     $struct.allMembers:{$free_member_string(ctx=ctx, typecode=it.typecode, name=it.name)$}; separator=""$
 }
 
 $endif$
-void $if(struct.hasScope)$$struct.scope$::$endif$print$struct.name$($struct.name$* topic)
+void $if(struct.hasScope)$$struct.scope$::$endif$print$struct.name$(
+        $struct.name$* topic)
 {
     printf("$struct.name$: { \n");
     $struct.allMembers:{$member_print(ctx=ctx, typecode=it.typecode, name=it.name)$}; separator="\n"$
     printf("}\n");
 }
 
-void $if(struct.hasScope)$$struct.scope$::$endif$initialize$struct.name$($struct.name$* topic, int idx)
+void $if(struct.hasScope)$$struct.scope$::$endif$initialize$struct.name$(
+        $struct.name$* topic,
+        int idx)
 {
     if (idx == 0)
     {
@@ -59,13 +63,16 @@ void $if(struct.hasScope)$$struct.scope$::$endif$initialize$struct.name$($struct
     }
 }
 
-int $if(struct.hasScope)$$struct.scope$::$endif$compare$struct.name$($struct.name$* topic_a, $struct.name$* topic_b)
+int $if(struct.hasScope)$$struct.scope$::$endif$compare$struct.name$(
+        $struct.name$* topic_a,
+        $struct.name$* topic_b)
 {
     $struct.allMembers:{$member_comparision(ctx=ctx, typecode=it.typecode, name=it.name, name=it.name)$}; separator="\n"$
     return 1;
 }
 
-$if(struct.hasScope)$$struct.scope$::$endif$$struct.name$ $if(struct.hasScope)$$struct.scope$::$endif$createKey$struct.name$(int idx)
+$if(struct.hasScope)$$struct.scope$::$endif$$struct.name$ $if(struct.hasScope)$$struct.scope$::$endif$createKey$struct.name$(
+        int idx)
 {
     $struct.name$ result;
     initialize$struct.name$(&result, idx+1); // 0 means don't use the idx internally.
@@ -75,7 +82,8 @@ $if(struct.hasScope)$$struct.scope$::$endif$$struct.name$ $if(struct.hasScope)$$
 >>
 
 union_type(ctx, parent, union) ::= <<
-void $if(union.hasScope)$$union.scope$::$endif$print$union.name$($union.name$* topic)
+void $if(union.hasScope)$$union.scope$::$endif$print$union.name$(
+        $union.name$* topic)
 {
     topic->_d(static_cast<$union.discriminator.cppTypename$>($first(first(union.members).labels)$));
     printf("$union.name$: { \n");
@@ -85,7 +93,8 @@ void $if(union.hasScope)$$union.scope$::$endif$print$union.name$($union.name$* t
     printf("}\n");
 }
 
-void $if(union.hasScope)$$union.scope$::$endif$initialize$union.name$($union.name$* topic)
+void $if(union.hasScope)$$union.scope$::$endif$initialize$union.name$(
+        $union.name$* topic)
 {
     topic->_d(static_cast<$union.discriminator.cppTypename$>($first(first(union.members).labels)$));
     $if(union.members)$
@@ -93,7 +102,9 @@ void $if(union.hasScope)$$union.scope$::$endif$initialize$union.name$($union.nam
     $endif$
 }
 
-int $if(union.hasScope)$$union.scope$::$endif$compare$union.name$($union.name$* topic_a, $union.name$* topic_b)
+int $if(union.hasScope)$$union.scope$::$endif$compare$union.name$(
+        $union.name$* topic_a,
+        $union.name$* topic_b)
 {
     topic_a->_d(static_cast<$union.discriminator.cppTypename$>($first(first(union.members).labels)$));
     topic_b->_d(static_cast<$union.discriminator.cppTypename$>($first(first(union.members).labels)$));
@@ -125,18 +136,22 @@ $definitions; separator="\n"$
 fwd_decl(ctx, parent, type) ::= <<>>
 
 bitset_type(ctx, parent, bitset) ::= <<
-void $if(bitset.hasScope)$$bitset.scope$::$endif$print$bitset.name$($bitset.name$* topic)
+void $if(bitset.hasScope)$$bitset.scope$::$endif$print$bitset.name$(
+        $bitset.name$* topic)
 {
     printf("$bitset.name$: { \n");
     $bitset.allBitfields:{$if(it.name)$printf("$it.name$: 0x%" PRIx64 "\n", (uint64_t)topic->$it.name$());$endif$}; separator="\n"$
 }
 
-void $if(bitset.hasScope)$$bitset.scope$::$endif$initialize$bitset.name$($bitset.name$* topic)
+void $if(bitset.hasScope)$$bitset.scope$::$endif$initialize$bitset.name$(
+        $bitset.name$* topic)
 {
     $bitset.allBitfields:{$if(it.name)$$if(it.spec.typecode.isType_7)$topic->$it.name$(static_cast<$it.spec.typecode.cppTypename$>(rand()%2==1));$elseif(it.spec.typecode.primitive)$topic->$it.name$(static_cast<$it.spec.typecode.cppTypename$>(rand()));$endif$$endif$}; separator="\n"$
 }
 
-int $if(bitset.hasScope)$$bitset.scope$::$endif$compare$bitset.name$($bitset.name$* topic_a, $bitset.name$* topic_b)
+int $if(bitset.hasScope)$$bitset.scope$::$endif$compare$bitset.name$(
+        $bitset.name$* topic_a,
+        $bitset.name$* topic_b)
 {
     $bitset.allBitfields:{$if(it.name)$if(topic_a->$it.name$() != topic_b->$it.name$()) return 0;$endif$}; separator="\n"$
     return 1;

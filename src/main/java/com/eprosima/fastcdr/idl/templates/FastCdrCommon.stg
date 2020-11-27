@@ -45,10 +45,13 @@ $if(params)$$separatorInicial$$endif$$params : {param | /*$param.comment$*/ $par
 object_serialization(ctx, object, preffix) ::= <<
 $if(object.typecode.isType_f)$
 $object_array_serialization(ctx=ctx, object=object, preffix=preffix)$
+
 $elseif(object.typecode.isType_e)$
 $object_map_seq_serialization(ctx=ctx, object=object, preffix=preffix)$
+
 $else$
 scdr << $serializeCasting(typecode=object.typecode)$$preffix$$object.name$;
+
 $endif$
 >>
 
