@@ -188,7 +188,7 @@ class $struct.name$PubSubJNI : public TopicDataType, public SubscriberListener
         vm_(vm), version_(version), listener_(listener), receiveId_(receiveId)
         {
             setName("$struct.scopedname$");
-            m_typeSize = (uint32_t)$struct.scopedname$::getMaxCdrSerializedSize() + 4 /*encapsulation*/;
+            m_typeSize = ((uint32_t)$struct.scopedname$::getMaxCdrSerializedSize() + 3 & ~3) + 4 /*encapsulation*/;
             m_isGetKeyDefined = $struct.scopedname$::isKeyDefined();
             m_keyBuffer = (unsigned char*)malloc($struct.scopedname$::getKeyMaxCdrSerializedSize()>16 ? $struct.scopedname$::getKeyMaxCdrSerializedSize() : 16);
 
