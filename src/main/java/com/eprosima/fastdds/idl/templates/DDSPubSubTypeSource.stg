@@ -68,7 +68,9 @@ struct_type(ctx, parent, struct) ::= <<
 $if (parent.IsInterface)$$parent.name$_$endif$$struct.name$PubSubType::$if (parent.IsInterface)$$parent.name$_$endif$$struct.name$PubSubType()
 {
     $if (ctx.GenerateTypesROS2)$    setName("$struct.ROS2Scopedname$");$else$    setName("$struct.scopedname$");$endif$
-    m_typeSize = static_cast<uint32_t>($if (parent.IsInterface)$$struct.scopedname$$else$$struct.name$$endif$::getMaxCdrSerializedSize()) + 4 /*encapsulation*/;
+    auto type_size = $if (parent.IsInterface)$$struct.scopedname$$else$$struct.name$$endif$::getMaxCdrSerializedSize();
+    type_size += eprosima::fastcdr::Cdr::alignment(type_size, 4); /* possible submessage alignment */
+    m_typeSize = static_cast<uint32_t>(type_size) + 4; /*encapsulation*/
     m_isGetKeyDefined = $if (parent.IsInterface)$$struct.scopedname$$else$$struct.name$$endif$::isKeyDefined();
     size_t keyLength = $if (parent.IsInterface)$$struct.scopedname$$else$$struct.name$$endif$::getKeyMaxCdrSerializedSize() > 16 ?
             $if (parent.IsInterface)$$struct.scopedname$$else$$struct.name$$endif$::getKeyMaxCdrSerializedSize() : 16;
