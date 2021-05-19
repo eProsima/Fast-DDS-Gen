@@ -102,7 +102,7 @@ size_t $struct.scopedname$::getKeyMaxCdrSerializedSize(
 
     $if(struct.inheritances)$    $struct.inheritances : {current_align += $it.scopedname$::getKeyMaxCdrSerializedSize(current_align);}; separator="\n"$ $endif$
 
-    $struct.members : { member | $if(boolean_converter.(member.annotations.("Key").values.("value").value))$ $max_serialized_size(ctx=ctx, typecode=member.typecode, var="current_align")$ $endif$}; separator="\n"$
+    $struct.members : { member | $if(member.annotationKey)$ $max_serialized_size(ctx=ctx, typecode=member.typecode, var="current_align")$ $endif$}; separator="\n"$
 
     return current_align;
 }
@@ -117,7 +117,7 @@ void $struct.scopedname$::serializeKey(
 {
     (void) scdr;
     $if(struct.inheritances)$    $struct.inheritances : {$it.scopedname$::serializeKey(scdr);}; separator="\n"$ $endif$
-    $struct.members : { member |$if(boolean_converter.(member.annotations.("Key").values.("value").value))$ $object_serialization(ctx=ctx, object=member, preffix="m_")$ $endif$ }; separator=""$
+    $struct.members : { member |$if(member.annotationKey)$ $object_serialization(ctx=ctx, object=member, preffix="m_")$ $endif$ }; separator=""$
 }
 
 >>
