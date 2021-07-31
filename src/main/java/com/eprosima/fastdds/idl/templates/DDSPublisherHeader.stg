@@ -18,8 +18,7 @@ main(ctx, definitions) ::= <<
 $fileHeader(ctx=ctx,  file=[ctx.filename, "Publisher.h"], description=["This header file contains the declaration of the publisher functions."])$
 
 
-#ifndef _$ctx.headerGuardName$_PUBLISHER_H_
-#define _$ctx.headerGuardName$_PUBLISHER_H_
+#pragma once
 
 #include <fastdds/dds/domain/DomainParticipant.hpp>
 #include <fastdds/dds/publisher/DataWriter.hpp>
@@ -63,8 +62,6 @@ private:
     }
     listener_;
 };
-
-#endif // _$ctx.headerGuardName$_PUBLISHER_H_
 >>
 
 module(ctx, parent, module, definition_list) ::= <<

@@ -17,8 +17,7 @@ group TypesHeader;
 main(ctx, definitions) ::= <<
 $fileHeader(file=[ctx.filename, ".h"], description=["This header file contains the declaration of the described types in the IDL file."])$
 
-#ifndef _$ctx.headerGuardName$_H_
-#define _$ctx.headerGuardName$_H_
+#pragma once
 
 $if(ctx.printexception)$
 #include <$ctx.product$/exceptions/UserException.h>
@@ -83,8 +82,6 @@ $endif$
 
 
 $definitions; separator="\n"$
-
-#endif // _$ctx.headerGuardName$_H_
 >>
 
 // TODO name -> module

@@ -18,8 +18,7 @@ main(ctx, definitions) ::= <<
 $fileHeader(ctx=ctx,  file=[ctx.filename, "Subscriber.h"], description=["This header file contains the declaration of the subscriber functions."])$
 
 
-#ifndef _$ctx.headerGuardName$_SUBSCRIBER_H_
-#define _$ctx.headerGuardName$_SUBSCRIBER_H_
+#pragma once
 
 #include <fastdds/dds/domain/DomainParticipant.hpp>
 #include <fastdds/dds/subscriber/DataReader.hpp>
@@ -66,8 +65,6 @@ private:
     }
     listener_;
 };
-
-#endif // _$ctx.headerGuardName$_SUBSCRIBER_H_
 >>
 
 module(ctx, parent, module, definition_list) ::= <<

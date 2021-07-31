@@ -18,8 +18,7 @@ main(ctx, definitions) ::= <<
 $fileHeader(ctx=ctx,  file=[ctx.filename, "PubSubTypes.h"], description=["This header file contains the declaration of the serialization functions."])$
 
 
-#ifndef _$ctx.headerGuardName$_PUBSUBTYPES_H_
-#define _$ctx.headerGuardName$_PUBSUBTYPES_H_
+#pragma once
 
 #include <fastdds/dds/topic/TopicDataType.hpp>
 #include <fastrtps/utils/md5.h>
@@ -31,8 +30,6 @@ $fileHeader(ctx=ctx,  file=[ctx.filename, "PubSubTypes.h"], description=["This h
 #endif  // GEN_API_VER
 
 $definitions; separator="\n"$
-
-#endif // _$ctx.headerGuardName$_PUBSUBTYPES_H_
 >>
 
 // TODO name -> module

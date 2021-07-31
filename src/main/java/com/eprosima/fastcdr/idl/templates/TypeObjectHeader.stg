@@ -17,8 +17,7 @@ group TypeObjectHeader;
 main(ctx, definitions) ::= <<
 $fileHeader(file=[ctx.filename, "TypeObject.h"], description=["This header file contains the declaration of the described types in the IDL file."])$
 
-#ifndef _$ctx.headerGuardName$_TYPE_OBJECT_H_
-#define _$ctx.headerGuardName$_TYPE_OBJECT_H_
+#pragma once
 
 $ctx.directIncludeDependencies : {include | #include "$include$TypeObject.h"}; separator="\n"$
 
@@ -54,8 +53,6 @@ using namespace eprosima::fastrtps::types;
 eProsima_user_DllExport void register$ctx.filename$Types();
 
 $definitions; separator="\n"$
-
-#endif // _$ctx.headerGuardName$_TYPE_OBJECT_H_
 >>
 
 typedef_decl(ctx, parent, typedefs) ::= <<
