@@ -30,6 +30,9 @@ import java.util.Collection;
 import java.util.Map.Entry;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.Stack;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.math.BigInteger;
 
 
 public class Context extends com.eprosima.idl.context.Context implements com.eprosima.fastcdr.idl.context.Context
@@ -52,6 +55,17 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
         m_type_object = generate_type_object;
         m_typesc = generate_typesc;
         m_type_ros2 = generate_type_ros2;
+
+	// md5sum of path to make header guard more unique
+	MessageDigest digest = null;
+	try {
+            digest = MessageDigest.getInstance("MD5");
+        } catch (NoSuchAlgorithmException ex) {
+            throw new RuntimeException("Unable to compute md5sum for string", ex);
+        }
+	digest.update(file.getBytes());
+        BigInteger hash = new BigInteger(1, digest.digest());
+        m_file_md5sum = hash.toString(16).toUpperCase();
     }
 
     public void setTypelimitation(String lt)
@@ -302,6 +316,8 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
 
     private boolean m_type_ros2 = false;
 
+    private String m_file_md5sum = null;
+
     @Override
     public boolean isGenerateTypeObject()
     {
@@ -326,11 +342,11 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
         {
             if(m_lastStructure.getHasScope())
             {
-                return m_lastStructure.getScope().replaceAll("::", "_").toUpperCase() +
+                return m_file_md5sum + "_" + m_lastStructure.getScope().replaceAll("::", "_").toUpperCase() +
                     "_" + m_fileNameUpper.replaceAll("\\.", "_");
             }
         }
-        return m_fileNameUpper;
+        return m_file_md5sum + "_" + m_fileNameUpper;
     }
 
     public String getM_lastStructureTopicDataTypeName() {
