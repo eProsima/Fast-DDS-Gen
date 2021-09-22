@@ -425,63 +425,63 @@ $endif$
 map_max_serialized_size(ctx, typecodeMap, var, loopvar) ::= <<
 for(size_t $loopvar$ = 0; $loopvar$ < $typecodeMap.maxsize$; ++$loopvar$)
 {
-    $var$ += $typecodeMap.keyTypeCode.size$$if(ctx.cdr)$ + eprosima::fastcdr::Cdr::alignment($var$, $typecodeMap.keyTypeCode.size$)$endif$;
+    $map_max_serialized_size_element(ctx=ctx, typecodeMapElement=typecodeMap.keyTypeCode, var=var, loopvar=loopvar)$
 
-    $if(typecodeMap.valueTypeCode.primitive)$
-    $var$ += $typecodeMap.valueTypeCode.size$$if(ctx.cdr)$ + eprosima::fastcdr::Cdr::alignment($var$, $typecodeMap.valueTypeCode.size$)$endif$;
-
-    $elseif(typecodeMap.valueTypeCode.isType_d)$
-    $var$ += 4$if(ctx.cdr)$ + eprosima::fastcdr::Cdr::alignment($var$, 4)$endif$ + $typecodeMap.valueTypeCode.maxsize$ + 1;
-
-    $elseif(typecodeMap.valueTypeCode.isMapType)$
-    $var$ += 4$if(ctx.cdr)$ + eprosima::fastcdr::Cdr::alignment($var$, 4)$endif$;
-
-    $map_max_serialized_size(ctx=ctx, typecodeMap=typecodeMap.valueTypeCode, var=var, loopvar=ctx.nextLoopVarName)$
-    $elseif(typecodeMap.valueTypeCode.isType_e)$
-    $var$ += 4$if(ctx.cdr)$ + eprosima::fastcdr::Cdr::alignment($var$, 4)$endif$;
-
-    $sequence_max_serialized_size(ctx=ctx, typecodeSeq=typecodeMap.valueTypeCode, var=var, loopvar=ctx.nextLoopVarName)$
-    $elseif(typecodeMap.valueTypeCode.isType_f)$
-    $array_max_serialized_size(ctx=ctx, typecodeArr=typecodeMap.valueTypeCode, var=var, loopvar=ctx.nextLoopVarName)$
-    $else$
-    $var$ += $typecodeMap.valueTypeCode.scopedname$::getMaxCdrSerializedSize($var$);
-    $endif$
+    $map_max_serialized_size_element(ctx=ctx, typecodeMapElement=typecodeMap.valueTypeCode, var=var, loopvar=loopvar)$
 }
 $endif$
+>>
+
+map_max_serialized_size_element(ctx, typecodeMapElement, var, loopvar) ::= <<
+    $if(typecodeMapElement.primitive)$
+    $var$ += $typecodeMapElement.size$$if(ctx.cdr)$ + eprosima::fastcdr::Cdr::alignment($var$, $typecodeMapElement.size$)$endif$;
+
+    $elseif(typecodeMapElement.isType_d)$
+    $var$ += 4$if(ctx.cdr)$ + eprosima::fastcdr::Cdr::alignment($var$, 4)$endif$ + $typecodeMapElement.maxsize$ + 1;
+
+    $elseif(typecodeMapElement.isMapType)$
+    $var$ += 4$if(ctx.cdr)$ + eprosima::fastcdr::Cdr::alignment($var$, 4)$endif$;
+
+    $map_max_serialized_size_element(ctx=ctx, typecodeMapElement=typecodeMapElement, var=var, loopvar=ctx.nextLoopVarName)$
+    $elseif(typeCodeMapElement.isType_e)$
+    $var$ += 4$if(ctx.cdr)$ + eprosima::fastcdr::Cdr::alignment($var$, 4)$endif$;
+
+    $sequence_max_serialized_size(ctx=ctx, typecodeSeq=typecodeMapElement, var=var, loopvar=ctx.nextLoopVarName)$
+    $elseif(typecodeMapElement.isType_f)$
+    $array_max_serialized_size(ctx=ctx, typecodeArr=typecodeMapElement, var=var, loopvar=ctx.nextLoopVarName)$
+    $else$
+    $var$ += $typecodeMapElement.scopedname$::getMaxCdrSerializedSize($var$);
+    $endif$
 >>
 
 map_serialized_size(ctx, typecodeMap, data, var, loopvar) ::= <<
 for(auto $loopvar$ : $data$)
 {
     (void)$loopvar$;
-$if(typecodeMap.keyTypeCode.primitive)$
-    $var$ += $typecodeMap.keyTypeCode.size$$if(ctx.cdr)$ + eprosima::fastcdr::Cdr::alignment($var$, $typecodeMap.keyTypeCode.size$)$endif$;
-$else$
-    // KEY TYPE ISN'T PRIMITIVE $typecodeMap.keyTypeCode.cppTypename$
-$endif$
 
-$if(typecodeMap.valueTypeCode.primitive)$
-    $var$ += $typecodeMap.valueTypeCode.size$$if(ctx.cdr)$ + eprosima::fastcdr::Cdr::alignment($var$, $typecodeMap.valueTypeCode.size$)$endif$;
-
-$elseif(typecodeMap.valueTypeCode.isType_d)$
-    $var$ += 4$if(ctx.cdr)$ + eprosima::fastcdr::Cdr::alignment($var$, 4)$endif$ + $if(ctx.generateTypesC)$strlen($loopvar$.second)$else$$loopvar$.second.size()$endif$ + 1;
-$elseif(typecodeMap.valueTypeCode.isMapType)$
-    $var$ += 4$if(ctx.cdr)$ + eprosima::fastcdr::Cdr::alignment($var$, 4)$endif$;
-
-    $map_serialized_size(ctx=ctx, typecodeMap=typecodeMap.valueTypeCode, data=[loopvar, ".second"], var=var, loopvar=ctx.nextLoopVarName)$
-$elseif(typecodeMap.valueTypeCode.isType_e)$
-    $var$ += 4$if(ctx.cdr)$ + eprosima::fastcdr::Cdr::alignment($var$, 4)$endif$;
-
-    $sequence_serialized_size(ctx=ctx, typecodeSeq=typecodeMap.valueTypeCode, data=[loopvar, ".second"], var=var, loopvar=ctx.nextLoopVarName)$
-$elseif(typecodeMap.valueTypeCode.isType_f)$
-    $array_serialized_size(ctx=ctx, typecodeArr=typecodeMap.valueTypeCode, data=[loopvar, ".second"], var=var, loopvar=ctx.nextLoopVarName, dimensions=typecodeMap.valueTypeCode.dimensions)$
-$else$
-    $var$ += $typecodeMap.valueTypeCode.scopedname$::getCdrSerializedSize(($loopvar$.second), $var$);
-$endif$
-
-
+    $map_serialized_size_element(ctx=ctx, typecodeMapElement=typecodeMap.keyTypeCode, data=[loopvar, ".first"], var=var, loopvar=loopvar)$
+    $map_serialized_size_element(ctx=ctx, typecodeMapElement=typecodeMap.valueTypeCode, data=[loopvar, ".second"], var=var, loopvar=loopvar)$
 }
+$endif$
+>>
 
+map_serialized_size_element(ctx, typecodeMapElement, data, var, loopvar) ::= <<
+$if(typecodeMapElement.primitive)$
+    $var$ += $typecodeMapElement.size$$if(ctx.cdr)$ + eprosima::fastcdr::Cdr::alignment($var$, $typecodeMapElement.size$)$endif$;
+$elseif(typecodeMapElement.isType_d)$
+    $var$ += 4$if(ctx.cdr)$ + eprosima::fastcdr::Cdr::alignment($var$, 4)$endif$ + $if(ctx.generateTypesC)$strlen($loopvar$)$else$$data$.size()$endif$ + 1;
+$elseif(typecodeMapElement.isMapType)$
+    $var$ += 4$if(ctx.cdr)$ + eprosima::fastcdr::Cdr::alignment($var$, 4)$endif$;
+
+    $map_serialized_size_element(ctx=ctx, typecodeMapElement=typecodeMapElement, data=data, var=var, loopvar=ctx.nextLoopVarName)$
+$elseif(typecodeMapElement.isType_e)$
+    $var$ += 4$if(ctx.cdr)$ + eprosima::fastcdr::Cdr::alignment($var$, 4)$endif$;
+
+    $sequence_serialized_size(ctx=ctx, typecodeSeq=typecodeMapElement, data=data, var=var, loopvar=ctx.nextLoopVarName)$
+$elseif(typecodeMapElement.isType_f)$
+    $array_serialized_size(ctx=ctx, typecodeArr=typecodeMapElement, data=data, var=var, loopvar=ctx.nextLoopVarName, dimensions=typecodeMapElement.dimensions)$
+$else$
+    $var$ += $typecodeMapElement.scopedname$::getCdrSerializedSize($loopvar$, $var$);
 $endif$
 >>
 
