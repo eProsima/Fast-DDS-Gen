@@ -107,6 +107,9 @@ public class fastddsgen
     // Generate string and sequence types compatible with C?
     private boolean m_typesc = false;
 
+    // Generate python binding files
+    private boolean m_python = false;
+
     private boolean m_case_sensitive = false;
 
     // Testing
@@ -265,6 +268,10 @@ public class fastddsgen
             else if (arg.equals("-typesc"))
             {
                 m_typesc = true;
+            }
+            else if (arg.equals("-python"))
+            {
+                m_python = true;
             }
             else if (arg.equals("-test"))
             {
@@ -518,6 +525,7 @@ public class fastddsgen
         System.out.println(" dynamic.");
         System.out.println("\t\t-cs: IDL grammar apply case sensitive matching.");
         System.out.println("\t\t-test: executes FastDDSGen tests.");
+        System.out.println("\t\t-python: generates python bindings for the generated types.");
         System.out.println("\tand the supported input files are:");
         System.out.println("\t* IDL files.");
 
