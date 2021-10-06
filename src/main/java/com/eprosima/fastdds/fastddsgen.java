@@ -429,6 +429,10 @@ public class fastddsgen
                 }
             }
 
+            if (returnedValue && m_python) {
+                returnedValue = genSwigCMake(solution);
+            }
+
 
             // Generate solution
             if (returnedValue && (m_exampleOption != null) || m_test)
@@ -1186,9 +1190,24 @@ public class fastddsgen
             cmake.setAttribute("test", m_test);
 
             returnedValue = Utils.writeFile(m_outputDir + "CMakeLists.txt", cmake, m_replace);
+        }
+        return returnedValue;
+    }
+
+    private boolean genSwigCMake(Solution solution) {
+
+        boolean returnedValue = false;
+        StringTemplate swig = null;
+
+        StringTemplateGroup swigTemplates = StringTemplateGroup.loadGroup("SwigCMake", DefaultTemplateLexer.class, null);
+        if (swigTemplates != null) {
+            swig = swigTemplates.getInstanceOf("swig_cmake");
+
+            swig.setAttribute("solution", solution);
+
+            returnedValue = Utils.writeFile(m_outputDir + "CMakeLists.txt", swig, m_replace);
 
         }
-
         return returnedValue;
     }
 
