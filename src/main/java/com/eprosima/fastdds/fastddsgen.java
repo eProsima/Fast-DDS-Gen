@@ -677,6 +677,11 @@ public class fastddsgen
                 ctx.setPackage(m_package);
             }
 
+            if (m_python)
+            {
+                tmanager.addGroup("TypesSwigInterface");
+            }
+
             // Create main template
             TemplateGroup maintemplates = tmanager.createTemplateGroup("main");
             maintemplates.setAttribute("ctx", ctx);
@@ -735,6 +740,12 @@ public class fastddsgen
                                     project.addCommonIncludeFile(ctx.getFilename() + "TypeObject.h");
                                     project.addCommonSrcFile(ctx.getFilename() + "TypeObject.cxx");
                                 }
+                            }
+                        }
+                        if(m_python) {
+                            System.out.println("Generating Swig interface files...");
+                            if (returnedValue = Utils.writeFile(m_outputDir + onlyFileName + ".i", maintemplates.getTemplate("TypesSwigInterface"), m_replace)) {
+
                             }
                         }
                     }

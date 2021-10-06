@@ -1,0 +1,55 @@
+// Copyright 2021 Proyectos y Sistemas de Mantenimiento SL (eProsima).
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+group TypesSwigInterface;
+
+main(ctx, definitions) ::= <<
+$fileHeader(file=[ctx.filename, ".i"], description=["This header file contains the SWIG interface of the described types in the IDL file."])$
+
+%{
+#include "$ctx.filename$.h"
+%}
+
+// Not sure if this must be AFTER the ignores and BEFORE the extends
+#include "$ctx.filename$.h"
+
+$definitions; separator="\n"$
+
+>>
+
+struct_type(ctx, parent, struct, extensions) ::= <<
+// Ignore overloaded methods that have no application on Python
+// Otherwise they will issue a warning
+%ignore $struct.name$::$struct.name$($struct.name$&&);
+
+// Field getter-setter methods do not map correctly to target languages
+// We better ignore it and extend to make the getter and setter methods explicit and break the overload
+$struct.members:{%ignore $struct.name$::$it.name$;}; separator="\n"$
+
+// Add the explicit getter and setters
+%extend $struct.name$ {
+$struct.members:{$create_getter_setter(it)$}; separator="\n"$
+}
+>>
+
+create_getter_setter(member) ::= <<
+    $member.typecode.cppTypename$ get_$member.name$() const {
+        return \$self->$member.name$();
+    }
+
+    set_$member.name$($member.typecode.cppTypename$ _$member.name$) {
+        return \$self->$member.name$(_$member.name$);
+    }
+
+>>
