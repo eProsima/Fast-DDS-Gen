@@ -17,39 +17,73 @@ group TypesSwigInterface;
 main(ctx, definitions) ::= <<
 $fileHeader(file=[ctx.filename, ".i"], description=["This header file contains the SWIG interface of the described types in the IDL file."])$
 
+%module $ctx.filename$
+
+// SWIG helper modules
+%include "std_string.i"
+%include "typemaps.i"
+
+// Assignemt operators are ignored, as there is no such thing in Python.
+// Trying to export them issues a warning
+%ignore *::operator=;
+
+$internal_types()$
+
+$fast_macro_declarations()$
+
 %{
 #include "$ctx.filename$.h"
 %}
 
-// Not sure if this must be AFTER the ignores and BEFORE the extends
-#include "$ctx.filename$.h"
-
 $definitions; separator="\n"$
+
+// Include the class interfaces
+%include "$ctx.filename$.h"
+
+// Include the corresponding TopicDataType
+%include "$ctx.filename$PubSubTypes.i"
 
 >>
 
 struct_type(ctx, parent, struct, extensions) ::= <<
+////////////////////////////////////////////////////////
+// Binding for class $struct.name$
+////////////////////////////////////////////////////////
+
 // Ignore overloaded methods that have no application on Python
 // Otherwise they will issue a warning
 %ignore $struct.name$::$struct.name$($struct.name$&&);
 
-// Field getter-setter methods do not map correctly to target languages
-// We better ignore it and extend to make the getter and setter methods explicit and break the overload
-$struct.members:{%ignore $struct.name$::$it.name$;}; separator="\n"$
+// Overloaded getter methods shadow each other and are equivalent in python
+// Avoid a warning ignoring all but one
+$struct.members : {$member_getters(struct_name=struct.name, member=it)$}; separator="\n"$
 
-// Add the explicit getter and setters
-%extend $struct.name$ {
-$struct.members:{$create_getter_setter(it)$}; separator="\n"$
-}
 >>
 
-create_getter_setter(member) ::= <<
-    $member.typecode.cppTypename$ get_$member.name$() const {
-        return \$self->$member.name$();
-    }
+member_getters(struct_name, member) ::= <<
+%ignore $struct_name$::$member.name$();
+%rename("%s") $struct_name$::$member.name$() const;
 
-    set_$member.name$($member.typecode.cppTypename$ _$member.name$) {
-        return \$self->$member.name$(_$member.name$);
-    }
+>>
+
+fast_macro_declarations() ::= <<
+// Macro delcarations
+// Any macro used on the Fast DDS header files will give an error if it is not redefined here
+#define RTPS_DllAPI
+#define eProsima_user_DllExport
+>>
+
+internal_types() ::= <<
+// Definition of internal types
+
+typedef char int8_t;
+typedef short int16_t;
+typedef long int32_t;
+typedef long long int64_t;
+
+typedef unsigned char uint8_t;
+typedef unsigned short uint16_t;
+typedef unsigned long uint32_t;
+typedef unsigned long long uint64_t;
 
 >>
