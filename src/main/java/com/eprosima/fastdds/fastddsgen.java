@@ -85,12 +85,6 @@ public class fastddsgen
     protected static String m_localAppProduct = "fastrtps";
     private ArrayList<String> m_includePaths = new ArrayList<String>();
 
-    private String m_command = null;
-    private String m_extra_command = null;
-    private ArrayList m_lineCommand = null;
-    private ArrayList m_lineCommandForWorkDirSet = null;
-    private String m_spTemplate = "main";
-
     private static VSConfiguration m_vsconfigurations[] = {
         new VSConfiguration("Debug DLL", "Win32", true, true),
         new VSConfiguration("Release DLL", "Win32", false, true),
@@ -99,7 +93,6 @@ public class fastddsgen
     };
 
     private String m_os = null;
-    private boolean m_local = false;
     private boolean fusion_ = false;
 
     //! Default package used in Java files.
@@ -256,10 +249,6 @@ public class fastddsgen
             {
                 printHelp();
                 System.exit(0);
-            }
-            else if (arg.equals("-local"))
-            {
-                m_local = true;
             }
             else if (arg.equals("-fusion"))
             {
@@ -536,7 +525,6 @@ public class fastddsgen
 
     public boolean globalInit()
     {
-        String dds_root = null, tao_root = null, fastrtps_root = null;
 
         // Set the temporary folder
         if (m_tempDir == null)
@@ -562,9 +550,6 @@ public class fastddsgen
         {
             m_tempDir += File.separator;
         }
-
-        // Set the line command
-        m_lineCommand = new ArrayList();
 
         return true;
     }
