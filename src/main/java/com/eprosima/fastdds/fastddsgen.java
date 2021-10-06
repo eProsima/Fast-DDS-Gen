@@ -680,6 +680,7 @@ public class fastddsgen
             if (m_python)
             {
                 tmanager.addGroup("TypesSwigInterface");
+                tmanager.addGroup("DDSPubSubTypeSwigInterface");
             }
 
             // Create main template
@@ -786,6 +787,11 @@ public class fastddsgen
                         {
                             project.addProjectIncludeFile(ctx.getFilename() + "PubSubTypes.h");
                             project.addProjectSrcFile(ctx.getFilename() + "PubSubTypes.cxx");
+                            if(m_python)
+                            {
+                                System.out.println("Generating Swig interface files...");
+                                returnedValue = Utils.writeFile(m_outputDir + ctx.getFilename() + "PubSubTypes.i", maintemplates.getTemplate("DDSPubSubTypeSwigInterface"), m_replace);
+                            }
                         }
                     }
 
