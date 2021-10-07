@@ -62,7 +62,7 @@ INCLUDE_DIRECTORIES()
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 #Create library for C++ types
-add_library(\${PROJECT_NAME} \${\${PROJECT_NAME}_FILES})
+add_library(\${PROJECT_NAME} SHARED \${\${PROJECT_NAME}_FILES})
 target_link_libraries(\${PROJECT_NAME} PUBLIC fastcdr fastrtps)
 
 ###############################################################################
