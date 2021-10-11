@@ -35,8 +35,16 @@ import java.util.Stack;
 public class Context extends com.eprosima.idl.context.Context implements com.eprosima.fastcdr.idl.context.Context
 {
     // TODO Remove middleware parameter. It is temporal while cdr and rest don't have async functions.
-    public Context(String filename, String file, ArrayList<String> includePaths, boolean subscribercode, boolean publishercode,
-            String appProduct, boolean generate_type_object, boolean generate_typesc, boolean generate_type_ros2)
+    public Context(
+            String filename,
+            String file,
+            ArrayList<String> includePaths,
+            boolean subscribercode,
+            boolean publishercode,
+            String appProduct,
+            boolean generate_type_object,
+            boolean generate_typesc,
+            boolean generate_type_ros2)
     {
         super(filename, file, includePaths);
         m_fileNameUpper = filename.toUpperCase();
@@ -54,7 +62,8 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
         m_type_ros2 = generate_type_ros2;
     }
 
-    public void setTypelimitation(String lt)
+    public void setTypelimitation(
+            String lt)
     {
         m_typelimitation = lt;
     }
@@ -65,27 +74,31 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
     }
 
     @Override
-    public StructTypeCode createStructTypeCode(String name)
+    public StructTypeCode createStructTypeCode(
+            String name)
     {
         return new StructTypeCode(getScope(), name);
     }
 
     @Override
-    public void addTypeDeclaration(TypeDeclaration typedecl)
+    public void addTypeDeclaration(
+            TypeDeclaration typedecl)
     {
         super.addTypeDeclaration(typedecl);
 
-        if(typedecl.getTypeCode().getKind() == Kind.KIND_STRUCT && typedecl.isInScope())
+        if (typedecl.getTypeCode().getKind() == Kind.KIND_STRUCT && typedecl.isInScope())
         {
             Annotation topicann = typedecl.getAnnotations().get("Topic");
 
-            if(topicann != null && topicann.getValue("value").equalsIgnoreCase("false"))
+            if (topicann != null && topicann.getValue("value").equalsIgnoreCase("false"))
             {
                 StructTypeCode structtypecode = (StructTypeCode)typedecl.getTypeCode();
                 structtypecode.setIsTopic(false);
             }
             else
+            {
                 m_lastStructure = typedecl;
+            }
         }
     }
 
@@ -141,11 +154,11 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
                     else if (member.getTypecode().getKind() == Kind.KIND_MAP)
                     {
                         MapTypeCode map = (MapTypeCode)member.getTypecode();
-                        if(map.getKeyTypeCode().getKind() == Kind.KIND_SEQUENCE)
+                        if (map.getKeyTypeCode().getKind() == Kind.KIND_SEQUENCE)
                         {
                             getSequencesToDefine(typecodes, (SequenceTypeCode)map.getKeyTypeCode());
                         }
-                        if(map.getValueTypeCode().getKind() == Kind.KIND_SEQUENCE)
+                        if (map.getValueTypeCode().getKind() == Kind.KIND_SEQUENCE)
                         {
                             getSequencesToDefine(typecodes, (SequenceTypeCode)map.getValueTypeCode());
                         }
@@ -157,7 +170,9 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
         return typecodes;
     }
 
-    private void getSequencesToDefine(ArrayList<Entry<String, TypeCode>> typecodes, SequenceTypeCode sequence)
+    private void getSequencesToDefine(
+            ArrayList<Entry<String, TypeCode>> typecodes,
+            SequenceTypeCode sequence)
     {
         // Search
         for (Entry<String, TypeCode> entry : typecodes)
@@ -177,11 +192,11 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
         else if (content.getKind() == Kind.KIND_MAP)
         {
             MapTypeCode map = (MapTypeCode)content;
-            if(map.getKeyTypeCode().getKind() == Kind.KIND_SEQUENCE)
+            if (map.getKeyTypeCode().getKind() == Kind.KIND_SEQUENCE)
             {
                 getSequencesToDefine(typecodes, (SequenceTypeCode)map.getKeyTypeCode());
             }
-            if(map.getValueTypeCode().getKind() == Kind.KIND_SEQUENCE)
+            if (map.getValueTypeCode().getKind() == Kind.KIND_SEQUENCE)
             {
                 getSequencesToDefine(typecodes, (SequenceTypeCode)map.getValueTypeCode());
             }
@@ -231,15 +246,17 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
 
     /*** End ***/
 
-    public void setActivateFusion(boolean value)
+    public void setActivateFusion(
+            boolean value)
     {
         activateFusion_ = value;
     }
 
     //// Java block ////
-    public void setPackage(String pack)
+    public void setPackage(
+            String pack)
     {
-        if(pack != null && !pack.isEmpty())
+        if (pack != null && !pack.isEmpty())
         {
             m_package = pack + ".";
             m_onlypackage = pack;
@@ -271,6 +288,7 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
     {
         return m_package.replace('.', '_');
     }
+
     //// End Java block ////
 
     private String m_typelimitation = null;
@@ -322,34 +340,39 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
 
     public String getHeaderGuardName ()
     {
-        if(m_lastStructure!=null)
+        if (m_lastStructure != null)
         {
-            if(m_lastStructure.getHasScope())
+            if (m_lastStructure.getHasScope())
             {
                 return m_lastStructure.getScope().replaceAll("::", "_").toUpperCase() +
-                    "_" + m_fileNameUpper.replaceAll("\\.", "_");
+                       "_" + m_fileNameUpper.replaceAll("\\.", "_");
             }
         }
         return m_fileNameUpper;
     }
 
-    public String getM_lastStructureTopicDataTypeName() {
+    public String getM_lastStructureTopicDataTypeName()
+    {
         String name = new String("");
 
-        if(m_lastStructure!=null)
+        if (m_lastStructure != null)
         {
-            if(m_lastStructure.getParent() instanceof Interface)
+            if (m_lastStructure.getParent() instanceof Interface)
             {
-                name = name + ((Interface)m_lastStructure.getParent()).getScopedname() + "_" + m_lastStructure.getName();
+                name = name + ((Interface)m_lastStructure.getParent()).getScopedname() + "_" +
+                        m_lastStructure.getName();
             }
             else
+            {
                 name = m_lastStructure.getScopedname();
+            }
         }
         return name;
     }
 
-    public String getM_lastStructureScopedName(){
-        if(m_lastStructure!=null)
+    public String getM_lastStructureScopedName()
+    {
+        if (m_lastStructure != null)
         {
             return m_lastStructure.getScopedname();
         }
@@ -358,8 +381,10 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
 
     public boolean isThereIsStructure()
     {
-        if(m_lastStructure != null)
+        if (m_lastStructure != null)
+        {
             return true;
+        }
         return false;
     }
 
@@ -370,18 +395,22 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
 
     public boolean existsLastStructure()
     {
-        if(m_lastStructure != null)
+        if (m_lastStructure != null)
+        {
             return true;
+        }
         return false;
     }
 
     private String m_fileNameUpper = null;
 
-    public void setFilename(String filename)
+    public void setFilename(
+            String filename)
     {
         super.setFilename(filename);
         m_fileNameUpper = filename.toUpperCase();
     }
+
     public String getFileNameUpper()
     {
         return m_fileNameUpper;
