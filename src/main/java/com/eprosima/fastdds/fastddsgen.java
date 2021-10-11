@@ -716,31 +716,31 @@ public class fastddsgen
             if (returnedValue)
             {
                 // Create information of project for solution
-                project = new Project(onlyFileName, idlFilename, ctx.getDependencies());
+                project = new Project(ctx.getFilename(), idlFilename, ctx.getDependencies());
 
                 System.out.println("Generating Type definition files...");
                 if (returnedValue =
-                        Utils.writeFile(m_outputDir + onlyFileName + ".h", maintemplates.getTemplate("TypesHeader"),
+                        Utils.writeFile(m_outputDir + ctx.getFilename() + ".h",
+                        maintemplates.getTemplate("TypesHeader"),
                         m_replace))
                 {
                     if (returnedValue =
-                            Utils.writeFile(m_outputDir + onlyFileName + ".cxx",
+                            Utils.writeFile(m_outputDir + ctx.getFilename() + ".cxx",
                             maintemplates.getTemplate("TypesSource"), m_replace))
                     {
-                        project.addCommonIncludeFile(onlyFileName + ".h");
-                        project.addCommonSrcFile(onlyFileName + ".cxx");
+                        project.addCommonIncludeFile(ctx.getFilename() + ".h");
+                        project.addCommonSrcFile(ctx.getFilename() + ".cxx");
                         if (m_type_object_files)
                         {
                             System.out.println("Generating TypeObject files...");
-                            if (returnedValue = Utils.writeFile(m_outputDir + onlyFileName + "TypeObject.h",
+                            if (returnedValue = Utils.writeFile(m_outputDir + ctx.getFilename() + "TypeObject.h",
                                     maintemplates.getTemplate("TypeObjectHeader"), m_replace))
                             {
-                                if (returnedValue = Utils.writeFile(m_outputDir + onlyFileName + "TypeObject.cxx",
+                                if (returnedValue = Utils.writeFile(m_outputDir + ctx.getFilename() + "TypeObject.cxx",
                                         maintemplates.getTemplate("TypeObjectSource"), m_replace))
                                 {
-                                    project.addCommonIncludeFile(onlyFileName + "TypeObject.h");
-                                    project.addCommonSrcFile(onlyFileName + "TypeObject.cxx");
-
+                                    project.addCommonIncludeFile(ctx.getFilename() + "TypeObject.h");
+                                    project.addCommonSrcFile(ctx.getFilename() + "TypeObject.cxx");
                                 }
                             }
                         }
@@ -750,17 +750,17 @@ public class fastddsgen
                 if (m_test)
                 {
                     System.out.println("Generating Serialization Test file...");
-                    String fileName = m_outputDir + onlyFileName + "SerializationTest.cpp";
+                    String fileName = m_outputDir + ctx.getFilename() + "SerializationTest.cpp";
                     returnedValue =
                             Utils.writeFile(fileName, maintemplates.getTemplate("SerializationTestSource"), m_replace);
 
                     System.out.println("Generating Serialization Source file...");
-                    String fileNameS = m_outputDir + onlyFileName + "Serialization.cpp";
+                    String fileNameS = m_outputDir + ctx.getFilename() + "Serialization.cpp";
                     returnedValue =
                             Utils.writeFile(fileNameS, maintemplates.getTemplate("SerializationSource"), m_replace);
 
                     System.out.println("Generating Serialization Header file...");
-                    String fileNameH = m_outputDir + onlyFileName + "Serialization.h";
+                    String fileNameH = m_outputDir + ctx.getFilename() + "Serialization.h";
                     returnedValue =
                             Utils.writeFile(fileNameH, maintemplates.getTemplate("SerializationHeader"), m_replace);
                 }
@@ -773,15 +773,15 @@ public class fastddsgen
 
                     System.out.println("Generating TopicDataTypes files...");
                     if (returnedValue =
-                            Utils.writeFile(m_outputDir + onlyFileName + "PubSubTypes.h",
+                            Utils.writeFile(m_outputDir + ctx.getFilename() + "PubSubTypes.h",
                             maintemplates.getTemplate("DDSPubSubTypeHeader"), m_replace))
                     {
                         if (returnedValue =
-                                Utils.writeFile(m_outputDir + onlyFileName + "PubSubTypes.cxx",
+                                Utils.writeFile(m_outputDir + ctx.getFilename() + "PubSubTypes.cxx",
                                 maintemplates.getTemplate("DDSPubSubTypeSource"), m_replace))
                         {
-                            project.addProjectIncludeFile(onlyFileName + "PubSubTypes.h");
-                            project.addProjectSrcFile(onlyFileName + "PubSubTypes.cxx");
+                            project.addProjectIncludeFile(ctx.getFilename() + "PubSubTypes.h");
+                            project.addProjectSrcFile(ctx.getFilename() + "PubSubTypes.cxx");
                         }
                     }
 
@@ -789,38 +789,38 @@ public class fastddsgen
                     {
                         System.out.println("Generating Publisher files...");
                         if (returnedValue =
-                                Utils.writeFile(m_outputDir + onlyFileName + "Publisher.h",
+                                Utils.writeFile(m_outputDir + ctx.getFilename() + "Publisher.h",
                                 maintemplates.getTemplate("DDSPublisherHeader"), m_replace))
                         {
                             if (returnedValue =
-                                    Utils.writeFile(m_outputDir + onlyFileName + "Publisher.cxx",
+                                    Utils.writeFile(m_outputDir + ctx.getFilename() + "Publisher.cxx",
                                     maintemplates.getTemplate("DDSPublisherSource"), m_replace))
                             {
-                                project.addProjectIncludeFile(onlyFileName + "Publisher.h");
-                                project.addProjectSrcFile(onlyFileName + "Publisher.cxx");
+                                project.addProjectIncludeFile(ctx.getFilename() + "Publisher.h");
+                                project.addProjectSrcFile(ctx.getFilename() + "Publisher.cxx");
                             }
                         }
 
                         System.out.println("Generating Subscriber files...");
                         if (returnedValue =
-                                Utils.writeFile(m_outputDir + onlyFileName + "Subscriber.h",
+                                Utils.writeFile(m_outputDir + ctx.getFilename() + "Subscriber.h",
                                 maintemplates.getTemplate("DDSSubscriberHeader"), m_replace))
                         {
                             if (returnedValue =
-                                    Utils.writeFile(m_outputDir + onlyFileName + "Subscriber.cxx",
+                                    Utils.writeFile(m_outputDir + ctx.getFilename() + "Subscriber.cxx",
                                     maintemplates.getTemplate("DDSSubscriberSource"), m_replace))
                             {
-                                project.addProjectIncludeFile(onlyFileName + "Subscriber.h");
-                                project.addProjectSrcFile(onlyFileName + "Subscriber.cxx");
+                                project.addProjectIncludeFile(ctx.getFilename() + "Subscriber.h");
+                                project.addProjectSrcFile(ctx.getFilename() + "Subscriber.cxx");
                             }
                         }
 
                         System.out.println("Generating main file...");
                         if (returnedValue =
-                                Utils.writeFile(m_outputDir + onlyFileName + "PubSubMain.cxx",
+                                Utils.writeFile(m_outputDir + ctx.getFilename() + "PubSubMain.cxx",
                                 maintemplates.getTemplate("DDSPubSubMain"), m_replace))
                         {
-                            project.addProjectSrcFile(onlyFileName + "PubSubMain.cxx");
+                            project.addProjectSrcFile(ctx.getFilename() + "PubSubMain.cxx");
                         }
                     }
                 }
@@ -850,7 +850,7 @@ public class fastddsgen
                 // Java classes.
                 TypesGenerator typeGen = new TypesGenerator(tmanager, m_outputDir, m_replace);
                 TypeCode.javapackage = m_package + (m_package.isEmpty() ? "" : ".");
-                if (!typeGen.generate(ctx, outputDir + File.separator, m_package, onlyFileName, null))
+                if (!typeGen.generate(ctx, outputDir + File.separator, m_package, ctx.getFilename(), null))
                 {
                     System.out.println(ColorMessage.error() + "generating Java types");
                     return null;
@@ -858,8 +858,8 @@ public class fastddsgen
 
                 if (ctx.existsLastStructure())
                 {
-                    System.out.println("Generando fichero " + m_outputDir + onlyFileName + "PubSub.java");
-                    if (!Utils.writeFile(outputDir + File.separator + onlyFileName + "PubSub.java",
+                    System.out.println("Generando fichero " + m_outputDir + ctx.getFilename() + "PubSub.java");
+                    if (!Utils.writeFile(outputDir + File.separator + ctx.getFilename() + "PubSub.java",
                             maintemplates.getTemplate("JavaSource"), m_replace))
                     {
                         return null;
@@ -872,10 +872,11 @@ public class fastddsgen
                     }
                 }
 
-                if (Utils.writeFile(m_outputDir + onlyFileName + "PubSubJNII.h", maintemplates.getTemplate("JNIHeader"),
+                if (Utils.writeFile(m_outputDir + ctx.getFilename() + "PubSubJNII.h",
+                        maintemplates.getTemplate("JNIHeader"),
                         m_replace))
                 {
-                    project.addJniIncludeFile(onlyFileName + "PubSubJNII.h");
+                    project.addJniIncludeFile(ctx.getFilename() + "PubSubJNII.h");
                 }
                 else
                 {
@@ -883,9 +884,9 @@ public class fastddsgen
                 }
 
                 StringTemplate jnisourceTemplate = maintemplates.getTemplate("JNISource");
-                if (Utils.writeFile(m_outputDir + onlyFileName + "PubSubJNI.cxx", jnisourceTemplate, m_replace))
+                if (Utils.writeFile(m_outputDir + ctx.getFilename() + "PubSubJNI.cxx", jnisourceTemplate, m_replace))
                 {
-                    project.addJniSrcFile(onlyFileName + "PubSubJNI.cxx");
+                    project.addJniSrcFile(ctx.getFilename() + "PubSubJNI.cxx");
                 }
                 else
                 {
