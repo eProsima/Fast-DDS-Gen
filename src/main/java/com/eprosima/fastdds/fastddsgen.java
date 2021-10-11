@@ -57,7 +57,8 @@ import org.antlr.v4.runtime.CommonTokenStream;
 
 // TODO: Implement Solution & Project in com.eprosima.fastdds.solution
 
-public class fastddsgen {
+public class fastddsgen
+{
 
     /*
      * ----------------------------------------------------------------------------------------
@@ -90,10 +91,12 @@ public class fastddsgen {
     private ArrayList m_lineCommandForWorkDirSet = null;
     private String m_spTemplate = "main";
 
-    private static VSConfiguration m_vsconfigurations[]={new VSConfiguration("Debug DLL", "Win32", true, true),
+    private static VSConfiguration m_vsconfigurations[] = {
+        new VSConfiguration("Debug DLL", "Win32", true, true),
         new VSConfiguration("Release DLL", "Win32", false, true),
         new VSConfiguration("Debug", "Win32", true, false),
-        new VSConfiguration("Release", "Win32", false, false)};
+        new VSConfiguration("Release", "Win32", false, false)
+    };
 
     private String m_os = null;
     private boolean m_local = false;
@@ -131,7 +134,9 @@ public class fastddsgen {
      * Constructor
      */
 
-    public fastddsgen(String [] args) throws BadArgumentException {
+    public fastddsgen(
+            String [] args) throws BadArgumentException
+    {
 
         int count = 0;
         String arg;
@@ -142,121 +147,164 @@ public class fastddsgen {
         m_idlFiles = new Vector<String>();
 
         // Check arguments
-        while (count < args.length) {
+        while (count < args.length)
+        {
 
             arg = args[count++];
 
-            if (!arg.startsWith("-")) {
+            if (!arg.startsWith("-"))
+            {
                 m_idlFiles.add(arg);
-            } else if (arg.equals("-example")) {
-                if (count < args.length) {
+            }
+            else if (arg.equals("-example"))
+            {
+                if (count < args.length)
+                {
                     m_exampleOption = args[count++];
-                    if (!m_platforms.contains(m_exampleOption)) {
+                    if (!m_platforms.contains(m_exampleOption))
+                    {
                         throw new BadArgumentException("Unknown example arch " + m_exampleOption);
                     }
-                } else {
+                }
+                else
+                {
                     throw new BadArgumentException("No architecture speficied after -example argument");
                 }
-            } else if (arg.equals("-language"))
+            }
+            else if (arg.equals("-language"))
             {
                 if (count < args.length)
                 {
                     String languageOption = args[count++];
 
-                    if(languageOption.equalsIgnoreCase("c++"))
+                    if (languageOption.equalsIgnoreCase("c++"))
+                    {
                         m_languageOption = LANGUAGE.CPP;
-                    else if(languageOption.equalsIgnoreCase("java"))
+                    }
+                    else if (languageOption.equalsIgnoreCase("java"))
+                    {
                         m_languageOption = LANGUAGE.JAVA;
+                    }
                     else
+                    {
                         throw new BadArgumentException("Unknown language " +  languageOption);
+                    }
                 }
                 else
                 {
                     throw new BadArgumentException("No language specified after -language argument");
                 }
             }
-            else if(arg.equals("-package"))
+            else if (arg.equals("-package"))
             {
-                if(count < args.length)
+                if (count < args.length)
                 {
                     m_package = args[count++];
                 }
                 else
+                {
                     throw new BadArgumentException("No package after -package argument");
+                }
             }
-            else if(arg.equals("-ppPath"))
+            else if (arg.equals("-ppPath"))
             {
-                if (count < args.length) {
+                if (count < args.length)
+                {
                     m_ppPath = args[count++];
-                } else {
+                }
+                else
+                {
                     throw new BadArgumentException("No URL specified after -ppPath argument");
                 }
-            } else if (arg.equals("-ppDisable")) {
+            }
+            else if (arg.equals("-ppDisable"))
+            {
                 m_ppDisable = true;
-            } else if (arg.equals("-replace")) {
+            }
+            else if (arg.equals("-replace"))
+            {
                 m_replace = true;
-            } else if (arg.equals("-d")) {
-                if (count < args.length) {
+            }
+            else if (arg.equals("-d"))
+            {
+                if (count < args.length)
+                {
                     m_outputDir = Utils.addFileSeparator(args[count++]);
-                } else {
+                }
+                else
+                {
                     throw new BadArgumentException("No URL specified after -d argument");
                 }
-            } else if (arg.equals("-t")) {
-                if (count < args.length) {
+            }
+            else if (arg.equals("-t"))
+            {
+                if (count < args.length)
+                {
                     m_tempDir = Utils.addFileSeparator(args[count++]);
-                } else {
+                }
+                else
+                {
                     throw new BadArgumentException("No temporary directory specified after -t argument");
                 }
-            } else if (arg.equals("-version")) {
+            }
+            else if (arg.equals("-version"))
+            {
                 showVersion();
                 System.exit(0);
-            } else if (arg.equals("-help")) {
+            }
+            else if (arg.equals("-help"))
+            {
                 printHelp();
                 System.exit(0);
             }
-            else if(arg.equals("-local"))
+            else if (arg.equals("-local"))
             {
                 m_local = true;
             }
-            else if(arg.equals("-fusion"))
+            else if (arg.equals("-fusion"))
             {
                 fusion_ = true;
             }
-            else if(arg.equals("-typeros2"))
+            else if (arg.equals("-typeros2"))
             {
                 m_type_ros2 = true;
             }
-            else if(arg.equals("-typeobject"))
+            else if (arg.equals("-typeobject"))
             {
                 m_type_object_files = true;
             }
-            else if(arg.equals("-typesc"))
+            else if (arg.equals("-typesc"))
             {
                 m_typesc = true;
             }
-            else if(arg.equals("-test"))
+            else if (arg.equals("-test"))
             {
                 m_test = true;
             }
-            else if(arg.equals("-I"))
+            else if (arg.equals("-I"))
             {
-                if (count < args.length) {
+                if (count < args.length)
+                {
                     m_includePaths.add("-I".concat(args[count++]));
-                } else {
+                }
+                else
+                {
                     throw new BadArgumentException("No include directory specified after -I argument");
                 }
             }
-            else if(arg.equals("-cs"))
+            else if (arg.equals("-cs"))
             {
                 m_case_sensitive = true;
             }
-            else { // TODO: More options: -rpm, -debug
+            else   // TODO: More options: -rpm, -debug
+            {
                 throw new BadArgumentException("Unknown argument " + arg);
             }
 
         }
 
-        if (m_idlFiles.isEmpty()) {
+        if (m_idlFiles.isEmpty())
+        {
             throw new BadArgumentException("No input files given");
         }
 
@@ -270,16 +318,20 @@ public class fastddsgen {
 
     class TemplateErrorListener implements StringTemplateErrorListener
     {
-        public void error(String arg0, Throwable arg1)
+        public void error(
+                String arg0,
+                Throwable arg1)
         {
             System.out.println(ColorMessage.error() + arg0);
             arg1.printStackTrace();
         }
 
-        public void warning(String arg0)
+        public void warning(
+                String arg0)
         {
             System.out.println(ColorMessage.warning() + arg0);
         }
+
     }
 
     /*
@@ -288,13 +340,16 @@ public class fastddsgen {
      * Main methods
      */
 
-    public boolean execute() {
+    public boolean execute()
+    {
 
 
-        if (!m_outputDir.equals(m_defaultOutputDir)) {
+        if (!m_outputDir.equals(m_defaultOutputDir))
+        {
             File dir = new File(m_outputDir);
 
-            if (!dir.exists()) {
+            if (!dir.exists())
+            {
                 System.out.println(ColorMessage.error() + "The specified output directory does not exist");
                 return false;
             }
@@ -304,32 +359,38 @@ public class fastddsgen {
 
         if (returnedValue)
         {
-            Solution solution = new Solution(m_languageOption, m_exampleOption, getVersion(), m_publishercode, m_subscribercode);
+            Solution solution = new Solution(m_languageOption, m_exampleOption,
+                            getVersion(), m_publishercode, m_subscribercode);
 
             // Load string templates
             System.out.println("Loading templates...");
-            TemplateManager.setGroupLoaderDirectories("com/eprosima/fastdds/idl/templates:com/eprosima/fastcdr/idl/templates");
+            TemplateManager.setGroupLoaderDirectories(
+                "com/eprosima/fastdds/idl/templates:com/eprosima/fastcdr/idl/templates");
 
             // In local for all products
-            if(m_os.contains("Windows"))
+            if (m_os.contains("Windows"))
             {
                 solution.addInclude("$(" + m_appEnv + ")/include");
                 solution.addLibraryPath("$(" + m_appEnv + ")/lib");
-                if(m_exampleOption != null) {
+                if (m_exampleOption != null)
+                {
                     solution.addLibraryPath("$(" + m_appEnv + ")/lib/" + m_exampleOption);
                 }
             }
 
             // If Java, include jni headers
-            if(m_languageOption == LANGUAGE.JAVA)
+            if (m_languageOption == LANGUAGE.JAVA)
             {
                 solution.addInclude("$(JAVA_HOME)/include");
 
-                if(m_exampleOption != null && m_exampleOption.contains("Linux"))
+                if (m_exampleOption != null && m_exampleOption.contains("Linux"))
+                {
                     solution.addInclude("$(JAVA_HOME)/include/linux");
+                }
             }
 
-            if ((m_exampleOption != null || m_test) && !m_exampleOption.contains("Win")) {
+            if ((m_exampleOption != null || m_test) && !m_exampleOption.contains("Win"))
+            {
                 solution.addLibrary("fastcdr");
             }
 
@@ -337,7 +398,8 @@ public class fastddsgen {
             solution.addLibrary("fastrtps");
 
             ArrayList<String> includedIDL = new ArrayList<String>();
-            for (int count = 0; returnedValue && (count < m_idlFiles.size()); ++count) {
+            for (int count = 0; returnedValue && (count < m_idlFiles.size()); ++count)
+            {
                 Project project = process(m_idlFiles.get(count));
 
                 for (String include : project.getIDLIncludeFiles())
@@ -346,13 +408,16 @@ public class fastddsgen {
                     includedIDL.add(include);
                 }
 
-                if (project != null) {
+                if (project != null)
+                {
                     System.out.println("Adding project: " + project.getFile());
                     if (!solution.existsProject(project.getFile()))
                     {
                         solution.addProject(project);
                     }
-                } else {
+                }
+                else
+                {
                     returnedValue = false;
                 }
             }
@@ -370,8 +435,10 @@ public class fastddsgen {
 
 
             // Generate solution
-            if (returnedValue && (m_exampleOption != null) || m_test) {
-                if ((returnedValue = genSolution(solution)) == false) {
+            if (returnedValue && (m_exampleOption != null) || m_test)
+            {
+                if ((returnedValue = genSolution(solution)) == false)
+                {
                     System.out.println(ColorMessage.error() + "While the solution was being generated");
                 }
             }
@@ -382,16 +449,14 @@ public class fastddsgen {
 
     }
 
-
-
-
     /*
      * ----------------------------------------------------------------------------------------
      *
      * Auxiliary methods
      */
 
-    public static boolean loadPlatforms() {
+    public static boolean loadPlatforms()
+    {
 
         boolean returnedValue = false;
 
@@ -424,7 +489,7 @@ public class fastddsgen {
             int beginindex = text.indexOf("=");
             return text.substring(beginindex + 1);
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
             System.out.println(ColorMessage.error() + "Getting version. " + ex.getMessage());
         }
@@ -445,10 +510,13 @@ public class fastddsgen {
         System.out.println("\twhere the options are:");
         System.out.println("\t\t-help: shows this help");
         System.out.println("\t\t-version: shows the current version of eProsima Fast DDS gen.");
-        System.out.println("\t\t-example <platform>: Generates a solution for a specific platform (example: x64Win64VS2015)");
+        System.out.println(
+            "\t\t-example <platform>: Generates a solution for a specific platform (example: x64Win64VS2015)");
         System.out.println("\t\t\tSupported platforms:");
-        for(int count = 0; count < m_platforms.size(); ++count)
+        for (int count = 0; count < m_platforms.size(); ++count)
+        {
             System.out.println("\t\t\t * " + m_platforms.get(count));
+        }
         //System.out.println("\t\t-language <C++>: Programming language (default: C++).");
         System.out.println("\t\t-replace: replaces existing generated files.");
         System.out.println("\t\t-ppDisable: disables the preprocessor.");
@@ -466,25 +534,32 @@ public class fastddsgen {
 
     }
 
-    public boolean globalInit() {
+    public boolean globalInit()
+    {
         String dds_root = null, tao_root = null, fastrtps_root = null;
 
         // Set the temporary folder
-        if (m_tempDir == null) {
-            if (m_os.contains("Windows")) {
+        if (m_tempDir == null)
+        {
+            if (m_os.contains("Windows"))
+            {
                 String tempPath = System.getenv("TEMP");
 
-                if (tempPath == null) {
+                if (tempPath == null)
+                {
                     tempPath = System.getenv("TMP");
                 }
 
                 m_tempDir = tempPath;
-            } else if (m_os.contains("Linux") || m_os.contains("Mac")) {
+            }
+            else if (m_os.contains("Linux") || m_os.contains("Mac"))
+            {
                 m_tempDir = "/tmp/";
             }
         }
 
-        if (m_tempDir.charAt(m_tempDir.length() - 1) != File.separatorChar) {
+        if (m_tempDir.charAt(m_tempDir.length() - 1) != File.separatorChar)
+        {
             m_tempDir += File.separator;
         }
 
@@ -494,16 +569,22 @@ public class fastddsgen {
         return true;
     }
 
-    private Project process(String idlFilename) {
+    private Project process(
+            String idlFilename)
+    {
         Project project = null;
         System.out.println("Processing the file " + idlFilename + "...");
 
-        try {
+        try
+        {
             // Protocol CDR
             project = parseIDL(idlFilename); // TODO: Quitar archivos copiados TypesHeader.stg, TypesSource.stg, PubSubTypeHeader.stg de la carpeta com.eprosima.fastdds.idl.templates
-        } catch (Exception ioe) {
+        }
+        catch (Exception ioe)
+        {
             System.out.println(ColorMessage.error() + "Cannot generate the files");
-            if (!ioe.getMessage().equals("")) {
+            if (!ioe.getMessage().equals(""))
+            {
                 System.out.println(ioe.getMessage());
             }
         }
@@ -512,26 +593,34 @@ public class fastddsgen {
 
     }
 
-    private Project parseIDL(String idlFilename) {
+    private Project parseIDL(
+            String idlFilename)
+    {
         boolean returnedValue = false;
         String idlParseFileName = idlFilename;
         Project project = null;
 
         String onlyFileName = Util.getIDLFileNameOnly(idlFilename);
 
-        if (!m_ppDisable) {
+        if (!m_ppDisable)
+        {
             idlParseFileName = callPreprocessor(idlFilename);
         }
 
-        if (idlParseFileName != null) {
-            Context ctx = new Context(onlyFileName, idlFilename, m_includePaths, m_subscribercode, m_publishercode, m_localAppProduct, m_type_object_files, m_typesc, m_type_ros2);
+        if (idlParseFileName != null)
+        {
+            Context ctx = new Context(onlyFileName, idlFilename, m_includePaths, m_subscribercode, m_publishercode,
+                            m_localAppProduct, m_type_object_files, m_typesc, m_type_ros2);
 
-            if(m_case_sensitive)
+            if (m_case_sensitive)
             {
                 ctx.ignore_case(false);
             }
 
-            if(fusion_) ctx.setActivateFusion(true);
+            if (fusion_)
+            {
+                ctx.setActivateFusion(true);
+            }
 
             // Create default @Key annotation.
             AnnotationDeclaration keyann = ctx.createAnnotationDeclaration("Key", null);
@@ -585,7 +674,7 @@ public class fastddsgen {
             }
 
             // Add JNI sources.
-            if(m_languageOption == LANGUAGE.JAVA)
+            if (m_languageOption == LANGUAGE.JAVA)
             {
                 tmanager.addGroup("JNIHeader");
                 tmanager.addGroup("JNISource");
@@ -599,7 +688,8 @@ public class fastddsgen {
             TemplateGroup maintemplates = tmanager.createTemplateGroup("main");
             maintemplates.setAttribute("ctx", ctx);
 
-            try {
+            try
+            {
                 ANTLRFileStream input = new ANTLRFileStream(idlParseFileName);
                 IDLLexer lexer = new IDLLexer(input);
                 lexer.setContext(ctx);
@@ -610,11 +700,16 @@ public class fastddsgen {
                 Specification specification = parser.specification(ctx, tmanager, maintemplates).spec;
                 returnedValue = specification != null;
 
-            } catch (FileNotFoundException ex) {
-                System.out.println(ColorMessage.error("FileNotFounException") + "The File " + idlParseFileName + " was not found.");
+            }
+            catch (FileNotFoundException ex)
+            {
+                System.out.println(ColorMessage.error(
+                            "FileNotFounException") + "The File " + idlParseFileName + " was not found.");
             }/* catch (ParseException ex) {
                 System.out.println(ColorMessage.error("ParseException") + ex.getMessage());
-            }*/ catch (Exception ex) {
+                }*/
+            catch (Exception ex)
+            {
                 System.out.println(ColorMessage.error("Exception") + ex.getMessage());
             }
 
@@ -624,18 +719,25 @@ public class fastddsgen {
                 project = new Project(onlyFileName, idlFilename, ctx.getDependencies());
 
                 System.out.println("Generating Type definition files...");
-                if (returnedValue = Utils.writeFile(m_outputDir + onlyFileName + ".h", maintemplates.getTemplate("TypesHeader"), m_replace)) {
-                    if (returnedValue = Utils.writeFile(m_outputDir + onlyFileName + ".cxx", maintemplates.getTemplate("TypesSource"), m_replace)) {
+                if (returnedValue =
+                        Utils.writeFile(m_outputDir + onlyFileName + ".h", maintemplates.getTemplate("TypesHeader"),
+                        m_replace))
+                {
+                    if (returnedValue =
+                            Utils.writeFile(m_outputDir + onlyFileName + ".cxx",
+                            maintemplates.getTemplate("TypesSource"), m_replace))
+                    {
                         project.addCommonIncludeFile(onlyFileName + ".h");
                         project.addCommonSrcFile(onlyFileName + ".cxx");
                         if (m_type_object_files)
                         {
                             System.out.println("Generating TypeObject files...");
                             if (returnedValue = Utils.writeFile(m_outputDir + onlyFileName + "TypeObject.h",
-                                maintemplates.getTemplate("TypeObjectHeader"), m_replace))
+                                    maintemplates.getTemplate("TypeObjectHeader"), m_replace))
                             {
                                 if (returnedValue = Utils.writeFile(m_outputDir + onlyFileName + "TypeObject.cxx",
-                                        maintemplates.getTemplate("TypeObjectSource"), m_replace)) {
+                                        maintemplates.getTemplate("TypeObjectSource"), m_replace))
+                                {
                                     project.addCommonIncludeFile(onlyFileName + "TypeObject.h");
                                     project.addCommonSrcFile(onlyFileName + "TypeObject.cxx");
 
@@ -650,29 +752,33 @@ public class fastddsgen {
                     System.out.println("Generating Serialization Test file...");
                     String fileName = m_outputDir + onlyFileName + "SerializationTest.cpp";
                     returnedValue =
-                        Utils.writeFile(fileName, maintemplates.getTemplate("SerializationTestSource"), m_replace);
+                            Utils.writeFile(fileName, maintemplates.getTemplate("SerializationTestSource"), m_replace);
 
                     System.out.println("Generating Serialization Source file...");
                     String fileNameS = m_outputDir + onlyFileName + "Serialization.cpp";
                     returnedValue =
-                        Utils.writeFile(fileNameS, maintemplates.getTemplate("SerializationSource"), m_replace);
+                            Utils.writeFile(fileNameS, maintemplates.getTemplate("SerializationSource"), m_replace);
 
                     System.out.println("Generating Serialization Header file...");
                     String fileNameH = m_outputDir + onlyFileName + "Serialization.h";
                     returnedValue =
-                        Utils.writeFile(fileNameH, maintemplates.getTemplate("SerializationHeader"), m_replace);
+                            Utils.writeFile(fileNameH, maintemplates.getTemplate("SerializationHeader"), m_replace);
                 }
 
                 // TODO: Uncomment following lines and create templates
-                if(ctx.existsLastStructure())
+                if (ctx.existsLastStructure())
                 {
                     m_atLeastOneStructure = true;
                     project.setHasStruct(true);
 
                     System.out.println("Generating TopicDataTypes files...");
-                    if (returnedValue = Utils.writeFile(m_outputDir + onlyFileName + "PubSubTypes.h", maintemplates.getTemplate("DDSPubSubTypeHeader"), m_replace))
+                    if (returnedValue =
+                            Utils.writeFile(m_outputDir + onlyFileName + "PubSubTypes.h",
+                            maintemplates.getTemplate("DDSPubSubTypeHeader"), m_replace))
                     {
-                        if (returnedValue = Utils.writeFile(m_outputDir + onlyFileName + "PubSubTypes.cxx", maintemplates.getTemplate("DDSPubSubTypeSource"), m_replace))
+                        if (returnedValue =
+                                Utils.writeFile(m_outputDir + onlyFileName + "PubSubTypes.cxx",
+                                maintemplates.getTemplate("DDSPubSubTypeSource"), m_replace))
                         {
                             project.addProjectIncludeFile(onlyFileName + "PubSubTypes.h");
                             project.addProjectSrcFile(onlyFileName + "PubSubTypes.cxx");
@@ -682,23 +788,38 @@ public class fastddsgen {
                     if (m_exampleOption != null)
                     {
                         System.out.println("Generating Publisher files...");
-                        if (returnedValue = Utils.writeFile(m_outputDir + onlyFileName + "Publisher.h", maintemplates.getTemplate("DDSPublisherHeader"), m_replace)) {
-                            if (returnedValue = Utils.writeFile(m_outputDir + onlyFileName + "Publisher.cxx", maintemplates.getTemplate("DDSPublisherSource"), m_replace)) {
+                        if (returnedValue =
+                                Utils.writeFile(m_outputDir + onlyFileName + "Publisher.h",
+                                maintemplates.getTemplate("DDSPublisherHeader"), m_replace))
+                        {
+                            if (returnedValue =
+                                    Utils.writeFile(m_outputDir + onlyFileName + "Publisher.cxx",
+                                    maintemplates.getTemplate("DDSPublisherSource"), m_replace))
+                            {
                                 project.addProjectIncludeFile(onlyFileName + "Publisher.h");
                                 project.addProjectSrcFile(onlyFileName + "Publisher.cxx");
                             }
                         }
 
                         System.out.println("Generating Subscriber files...");
-                        if (returnedValue = Utils.writeFile(m_outputDir + onlyFileName + "Subscriber.h", maintemplates.getTemplate("DDSSubscriberHeader"), m_replace)) {
-                            if (returnedValue = Utils.writeFile(m_outputDir + onlyFileName + "Subscriber.cxx", maintemplates.getTemplate("DDSSubscriberSource"), m_replace)) {
+                        if (returnedValue =
+                                Utils.writeFile(m_outputDir + onlyFileName + "Subscriber.h",
+                                maintemplates.getTemplate("DDSSubscriberHeader"), m_replace))
+                        {
+                            if (returnedValue =
+                                    Utils.writeFile(m_outputDir + onlyFileName + "Subscriber.cxx",
+                                    maintemplates.getTemplate("DDSSubscriberSource"), m_replace))
+                            {
                                 project.addProjectIncludeFile(onlyFileName + "Subscriber.h");
                                 project.addProjectSrcFile(onlyFileName + "Subscriber.cxx");
                             }
                         }
 
                         System.out.println("Generating main file...");
-                        if (returnedValue = Utils.writeFile(m_outputDir + onlyFileName + "PubSubMain.cxx", maintemplates.getTemplate("DDSPubSubMain"), m_replace)) {
+                        if (returnedValue =
+                                Utils.writeFile(m_outputDir + onlyFileName + "PubSubMain.cxx",
+                                maintemplates.getTemplate("DDSPubSubMain"), m_replace))
+                        {
                             project.addProjectSrcFile(onlyFileName + "PubSubMain.cxx");
                         }
                     }
@@ -706,19 +827,19 @@ public class fastddsgen {
             }
 
             // Java support (Java classes and JNI code)
-            if(returnedValue && m_languageOption == LANGUAGE.JAVA)
+            if (returnedValue && m_languageOption == LANGUAGE.JAVA)
             {
                 String outputDir = m_outputDir;
 
                 // Make directories from package.
-                if(!m_package.isEmpty())
+                if (!m_package.isEmpty())
                 {
                     outputDir = m_outputDir + File.separator + m_package.replace('.', File.separatorChar);
                     File dirs = new File(outputDir);
 
-                    if(!dirs.exists())
+                    if (!dirs.exists())
                     {
-                        if(!dirs.mkdirs())
+                        if (!dirs.mkdirs())
                         {
                             System.out.println(ColorMessage.error() + "Cannot create directories for Java packages.");
                             return null;
@@ -729,93 +850,143 @@ public class fastddsgen {
                 // Java classes.
                 TypesGenerator typeGen = new TypesGenerator(tmanager, m_outputDir, m_replace);
                 TypeCode.javapackage = m_package + (m_package.isEmpty() ? "" : ".");
-                if(!typeGen.generate(ctx, outputDir + File.separator, m_package, onlyFileName, null))
+                if (!typeGen.generate(ctx, outputDir + File.separator, m_package, onlyFileName, null))
                 {
                     System.out.println(ColorMessage.error() + "generating Java types");
                     return null;
                 }
 
-                if(ctx.existsLastStructure())
+                if (ctx.existsLastStructure())
                 {
                     System.out.println("Generando fichero " + m_outputDir + onlyFileName + "PubSub.java");
-                    if(!Utils.writeFile(outputDir + File.separator + onlyFileName + "PubSub.java", maintemplates.getTemplate("JavaSource"), m_replace))
+                    if (!Utils.writeFile(outputDir + File.separator + onlyFileName + "PubSub.java",
+                            maintemplates.getTemplate("JavaSource"), m_replace))
+                    {
                         return null;
+                    }
 
                     // Call javah application for each structure.
-                    if(!callJavah(idlFilename))
+                    if (!callJavah(idlFilename))
+                    {
                         return null;
+                    }
                 }
 
-                if(Utils.writeFile(m_outputDir + onlyFileName + "PubSubJNII.h", maintemplates.getTemplate("JNIHeader"), m_replace))
+                if (Utils.writeFile(m_outputDir + onlyFileName + "PubSubJNII.h", maintemplates.getTemplate("JNIHeader"),
+                        m_replace))
+                {
                     project.addJniIncludeFile(onlyFileName + "PubSubJNII.h");
+                }
                 else
+                {
                     return null;
+                }
 
                 StringTemplate jnisourceTemplate = maintemplates.getTemplate("JNISource");
-                if(Utils.writeFile(m_outputDir + onlyFileName + "PubSubJNI.cxx", jnisourceTemplate, m_replace))
+                if (Utils.writeFile(m_outputDir + onlyFileName + "PubSubJNI.cxx", jnisourceTemplate, m_replace))
+                {
                     project.addJniSrcFile(onlyFileName + "PubSubJNI.cxx");
+                }
                 else
+                {
                     return null;
+                }
             }
         }
 
         return returnedValue ? project : null;
     }
 
-    private boolean genSolution(Solution solution) {
+    private boolean genSolution(
+            Solution solution)
+    {
 
         final String METHOD_NAME = "genSolution";
         boolean returnedValue = true;
-        if(m_atLeastOneStructure == true)
+        if (m_atLeastOneStructure == true)
         {
-            if (m_exampleOption != null) {
+            if (m_exampleOption != null)
+            {
                 System.out.println("Generating solution for arch " + m_exampleOption + "...");
 
-                if (m_exampleOption.equals("CMake") || m_test) {
+                if (m_exampleOption.equals("CMake") || m_test)
+                {
                     System.out.println("Generating CMakeLists solution");
                     returnedValue = genCMakeLists(solution);
-                } else if (m_exampleOption.substring(3, 6).equals("Win")) {
+                }
+                else if (m_exampleOption.substring(3, 6).equals("Win"))
+                {
                     System.out.println("Generating Windows solution");
 
                     if (m_exampleOption.startsWith("i86"))
                     {
-                        if(m_exampleOption.charAt(m_exampleOption.length()-1) == '3')
+                        if (m_exampleOption.charAt(m_exampleOption.length() - 1) == '3')
+                        {
                             returnedValue = genVS(solution, null, "12");
+                        }
                         else
+                        {
                             returnedValue = genVS(solution, null, "14");
-                    } else if (m_exampleOption.startsWith("x64")) {
-                        for (int index = 0; index < m_vsconfigurations.length; index++) {
+                        }
+                    }
+                    else if (m_exampleOption.startsWith("x64"))
+                    {
+                        for (int index = 0; index < m_vsconfigurations.length; index++)
+                        {
                             m_vsconfigurations[index].setPlatform("x64");
                         }
-                        if(m_exampleOption.charAt(m_exampleOption.length()-1) == '3')
+                        if (m_exampleOption.charAt(m_exampleOption.length() - 1) == '3')
+                        {
                             returnedValue = genVS(solution, "x64", "12");
+                        }
                         else
+                        {
                             returnedValue = genVS(solution, "x64", "14");
-                    } else {
+                        }
+                    }
+                    else
+                    {
                         returnedValue = false;
                     }
-                } else if (m_exampleOption.substring(3, 8).equals("Linux")) {
+                }
+                else if (m_exampleOption.substring(3, 8).equals("Linux"))
+                {
                     System.out.println("Generating makefile solution");
 
-                    if (m_exampleOption.startsWith("i86")) {
+                    if (m_exampleOption.startsWith("i86"))
+                    {
                         returnedValue = genMakefile(solution, "-m32");
-                    } else if (m_exampleOption.startsWith("x64")) {
+                    }
+                    else if (m_exampleOption.startsWith("x64"))
+                    {
                         returnedValue = genMakefile(solution, "-m64");
-                    } else if (m_exampleOption.startsWith("arm")) {
+                    }
+                    else if (m_exampleOption.startsWith("arm"))
+                    {
                         returnedValue = genMakefile(solution, "");
-                    } else {
+                    }
+                    else
+                    {
                         returnedValue = false;
                     }
                 }
             }
         }
         else
-            System.out.println(ColorMessage.warning()+"No structure found in any of the provided IDL; no example files have been generated");
+        {
+            System.out.println(
+                ColorMessage.warning() +
+                "No structure found in any of the provided IDL; no example files have been generated");
+        }
 
         return returnedValue;
     }
 
-    private boolean genVS(Solution solution, String arch, String vsVersion) {
+    private boolean genVS(
+            Solution solution,
+            String arch,
+            String vsVersion)
+    {
 
         final String METHOD_NAME = "genVS";
         boolean returnedValue = false;
@@ -831,7 +1002,7 @@ public class fastddsgen {
             StringTemplate tprojectFilesPubSub = vsTemplates.getInstanceOf("projectFilesPubSub");
             StringTemplate tprojectJNI = null;
             StringTemplate tprojectFilesJNI = null;
-            if(m_languageOption == LANGUAGE.JAVA)
+            if (m_languageOption == LANGUAGE.JAVA)
             {
                 tprojectJNI = vsTemplates.getInstanceOf("projectJNI");
                 tprojectFilesJNI = vsTemplates.getInstanceOf("projectFilesJNI");
@@ -839,7 +1010,8 @@ public class fastddsgen {
 
             returnedValue = true;
 
-            for (int count = 0; returnedValue && (count < solution.getProjects().size()); ++count) {
+            for (int count = 0; returnedValue && (count < solution.getProjects().size()); ++count)
+            {
                 Project project = (Project) solution.getProjects().get(count);
 
                 tproject.setAttribute("solution", solution);
@@ -858,7 +1030,7 @@ public class fastddsgen {
                 tprojectFilesPubSub.setAttribute("project", project);
                 tprojectFilesPubSub.setAttribute("vsVersion", vsVersion);
 
-                if(m_languageOption == LANGUAGE.JAVA)
+                if (m_languageOption == LANGUAGE.JAVA)
                 {
                     tprojectJNI.setAttribute("solution", solution);
                     tprojectJNI.setAttribute("project", project);
@@ -868,31 +1040,47 @@ public class fastddsgen {
                     tprojectFilesJNI.setAttribute("project", project);
                 }
 
-                for (int index = 0; index < m_vsconfigurations.length; index++) {
+                for (int index = 0; index < m_vsconfigurations.length; index++)
+                {
                     tproject.setAttribute("configurations", m_vsconfigurations[index]);
                     tprojectPubSub.setAttribute("configurations", m_vsconfigurations[index]);
-                    if(m_languageOption == LANGUAGE.JAVA)
+                    if (m_languageOption == LANGUAGE.JAVA)
                     {
                         tprojectJNI.setAttribute("configurations", m_vsconfigurations[index]);
                     }
                 }
 
-                if (returnedValue = Utils.writeFile(m_outputDir + project.getName() + "Types-" + m_exampleOption + ".vcxproj", tproject, m_replace)) {
-                    if (returnedValue = Utils.writeFile(m_outputDir + project.getName() + "Types-" + m_exampleOption + ".vcxproj.filters", tprojectFiles, m_replace)) {
-                        if(project.getHasStruct())
+                if (returnedValue =
+                        Utils.writeFile(m_outputDir + project.getName() + "Types-" + m_exampleOption + ".vcxproj",
+                        tproject, m_replace))
+                {
+                    if (returnedValue =
+                            Utils.writeFile(m_outputDir + project.getName() + "Types-" + m_exampleOption +
+                            ".vcxproj.filters", tprojectFiles, m_replace))
+                    {
+                        if (project.getHasStruct())
                         {
-                            if (returnedValue = Utils.writeFile(m_outputDir + project.getName() + "PublisherSubscriber-" + m_exampleOption + ".vcxproj", tprojectPubSub, m_replace)) {
-                                returnedValue = Utils.writeFile(m_outputDir + project.getName() + "PublisherSubscriber-" + m_exampleOption + ".vcxproj.filters", tprojectFilesPubSub, m_replace);
+                            if (returnedValue =
+                                    Utils.writeFile(m_outputDir + project.getName() + "PublisherSubscriber-" +
+                                    m_exampleOption + ".vcxproj", tprojectPubSub, m_replace))
+                            {
+                                returnedValue = Utils.writeFile(
+                                    m_outputDir + project.getName() + "PublisherSubscriber-" + m_exampleOption + ".vcxproj.filters", tprojectFilesPubSub,
+                                    m_replace);
                             }
                         }
                     }
                 }
 
-                if(returnedValue && m_languageOption == LANGUAGE.JAVA)
+                if (returnedValue && m_languageOption == LANGUAGE.JAVA)
                 {
-                    if(returnedValue = Utils.writeFile(m_outputDir + project.getName() + "PubSubJNI-" + m_exampleOption + ".vcxproj", tprojectJNI, m_replace))
+                    if (returnedValue =
+                            Utils.writeFile(m_outputDir + project.getName() + "PubSubJNI-" + m_exampleOption +
+                            ".vcxproj", tprojectJNI, m_replace))
                     {
-                        returnedValue = Utils.writeFile(m_outputDir + project.getName() + "PubSubJNI-" + m_exampleOption + ".vcxproj.filters", tprojectFilesJNI, m_replace);
+                        returnedValue = Utils.writeFile(
+                            m_outputDir + project.getName() + "PubSubJNI-" + m_exampleOption + ".vcxproj.filters", tprojectFilesJNI,
+                            m_replace);
                     }
                 }
 
@@ -900,7 +1088,7 @@ public class fastddsgen {
                 tprojectFiles.reset();
                 tprojectPubSub.reset();
                 tprojectFilesPubSub.reset();
-                if(m_languageOption == LANGUAGE.JAVA)
+                if (m_languageOption == LANGUAGE.JAVA)
                 {
                     tprojectJNI.reset();
                     tprojectFilesJNI.reset();
@@ -908,41 +1096,54 @@ public class fastddsgen {
 
             }
 
-            if (returnedValue) {
+            if (returnedValue)
+            {
                 tsolution.setAttribute("solution", solution);
                 tsolution.setAttribute("example", m_exampleOption);
 
                 // Project configurations
-                for (int index = 0; index < m_vsconfigurations.length; index++) {
+                for (int index = 0; index < m_vsconfigurations.length; index++)
+                {
                     tsolution.setAttribute("configurations", m_vsconfigurations[index]);
                 }
 
-                if(m_languageOption == LANGUAGE.JAVA)
+                if (m_languageOption == LANGUAGE.JAVA)
+                {
                     tsolution.setAttribute("generateJava", true);
+                }
 
                 String vsVersion_sol = "2013";
-                if(vsVersion.equals("14"))
+                if (vsVersion.equals("14"))
+                {
                     vsVersion_sol = "2015";
+                }
                 tsolution.setAttribute("vsVersion", vsVersion_sol);
 
-                returnedValue = Utils.writeFile(m_outputDir + "solution-" + m_exampleOption + ".sln", tsolution, m_replace);
+                returnedValue = Utils.writeFile(m_outputDir + "solution-" + m_exampleOption + ".sln", tsolution,
+                                m_replace);
             }
 
-        } else {
+        }
+        else
+        {
             System.out.println("ERROR<" + METHOD_NAME + ">: Cannot load the template group VS2013");
         }
 
         return returnedValue;
     }
 
-    private boolean genMakefile(Solution solution, String arch) {
+    private boolean genMakefile(
+            Solution solution,
+            String arch)
+    {
 
         boolean returnedValue = false;
         StringTemplate makecxx = null;
 
         StringTemplateGroup makeTemplates = StringTemplateGroup.loadGroup("makefile", DefaultTemplateLexer.class, null);
 
-        if (makeTemplates != null) {
+        if (makeTemplates != null)
+        {
             makecxx = makeTemplates.getInstanceOf("makecxx");
 
             makecxx.setAttribute("solution", solution);
@@ -956,14 +1157,18 @@ public class fastddsgen {
         return returnedValue;
     }
 
-    private boolean genCMakeLists(Solution solution) {
+    private boolean genCMakeLists(
+            Solution solution)
+    {
 
         boolean returnedValue = false;
         StringTemplate cmake = null;
 
-        StringTemplateGroup cmakeTemplates = StringTemplateGroup.loadGroup("CMakeLists", DefaultTemplateLexer.class, null);
+        StringTemplateGroup cmakeTemplates = StringTemplateGroup.loadGroup("CMakeLists", DefaultTemplateLexer.class,
+                        null);
 
-        if (cmakeTemplates != null) {
+        if (cmakeTemplates != null)
+        {
             cmake = cmakeTemplates.getInstanceOf("cmakelists");
 
             cmake.setAttribute("solution", solution);
@@ -976,7 +1181,8 @@ public class fastddsgen {
         return returnedValue;
     }
 
-    String callPreprocessor(String idlFilename)
+    String callPreprocessor(
+            String idlFilename)
     {
         final String METHOD_NAME = "callPreprocessor";
 
@@ -988,14 +1194,19 @@ public class fastddsgen {
         OutputStream of = null;
 
         // Use temp directory.
-        if (m_tempDir != null) {
+        if (m_tempDir != null)
+        {
             outputfile = m_tempDir + outputfile;
         }
 
-        if (m_os.contains("Windows")) {
-            try {
+        if (m_os.contains("Windows"))
+        {
+            try
+            {
                 of = new FileOutputStream(outputfile);
-            } catch (FileNotFoundException ex) {
+            }
+            catch (FileNotFoundException ex)
+            {
                 System.out.println(ColorMessage.error(METHOD_NAME) + "Cannot open file " + outputfile);
                 return null;
             }
@@ -1004,10 +1215,14 @@ public class fastddsgen {
         // Set the preprocessor path
         String ppPath = m_ppPath;
 
-        if (ppPath == null) {
-            if (m_os.contains("Windows")) {
+        if (ppPath == null)
+        {
+            if (m_os.contains("Windows"))
+            {
                 ppPath = "cl.exe";
-            } else if (m_os.contains("Linux") || m_os.contains("Mac")) {
+            }
+            else if (m_os.contains("Linux") || m_os.contains("Mac"))
+            {
                 ppPath = "cpp";
             }
         }
@@ -1016,15 +1231,20 @@ public class fastddsgen {
         lineCommand.add(ppPath);
 
         // Add the include paths given as parameters.
-        for (int i=0; i < m_includePaths.size(); ++i) {
-            if (m_os.contains("Windows")) {
+        for (int i = 0; i < m_includePaths.size(); ++i)
+        {
+            if (m_os.contains("Windows"))
+            {
                 lineCommand.add(((String) m_includePaths.get(i)).replaceFirst("^-I", "/I"));
-            } else if (m_os.contains("Linux") || m_os.contains("Mac")) {
+            }
+            else if (m_os.contains("Linux") || m_os.contains("Mac"))
+            {
                 lineCommand.add(m_includePaths.get(i));
             }
         }
 
-        if (m_os.contains("Windows")) {
+        if (m_os.contains("Windows"))
+        {
             lineCommand.add("/E");
             lineCommand.add("/C");
         }
@@ -1032,14 +1252,16 @@ public class fastddsgen {
         // Add input file.
         lineCommand.add(idlFilename);
 
-        if(m_os.contains("Linux") || m_os.contains("Mac")) {
+        if (m_os.contains("Linux") || m_os.contains("Mac"))
+        {
             lineCommand.add(outputfile);
         }
 
         lineCommandArray = new String[lineCommand.size()];
         lineCommandArray = (String[])lineCommand.toArray(lineCommandArray);
 
-        try {
+        try
+        {
             Process preprocessor = Runtime.getRuntime().exec(lineCommandArray);
             ProcessOutput errorOutput = new ProcessOutput(preprocessor.getErrorStream(), "ERROR", false, null, true);
             ProcessOutput normalOutput = new ProcessOutput(preprocessor.getInputStream(), "OUTPUT", false, of, true);
@@ -1048,21 +1270,29 @@ public class fastddsgen {
             exitVal = preprocessor.waitFor();
             errorOutput.join();
             normalOutput.join();
-        } catch (Exception e) {
-            System.out.println(ColorMessage.error(METHOD_NAME) + "Cannot execute the preprocessor. Reason: " + e.getMessage());
+        }
+        catch (Exception e)
+        {
+            System.out.println(ColorMessage.error(
+                        METHOD_NAME) + "Cannot execute the preprocessor. Reason: " + e.getMessage());
             return null;
         }
 
-        if (of != null) {
-            try {
+        if (of != null)
+        {
+            try
+            {
                 of.close();
-            } catch (IOException e) {
+            }
+            catch (IOException e)
+            {
                 System.out.println(ColorMessage.error(METHOD_NAME) + "Cannot close file " + outputfile);
             }
 
         }
 
-        if (exitVal != 0) {
+        if (exitVal != 0)
+        {
             System.out.println(ColorMessage.error(METHOD_NAME) + "Preprocessor return an error " + exitVal);
             return null;
         }
@@ -1070,7 +1300,8 @@ public class fastddsgen {
         return outputfile;
     }
 
-    boolean callJavah(String idlFilename)
+    boolean callJavah(
+            String idlFilename)
     {
         final String METHOD_NAME = "calljavah";
         // Set line command.
@@ -1078,32 +1309,32 @@ public class fastddsgen {
         String[] lineCommandArray = null;
         String fileDir = Util.getIDLFileDirectoryOnly(idlFilename);
         String javafile = (m_outputDir != null ? m_outputDir : "") +
-            (!m_package.isEmpty() ? m_package.replace('.', File.separatorChar) + File.separator : "") +
-            Util.getIDLFileNameOnly(idlFilename) + "PubSub.java";
+                (!m_package.isEmpty() ? m_package.replace('.', File.separatorChar) + File.separator : "") +
+                Util.getIDLFileNameOnly(idlFilename) + "PubSub.java";
         String headerfile = m_outputDir + Util.getIDLFileNameOnly(idlFilename) + "PubSubJNI.h";
         int exitVal = -1;
         String javac = null;
         String javah = null;
 
         // First call javac
-        if(m_os.contains("Windows"))
+        if (m_os.contains("Windows"))
         {
             javac = "javac.exe";
         }
-        else if(m_os.contains("Linux") || m_os.contains("Mac"))
+        else if (m_os.contains("Linux") || m_os.contains("Mac"))
         {
             javac = "javac";
         }
 
         // Add command
         lineCommand.add(javac);
-        if(m_tempDir != null)
+        if (m_tempDir != null)
         {
             lineCommand.add("-d");
             lineCommand.add(m_tempDir);
         }
 
-        if( fileDir != null && !fileDir.isEmpty())
+        if ( fileDir != null && !fileDir.isEmpty())
         {
             lineCommand.add("-sourcepath");
             lineCommand.add(m_outputDir);
@@ -1125,13 +1356,14 @@ public class fastddsgen {
             errorOutput.join();
             normalOutput.join();
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
-            System.out.println(ColorMessage.error(METHOD_NAME) + "Cannot execute the javac application. Reason: " + ex.getMessage());
+            System.out.println(ColorMessage.error(
+                        METHOD_NAME) + "Cannot execute the javac application. Reason: " + ex.getMessage());
             return false;
         }
 
-        if(exitVal != 0)
+        if (exitVal != 0)
         {
             System.out.println(ColorMessage.error(METHOD_NAME) + "javac application return an error " + exitVal);
             return false;
@@ -1139,11 +1371,11 @@ public class fastddsgen {
 
         lineCommand = new ArrayList<String>();
 
-        if(m_os.contains("Windows"))
+        if (m_os.contains("Windows"))
         {
             javah = "javah.exe";
         }
-        else if(m_os.contains("Linux") || m_os.contains("Mac"))
+        else if (m_os.contains("Linux") || m_os.contains("Mac"))
         {
             javah = "javah";
         }
@@ -1151,7 +1383,7 @@ public class fastddsgen {
         // Add command
         lineCommand.add(javah);
         lineCommand.add("-jni");
-        if(m_tempDir != null)
+        if (m_tempDir != null)
         {
             lineCommand.add("-cp");
             lineCommand.add(m_tempDir);
@@ -1175,13 +1407,14 @@ public class fastddsgen {
             errorOutput.join();
             normalOutput.join();
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
-            System.out.println(ColorMessage.error(METHOD_NAME) + "Cannot execute the javah application. Reason: " + ex.getMessage());
+            System.out.println(ColorMessage.error(
+                        METHOD_NAME) + "Cannot execute the javah application. Reason: " + ex.getMessage());
             return false;
         }
 
-        if(exitVal != 0)
+        if (exitVal != 0)
         {
             System.out.println(ColorMessage.error(METHOD_NAME) + "javah application return an error " + exitVal);
             return false;
@@ -1196,19 +1429,26 @@ public class fastddsgen {
      * Main entry point
      */
 
-    public static void main(String[] args) {
+    public static void main(
+            String[] args)
+    {
         ColorMessage.load();
 
-        if(loadPlatforms()) {
+        if (loadPlatforms())
+        {
 
-            try {
+            try
+            {
 
                 fastddsgen main = new fastddsgen(args);
-                if (main.execute()) {
+                if (main.execute())
+                {
                     System.exit(0);
                 }
 
-            } catch (BadArgumentException e) {
+            }
+            catch (BadArgumentException e)
+            {
 
                 System.out.println(ColorMessage.error("BadArgumentException") + e.getMessage());
                 printHelp();
@@ -1232,7 +1472,12 @@ class ProcessOutput extends Thread
     final String clLine = "#line";
     boolean m_printLine = false;
 
-    ProcessOutput(InputStream is, String type, boolean check_failures, OutputStream of, boolean printLine)
+    ProcessOutput(
+            InputStream is,
+            String type,
+            boolean check_failures,
+            OutputStream of,
+            boolean printLine)
     {
         this.is = is;
         this.type = type;
@@ -1247,22 +1492,24 @@ class ProcessOutput extends Thread
         {
             InputStreamReader isr = new InputStreamReader(is);
             BufferedReader br = new BufferedReader(isr);
-            String line=null;
-            while ( (line = br.readLine()) != null)
+            String line = null;
+            while ((line = br.readLine()) != null)
             {
-                if(of == null)
+                if (of == null)
                 {
-                    if(m_printLine)
+                    if (m_printLine)
+                    {
                         System.out.println(line);
+                    }
                 }
                 else
                 {
-                    // Sustituir los \\ que pone cl.exe por \
-                    if(line.startsWith(clLine))
+                    // Sustituir los "\\" que pone cl.exe por "\"
+                    if (line.startsWith(clLine))
                     {
                         line = "#" + line.substring(clLine.length());
                         int count = 0;
-                        while((count = line.indexOf("\\\\")) != -1)
+                        while ((count = line.indexOf("\\\\")) != -1)
                         {
                             line = line.substring(0, count) + "\\" + line.substring(count + 2);
                         }
@@ -1272,9 +1519,9 @@ class ProcessOutput extends Thread
                     of.write('\n');
                 }
 
-                if(m_check_failures)
+                if (m_check_failures)
                 {
-                    if(line.startsWith("Done (failures)"))
+                    if (line.startsWith("Done (failures)"))
                     {
                         m_found_error = true;
                     }
@@ -1291,4 +1538,5 @@ class ProcessOutput extends Thread
     {
         return m_found_error;
     }
+
 }
