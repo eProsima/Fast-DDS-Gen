@@ -54,23 +54,23 @@ $definitions; separator="\n"$
 
 
 try_create(ctx, object, param) ::= <<
-if ($param$ == "$object.name$") return $if(object.hasScope)$$object.scope$::$endif$Get$object.name$Identifier(complete);
+if ($param$ == "$if(object.hasScope)$$object.scope$::$endif$$object.name$") return $if(object.hasScope)$$object.scope$::$endif$Get$object.name$Identifier(complete);
 >>
 
 try_object(ctx, object, param) ::= <<
-if ($param$ == "$object.name$")
+if ($param$ == "$if(object.hasScope)$$object.scope$::$endif$$object.name$")
 {
-    Get$object.name$Identifier(complete);
-    return TypeObjectFactory::get_instance()->get_type_object("$object.name$", complete);
+    $if(object.hasScope)$$object.scope$::$endif$Get$object.name$Identifier(complete);
+    return TypeObjectFactory::get_instance()->get_type_object("$if(object.hasScope)$$object.scope$::$endif$$object.name$", complete);
 }
 >>
 
 register_type(ctx, object, param) ::= <<
 $if(!object.isModule)$
 $if(!object.isConstDeclaration)$
-factory->add_type_object("$object.name$", $if(object.hasScope)$$object.scope$::$endif$Get$object.name$Identifier(true),
+factory->add_type_object("$if(object.hasScope)$$object.scope$::$endif$$object.name$", $if(object.hasScope)$$object.scope$::$endif$Get$object.name$Identifier(true),
         $if(object.hasScope)$$object.scope$::$endif$Get$object.name$Object(true));
-factory->add_type_object("$object.name$", $if(object.hasScope)$$object.scope$::$endif$Get$object.name$Identifier(false),
+factory->add_type_object("$if(object.hasScope)$$object.scope$::$endif$$object.name$", $if(object.hasScope)$$object.scope$::$endif$Get$object.name$Identifier(false),
         $if(object.hasScope)$$object.scope$::$endif$Get$object.name$Object(false));
 $if(object.isAnnotation)$
 {
