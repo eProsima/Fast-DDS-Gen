@@ -54,7 +54,7 @@ $definitions; separator="\n"$
 
 
 try_create(ctx, object, param) ::= <<
-if ($param$ == "$object.name$") return Get$object.name$Identifier(complete);
+if ($param$ == "$object.name$") return $if(object.hasScope)$$object.scope$::$endif$Get$object.name$Identifier(complete);
 >>
 
 try_object(ctx, object, param) ::= <<
@@ -67,13 +67,17 @@ if ($param$ == "$object.name$")
 
 register_type(ctx, object, param) ::= <<
 $if(!object.isModule)$
-factory->add_type_object("$object.name$", Get$object.name$Identifier(true), Get$object.name$Object(true));
-factory->add_type_object("$object.name$", Get$object.name$Identifier(false), Get$object.name$Object(false));
+$if(!object.isConstDeclaration)$
+factory->add_type_object("$object.name$", $if(object.hasScope)$$object.scope$::$endif$Get$object.name$Identifier(true),
+        $if(object.hasScope)$$object.scope$::$endif$Get$object.name$Object(true));
+factory->add_type_object("$object.name$", $if(object.hasScope)$$object.scope$::$endif$Get$object.name$Identifier(false),
+        $if(object.hasScope)$$object.scope$::$endif$Get$object.name$Object(false));
 $if(object.isAnnotation)$
 {
     using namespace $object.name$;
     $register_annotation_types(object)$
 }
+$endif$
 $endif$
 $endif$
 >>
@@ -87,17 +91,25 @@ $annotation.typeDefs : {$register_annotation_typedef(it)$}; separator="\n"$
 >>
 
 register_annotation_enum(enum) ::= <<
-factory->add_type_object("$enum.name$", Get$enum.name$Identifier(true), Get$enum.name$Object(true));
-factory->add_type_object("$enum.name$", Get$enum.name$Identifier(false), Get$enum.name$Object(false));
+factory->add_type_object("$enum.name$", $if(object.hasScope)$$object.scope$::$endif$Get$enum.name$Identifier(true),
+        $if(object.hasScope)$$object.scope$::$endif$Get$enum.name$Object(true));
+factory->add_type_object("$enum.name$", $if(object.hasScope)$$object.scope$::$endif$Get$enum.name$Identifier(false),
+        $if(object.hasScope)$$object.scope$::$endif$Get$enum.name$Object(false));
 >>
 
 register_annotation_typedef(typedef) ::= <<
-factory->add_type_object("$typedef.name$", Get$typedef.name$Identifier(true), Get$typedef.name$Object(true));
-factory->add_type_object("$typedef.name$", Get$typedef.name$Identifier(false), Get$typedef.name$Object(false));
+factory->add_type_object("$typedef.name$",
+        $if(object.hasScope)$$object.scope$::$endif$Get$typedef.name$Identifier(true),
+        $if(object.hasScope)$$object.scope$::$endif$Get$typedef.name$Object(true));
+factory->add_type_object("$typedef.name$",
+        $if(object.hasScope)$$object.scope$::$endif$Get$typedef.name$Identifier(false),
+        $if(object.hasScope)$$object.scope$::$endif$Get$typedef.name$Object(false));
 >>
 
 module(ctx, parent, module, definition_list) ::= <<
-$definition_list$
+namespace $module.name$ {
+    $definition_list$
+} // namespace $module.name$
 >>
 
 definition_list(definitions) ::= <<
@@ -879,7 +891,7 @@ mst_$object.name$.common().member_flags().IS_DEFAULT(false); // Doesn't apply
 $if(object.typecode.plainType)$
 mst_$object.name$.common().member_type_id(*$get_type_identifier(ctx=ctx, type=object.typecode, ek="false")$);
 $elseif(object.typecode.objectType)$
-mst_$object.name$.common().member_type_id(*Get$object.typecode.name$Identifier(false));
+mst_$object.name$.common().member_type_id(*$if(object.typecode.hasScope)$$object.typecode.scope$::$endif$Get$object.typecode.name$Identifier(false));
 $else$
 {
     std::string cppType = "$object.typecode.cppTypename$";
@@ -914,7 +926,7 @@ cst_$object.name$.common().member_flags().IS_DEFAULT(false); // Doesn't apply
 $if(object.typecode.plainType)$
 cst_$object.name$.common().member_type_id(*$get_type_identifier(ctx=ctx, type=object.typecode, ek="true")$);
 $elseif(object.typecode.objectType)$
-cst_$object.name$.common().member_type_id(*Get$object.typecode.name$Identifier(true));
+cst_$object.name$.common().member_type_id(*$if(object.typecode.hasScope)$$object.typecode.scope$::$endif$Get$object.typecode.name$Identifier(true));
 $else$
 {
     std::string cppType = "$object.typecode.cppTypename$";
