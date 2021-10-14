@@ -85,12 +85,6 @@ public class fastddsgen
     protected static String m_localAppProduct = "fastrtps";
     private ArrayList<String> m_includePaths = new ArrayList<String>();
 
-    private String m_command = null;
-    private String m_extra_command = null;
-    private ArrayList m_lineCommand = null;
-    private ArrayList m_lineCommandForWorkDirSet = null;
-    private String m_spTemplate = "main";
-
     private static VSConfiguration m_vsconfigurations[] = {
         new VSConfiguration("Debug DLL", "Win32", true, true),
         new VSConfiguration("Release DLL", "Win32", false, true),
@@ -99,7 +93,6 @@ public class fastddsgen
     };
 
     private String m_os = null;
-    private boolean m_local = false;
     private boolean fusion_ = false;
 
     //! Default package used in Java files.
@@ -113,6 +106,9 @@ public class fastddsgen
 
     // Generate string and sequence types compatible with C?
     private boolean m_typesc = false;
+
+    // Generate python binding files
+    private boolean m_python = false;
 
     private boolean m_case_sensitive = false;
 
@@ -257,10 +253,6 @@ public class fastddsgen
                 printHelp();
                 System.exit(0);
             }
-            else if (arg.equals("-local"))
-            {
-                m_local = true;
-            }
             else if (arg.equals("-fusion"))
             {
                 fusion_ = true;
@@ -276,6 +268,10 @@ public class fastddsgen
             else if (arg.equals("-typesc"))
             {
                 m_typesc = true;
+            }
+            else if (arg.equals("-python"))
+            {
+                m_python = true;
             }
             else if (arg.equals("-test"))
             {
@@ -433,6 +429,10 @@ public class fastddsgen
                 }
             }
 
+            if (returnedValue && m_python) {
+                returnedValue = genSwigCMake(solution);
+            }
+
 
             // Generate solution
             if (returnedValue && (m_exampleOption != null) || m_test)
@@ -529,6 +529,7 @@ public class fastddsgen
         System.out.println(" dynamic.");
         System.out.println("\t\t-cs: IDL grammar apply case sensitive matching.");
         System.out.println("\t\t-test: executes FastDDSGen tests.");
+        System.out.println("\t\t-python: generates python bindings for the generated types.");
         System.out.println("\tand the supported input files are:");
         System.out.println("\t* IDL files.");
 
@@ -536,7 +537,6 @@ public class fastddsgen
 
     public boolean globalInit()
     {
-        String dds_root = null, tao_root = null, fastrtps_root = null;
 
         // Set the temporary folder
         if (m_tempDir == null)
@@ -562,9 +562,6 @@ public class fastddsgen
         {
             m_tempDir += File.separator;
         }
-
-        // Set the line command
-        m_lineCommand = new ArrayList();
 
         return true;
     }
@@ -684,6 +681,12 @@ public class fastddsgen
                 ctx.setPackage(m_package);
             }
 
+            if (m_python)
+            {
+                tmanager.addGroup("TypesSwigInterface");
+                tmanager.addGroup("DDSPubSubTypeSwigInterface");
+            }
+
             // Create main template
             TemplateGroup maintemplates = tmanager.createTemplateGroup("main");
             maintemplates.setAttribute("ctx", ctx);
@@ -744,6 +747,12 @@ public class fastddsgen
                                 }
                             }
                         }
+                        if(m_python) {
+                            System.out.println("Generating Swig interface files...");
+                            if (returnedValue = Utils.writeFile(m_outputDir + onlyFileName + ".i", maintemplates.getTemplate("TypesSwigInterface"), m_replace)) {
+
+                            }
+                        }
                     }
                 }
 
@@ -782,6 +791,11 @@ public class fastddsgen
                         {
                             project.addProjectIncludeFile(ctx.getFilename() + "PubSubTypes.h");
                             project.addProjectSrcFile(ctx.getFilename() + "PubSubTypes.cxx");
+                            if(m_python)
+                            {
+                                System.out.println("Generating Swig interface files...");
+                                returnedValue = Utils.writeFile(m_outputDir + ctx.getFilename() + "PubSubTypes.i", maintemplates.getTemplate("DDSPubSubTypeSwigInterface"), m_replace);
+                            }
                         }
                     }
 
@@ -1176,9 +1190,24 @@ public class fastddsgen
             cmake.setAttribute("test", m_test);
 
             returnedValue = Utils.writeFile(m_outputDir + "CMakeLists.txt", cmake, m_replace);
+        }
+        return returnedValue;
+    }
+
+    private boolean genSwigCMake(Solution solution) {
+
+        boolean returnedValue = false;
+        StringTemplate swig = null;
+
+        StringTemplateGroup swigTemplates = StringTemplateGroup.loadGroup("SwigCMake", DefaultTemplateLexer.class, null);
+        if (swigTemplates != null) {
+            swig = swigTemplates.getInstanceOf("swig_cmake");
+
+            swig.setAttribute("solution", solution);
+
+            returnedValue = Utils.writeFile(m_outputDir + "CMakeLists.txt", swig, m_replace);
 
         }
-
         return returnedValue;
     }
 
