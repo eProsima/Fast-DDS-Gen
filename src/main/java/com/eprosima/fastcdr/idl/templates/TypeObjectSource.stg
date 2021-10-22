@@ -1200,7 +1200,7 @@ mst_$object.name$.common().member_flags().IS_DEFAULT($object.annotationDefault$)
 $if(object.typecode.plainType)$
 mst_$object.name$.common().type_id(*$get_type_identifier(ctx=ctx, type=object.typecode, ek="false")$);
 $elseif(object.typecode.objectType)$
-mst_$object.name$.common().type_id(*Get$object.typecode.name$Identifier(false));
+mst_$object.name$.common().type_id(*$if(object.typecode.hasScope)$$object.typecode.scope$::$endif$Get$object.typecode.name$Identifier(false));
 $else$
 {
     std::string cppType = "$object.typecode.cppTypename$";
@@ -1239,7 +1239,7 @@ cst_$object.name$.common().member_flags().IS_DEFAULT($object.annotationDefault$)
 $if(object.typecode.plainType)$
 cst_$object.name$.common().type_id(*$get_type_identifier(ctx=ctx, type=object.typecode, ek="false")$);
 $elseif(object.typecode.objectType)$
-cst_$object.name$.common().type_id(*Get$object.typecode.name$Identifier(true));
+cst_$object.name$.common().type_id(*$if(object.typecode.hasScope)$$object.typecode.scope$::$endif$Get$object.typecode.name$Identifier(true));
 $else$
 {
     std::string cppType = "$object.typecode.cppTypename$";
