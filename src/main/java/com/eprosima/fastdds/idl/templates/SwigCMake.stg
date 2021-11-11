@@ -108,6 +108,7 @@ SWIG_LINK_LIBRARIES(\${PROJECT_NAME}
     \${PYTHON_LIBRARIES}
     fastrtps
     $it.name$
+    $project.dependencies : {$it$}; separator=" "$
     )
 
 # Find the installation path

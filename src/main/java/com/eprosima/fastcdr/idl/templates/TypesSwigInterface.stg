@@ -20,8 +20,11 @@ $fileHeader(file=[ctx.filename, ".i"], description=["This header file contains t
 %module $ctx.filename$
 
 // SWIG helper modules
-%include "std_string.i"
 %include "typemaps.i"
+%include "std_string.i"
+%include "std_vector.i"
+%include "std_array.i"
+%include "std_map.i"
 
 // Assignemt operators are ignored, as there is no such thing in Python.
 // Trying to export them issues a warning
@@ -30,6 +33,8 @@ $fileHeader(file=[ctx.filename, ".i"], description=["This header file contains t
 $internal_types()$
 
 $fast_macro_declarations()$
+
+$ctx.directIncludeDependencies : {include | %include "$include$.i"}; separator="\n"$
 
 %{
 #include "$ctx.filename$.h"
@@ -86,6 +91,14 @@ member_getters(struct_name, member) ::= <<
 %ignore $struct_name$::$member.name$($member.typecode.cppTypename$&&);
 %ignore $struct_name$::$member.name$();
 %rename("%s") $struct_name$::$member.name$() const;
+
+$if(member.typecode.isSequenceType)$
+%template($member.typecode.contentTypeCode.cppTypename$_vector) std::vector<$member.typecode.contentTypeCode.cppTypename$>;
+$elseif(member.typecode.isMapType)$
+%template($member.typecode.keyTypeCode.cppTypename$_$member.typecode.valueTypeCode.cppTypename$_map) std::map<$member.typecode.keyTypeCode.cppTypename$,$member.typecode.valueTypeCode.cppTypename$>;
+$elseif(member.typecode.isType_f)$
+%template($member.typecode.contentTypeCode.cppTypename$_$member.typecode.dimensions$_array) std::array<$member.typecode.contentTypeCode.cppTypename$,$member.typecode.dimensions$>;
+$endif$
 
 >>
 
