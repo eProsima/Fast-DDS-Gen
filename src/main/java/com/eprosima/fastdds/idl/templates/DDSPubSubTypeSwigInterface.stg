@@ -29,3 +29,24 @@ $fileHeader(ctx=ctx,  file=[ctx.filename, "PubSubTypes.i"], description=["This h
 
 struct_type(ctx, parent, struct) ::= <<
 >>
+
+union_type(ctx, parent, union, extensions) ::= <<
+>>
+
+bitset_type(ctx, parent, bitset, extensions) ::= <<
+>>
+
+enum_type(ctx, parent, enum) ::= <<
+>>
+
+bitmask_type(ctx, parent, bitmask) ::= <<
+>>
+
+annotation(ctx, annotation) ::= <<
+>>
+
+interface(ctx, parent, interface, export_list) ::= <<
+>>
+
+exception(ctx, parent, exception) ::= <<
+>>
