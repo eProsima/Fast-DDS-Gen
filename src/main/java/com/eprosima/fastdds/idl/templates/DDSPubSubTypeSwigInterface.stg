@@ -23,6 +23,8 @@ $fileHeader(ctx=ctx,  file=[ctx.filename, "PubSubTypes.i"], description=["This h
 #include "$ctx.filename$PubSubTypes.h"
 %}
 
+#define GEN_API_VER 1
+
 %include "$ctx.filename$PubSubTypes.h"
 
 >>
