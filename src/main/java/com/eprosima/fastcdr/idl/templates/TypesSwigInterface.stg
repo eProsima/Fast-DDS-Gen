@@ -62,13 +62,13 @@ internal_types() ::= <<
 
 typedef char int8_t;
 typedef short int16_t;
-typedef long int32_t;
-typedef long long int64_t;
+typedef int int32_t;
+typedef long int64_t;
 
 typedef unsigned char uint8_t;
 typedef unsigned short uint16_t;
-typedef unsigned long uint32_t;
-typedef unsigned long long uint64_t;
+typedef unsigned int uint32_t;
+typedef unsigned long uint64_t;
 
 >>
 
@@ -89,8 +89,7 @@ $struct.members : {$member_getters(struct_name=struct.name, member=it)$}; separa
 
 member_getters(struct_name, member) ::= <<
 %ignore $struct_name$::$member.name$($member.typecode.cppTypename$&&);
-%ignore $struct_name$::$member.name$();
-%rename("%s") $struct_name$::$member.name$() const;
+%ignore $struct_name$::$member.name$() const;
 
 $if(member.typecode.isSequenceType)$
 %template($member.typecode.contentTypeCode.cppTypename$_vector) std::vector<$member.typecode.contentTypeCode.cppTypename$>;
@@ -113,8 +112,7 @@ union_type(ctx, parent, union, extensions) ::= <<
 
 // Overloaded getter methods shadow each other and are equivalent in python
 // Avoid a warning ignoring all but one
-%ignore $union.name$::_d();
-%rename("%s") $union.name$::_d() const;
+%ignore $union.name$::_d() const;
 $union.members : {$member_getters(struct_name=union.name, member=it)$}; separator="\n"$
 
 >>
