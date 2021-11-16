@@ -262,6 +262,20 @@ public:
     eProsima_user_DllExport $struct.name$& operator =(
             $struct.name$&& x);
 
+    /*!
+     * @brief Comparison operator.
+     * @param x $struct.scopedname$ object to compare.
+     */
+    eProsima_user_DllExport bool operator ==(
+            const $struct.name$& x);
+
+    /*!
+     * @brief Comparison operator.
+     * @param x $struct.scopedname$ object to compare.
+     */
+    eProsima_user_DllExport bool operator !=(
+            const $struct.name$& x);
+
     $struct.members:{$public_member_declaration(it)$}; separator="\n"$
 
     $size_functions(struct)$
@@ -322,6 +336,20 @@ public:
      */
     eProsima_user_DllExport $union.name$& operator =(
             $union.name$&& x);
+
+    /*!
+     * @brief Comparison operator.
+     * @param x $union.scopedname$ object to compare.
+     */
+    eProsima_user_DllExport bool operator ==(
+            const $union.name$& x);
+
+    /*!
+     * @brief Comparison operator.
+     * @param x $union.scopedname$ object to compare.
+     */
+    eProsima_user_DllExport bool operator !=(
+            const $union.name$& x);
 
     /*!
      * @brief This function sets the discriminator value.
@@ -405,6 +433,20 @@ public:
      */
     eProsima_user_DllExport $bitset.name$& operator =(
             $bitset.name$&& x);
+
+    /*!
+     * @brief Comparison operator.
+     * @param x $bitset.scopedname$ object to compare.
+     */
+    eProsima_user_DllExport bool operator ==(
+            const $bitset.name$& x);
+
+    /*!
+     * @brief Comparison operator.
+     * @param x $bitset.scopedname$ object to compare.
+     */
+    eProsima_user_DllExport bool operator !=(
+            const $bitset.name$& x);
 
     $bitset.bitfields:{$public_bitfield_declaration(it)$}; separator="\n"$
 

@@ -260,6 +260,20 @@ $struct.scopedname$& $struct.scopedname$::operator =(
     return *this;
 }
 
+bool $struct.scopedname$::operator ==(
+        const $struct.name$& x)
+{
+    $if(struct.inheritances)$    $struct.inheritances : { if ($it.scopedname$::operator !=(x)) return false;}; separator="\n"$ $endif$
+
+    return ($struct.members:{m_$it.name$ == x.m_$it.name$}; separator=" && "$);
+}
+
+bool $struct.scopedname$::operator !=(
+        const $struct.name$& x)
+{
+    return !(*this == x);
+}
+
 $if(ctx.anyCdr)$
 size_t $struct.scopedname$::getMaxCdrSerializedSize(
         size_t current_alignment)
@@ -378,6 +392,20 @@ $bitset.scopedname$& $bitset.scopedname$::operator =(
     m_bitset = x.m_bitset;
 
     return *this;
+}
+
+bool $bitset.scopedname$::operator ==(
+        const $bitset.name$& x)
+{
+    $if(bitset.parents)$    $bitset.parents : { if ($it.scopedname$::operator !=(x)) return false;}; separator="\n"$ $endif$
+
+    return m_bitset == x.m_bitset;
+}
+
+bool $bitset.scopedname$::operator !=(
+        const $bitset.name$& x)
+{
+    return !(*this == x);
 }
 
 $if(ctx.anyCdr)$
@@ -555,6 +583,27 @@ $union.scopedname$& $union.scopedname$::operator =(
     }
 
     return *this;
+}
+
+bool $union.scopedname$::operator ==(
+        const $union.name$& x)
+{
+    if (m__d != x.m__d)
+    {
+        return false;
+    }
+
+    switch(m__d)
+    {
+        $union.members:{$unionmember_compare(it)$}; separator="\n"$
+        $unionmemberdefault_compare(union.defaultMember)$
+    }
+}
+
+bool $union.scopedname$::operator !=(
+        const $union.name$& x)
+{
+    return !(*this == x);
 }
 
 void $union.scopedname$::_d(
@@ -974,6 +1023,25 @@ m_$member.name$ = x.m_$member.name$;
 $else$
 m_$member.name$ = std::move(x.m_$member.name$);
 $endif$
+$endif$
+$endif$
+
+break;
+>>
+
+unionmember_compare(member) ::= <<
+$if(member.labels)$
+$member.labels:{case $it$:}; separator="\n"$
+    return (m_$it.name$ == x.m_$it.name$);
+    break;
+$endif$
+>>
+
+unionmemberdefault_compare(member) ::= <<
+default:
+$if(member)$
+$if(member.default)$
+return m_$member.name$ == x.m_$member.name$;
 $endif$
 $endif$
 
