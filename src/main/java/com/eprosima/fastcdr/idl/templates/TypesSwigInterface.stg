@@ -89,15 +89,20 @@ $struct.members : {$member_getters(struct_name=struct.name, member=it)$}; separa
 
 member_getters(struct_name, member) ::= <<
 %ignore $struct_name$::$member.name$($member.typecode.cppTypename$&&);
+
+$if(member.typecode.isSequenceType)$
+%ignore $struct_name$::$member.name$() const;
+%template($member.typecode.contentTypeCode.cppTypename$_vector) std::vector<$member.typecode.contentTypeCode.cppTypename$>;
+$elseif(member.typecode.isMapType)$
+%ignore $struct_name$::$member.name$() const;
+%template($member.typecode.keyTypeCode.cppTypename$_$member.typecode.valueTypeCode.cppTypename$_map) std::map<$member.typecode.keyTypeCode.cppTypename$,$member.typecode.valueTypeCode.cppTypename$>;
+$elseif(member.typecode.isType_f)$
+%ignore $struct_name$::$member.name$() const;
+%template($member.typecode.contentTypeCode.cppTypename$_$member.typecode.dimensions$_array) std::array<$member.typecode.contentTypeCode.cppTypename$,$member.typecode.dimensions$>;
+$else$
 %ignore $struct_name$::$member.name$();
 %rename("%s") $struct_name$::$member.name$() const;
 
-$if(member.typecode.isSequenceType)$
-%template($member.typecode.contentTypeCode.cppTypename$_vector) std::vector<$member.typecode.contentTypeCode.cppTypename$>;
-$elseif(member.typecode.isMapType)$
-%template($member.typecode.keyTypeCode.cppTypename$_$member.typecode.valueTypeCode.cppTypename$_map) std::map<$member.typecode.keyTypeCode.cppTypename$,$member.typecode.valueTypeCode.cppTypename$>;
-$elseif(member.typecode.isType_f)$
-%template($member.typecode.contentTypeCode.cppTypename$_$member.typecode.dimensions$_array) std::array<$member.typecode.contentTypeCode.cppTypename$,$member.typecode.dimensions$>;
 $endif$
 
 >>
