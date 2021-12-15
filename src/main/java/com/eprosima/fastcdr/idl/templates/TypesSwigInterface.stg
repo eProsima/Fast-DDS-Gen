@@ -51,7 +51,7 @@ $definitions; separator="\n"$
 >>
 
 fast_macro_declarations() ::= <<
-// Macro delcarations
+// Macro declarations
 // Any macro used on the Fast DDS header files will give an error if it is not redefined here
 #define RTPS_DllAPI
 #define eProsima_user_DllExport
@@ -90,6 +90,9 @@ $struct.members : {$member_getters(struct_name=struct.name, member=it)$}; separa
 member_getters(struct_name, member) ::= <<
 %ignore $struct_name$::$member.name$($member.typecode.cppTypename$&&);
 
+// Overloaded getter methods shadow each other and are equivalent in python
+// Const accesors produced constant enums instead of arrays/dictionaries when used
+// We ignore them to prevent this
 $if(member.typecode.isSequenceType)$
 %ignore $struct_name$::$member.name$() const;
 %template($member.typecode.contentTypeCode.cppTypename$_vector) std::vector<$member.typecode.contentTypeCode.cppTypename$>;
