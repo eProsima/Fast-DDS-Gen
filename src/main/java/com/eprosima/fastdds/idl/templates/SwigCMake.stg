@@ -16,7 +16,10 @@ group SwigCMake;
 
 swig_cmake(solution) ::= <<
 
-cmake_minimum_required(VERSION 2.8.12)
+# Using minimum CMake version 3.13 to prevent issues with the SWIG include
+# directories propagation happening with CMake 3.12 and prior
+
+cmake_minimum_required(VERSION 3.13)
 
 if(NOT CMAKE_VERSION VERSION_LESS 3.0)
     cmake_policy(SET CMP0048 NEW)
@@ -74,15 +77,10 @@ FIND_PACKAGE(SWIG REQUIRED)
 INCLUDE(\${SWIG_USE_FILE})
 SET(CMAKE_SWIG_FLAGS "")
 
-if(\${CMAKE_VERSION} VERSION_LESS "3.12.0")
-    FIND_PACKAGE(PythonInterp REQUIRED)
-    FIND_PACKAGE(PythonLibs REQUIRED)
-else()
-    FIND_PACKAGE(Python3 COMPONENTS Interpreter Development REQUIRED)
-    set(PYTHON_INCLUDE_PATH \${Python3_INCLUDE_DIRS})
-    set(PYTHON_EXECUTABLE \${Python3_EXECUTABLE})
-    set(PYTHON_LIBRARIES \${Python3_LIBRARY})
-endif()
+FIND_PACKAGE(Python3 COMPONENTS Interpreter Development REQUIRED)
+set(PYTHON_INCLUDE_PATH \${Python3_INCLUDE_DIRS})
+set(PYTHON_EXECUTABLE \${Python3_EXECUTABLE})
+set(PYTHON_LIBRARIES \${Python3_LIBRARY})
 
 INCLUDE_DIRECTORIES(\${PYTHON_INCLUDE_PATH})
 
