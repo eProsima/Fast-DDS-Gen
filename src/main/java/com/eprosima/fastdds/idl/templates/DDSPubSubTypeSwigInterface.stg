@@ -17,15 +17,38 @@ group ProtocolHeader;
 main(ctx, definitions) ::= <<
 $fileHeader(ctx=ctx,  file=[ctx.filename, "PubSubTypes.i"], description=["This header file contains the SWIG interface of the serialization functions."])$
 
-%import(module="fastdds_wrapper") "fastdds/dds/topic/TopicDataType.hpp";
+%import(module="fastdds") "fastdds/dds/topic/TopicDataType.hpp";
 
 %{
 #include "$ctx.filename$PubSubTypes.h"
 %}
+
+#define GEN_API_VER 1
 
 %include "$ctx.filename$PubSubTypes.h"
 
 >>
 
 struct_type(ctx, parent, struct) ::= <<
+>>
+
+union_type(ctx, parent, union, extensions) ::= <<
+>>
+
+bitset_type(ctx, parent, bitset, extensions) ::= <<
+>>
+
+enum_type(ctx, parent, enum) ::= <<
+>>
+
+bitmask_type(ctx, parent, bitmask) ::= <<
+>>
+
+annotation(ctx, annotation) ::= <<
+>>
+
+interface(ctx, parent, interface, export_list) ::= <<
+>>
+
+exception(ctx, parent, exception) ::= <<
 >>
