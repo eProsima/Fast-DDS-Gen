@@ -598,6 +598,7 @@ bool $union.scopedname$::operator ==(
         $union.members:{$unionmember_compare(it)$}; separator="\n"$
         $unionmemberdefault_compare(union.defaultMember)$
     }
+    return false;
 }
 
 bool $union.scopedname$::operator !=(
