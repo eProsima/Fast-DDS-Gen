@@ -261,7 +261,7 @@ $struct.scopedname$& $struct.scopedname$::operator =(
 }
 
 bool $struct.scopedname$::operator ==(
-        const $struct.name$& x)
+        const $struct.name$& x) const
 {
     $if(struct.inheritances)$    $struct.inheritances : { if ($it.scopedname$::operator !=(x)) return false;}; separator="\n"$ $endif$
 
@@ -269,7 +269,7 @@ bool $struct.scopedname$::operator ==(
 }
 
 bool $struct.scopedname$::operator !=(
-        const $struct.name$& x)
+        const $struct.name$& x) const
 {
     return !(*this == x);
 }
@@ -395,7 +395,7 @@ $bitset.scopedname$& $bitset.scopedname$::operator =(
 }
 
 bool $bitset.scopedname$::operator ==(
-        const $bitset.name$& x)
+        const $bitset.name$& x) const
 {
     $if(bitset.parents)$    $bitset.parents : { if ($it.scopedname$::operator !=(x)) return false;}; separator="\n"$ $endif$
 
@@ -403,7 +403,7 @@ bool $bitset.scopedname$::operator ==(
 }
 
 bool $bitset.scopedname$::operator !=(
-        const $bitset.name$& x)
+        const $bitset.name$& x) const
 {
     return !(*this == x);
 }
@@ -586,7 +586,7 @@ $union.scopedname$& $union.scopedname$::operator =(
 }
 
 bool $union.scopedname$::operator ==(
-        const $union.name$& x)
+        const $union.name$& x) const
 {
     if (m__d != x.m__d)
     {
@@ -602,7 +602,7 @@ bool $union.scopedname$::operator ==(
 }
 
 bool $union.scopedname$::operator !=(
-        const $union.name$& x)
+        const $union.name$& x) const
 {
     return !(*this == x);
 }

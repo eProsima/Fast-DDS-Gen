@@ -17,8 +17,8 @@ group TypesHeader;
 main(ctx, definitions) ::= <<
 $fileHeader(file=[ctx.filename, ".h"], description=["This header file contains the declaration of the described types in the IDL file."])$
 
-#ifndef _$ctx.headerGuardName$_H_
-#define _$ctx.headerGuardName$_H_
+#ifndef _FAST_DDS_GENERATED_$ctx.headerGuardName$_H_
+#define _FAST_DDS_GENERATED_$ctx.headerGuardName$_H_
 
 $if(ctx.printexception)$
 #include <$ctx.product$/exceptions/UserException.h>
@@ -84,7 +84,7 @@ $endif$
 
 $definitions; separator="\n"$
 
-#endif // _$ctx.headerGuardName$_H_
+#endif // _FAST_DDS_GENERATED_$ctx.headerGuardName$_H_
 >>
 
 // TODO name -> module
@@ -267,14 +267,14 @@ public:
      * @param x $struct.scopedname$ object to compare.
      */
     eProsima_user_DllExport bool operator ==(
-            const $struct.name$& x);
+            const $struct.name$& x) const;
 
     /*!
      * @brief Comparison operator.
      * @param x $struct.scopedname$ object to compare.
      */
     eProsima_user_DllExport bool operator !=(
-            const $struct.name$& x);
+            const $struct.name$& x) const;
 
     $struct.members:{$public_member_declaration(it)$}; separator="\n"$
 
@@ -342,14 +342,14 @@ public:
      * @param x $union.scopedname$ object to compare.
      */
     eProsima_user_DllExport bool operator ==(
-            const $union.name$& x);
+            const $union.name$& x) const;
 
     /*!
      * @brief Comparison operator.
      * @param x $union.scopedname$ object to compare.
      */
     eProsima_user_DllExport bool operator !=(
-            const $union.name$& x);
+            const $union.name$& x) const;
 
     /*!
      * @brief This function sets the discriminator value.
@@ -439,14 +439,14 @@ public:
      * @param x $bitset.scopedname$ object to compare.
      */
     eProsima_user_DllExport bool operator ==(
-            const $bitset.name$& x);
+            const $bitset.name$& x) const;
 
     /*!
      * @brief Comparison operator.
      * @param x $bitset.scopedname$ object to compare.
      */
     eProsima_user_DllExport bool operator !=(
-            const $bitset.name$& x);
+            const $bitset.name$& x) const;
 
     $bitset.bitfields:{$public_bitfield_declaration(it)$}; separator="\n"$
 

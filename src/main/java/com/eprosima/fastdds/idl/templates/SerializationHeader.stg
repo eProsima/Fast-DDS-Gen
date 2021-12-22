@@ -17,14 +17,14 @@ group ProtocolHeader;
 main(ctx, definitions) ::= <<
 $fileHeader(ctx=ctx,  file=[ctx.filename, "Serialization.h"], description=["This file contains serialization definitions."])$
 
-#ifndef _$ctx.headerGuardName$_SERIALIZATION_H_
-#define _$ctx.headerGuardName$_SERIALIZATION_H_
+#ifndef _FAST_DDS_GENERATED_$ctx.headerGuardName$_SERIALIZATION_H_
+#define _FAST_DDS_GENERATED_$ctx.headerGuardName$_SERIALIZATION_H_
 
 #include "$ctx.filename$.h"
 
 $definitions; separator="\n"$
 
-#endif //_$ctx.headerGuardName$_SERIALIZATION_H_
+#endif //_FAST_DDS_GENERATED_$ctx.headerGuardName$_SERIALIZATION_H_
 >>
 
 struct_type(ctx, parent, struct) ::= <<
