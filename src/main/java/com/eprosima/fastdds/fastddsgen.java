@@ -42,9 +42,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
+import java.util.Map;
+import java.util.HashMap;
 import org.antlr.stringtemplate.StringTemplate;
 import org.antlr.stringtemplate.StringTemplateErrorListener;
 import org.antlr.stringtemplate.StringTemplateGroup;
@@ -84,6 +88,9 @@ public class fastddsgen
     private boolean m_atLeastOneStructure = false;
     protected static String m_localAppProduct = "fastrtps";
     private ArrayList<String> m_includePaths = new ArrayList<String>();
+
+    // Mapping where the key holds the path to the template file and the value the wanted ouput file name
+    private Map<String, String> m_customStgOutput = new HashMap<String, String>();
 
     private static VSConfiguration m_vsconfigurations[] = {
         new VSConfiguration("Debug DLL", "Win32", true, true),
@@ -213,6 +220,9 @@ public class fastddsgen
                     throw new BadArgumentException("No URL specified after -ppPath argument");
                 }
             }
+            else if (arg.equals("-extrastg")) {
+            	m_customStgOutput.put(args[count++], args[count++]);
+            } 
             else if (arg.equals("-ppDisable"))
             {
                 m_ppDisable = true;
@@ -364,9 +374,24 @@ public class fastddsgen
                             getVersion(), m_publishercode, m_subscribercode);
 
             // Load string templates
-            System.out.println("Loading templates...");
+            System.out.println("Loading templates from " + System.getProperty("java.class.path"));           
+            // Add path of custom templates to manager search path
+            String extraPaths = "";
+            for (Map.Entry<String, String> entry : m_customStgOutput.entrySet())
+            {
+                Path path = Paths.get(entry.getKey()).getParent();
+                if (path != null)
+                {
+                    extraPaths += ":" + path.toString();
+                }
+                else
+                {
+                    extraPaths += ":./";
+                }
+            }
+        	
             TemplateManager.setGroupLoaderDirectories(
-                "com/eprosima/fastdds/idl/templates:com/eprosima/fastcdr/idl/templates");
+                "com/eprosima/fastdds/idl/templates:com/eprosima/fastcdr/idl/templates" + extraPaths);
 
             // In local for all products
             if (m_os.contains("Windows"))
@@ -402,7 +427,7 @@ public class fastddsgen
             ArrayList<String> includedIDL = new ArrayList<String>();
             for (int count = 0; returnedValue && (count < m_idlFiles.size()); ++count)
             {
-                Project project = process(m_idlFiles.get(count));
+                Project project = process(m_idlFiles.get(count), true);
 
                 for (String include : project.getIDLIncludeFiles())
                 {
@@ -427,7 +452,7 @@ public class fastddsgen
             // Add include idl files
             for (String included : includedIDL)
             {
-                Project inner = process(included);
+                Project inner = process(included, false);
                 if (inner != null && !solution.existsProject(inner.getFile()))
                 {
                     System.out.println("Adding project: " + inner.getFile());
@@ -572,7 +597,8 @@ public class fastddsgen
     }
 
     private Project process(
-            String idlFilename)
+            String idlFilename,
+            boolean processCustomTemplates)
     {
         Project project = null;
         System.out.println("Processing the file " + idlFilename + "...");
@@ -580,7 +606,7 @@ public class fastddsgen
         try
         {
             // Protocol CDR
-            project = parseIDL(idlFilename); // TODO: Quitar archivos copiados TypesHeader.stg, TypesSource.stg, PubSubTypeHeader.stg de la carpeta com.eprosima.fastdds.idl.templates
+            project = parseIDL(idlFilename, processCustomTemplates); // TODO: Quitar archivos copiados TypesHeader.stg, TypesSource.stg, PubSubTypeHeader.stg de la carpeta com.eprosima.fastdds.idl.templates
         }
         catch (Exception ioe)
         {
@@ -596,7 +622,8 @@ public class fastddsgen
     }
 
     private Project parseIDL(
-            String idlFilename)
+            String idlFilename,
+            boolean processCustomTemplates)
     {
         boolean returnedValue = false;
         String idlParseFileName = idlFilename;
@@ -697,6 +724,17 @@ public class fastddsgen
                 tmanager.addGroup("TypesSwigInterface");
                 tmanager.addGroup("DDSPubSubTypeSwigInterface");
             }
+            
+            // Load custom templates into manager
+            if (processCustomTemplates)
+            {
+                for (Map.Entry<String, String> entry : m_customStgOutput.entrySet())
+                {
+                    Path path = Paths.get(entry.getKey());
+                    String templateName = path.getFileName().toString().substring(0, path.getFileName().toString().lastIndexOf('.'));
+                    tmanager.addGroup(templateName);
+                }
+            }
 
             // Create main template
             TemplateGroup maintemplates = tmanager.createTemplateGroup("main");
@@ -732,6 +770,30 @@ public class fastddsgen
                 // Create information of project for solution
                 project = new Project(ctx.getFilename(), idlFilename, ctx.getDependencies());
 
+                // Create all custom files for template
+                if (processCustomTemplates)
+                {
+                    for (Map.Entry<String, String> entry : m_customStgOutput.entrySet())
+                    {
+                        Path path = Paths.get(entry.getKey());
+                        String templateName = path.getFileName().toString().substring(0, path.getFileName().toString().lastIndexOf('.'));
+                        System.out.println("Generating from custom " + templateName + " to " + entry.getValue());
+
+                        if (returnedValue = Utils.writeFile(m_outputDir + entry.getValue(), maintemplates.getTemplate(templateName), m_replace))
+                        {
+                            // Try to determine if the file is a header file.
+                            if (entry.getValue().contains(".hpp") || entry.getValue().contains(".h"))
+                            {
+                                project.addCommonIncludeFile(entry.getValue());
+                            }
+                            else
+                            {
+                                project.addCommonSrcFile(ctx.getFilename() + entry.getValue());
+                            }
+                        }
+                    }
+                }
+            	
                 System.out.println("Generating Type definition files...");
                 if (returnedValue =
                         Utils.writeFile(m_outputDir + ctx.getFilename() + ".h",
