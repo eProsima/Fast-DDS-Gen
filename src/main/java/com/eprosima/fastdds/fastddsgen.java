@@ -299,6 +299,11 @@ public class fastddsgen
 
         }
 
+        if (null != m_exampleOption && m_python)
+        {
+            throw new BadArgumentException("-example and -python currently are incompatible");
+        }
+
         if (m_idlFiles.isEmpty())
         {
             throw new BadArgumentException("No input files given");
@@ -429,7 +434,8 @@ public class fastddsgen
                 }
             }
 
-            if (returnedValue && m_python) {
+            if (returnedValue && m_python)
+            {
                 returnedValue = genSwigCMake(solution);
             }
 
@@ -747,9 +753,13 @@ public class fastddsgen
                                 }
                             }
                         }
-                        if(m_python) {
+                        if (m_python)
+                        {
                             System.out.println("Generating Swig interface files...");
-                            if (returnedValue = Utils.writeFile(m_outputDir + onlyFileName + ".i", maintemplates.getTemplate("TypesSwigInterface"), m_replace)) {
+                            if (returnedValue =
+                                    Utils.writeFile(m_outputDir + onlyFileName + ".i",
+                                    maintemplates.getTemplate("TypesSwigInterface"), m_replace))
+                            {
 
                             }
                         }
@@ -791,10 +801,12 @@ public class fastddsgen
                         {
                             project.addProjectIncludeFile(ctx.getFilename() + "PubSubTypes.h");
                             project.addProjectSrcFile(ctx.getFilename() + "PubSubTypes.cxx");
-                            if(m_python)
+                            if (m_python)
                             {
                                 System.out.println("Generating Swig interface files...");
-                                returnedValue = Utils.writeFile(m_outputDir + ctx.getFilename() + "PubSubTypes.i", maintemplates.getTemplate("DDSPubSubTypeSwigInterface"), m_replace);
+                                returnedValue = Utils.writeFile(
+                                    m_outputDir + ctx.getFilename() + "PubSubTypes.i",
+                                    maintemplates.getTemplate("DDSPubSubTypeSwigInterface"), m_replace);
                             }
                         }
                     }
@@ -1194,13 +1206,17 @@ public class fastddsgen
         return returnedValue;
     }
 
-    private boolean genSwigCMake(Solution solution) {
+    private boolean genSwigCMake(
+            Solution solution)
+    {
 
         boolean returnedValue = false;
         StringTemplate swig = null;
 
-        StringTemplateGroup swigTemplates = StringTemplateGroup.loadGroup("SwigCMake", DefaultTemplateLexer.class, null);
-        if (swigTemplates != null) {
+        StringTemplateGroup swigTemplates =
+                StringTemplateGroup.loadGroup("SwigCMake", DefaultTemplateLexer.class, null);
+        if (swigTemplates != null)
+        {
             swig = swigTemplates.getInstanceOf("swig_cmake");
 
             swig.setAttribute("solution", solution);
