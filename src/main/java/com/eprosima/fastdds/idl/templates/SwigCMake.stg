@@ -62,6 +62,9 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 #Create library for C++ types
 add_library(\${PROJECT_NAME} SHARED \${\${PROJECT_NAME}_FILES})
+if(WIN32)
+    target_compile_definitions(\${PROJECT_NAME} PRIVATE EPROSIMA_USER_DLL_EXPORT)
+endif(WIN32)
 target_link_libraries(\${PROJECT_NAME} PUBLIC fastcdr fastrtps)
 
 ###############################################################################
@@ -74,7 +77,7 @@ set(CMAKE_SWIG_FLAGS "")
 find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
 set(PYTHON_INCLUDE_PATH \${Python3_INCLUDE_DIRS})
 set(PYTHON_EXECUTABLE \${Python3_EXECUTABLE})
-set(PYTHON_LIBRARIES \${Python3_LIBRARY})
+set(PYTHON_LIBRARIES \${Python3_LIBRARIES})
 
 include_directories(\${PYTHON_INCLUDE_PATH})
 
