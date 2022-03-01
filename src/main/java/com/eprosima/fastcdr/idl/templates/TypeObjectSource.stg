@@ -893,14 +893,7 @@ mst_$object.name$.common().member_type_id(*$get_type_identifier(ctx=ctx, type=ob
 $elseif(object.typecode.objectType)$
 mst_$object.name$.common().member_type_id(*$if(object.typecode.hasScope)$$object.typecode.scope$::$endif$Get$object.typecode.name$Identifier(false));
 $else$
-{
-    std::string cppType = "$object.typecode.cppTypename$";
-    if (cppType == "long double")
-    {
-        cppType = "longdouble";
-    }
-    mst_$object.name$.common().member_type_id(*TypeObjectFactory::get_instance()->get_type_identifier(cppType, false));
-}
+mst_$object.name$.common().member_type_id(*TypeObjectFactory::get_instance()->get_type_identifier("$object.typecode.cppTypenameForTypeId$", false));
 $endif$
 
 
@@ -928,14 +921,7 @@ cst_$object.name$.common().member_type_id(*$get_type_identifier(ctx=ctx, type=ob
 $elseif(object.typecode.objectType)$
 cst_$object.name$.common().member_type_id(*$if(object.typecode.hasScope)$$object.typecode.scope$::$endif$Get$object.typecode.name$Identifier(true));
 $else$
-{
-    std::string cppType = "$object.typecode.cppTypename$";
-    if (cppType == "long double")
-    {
-        cppType = "longdouble";
-    }
-    cst_$object.name$.common().member_type_id(*TypeObjectFactory::get_instance()->get_type_identifier(cppType, false));
-}
+cst_$object.name$.common().member_type_id(*TypeObjectFactory::get_instance()->get_type_identifier("$object.typecode.cppTypenameForTypeId$", false));
 $endif$
 
 
@@ -973,9 +959,9 @@ type_object->complete().struct_type().member_seq().emplace_back(cst_$object.name
 
 >>
 
-get_type_identifier(ctx, type, ek) ::= <<$if(type.isSequenceType)$TypeObjectFactory::get_instance()->get_sequence_identifier($get_content_type(ctx=ctx, type=type.contentTypeCode)$, $type.maxsize$, $ek$)$elseif(type.isArrayType)$TypeObjectFactory::get_instance()->get_array_identifier($get_content_type(ctx=ctx, type=type.contentTypeCode)$, {$type.dimensions:{ dim |$dim$}; separator=", "$}, $ek$)$elseif(type.isSetType)$TypeObjectFactory::get_instance()->get_sequence_identifier($get_content_type(ctx=ctx, type=type.contentTypeCode)$, $type.maxsize$, $ek$)$elseif(type.isMapType)$TypeObjectFactory::get_instance()->get_map_identifier($get_content_type(ctx=ctx, type=type.keyTypeCode)$, $get_content_type(ctx=ctx, type=type.valueTypeCode)$, $type.maxsize$, $ek$)$elseif(type.isStringType)$TypeObjectFactory::get_instance()->get_string_identifier($type.maxsize$, false)$elseif(type.isWStringType)$TypeObjectFactory::get_instance()->get_string_identifier($type.maxsize$, true)$elseif(type.objectType)$Get$type.name$Identifier($ek$)$elseif(type.plainType)$TypeObjectFactory::get_instance()->get_type_identifier("$type.cppTypename$", false)$else$TypeObjectFactory::get_instance()->get_type_identifier("$type.cppTypename$", false)$endif$>>
+get_type_identifier(ctx, type, ek) ::= <<$if(type.isSequenceType)$TypeObjectFactory::get_instance()->get_sequence_identifier($get_content_type(ctx=ctx, type=type.contentTypeCode)$, $type.maxsize$, $ek$)$elseif(type.isArrayType)$TypeObjectFactory::get_instance()->get_array_identifier($get_content_type(ctx=ctx, type=type.contentTypeCode)$, {$type.dimensions:{ dim |$dim$}; separator=", "$}, $ek$)$elseif(type.isSetType)$TypeObjectFactory::get_instance()->get_sequence_identifier($get_content_type(ctx=ctx, type=type.contentTypeCode)$, $type.maxsize$, $ek$)$elseif(type.isMapType)$TypeObjectFactory::get_instance()->get_map_identifier($get_content_type(ctx=ctx, type=type.keyTypeCode)$, $get_content_type(ctx=ctx, type=type.valueTypeCode)$, $type.maxsize$, $ek$)$elseif(type.isStringType)$TypeObjectFactory::get_instance()->get_string_identifier($type.maxsize$, false)$elseif(type.isWStringType)$TypeObjectFactory::get_instance()->get_string_identifier($type.maxsize$, true)$elseif(type.objectType)$Get$type.name$Identifier($ek$)$elseif(type.plainType)$TypeObjectFactory::get_instance()->get_type_identifier("$type.cppTypenameForTypeId$", false)$else$TypeObjectFactory::get_instance()->get_type_identifier("$type.cppTypenameForTypeId$", false)$endif$>>
 
-get_content_type(ctx, type) ::= <<$if(type.plainType)$$if(type.isSequenceType)$TypeNamesGenerator::get_sequence_type_name($get_content_type(ctx=ctx, type=type.contentTypeCode)$, $type.maxsize$)$elseif(type.isArrayType)$TypeNamesGenerator::get_array_type_name($get_content_type(ctx=ctx, type=type.contentTypeCode)$, {$type.dimensions:{ dim |$dim$}; separator=", "$})$elseif(type.isSetType)$TypeNamesGenerator::get_sequence_type_name($get_content_type(ctx=ctx, type=type.contentTypeCode)$, $type.maxsize$)$elseif(type.isMapType)$TypeNamesGenerator::get_map_type_name($get_content_type(ctx=ctx, type=type.keyTypeCode)$, $get_content_type(ctx=ctx, type=type.valueTypeCode)$, $type.maxsize$)$elseif(type.isStringType)$TypeNamesGenerator::get_string_type_name($type.maxsize$, false)$elseif(type.isWStringType)$TypeNamesGenerator::get_string_type_name($type.maxsize$, true)$else$"$type.cppTypename$"$endif$$else$"$type.cppTypename$"$endif$>>
+get_content_type(ctx, type) ::= <<$if(type.plainType)$$if(type.isSequenceType)$TypeNamesGenerator::get_sequence_type_name($get_content_type(ctx=ctx, type=type.contentTypeCode)$, $type.maxsize$)$elseif(type.isArrayType)$TypeNamesGenerator::get_array_type_name($get_content_type(ctx=ctx, type=type.contentTypeCode)$, {$type.dimensions:{ dim |$dim$}; separator=", "$})$elseif(type.isSetType)$TypeNamesGenerator::get_sequence_type_name($get_content_type(ctx=ctx, type=type.contentTypeCode)$, $type.maxsize$)$elseif(type.isMapType)$TypeNamesGenerator::get_map_type_name($get_content_type(ctx=ctx, type=type.keyTypeCode)$, $get_content_type(ctx=ctx, type=type.valueTypeCode)$, $type.maxsize$)$elseif(type.isStringType)$TypeNamesGenerator::get_string_type_name($type.maxsize$, false)$elseif(type.isWStringType)$TypeNamesGenerator::get_string_type_name($type.maxsize$, true)$else$"$type.cppTypenameForTypeId$"$endif$$else$"$type.cppTypenameForTypeId$"$endif$>>
 
 union_type(ctx, parent, union) ::= <<
 const TypeIdentifier* Get$union.name$Identifier(bool complete)
@@ -1202,14 +1188,7 @@ mst_$object.name$.common().type_id(*$get_type_identifier(ctx=ctx, type=object.ty
 $elseif(object.typecode.objectType)$
 mst_$object.name$.common().type_id(*$if(object.typecode.hasScope)$$object.typecode.scope$::$endif$Get$object.typecode.name$Identifier(false));
 $else$
-{
-    std::string cppType = "$object.typecode.cppTypename$";
-    if (cppType == "long double")
-    {
-        cppType = "longdouble";
-    }
-    mst_$object.name$.common().type_id(*TypeObjectFactory::get_instance()->get_type_identifier(cppType, false));
-}
+mst_$object.name$.common().type_id(*TypeObjectFactory::get_instance()->get_type_identifier("$object.typecode.cppTypenameForTypeId$", false));
 $endif$
 
 
@@ -1241,14 +1220,7 @@ cst_$object.name$.common().type_id(*$get_type_identifier(ctx=ctx, type=object.ty
 $elseif(object.typecode.objectType)$
 cst_$object.name$.common().type_id(*$if(object.typecode.hasScope)$$object.typecode.scope$::$endif$Get$object.typecode.name$Identifier(true));
 $else$
-{
-    std::string cppType = "$object.typecode.cppTypename$";
-    if (cppType == "long double")
-    {
-        cppType = "longdouble";
-    }
-    cst_$object.name$.common().type_id(*TypeObjectFactory::get_instance()->get_type_identifier(cppType, false));
-}
+cst_$object.name$.common().type_id(*TypeObjectFactory::get_instance()->get_type_identifier("$object.typecode.cppTypenameForTypeId$", false));
 $endif$
 
 $if(object.labels)$
