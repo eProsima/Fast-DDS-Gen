@@ -37,7 +37,13 @@ $ctx.directIncludeDependencies : {include | %include "$include$.i"}; separator="
 
 %{
 #include "$ctx.filename$.h"
+
+#include <fastdds/dds/core/LoanableSequence.hpp>
 %}
+
+%import(module="fastdds") "fastdds/dds/core/LoanableCollection.hpp"
+%import(module="fastdds") "fastdds/dds/core/LoanableTypedCollection.hpp"
+%import(module="fastdds") "fastdds/dds/core/LoanableSequence.hpp"
 
 $definitions; separator="\n"$
 
@@ -68,6 +74,21 @@ struct_type(ctx, parent, struct, extensions) ::= <<
 // Overloaded getter methods shadow each other and are equivalent in python
 // Avoid a warning ignoring all but one
 $struct.members : {$member_getters(struct_name=struct.name, member=it)$}; separator="\n"$
+
+%template(_$struct.name$Seq) eprosima::fastdds::dds::LoanableTypedCollection<$struct.name$, std::true_type>;
+%template($struct.name$Seq) eprosima::fastdds::dds::LoanableSequence<$struct.name$, std::true_type>;
+%extend eprosima::fastdds::dds::LoanableSequence<$struct.name$, std::true_type>
+{
+    size_t __len__() const
+    {
+        return self->length();
+    }
+
+    const $struct.name$& __getitem__(size_t i) const
+    {
+        return (*self)[i];
+    }
+}
 
 >>
 
