@@ -75,9 +75,9 @@ struct_type(ctx, parent, struct, extensions) ::= <<
 // Avoid a warning ignoring all but one
 $struct.members : {$member_getters(struct_name=struct.name, member=it)$}; separator="\n"$
 
-%template(_$struct.name$Seq) eprosima::fastdds::dds::LoanableTypedCollection<$struct.name$, std::true_type>;
-%template($struct.name$Seq) eprosima::fastdds::dds::LoanableSequence<$struct.name$, std::true_type>;
-%extend eprosima::fastdds::dds::LoanableSequence<$struct.name$, std::true_type>
+%template(_$struct.name$Seq) eprosima::fastdds::dds::LoanableTypedCollection<$struct.name$, std::false_type>;
+%template($struct.name$Seq) eprosima::fastdds::dds::LoanableSequence<$struct.name$, std::false_type>;
+%extend eprosima::fastdds::dds::LoanableSequence<$struct.name$, std::false_type>
 {
     size_t __len__() const
     {
