@@ -83,7 +83,7 @@ bool $ctx.filename$Publisher::init()
 
     //CREATE THE TOPIC
     topic_ = participant_->create_topic(
-        "$ctx.filename$Topic",
+        "$if (ctx.GenerateTypesROS2)$rt/$endif$$ctx.filename$Topic",
         type_.get_type_name(),
         TOPIC_QOS_DEFAULT);
     if (topic_ == nullptr)

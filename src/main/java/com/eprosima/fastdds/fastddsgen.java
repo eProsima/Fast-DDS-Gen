@@ -527,7 +527,7 @@ public class fastddsgen
         System.out.println("\t\t-replace: replaces existing generated files.");
         System.out.println("\t\t-ppDisable: disables the preprocessor.");
         System.out.println("\t\t-ppPath: specifies the preprocessor path.");
-        System.out.println("\t\t-typeros2: generates type naming compatible with ROS2.");
+        System.out.println("\t\t-typeros2: generates type naming and topics compatible with ROS2.");
         System.out.println("\t\t-I <path>: add directory to preprocessor include paths.");
         System.out.println("\t\t-d <path>: sets an output directory for generated files.");
         System.out.println("\t\t-t <temp dir>: sets a specific directory as a temporary directory.");
