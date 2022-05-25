@@ -50,7 +50,7 @@ $elseif(object.typecode.isType_e)$
 $object_map_seq_serialization(ctx=ctx, object=object, preffix=preffix)$
 
 $else$
-scdr << $serializeCasting(typecode=object.typecode)$$preffix$$object.name$;
+scdr << $serializeCasting(typecode=object.typecode)$$preffix$$object.name$$if(object.typecode.isType_d)$.c_str()$endif$;
 
 $endif$
 >>
@@ -511,6 +511,16 @@ $if(typecode.isStringType)$
     free($preffix$$name$);
     $preffix$$name$ = (char*)malloc(aux.size() + 1);
     strncpy($preffix$$name$, aux.c_str(), aux.size() + 1);
+}
+$else$
+dcdr \>> $if(typecode.forwarded)$*$endif$$preffix$$name$;
+$endif$
+$elseif(typecode.isStringType)$
+$if(typecode.isBounded)$
+{
+    std::string aux;
+    dcdr \>> aux;
+    $if(typecode.forwarded)$*$endif$$preffix$$name$ = aux.c_str();
 }
 $else$
 dcdr \>> $if(typecode.forwarded)$*$endif$$preffix$$name$;
