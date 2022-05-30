@@ -112,7 +112,7 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
         return m_publishercode;
     }
 
-    // TODO Para stringtemplate TopicsPlugin de nuestros tipos DDS.
+    // TODO For stringtemplate TopicsPlugin of our DDS types.
     public String getNewRandomName()
     {
         String name = "type_" + ++m_randomGenName;
@@ -131,7 +131,7 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
         return Character.toString(++m_loopVarName);
     }
 
-    // TODO Para stringtemplate TopicsPlugin de nuestros tipos DDS.
+    // TODO For stringtemplate TopicsPlugin of our DDS types.
     public String getLastRandomName()
     {
         return m_randomGenNames.pop();
@@ -205,7 +205,7 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
         typecodes.add(new SimpleEntry<String, TypeCode>(sequence.getCppTypename(), sequence));
     }
 
-    /*** Functions inherated from FastCDR Context ***/
+    /*** Functions inherited from FastCDR Context ***/
 
     @Override
     public boolean isPrintexception()
@@ -298,10 +298,10 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
     //! Cache the first exception.
     private com.eprosima.idl.parser.tree.Exception m_firstexception = null;
 
-    // TODO Lleva la cuenta de generación de nuevos nombres.
+    // TODO Counts generation of new names.
     private int m_randomGenName = 0;
     private Stack<String> m_randomGenNames = null;
-    // TODO Lleva la cuenta del nombre de variables para bucles anidados.
+    // TODO Keeps track of variable name for nested loops.
     private char m_loopVarName = 'a';
 
     // Stores if the user will generate the client source.
