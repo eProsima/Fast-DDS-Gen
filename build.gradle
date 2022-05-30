@@ -172,4 +172,6 @@ task install(type: InstallPath, group: "Install", description: "Install fastddsg
 
 test {
     useJUnitPlatform()
+    testLogging.showStandardStreams = true
+    systemProperties = System.getProperties()
 }
