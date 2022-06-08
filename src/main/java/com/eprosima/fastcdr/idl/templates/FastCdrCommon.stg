@@ -442,8 +442,8 @@ map_max_serialized_size_element(ctx, typecodeMapElement, var, loopvar) ::= <<
     $elseif(typecodeMapElement.isMapType)$
     $var$ += 4$if(ctx.cdr)$ + eprosima::fastcdr::Cdr::alignment($var$, 4)$endif$;
 
-    $map_max_serialized_size_element(ctx=ctx, typecodeMapElement=typecodeMapElement, var=var, loopvar=ctx.nextLoopVarName)$
-    $elseif(typeCodeMapElement.isType_e)$
+    $map_max_serialized_size(ctx=ctx, typecodeMap=typecodeMapElement, var=var, loopvar=ctx.nextLoopVarName)$
+    $elseif(typecodeMapElement.isType_e)$
     $var$ += 4$if(ctx.cdr)$ + eprosima::fastcdr::Cdr::alignment($var$, 4)$endif$;
 
     $sequence_max_serialized_size(ctx=ctx, typecodeSeq=typecodeMapElement, var=var, loopvar=ctx.nextLoopVarName)$
@@ -473,7 +473,7 @@ $elseif(typecodeMapElement.isType_d)$
 $elseif(typecodeMapElement.isMapType)$
     $var$ += 4$if(ctx.cdr)$ + eprosima::fastcdr::Cdr::alignment($var$, 4)$endif$;
 
-    $map_serialized_size_element(ctx=ctx, typecodeMapElement=typecodeMapElement, data=data, var=var, loopvar=ctx.nextLoopVarName)$
+    $map_serialized_size(ctx=ctx, typecodeMap=typecodeMapElement, data=data, var=var, loopvar=ctx.nextLoopVarName)$
 $elseif(typecodeMapElement.isType_e)$
     $var$ += 4$if(ctx.cdr)$ + eprosima::fastcdr::Cdr::alignment($var$, 4)$endif$;
 
@@ -481,7 +481,7 @@ $elseif(typecodeMapElement.isType_e)$
 $elseif(typecodeMapElement.isType_f)$
     $array_serialized_size(ctx=ctx, typecodeArr=typecodeMapElement, data=data, var=var, loopvar=ctx.nextLoopVarName, dimensions=typecodeMapElement.dimensions)$
 $else$
-    $var$ += $typecodeMapElement.scopedname$::getCdrSerializedSize($loopvar$, $var$);
+    $var$ += $typecodeMapElement.scopedname$::getCdrSerializedSize($data$, $var$);
 $endif$
 >>
 
