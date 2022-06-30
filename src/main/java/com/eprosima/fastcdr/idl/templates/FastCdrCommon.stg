@@ -94,8 +94,21 @@ $else$
     scdr << temp_$object.name$;
 }
 $endif$
+$elseif(object.typecode.contentTypeCode.isBounded)$
+{
+$if(object.typecode.isType_e)$
+    scdr << static_cast<uint32_t>($preffix$$object.name$.size());
+$endif$
+
+    for (const auto& item : $preffix$$object.name$)
+    {
+        scdr << item.c_str();
+    }
+}
+
 $else$
 scdr << $serializeCasting(typecode=object.typecode)$$preffix$$object.name$;
+
 $endif$
 >>
 
