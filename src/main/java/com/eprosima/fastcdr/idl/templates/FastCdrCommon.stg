@@ -198,6 +198,22 @@ $else$
     }
 }
 $endif$
+$elseif(object.typecode.contentTypeCode.isBounded)$
+{
+$if(object.typecode.isType_e)$
+    uint32_t sequence_size = 0;
+    dcdr \>> sequence_size;
+    $preffix$$object.name$$if(object.typecode.forwarded)$->$else$.$endif$resize(sequence_size);
+$endif$
+
+    for (auto& item : $if(object.typecode.forwarded)$*$endif$$preffix$$object.name$)
+    {
+        std::string s;
+        dcdr \>> s;
+        item = s.c_str();
+    }
+}
+
 $else$
 dcdr \>> $preffix$$object.name$;
 $endif$
