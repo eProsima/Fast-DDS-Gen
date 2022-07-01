@@ -26,6 +26,8 @@ $endif$
 
 $ctx.directIncludeDependencies : {include | #include "$include$.h"}; separator="\n"$
 
+#include <fastrtps/utils/fixed_size_string.hpp>
+
 #include <stdint.h>
 #include <array>
 #include <string>
