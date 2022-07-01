@@ -50,7 +50,7 @@ $elseif(object.typecode.isType_e)$
 $object_map_seq_serialization(ctx=ctx, object=object, preffix=preffix)$
 
 $else$
-scdr << $serializeCasting(typecode=object.typecode)$$preffix$$object.name$$if(object.typecode.isType_d)$.c_str()$endif$;
+scdr << $serializeCasting(typecode=object.typecode)$$preffix$$object.name$$if(object.typecode.isStringType)$.c_str()$endif$;
 
 $endif$
 >>
@@ -94,7 +94,8 @@ $else$
     scdr << temp_$object.name$;
 }
 $endif$
-$elseif(object.typecode.contentTypeCode.isBounded)$
+$elseif(object.typecode.contentTypeCode.isStringType)$
+$if(object.typecode.contentTypeCode.isBounded)$
 {
 $if(object.typecode.isType_e)$
     scdr << static_cast<uint32_t>($preffix$$object.name$.size());
@@ -106,6 +107,10 @@ $endif$
     }
 }
 
+$else$
+scdr << $serializeCasting(typecode=object.typecode)$$preffix$$object.name$;
+
+$endif$
 $else$
 scdr << $serializeCasting(typecode=object.typecode)$$preffix$$object.name$;
 
@@ -198,7 +203,8 @@ $else$
     }
 }
 $endif$
-$elseif(object.typecode.contentTypeCode.isBounded)$
+$elseif(object.typecode.contentTypeCode.isStringType)$
+$if(object.typecode.contentTypeCode.isBounded)$
 {
 $if(object.typecode.isType_e)$
     uint32_t sequence_size = 0;
@@ -214,6 +220,9 @@ $endif$
     }
 }
 
+$else$
+dcdr \>> $preffix$$object.name$;
+$endif$
 $else$
 dcdr \>> $preffix$$object.name$;
 $endif$
