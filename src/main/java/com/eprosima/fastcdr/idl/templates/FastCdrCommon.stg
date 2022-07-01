@@ -77,10 +77,10 @@ $endif$
 >>
 
 string_collection_serialization(ctx, object, preffix, array) ::= <<
-$if(ctx.generateTypesC)$
 $if(object.typecode.isType_f)$
-$recursive_string_array_serialization(ctx=ctx, name=cdrMemberName(name=object.name, preffix=preffix),  loopvar=ctx.nextLoopVarName, dims=object.typecode.dimensions)$
-$elseif(object.typecode.isType_e)$
+$recursive_string_array_serialization(ctx=ctx, name=cdrMemberName(name=object.name, preffix=preffix),  loopvar=ctx.nextLoopVarName, dims=object.typecode.dimensions, object=object)$
+$elseif(ctx.generateTypesC)$
+$if(object.typecode.isType_e)$
 {
     scdr << $preffix$$object.name$;
 }
@@ -94,6 +94,7 @@ $else$
     scdr << temp_$object.name$;
 }
 $endif$
+
 $elseif(object.typecode.contentTypeCode.isStringType)$
 $if(object.typecode.contentTypeCode.isBounded)$
 {
@@ -117,17 +118,23 @@ scdr << $serializeCasting(typecode=object.typecode)$$preffix$$object.name$;
 $endif$
 >>
 
-recursive_string_array_serialization(ctx, name, loopvar, dims) ::= <<
+recursive_string_array_serialization(ctx, name, loopvar, dims, object) ::= <<
 $if(rest(dims))$
 for (uint32_t $loopvar$ = 0; $loopvar$ < $name$.size(); ++$loopvar$)
 {
-    $recursive_string_array_serialization(ctx=ctx, name=cdrIndexName(name=name,loopvar=loopvar),  loopvar=ctx.nextLoopVarName, dims=rest(dims))$
+    $recursive_string_array_serialization(ctx=ctx, name=cdrIndexName(name=name,loopvar=loopvar),  loopvar=ctx.nextLoopVarName, dims=rest(dims), object=object)$
 }
-$else$
+$elseif(ctx.generateTypesC)$
 for (char* str : $name$)
 {
     scdr << std::string(str != nullptr ? str : "");
 }
+$else$
+for (const auto& str : $name$)
+{
+    scdr << str$if(object.typecode.contentTypeCode.isStringType)$.c_str()$endif$;
+}
+
 $endif$
 >>
 
