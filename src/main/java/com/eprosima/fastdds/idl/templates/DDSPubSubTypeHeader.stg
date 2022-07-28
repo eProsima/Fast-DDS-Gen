@@ -86,7 +86,7 @@ public:
 
     eProsima_user_DllExport $if(parent.IsInterface)$$parent.name$_$endif$$struct.name$PubSubType();
 
-    eProsima_user_DllExport virtual ~$if(parent.IsInterface)$$parent.name$_$endif$$struct.name$PubSubType();
+    eProsima_user_DllExport virtual ~$if(parent.IsInterface)$$parent.name$_$endif$$struct.name$PubSubType() override;
 
     eProsima_user_DllExport virtual bool serialize(
             void* data,

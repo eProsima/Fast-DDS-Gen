@@ -170,7 +170,7 @@ public:
             $exception.name$&& ex);
 
     //! @brief Destructor.
-    eProsima_user_DllExport virtual ~$exception.name$() noexcept;
+    eProsima_user_DllExport virtual ~$exception.name$() noexcept override;
 
     //! @brief This function throws the object as exception.
     eProsima_user_DllExport virtual void raise() const;
@@ -234,7 +234,7 @@ public:
     /*!
      * @brief Default destructor.
      */
-    eProsima_user_DllExport $if(struct.inheritances)$virtual $endif$~$struct.name$();
+    eProsima_user_DllExport virtual ~$struct.name$()$if(struct.inheritances)$ override$endif$;
 
     /*!
      * @brief Copy constructor.
@@ -406,7 +406,7 @@ public:
     /*!
      * @brief Default destructor.
      */
-    eProsima_user_DllExport virtual ~$bitset.name$();
+    eProsima_user_DllExport virtual ~$bitset.name$()$if(bitset.parents)$ override$endif$;
 
     /*!
      * @brief Copy constructor.
