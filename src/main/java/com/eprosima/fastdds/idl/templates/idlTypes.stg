@@ -58,4 +58,12 @@ type_10(name) ::= <<$name$>>
 
 type_e(type, maxsize, empty) ::= <<sequence<$type$$if(maxsize)$, $maxsize$$endif$>$empty$>>
 
-type_19() ::= <<map>>
+type_19(key, value, maxsize, empty) ::= <<map<$key$, $value$>$empty$>>
+
+type_1a(name, type) ::= <<$name$>>
+
+type_1b(name) ::= <<$name$>>
+
+type_1d(name) ::= <<int8>>
+
+type_1e(name) ::= <<uint8>>
