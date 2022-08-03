@@ -273,6 +273,7 @@ $if(ctx.anyCdr)$
 size_t $struct.scopedname$::getMaxCdrSerializedSize(
         size_t current_alignment)
 {
+    static_cast<void>(current_alignment);
     return $struct.cScopedname$_max_cdr_typesize;
 }
 
