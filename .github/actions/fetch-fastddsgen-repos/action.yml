@@ -1,0 +1,13 @@
+name: 'fetch-fastddsgen-repos'
+description: 'Fetch Fast DDS dependencies'
+runs:
+  using: "composite"
+  steps:
+    - id: fetch-fastddsgen-repos
+      run: |
+        cd src
+        git clone https://github.com/eProsima/foonathan_memory_vendor.git
+        git clone https://github.com/eProsima/Fast-CDR.git
+        git clone https://github.com/eProsima/Fast-DDS.git
+        cd ..
+      shell: bash

@@ -1,0 +1,43 @@
+name: Continuous Integration
+
+on:
+  workflow_dispatch:
+
+  push:
+    branches:
+      - 'master'
+
+  pull_request:
+    branches:
+      - 'master'
+
+jobs:
+  ubuntu-build-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          path: src/fastddsgen
+
+      - uses: ./src/fastddsgen/.github/actions/install-apt-packages
+      - uses: ./src/fastddsgen/.github/actions/install-python-packages
+      - uses: ./src/fastddsgen/.github/actions/fetch-fastddsgen-repos
+
+      - name: Setup ccache
+        uses: Chocobo1/setup-ccache-action@v1
+
+      - name: Build workspace
+        run: |
+          colcon build --event-handlers=console_direct+ --cmake-args -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
+
+      - name: Build fastddsgen
+        run: |
+          cd src/fastddsgen
+          ./gradlew assemble
+
+      - name: Test fastddsgen
+        run: |
+          source install/local_setup.bash
+          cd src/fastddsgen
+          ./gradlew test
