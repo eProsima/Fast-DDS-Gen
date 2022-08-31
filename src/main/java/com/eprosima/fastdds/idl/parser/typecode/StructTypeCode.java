@@ -75,7 +75,7 @@ public class StructTypeCode extends com.eprosima.idl.parser.typecode.StructTypeC
                 if (member.getTypecode() instanceof StructTypeCode)
                 {
                     current_alignment +=
-                            ((StructTypeCode)member.getTypecode()).maxSerializedSize(current_alignment, only_keys);
+                            ((StructTypeCode)member.getTypecode()).maxSerializedSize(current_alignment, ser_only_keys);
                 }
                 else
                 {
