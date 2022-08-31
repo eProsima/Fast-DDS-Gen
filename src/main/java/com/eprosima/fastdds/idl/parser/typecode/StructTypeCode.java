@@ -20,8 +20,11 @@ import com.eprosima.idl.parser.tree.Annotation;
 import java.util.ArrayList;
 
 public class StructTypeCode extends com.eprosima.idl.parser.typecode.StructTypeCode
+    implements TypeCode
 {
-    public StructTypeCode(String scope, String name)
+    public StructTypeCode(
+            String scope,
+            String name)
     {
         super(scope, name);
     }
@@ -39,8 +42,10 @@ public class StructTypeCode extends com.eprosima.idl.parser.typecode.StructTypeC
             {
                 String value = key.getValue("value");
 
-                if(value != null && value.equals("true"))
+                if (value != null && value.equals("true"))
+                {
                     returnedValue = true;
+                }
             }
             else // Try with lower case
             {
@@ -49,7 +54,7 @@ public class StructTypeCode extends com.eprosima.idl.parser.typecode.StructTypeC
                 {
                     String value = key.getValue("value");
 
-                    if(value != null && value.equals("true"))
+                    if (value != null && value.equals("true"))
                     {
                         returnedValue = true;
                     }
@@ -60,7 +65,45 @@ public class StructTypeCode extends com.eprosima.idl.parser.typecode.StructTypeC
         return returnedValue;
     }
 
-    public void setIsTopic(boolean value)
+    public String getMaxSerializedSize()
+    {
+        return Long.toString(maxSerializedSize(0));
+    }
+
+    public long maxSerializedSize(
+            long current_alignment)
+    {
+        long initial_alignment = current_alignment;
+
+        for (com.eprosima.idl.parser.typecode.TypeCode parent : getInheritances())
+        {
+            current_alignment += ((TypeCode)parent).maxSerializedSize(current_alignment);
+        }
+
+        for (Member member : getMembers())
+        {
+            if (!member.isAnnotationNonSerialized())
+            {
+                current_alignment += ((TypeCode)member.getTypecode()).maxSerializedSize(current_alignment);
+            }
+        }
+
+        return current_alignment - initial_alignment;
+    }
+
+    public String getMaxKeySerializedSize()
+    {
+        return Long.toString(maxKeySerializedSize(0));
+    }
+
+    protected long maxKeySerializedSize(
+            long current_alignment)
+    {
+        return 0;
+    }
+
+    public void setIsTopic(
+            boolean value)
     {
         istopic_ = value;
     }
@@ -76,14 +119,14 @@ public class StructTypeCode extends com.eprosima.idl.parser.typecode.StructTypeC
         String scopes = getScope();
         int ch_pos = scopes.indexOf("::");
 
-        while(0 < ch_pos)
+        while (0 < ch_pos)
         {
             namespaces.add(scopes.substring(0, ch_pos));
             scopes = scopes.substring(ch_pos + 2);
             ch_pos = scopes.indexOf("::");
         }
 
-        if(!scopes.isEmpty())
+        if (!scopes.isEmpty())
         {
             namespaces.add(scopes);
         }
