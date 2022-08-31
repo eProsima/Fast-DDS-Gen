@@ -36,10 +36,10 @@ public class StringTypeCode extends com.eprosima.idl.parser.typecode.StringTypeC
         switch (getKind())
         {
             case Kind.KIND_STRING:
-                current_alignment += 4 + TypeCode.cdr_alignment(current_alignment, 4) + (maxsize * 4);
+                current_alignment += 4 + TypeCode.cdr_alignment(current_alignment, 4) + maxsize + 1;
                 break;
             case Kind.KIND_WSTRING:
-                current_alignment += 4 + TypeCode.cdr_alignment(current_alignment, 4) + maxsize + 1;
+                current_alignment += 4 + TypeCode.cdr_alignment(current_alignment, 4) + (maxsize * 4);
                 break;
         }
 

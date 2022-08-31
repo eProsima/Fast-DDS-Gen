@@ -96,8 +96,6 @@ $keyFunctionHeaders(struct)$
 
 keyFunctionSourcesStruct(ctx, parent, struct) ::= <<
 
-#define $struct.cScopedname$_max_key_cdr_typesize $struct.maxKeySerializedSize$ULL;
-
 size_t $struct.scopedname$::getKeyMaxCdrSerializedSize(
         size_t current_alignment)
 {
@@ -118,6 +116,10 @@ void $struct.scopedname$::serializeKey(
     $struct.members : { member |$if(member.annotationKey)$ $object_serialization(ctx=ctx, object=member, preffix="m_")$ $endif$ }; separator=""$
 }
 
+>>
+
+keyFunctionSourcesMain(ctx, definitions) ::= <<
+$ctx.types:{ type | $if(type.typeCode.isStructType)$#define $type.typeCode.cScopedname$_max_key_cdr_typesize $type.typeCode.maxKeySerializedSize$ULL;$endif$}; separator="\n"$
 >>
 
 fwd_decl(ctx, parent, type) ::= <<
