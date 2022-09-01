@@ -27,11 +27,11 @@ public class SequenceTypeCode extends com.eprosima.idl.parser.typecode.SequenceT
             long current_alignment)
     {
         long initial_alignment = current_alignment;
-        long maxsize = !(getContentTypeCode().isForwarded() && detect_recursive_)
+        long maxsize = !detect_recursive_
             ? Long.parseLong(getMaxsize(), 10)
             : 0;
 
-        boolean should_set_and_unset = getContentTypeCode().isForwarded() && !detect_recursive_;
+        boolean should_set_and_unset = !detect_recursive_;
 
         if (should_set_and_unset)
         {
