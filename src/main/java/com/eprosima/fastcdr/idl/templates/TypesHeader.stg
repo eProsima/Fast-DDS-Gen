@@ -234,7 +234,7 @@ public:
     /*!
      * @brief Default destructor.
      */
-    eProsima_user_DllExport virtual ~$struct.name$()$if(struct.inheritances)$ override$endif$;
+    eProsima_user_DllExport ~$struct.name$();
 
     /*!
      * @brief Copy constructor.
@@ -406,7 +406,7 @@ public:
     /*!
      * @brief Default destructor.
      */
-    eProsima_user_DllExport virtual ~$bitset.name$()$if(bitset.parents)$ override$endif$;
+    eProsima_user_DllExport ~$bitset.name$();
 
     /*!
      * @brief Copy constructor.
