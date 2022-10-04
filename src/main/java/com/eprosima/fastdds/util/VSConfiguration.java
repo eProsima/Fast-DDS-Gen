@@ -13,6 +13,7 @@
 // limitations under the License.
 
 package com.eprosima.fastdds.util;
+import java.util.ArrayList;
 
 public class VSConfiguration {
 
@@ -63,4 +64,42 @@ public class VSConfiguration {
 	{
 	    return !debug;
 	}
+    
+    public ArrayList<String> getStaticLibraries()
+    {
+        ArrayList<String> ret = new ArrayList<String>();
+        
+        if (debug)
+        {
+            ret.add("foonathan_memory-0.7.1-dbg.lib");
+            if (platform == "x64")
+            {
+                ret.add("libcrypto64MDd.lib");
+                ret.add("libssl64MDd.lib");
+            }
+            else
+            {
+                ret.add("libcrypto32MDd.lib");
+                ret.add("libssl32MDd.lib");
+            }
+        }
+        else
+        {
+            ret.add("foonathan_memory-0.7.1.lib");
+            if (platform == "x64")
+            {
+                ret.add("libcrypto64MD.lib");
+                ret.add("libssl64MD.lib");
+            }
+            else
+            {
+                ret.add("libcrypto32MD.lib");
+                ret.add("libssl32MD.lib");
+            }
+        }
+        
+        ret.add("Crypt32.lib");
+        
+        return ret;
+    }
 }
