@@ -376,6 +376,7 @@ public class fastddsgen
                 if (m_exampleOption != null)
                 {
                     solution.addLibraryPath("$(" + m_appEnv + ")/lib/" + m_exampleOption);
+                    solution.addLibraryPath("$(" + m_appEnv + ")/lib/" + m_exampleOption + "/VC/static");
                 }
             }
 
@@ -468,10 +469,8 @@ public class fastddsgen
 
         fastddsgen.m_platforms = new ArrayList<String>();
 
-        fastddsgen.m_platforms.add("i86Win32VS2013");
-        fastddsgen.m_platforms.add("x64Win64VS2013");
-        fastddsgen.m_platforms.add("i86Win32VS2015");
-        fastddsgen.m_platforms.add("x64Win64VS2015");
+        fastddsgen.m_platforms.add("i86Win32VS2019");
+        fastddsgen.m_platforms.add("x64Win64VS2019");
         fastddsgen.m_platforms.add("i86Linux2.6gcc");
         fastddsgen.m_platforms.add("x64Linux2.6gcc");
         fastddsgen.m_platforms.add("armLinux2.6gcc");
@@ -517,7 +516,7 @@ public class fastddsgen
         System.out.println("\t\t-help: shows this help");
         System.out.println("\t\t-version: shows the current version of eProsima Fast DDS gen.");
         System.out.println(
-            "\t\t-example <platform>: Generates a solution for a specific platform (example: x64Win64VS2015)");
+            "\t\t-example <platform>: Generates a solution for a specific platform (example: x64Win64VS2019)");
         System.out.println("\t\t\tSupported platforms:");
         for (int count = 0; count < m_platforms.size(); ++count)
         {
@@ -944,17 +943,9 @@ public class fastddsgen
                 else if (m_exampleOption.substring(3, 6).equals("Win"))
                 {
                     System.out.println("Generating Windows solution");
-
                     if (m_exampleOption.startsWith("i86"))
                     {
-                        if (m_exampleOption.charAt(m_exampleOption.length() - 1) == '3')
-                        {
-                            returnedValue = genVS(solution, null, "12");
-                        }
-                        else
-                        {
-                            returnedValue = genVS(solution, null, "14");
-                        }
+                        returnedValue = genVS(solution, null, "16", "142");
                     }
                     else if (m_exampleOption.startsWith("x64"))
                     {
@@ -962,14 +953,7 @@ public class fastddsgen
                         {
                             m_vsconfigurations[index].setPlatform("x64");
                         }
-                        if (m_exampleOption.charAt(m_exampleOption.length() - 1) == '3')
-                        {
-                            returnedValue = genVS(solution, "x64", "12");
-                        }
-                        else
-                        {
-                            returnedValue = genVS(solution, "x64", "14");
-                        }
+                        returnedValue = genVS(solution, "x64", "16", "142");
                     }
                     else
                     {
@@ -1012,7 +996,8 @@ public class fastddsgen
     private boolean genVS(
             Solution solution,
             String arch,
-            String vsVersion)
+            String vsVersion,
+            String toolset)
     {
 
         final String METHOD_NAME = "genVS";
@@ -1044,7 +1029,8 @@ public class fastddsgen
                 tproject.setAttribute("solution", solution);
                 tproject.setAttribute("project", project);
                 tproject.setAttribute("example", m_exampleOption);
-                tproject.setAttribute("vsVersion",  vsVersion);
+                tproject.setAttribute("vsVersion", vsVersion);
+                tproject.setAttribute("toolset", toolset);
 
                 tprojectFiles.setAttribute("project", project);
                 tprojectFiles.setAttribute("vsVersion", vsVersion);
@@ -1053,6 +1039,7 @@ public class fastddsgen
                 tprojectPubSub.setAttribute("project", project);
                 tprojectPubSub.setAttribute("example", m_exampleOption);
                 tprojectPubSub.setAttribute("vsVersion", vsVersion);
+                tprojectPubSub.setAttribute("toolset", toolset);
 
                 tprojectFilesPubSub.setAttribute("project", project);
                 tprojectFilesPubSub.setAttribute("vsVersion", vsVersion);
@@ -1063,8 +1050,10 @@ public class fastddsgen
                     tprojectJNI.setAttribute("project", project);
                     tprojectJNI.setAttribute("example", m_exampleOption);
                     tprojectJNI.setAttribute("vsVersion", vsVersion);
+                    tprojectJNI.setAttribute("toolset", toolset);
 
                     tprojectFilesJNI.setAttribute("project", project);
+                    tprojectFilesJNI.setAttribute("vsVersion", vsVersion);
                 }
 
                 for (int index = 0; index < m_vsconfigurations.length; index++)
@@ -1139,11 +1128,7 @@ public class fastddsgen
                     tsolution.setAttribute("generateJava", true);
                 }
 
-                String vsVersion_sol = "2013";
-                if (vsVersion.equals("14"))
-                {
-                    vsVersion_sol = "2015";
-                }
+                String vsVersion_sol = "2019";
                 tsolution.setAttribute("vsVersion", vsVersion_sol);
 
                 returnedValue = Utils.writeFile(m_outputDir + "solution-" + m_exampleOption + ".sln", tsolution,
@@ -1153,7 +1138,7 @@ public class fastddsgen
         }
         else
         {
-            System.out.println("ERROR<" + METHOD_NAME + ">: Cannot load the template group VS2013");
+            System.out.println("ERROR<" + METHOD_NAME + ">: Cannot load the template group VS");
         }
 
         return returnedValue;

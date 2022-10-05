@@ -32,8 +32,8 @@ EndGlobal
 
 >>
 
-project(solution, project, example, configurations, vsVersion) ::= <<
-<?xml version="1.0" encoding="Windows-1252"?>
+project(solution, project, example, configurations, vsVersion, toolset) ::= <<
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="$vsVersion$.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     $configurations:{<ProjectConfiguration Include="$it.name$|$it.platform$">
@@ -52,7 +52,7 @@ project(solution, project, example, configurations, vsVersion) ::= <<
     <UseDebugLibraries>$if(it.debug)$true$else$false$endif$</UseDebugLibraries>
     <UseOfMfc>false</UseOfMfc>
     <CharacterSet>MultiByte</CharacterSet>
-	<PlatformToolset>v$vsVersion$0</PlatformToolset>
+	<PlatformToolset>v$toolset$</PlatformToolset>
   </PropertyGroup>};separator="\n"$
   <Import Project="\$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -80,7 +80,7 @@ project(solution, project, example, configurations, vsVersion) ::= <<
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>$if(!it.dll)$libeay32MD$if(it.debug)$d$endif$.lib;$endif$Shlwapi.lib;Iphlpapi.lib;$project.dependencies : {dep |$if(!it.dll)$lib$endif$$dep$Types$if(it.debug)$d$endif$.lib}; separator=";"$;$if(!it.dll)$WS2_32.lib;$endif$%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$project.dependencies : {dep |$if(!it.dll)$lib$endif$$dep$Types$if(it.debug)$d$endif$.lib}; separator=";"$;%(AdditionalDependencies)</AdditionalDependencies>
       $if(it.dll)$
       <OutputFile>\$(TargetDir)\$(TargetName)\$(TargetExt)</OutputFile>
       <AdditionalLibraryDirectories>$solution.libraryPaths : {path |$path$;}$.\lib\\$example$;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
@@ -105,7 +105,7 @@ project(solution, project, example, configurations, vsVersion) ::= <<
 </Project>
 >>
 
-projectPubSub(solution, project, example, configurations, vsVersion) ::= <<
+projectPubSub(solution, project, example, configurations, vsVersion, toolset) ::= <<
 <?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="$vsVersion$.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
@@ -125,7 +125,7 @@ projectPubSub(solution, project, example, configurations, vsVersion) ::= <<
     <UseDebugLibraries>$if(it.debug)$true$else$false$endif$</UseDebugLibraries>
     <UseOfMfc>false</UseOfMfc>
     <CharacterSet>MultiByte</CharacterSet>
-	<PlatformToolset>v$vsVersion$0</PlatformToolset>
+	<PlatformToolset>v$toolset$</PlatformToolset>
   </PropertyGroup>};separator="\n"$
   <Import Project="\$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -152,7 +152,7 @@ projectPubSub(solution, project, example, configurations, vsVersion) ::= <<
     </ClCompile>
     <Link>
       <GenerateDebugInformation>$if(it.debug)$true$else$false$endif$</GenerateDebugInformation>
-      <AdditionalDependencies>$if(!it.dll)$lib$endif$$project.name$Types$if(it.debug)$d$endif$.lib;$if(!it.dll)$libeay32MD$if(it.debug)$d$endif$.lib;Shlwapi.lib;Iphlpapi.lib;$endif$$project.dependencies : {dep |$if(!it.dll)$lib$endif$$dep$Types$if(it.debug)$d$endif$.lib}; separator=";"$;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$if(!it.dll)$lib$endif$$project.name$Types$if(it.debug)$d$endif$.lib;$if(!it.dll)$$it.staticLibraries : {sl|$sl$}; separator=";"$;Shlwapi.lib;Iphlpapi.lib;$endif$$project.dependencies : {dep |$if(!it.dll)$lib$endif$$dep$Types$if(it.debug)$d$endif$.lib}; separator=";"$;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>\$(TargetDir)\$(TargetName)\$(TargetExt)</OutputFile>
       <AdditionalLibraryDirectories>$solution.libraryPaths : {path |$path$;}$.\lib\\$example$;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
@@ -169,9 +169,9 @@ projectPubSub(solution, project, example, configurations, vsVersion) ::= <<
 </Project>
 >>
 
-projectJNI(solution, project, example, configurations, vsVersion) ::= <<
-<?xml version="1.0" encoding="Windows-1252"?>
-<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+projectJNI(solution, project, example, configurations, vsVersion, toolset) ::= <<
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="$vsVersion$.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     $configurations:{<ProjectConfiguration Include="$it.name$|$it.platform$">
       <Configuration>$it.name$</Configuration>
@@ -189,7 +189,7 @@ projectJNI(solution, project, example, configurations, vsVersion) ::= <<
     <UseDebugLibraries>$if(it.debug)$true$else$false$endif$</UseDebugLibraries>
     <UseOfMfc>false</UseOfMfc>
     <CharacterSet>MultiByte</CharacterSet>
-	<PlatformToolset>v$vsVersion$0</PlatformToolset>
+	<PlatformToolset>v$toolset$</PlatformToolset>
   </PropertyGroup>};separator="\n"$
   <Import Project="\$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -253,7 +253,7 @@ projectJNI(solution, project, example, configurations, vsVersion) ::= <<
 >>
 
 projectFiles(project, vsVersion) ::= <<
-<?xml version="1.0" encoding="Windows-1252"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="$vsVersion$.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="Source Files">
@@ -283,7 +283,7 @@ projectFiles(project, vsVersion) ::= <<
 >>
 
 projectFilesPubSub(project, vsVersion) ::= <<
-<?xml version="1.0" encoding="Windows-1252"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="$vsVersion$.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="Source Files">
@@ -312,9 +312,9 @@ projectFilesPubSub(project, vsVersion) ::= <<
 </Project>
 >>
 
-projectFilesJNI(project) ::= <<
-<?xml version="1.0" encoding="Windows-1252"?>
-<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+projectFilesJNI(project, vsVersion) ::= <<
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="$vsVersion$.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="Source Files">
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
