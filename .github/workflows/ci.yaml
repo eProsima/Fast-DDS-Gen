@@ -24,6 +24,13 @@ jobs:
       - uses: ./src/fastddsgen/.github/actions/install-python-packages
       - uses: ./src/fastddsgen/.github/actions/fetch-fastddsgen-repos
 
+      - name: Get minimum supported version of CMake
+        uses: lukka/get-cmake@latest
+        with:
+          cmakeVersion: 3.16.3
+      - name: Use cmake
+        run: cmake --version
+
       - name: Setup ccache
         uses: Chocobo1/setup-ccache-action@v1
 
