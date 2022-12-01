@@ -234,7 +234,7 @@ $struct.scopedname$::$struct.name$(
 }
 
 $struct.scopedname$::$struct.name$(
-        $struct.name$&& x)$if(struct.inheritances)$
+        $struct.name$&& x) noexcept $if(struct.inheritances)$
     : $struct.inheritances : {$struct_inherit_move_init(it)$}; separator=",\n"$ $endif$
 {
     $struct.members:{$member_move(member=it)$}; separator="\n"$
@@ -251,7 +251,7 @@ $struct.scopedname$& $struct.scopedname$::operator =(
 }
 
 $struct.scopedname$& $struct.scopedname$::operator =(
-        $struct.name$&& x)
+        $struct.name$&& x) noexcept
 {
     $if(struct.inheritances)$    $struct.inheritances : {$it.scopedname$::operator =(std::move(x));}; separator="\n"$ $endif$
 
@@ -368,7 +368,7 @@ $bitset.scopedname$::$bitset.name$(
 }
 
 $bitset.scopedname$::$bitset.name$(
-        $bitset.name$&& x)$if(bitset.parents)$
+        $bitset.name$&& x) noexcept $if(bitset.parents)$
     : $bitset.parents : {$bitset_inherit_move_init(it)$}; separator=",\n"$ $endif$
 {
     m_bitset = x.m_bitset;
@@ -385,7 +385,7 @@ $bitset.scopedname$& $bitset.scopedname$::operator =(
 }
 
 $bitset.scopedname$& $bitset.scopedname$::operator =(
-        $bitset.name$&& x)
+        $bitset.name$&& x) noexcept
 {
     $if(bitset.parents)$    $bitset.parents : {$it.scopedname$::operator =(std::move(x));}; separator="\n"$ $endif$
 
@@ -546,7 +546,7 @@ $union.scopedname$::$union.name$(
 }
 
 $union.scopedname$::$union.name$(
-        $union.name$&& x)
+        $union.name$&& x) noexcept
 {
     m__d = x.m__d;
 
@@ -572,7 +572,7 @@ $union.scopedname$& $union.scopedname$::operator =(
 }
 
 $union.scopedname$& $union.scopedname$::operator =(
-        $union.name$&& x)
+        $union.name$&& x) noexcept
 {
     m__d = x.m__d;
 

@@ -248,7 +248,7 @@ public:
      * @param x Reference to the object $struct.scopedname$ that will be copied.
      */
     eProsima_user_DllExport $struct.name$(
-            $struct.name$&& x);
+            $struct.name$&& x) noexcept;
 
     /*!
      * @brief Copy assignment.
@@ -262,7 +262,7 @@ public:
      * @param x Reference to the object $struct.scopedname$ that will be copied.
      */
     eProsima_user_DllExport $struct.name$& operator =(
-            $struct.name$&& x);
+            $struct.name$&& x) noexcept;
 
     /*!
      * @brief Comparison operator.
@@ -323,7 +323,7 @@ public:
      * @param x Reference to the object $union.scopedname$ that will be copied.
      */
     eProsima_user_DllExport $union.name$(
-            $union.name$&& x);
+            $union.name$&& x) noexcept;
 
     /*!
      * @brief Copy assignment.
@@ -337,7 +337,7 @@ public:
      * @param x Reference to the object $union.scopedname$ that will be copied.
      */
     eProsima_user_DllExport $union.name$& operator =(
-            $union.name$&& x);
+            $union.name$&& x) noexcept;
 
     /*!
      * @brief Comparison operator.
@@ -420,7 +420,7 @@ public:
      * @param x Reference to the object $bitset.scopedname$ that will be copied.
      */
     eProsima_user_DllExport $bitset.name$(
-            $bitset.name$&& x);
+            $bitset.name$&& x) noexcept;
 
     /*!
      * @brief Copy assignment.
@@ -434,7 +434,7 @@ public:
      * @param x Reference to the object $bitset.scopedname$ that will be copied.
      */
     eProsima_user_DllExport $bitset.name$& operator =(
-            $bitset.name$&& x);
+            $bitset.name$&& x) noexcept;
 
     /*!
      * @brief Comparison operator.
