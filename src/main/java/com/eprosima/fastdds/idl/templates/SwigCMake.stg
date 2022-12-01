@@ -16,10 +16,7 @@ group SwigCMake;
 
 swig_cmake(solution) ::= <<
 
-# Using minimum CMake version 3.13 to prevent issues with the SWIG include
-# directories propagation happening with CMake 3.12 and prior
-
-cmake_minimum_required(VERSION 3.13)
+cmake_minimum_required(VERSION 3.16.3)
 
 # SWIG: use standard target name.
 if(POLICY CMP0078)
