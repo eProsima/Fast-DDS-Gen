@@ -76,7 +76,6 @@ functions_to_run.emplace_back([]() -> bool
 
     uint32_t payloadOutSize = static_cast<uint32_t>(pst.getSerializedSizeProvider(&$struct.name$_deserialization_topic)());
 
-    //int topic_equal = memcmp(&$struct.name$_serialization_topic, &$struct.name$_deserialization_topic, sizeof(&$struct.name$)) == 0;
     int topic_equal = compare$struct.name$(&$struct.name$_serialization_topic, &$struct.name$_deserialization_topic);
     int size_equal = payloadOutSize == payloadSize;
 
