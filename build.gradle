@@ -150,7 +150,11 @@ jar {
     from { configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) } }
     archiveBaseName = 'fastddsgen'
     manifest {
-        attributes("Created-By": "eProsima", "Main-Class": "com.eprosima.fastdds.fastddsgen")
+        attributes(
+            "Created-By": "eProsima",
+            "Main-Class": "com.eprosima.fastdds.fastddsgen",
+            "Class-Path": configurations.runtimeClasspath.collect { it.getName() }.join(' ')
+            )
     }
     doLast
     {
