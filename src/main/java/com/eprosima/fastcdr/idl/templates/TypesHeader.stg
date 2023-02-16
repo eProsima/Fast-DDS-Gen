@@ -280,6 +280,17 @@ public:
 
     $struct.members:{$public_member_declaration(it)$}; separator="\n"$
 
+    $if(ctx.anyCdr)$
+    /*!
+    * @brief This function returns the maximum serialized size of an object
+    * depending on the buffer alignment.
+    * @param current_alignment Buffer alignment.
+    * @return Maximum serialized size.
+    */
+    eProsima_user_DllExport static size_t getMaxCdrSerializedSize(
+            size_t current_alignment = 0);
+    $endif$
+
     $size_functions(struct)$
 
     $serialization_functions(struct)$
@@ -289,6 +300,7 @@ public:
 private:
 
     $struct.members:{$private_member_declaration(member=it)$}; separator="\n"$
+
 };
 >>
 
@@ -698,15 +710,6 @@ $typecode.cppTypename$$if(typecode.forwarded)$*$endif$ m_$name$;
 
 size_functions(type) ::= <<
 $if(ctx.anyCdr)$
-/*!
- * @brief This function returns the maximum serialized size of an object
- * depending on the buffer alignment.
- * @param current_alignment Buffer alignment.
- * @return Maximum serialized size.
- */
-eProsima_user_DllExport static size_t getMaxCdrSerializedSize(
-        size_t current_alignment = 0);
-
 /*!
  * @brief This function returns the serialized size of a data depending on the buffer alignment.
  * @param data Data which is calculated its serialized size.

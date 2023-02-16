@@ -22,48 +22,69 @@ $fileHeader(ctx=ctx,  file=[ctx.filename, "SerializationTest.cpp"], description=
 #include <fastcdr/Cdr.h>
 #include <fastrtps/rtps/common/SerializedPayload.h>
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <stdint.h>
 #include <inttypes.h>
 #include <string.h>
+#include <functional>
+#include <vector>
 
-int test$ctx.lastStructure.name$()
+using TestLambda = std::function<bool()>;
+
+std::vector<TestLambda> functions_to_run;
+
+int main(void)
 {
+    srand((unsigned) time(NULL));
+    bool ret_value = true;
+
+    $definitions; separator="\n"$
+
+    for (auto& fc : functions_to_run)
+    {
+        ret_value &= fc();
+    }
+    return ret_value ? 0 : 1;
+}
+
+>>
+
+struct_type(ctx, parent, struct) ::= <<
+functions_to_run.emplace_back([]() -> bool
+{
+    printf("\n========================================Testing $struct.name$ ========================================\n");
     using eprosima::fastrtps::rtps::SerializedPayload_t;
-    $if(ctx.lastStructure.hasScope)$    using namespace $ctx.lastStructure.scope$;$endif$
+    $if(struct.hasScope)$    using namespace $struct.scope$;$endif$
 
-    $ctx.lastStructure.name$ $ctx.lastStructure.name$_serialization_topic;
-    $ctx.lastStructure.name$ $ctx.lastStructure.name$_deserialization_topic;
+    $struct.name$ $struct.name$_serialization_topic;
+    $struct.name$ $struct.name$_deserialization_topic;
 
-    initialize$ctx.lastStructure.name$(&$ctx.lastStructure.name$_serialization_topic);
+    initialize$struct.name$(&$struct.name$_serialization_topic);
 
-    $ctx.lastStructure.name$PubSubType pst;
-    uint32_t payloadSize = static_cast<uint32_t>(pst.getSerializedSizeProvider(&$ctx.lastStructure.name$_serialization_topic)());
+    $struct.name$PubSubType pst;
+    uint32_t payloadSize = static_cast<uint32_t>(pst.getSerializedSizeProvider(&$struct.name$_serialization_topic)());
 
     SerializedPayload_t payload(payloadSize);
-    if (pst.serialize(&$ctx.lastStructure.name$_serialization_topic, &payload) == 0)
+    if (pst.serialize(&$struct.name$_serialization_topic, &payload) == 0)
     {
-        return 0;
+        return false;
     }
 
-    if (pst.deserialize(&payload, &$ctx.lastStructure.name$_deserialization_topic) == 0)
+    if (pst.deserialize(&payload, &$struct.name$_deserialization_topic) == 0)
     {
-        return 0;
+        return false;
     }
 
-    uint32_t payloadOutSize = static_cast<uint32_t>(pst.getSerializedSizeProvider(&$ctx.lastStructure.name$_deserialization_topic)());
+    uint32_t payloadOutSize = static_cast<uint32_t>(pst.getSerializedSizeProvider(&$struct.name$_deserialization_topic)());
 
-    //int topic_equal = memcmp(&$ctx.lastStructure.name$_serialization_topic, &$ctx.lastStructure.name$_deserialization_topic, sizeof(&$ctx.lastStructure.name$)) == 0;
-    int topic_equal = compare$ctx.lastStructure.name$(&$ctx.lastStructure.name$_serialization_topic, &$ctx.lastStructure.name$_deserialization_topic);
+    int topic_equal = compare$struct.name$(&$struct.name$_serialization_topic, &$struct.name$_deserialization_topic);
     int size_equal = payloadOutSize == payloadSize;
 
     printf("\n");
     printf("===== Before serialize: =====\n");
-    print$ctx.lastStructure.name$(&$ctx.lastStructure.name$_serialization_topic);
+    print$struct.name$(&$struct.name$_serialization_topic);
     printf("\n");
     printf("===== After deserialize: =====\n");
-    print$ctx.lastStructure.name$(&$ctx.lastStructure.name$_deserialization_topic);
+    print$struct.name$(&$struct.name$_deserialization_topic);
     printf("\n");
     printf("SerializedPayload_t: \n");
     printf("length: %d - %d\n", payloadSize, payload.length);
@@ -74,31 +95,22 @@ int test$ctx.lastStructure.name$()
     }
     printf("\n\n");
 
-    uint32_t type_size = sizeof($ctx.lastStructure.name$);
-    printf("Topic $ctx.lastStructure.name$ size: %s => payloadIn: %d, payloadOut: %d, type: %d\n", size_equal ? "OK" : "ERROR", payloadSize, payloadOutSize, type_size);
-    printf("Topic $ctx.lastStructure.name$ comparation: %s\n", topic_equal ? "OK" : "ERROR");
+    uint32_t type_size = sizeof($struct.name$);
+    printf("Topic $struct.name$ size: %s => payloadIn: %d, payloadOut: %d, type: %d\n", size_equal ? "OK" : "ERROR", payloadSize, payloadOutSize, type_size);
+    printf("Topic $struct.name$ comparation: %s\n", topic_equal ? "OK" : "ERROR");
 
     $if((ctx.generateTypesC))$
-    free_string$ctx.lastStructure.name$(&$ctx.lastStructure.name$_serialization_topic);
+    free_string$struct.name$(&$struct.name$_serialization_topic);
     $endif$
 
     if (!topic_equal)
     {
-        return 0;
+        return false;
     }
 
     return payload.length == payloadSize;
-}
-
-int main(void)
-{
-    srand((unsigned) time(NULL));
-    return test$ctx.lastStructure.name$() ? 0 : 1;
-}
-
+});
 >>
-
-struct_type(ctx, parent, struct) ::= <<>>
 
 union_type(ctx, parent, union) ::= <<>>
 

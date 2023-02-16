@@ -95,16 +95,12 @@ $keyFunctionHeaders(struct)$
 >>
 
 keyFunctionSourcesStruct(ctx, parent, struct) ::= <<
+
 size_t $struct.scopedname$::getKeyMaxCdrSerializedSize(
         size_t current_alignment)
 {
-    size_t current_align = current_alignment;
-
-    $if(struct.inheritances)$    $struct.inheritances : {current_align += $it.scopedname$::getKeyMaxCdrSerializedSize(current_align);}; separator="\n"$ $endif$
-
-    $struct.members : { member | $if(member.annotationKey)$ $max_serialized_size(ctx=ctx, typecode=member.typecode, var="current_align")$ $endif$}; separator="\n"$
-
-    return current_align;
+    static_cast<void>(current_alignment);
+    return $struct.cScopedname$_max_key_cdr_typesize;
 }
 
 bool $struct.scopedname$::isKeyDefined()
@@ -117,9 +113,17 @@ void $struct.scopedname$::serializeKey(
 {
     (void) scdr;
     $if(struct.inheritances)$    $struct.inheritances : {$it.scopedname$::serializeKey(scdr);}; separator="\n"$ $endif$
-    $struct.members : { member |$if(member.annotationKey)$ $object_serialization(ctx=ctx, object=member, preffix="m_")$ $endif$ }; separator=""$
+    $if(struct.hasKey)$
+    $struct.members : { member |$if(member.annotationKey)$ $if(member.typecode.isStructType)$ m_$member.name$.serializeKey(scdr); $else$ $object_serialization(ctx=ctx, object=member, preffix="m_")$ $endif$ $endif$ }; separator=""$
+    $else$
+    $struct.members : { member |$object_serialization(ctx=ctx, object=member, preffix="m_")$ }; separator=""$
+    $endif$
 }
 
+>>
+
+keyFunctionSourcesMain(ctx, definitions) ::= <<
+$ctx.types:{ type | $if(type.typeCode.isStructType)$#define $type.typeCode.cScopedname$_max_key_cdr_typesize $type.typeCode.maxKeySerializedSize$ULL;$endif$}; separator="\n"$
 >>
 
 fwd_decl(ctx, parent, type) ::= <<

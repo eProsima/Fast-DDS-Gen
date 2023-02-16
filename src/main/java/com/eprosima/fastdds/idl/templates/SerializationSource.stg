@@ -364,19 +364,19 @@ $endif$
 >>
 
 sequence_assigment(ctx, typecode, name, p, loopvar) ::= <<
-$if(ctx.generateTypesC)$
-$if(typecode.unbound)$
-topic->$name$$p$.size(50);
-for(int $loopvar$ = 0; $loopvar$ < topic->$name$$p$.size(); ++$loopvar$)
-$else$
-topic->$name$$p$.size($typecode.maxsize$);
-for(int $loopvar$ = 0; $loopvar$ < $typecode.maxsize$; ++$loopvar$)
+$if(typecode.contentTypeCode.forwarded)$
+static bool $name$_detect_recursive_ = false;
+
 $endif$
-$else$
-for(int $loopvar$ = 0; $loopvar$ < $typecode.maxsize$; ++$loopvar$)
-$endif$
+
+for(size_t $loopvar$ = 0; $if(typecode.contentTypeCode.forwarded)$!$name$_detect_recursive_ && $endif$$loopvar$ < $if(typecode.unbound)$50$else$$typecode.maxsize$$endif$; ++$loopvar$)
 {
+    $if(typecode.contentTypeCode.forwarded)$
+    $name$_detect_recursive_ = true;
+    $endif$
+
     $if(typecode.contentTypeCode.isSequenceType)$
+    topic->$name$$p$.emplace_back();
     $if(ctx.generateTypesC)$
     $sequence_member_assignment(ctx=ctx, typecode=typecode.contentTypeCode, name=indexName(name=name, p=[p, ".value()"], loopvar=loopvar), originName=name, p="", loopvar=ctx.nextLoopVarName, currentvar=loopvar)$
     $else$
@@ -386,6 +386,10 @@ $endif$
     $sequence_member_assignment(ctx=ctx, typecode=typecode.contentTypeCode, name=indexName(name=name, p=p, loopvar=loopvar), originName=name, p="", loopvar=ctx.nextLoopVarName, currentvar=loopvar)$
     $else$
     $sequence_member_assignment(ctx=ctx, typecode=typecode.contentTypeCode, name=name, originName=name, p=p, loopvar=ctx.nextLoopVarName, currentvar=loopvar)$
+    $endif$
+
+    $if(typecode.contentTypeCode.forwarded)$
+    $name$_detect_recursive_ = false;
     $endif$
 }
 >>

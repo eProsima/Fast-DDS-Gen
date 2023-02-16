@@ -638,6 +638,7 @@ public class fastddsgen
             List<TemplateExtension> extensions = new ArrayList<TemplateExtension>();
 
             // Load common types template
+            /// Add extension for @key related function definitions for each struct_type.
             extensions.add(new TemplateExtension("struct_type", "keyFunctionHeadersStruct"));
             tmanager.addGroup("TypesHeader", extensions);
             if (m_type_object_files)
@@ -645,12 +646,17 @@ public class fastddsgen
                 tmanager.addGroup("TypeObjectHeader", extensions);
             }
             extensions.clear();
+            /// Add extension for @key related function declarations for each struct_type.
             extensions.add(new TemplateExtension("struct_type", "keyFunctionSourcesStruct"));
             tmanager.addGroup("TypesSource", extensions);
             if (m_type_object_files)
             {
                 tmanager.addGroup("TypeObjectSource", extensions);
             }
+            extensions.clear();
+            /// Add extension for @key related preprocessor definitions in main for each struct typecode.
+            extensions.add(new TemplateExtension("main", "keyFunctionSourcesMain"));
+            tmanager.addGroup("TypesSource", extensions);
 
             // Load Types common templates
             tmanager.addGroup("DDSPubSubTypeHeader");

@@ -14,7 +14,7 @@
 
 group TypesSource;
 
-main(ctx, definitions) ::= <<
+main(ctx, definitions, extensions) ::= <<
 $fileHeader(file=[ctx.filename, ".cpp"], description=["This source file contains the definition of the described types in the IDL file."])$
 
 #ifdef _WIN32
@@ -43,6 +43,12 @@ $endif$
 using namespace eprosima::fastcdr::exception;
 
 #include <utility>
+
+$if(ctx.anyCdr)$
+$ctx.types:{ type | $if(type.typeCode.isStructType)$#define $type.typeCode.cScopedname$_max_cdr_typesize $type.typeCode.maxSerializedSize$ULL;$endif$}; separator="\n"$
+$endif$
+
+$extensions : {$it$}; separator="\n"$
 
 $if(ctx.generateTypesC)$
 $ctx.typeCodesToDefine : {
@@ -98,17 +104,17 @@ $exception.scopedname$::$exception.name$(
 $exception.scopedname$& $exception.scopedname$::operator =(
         const $exception.name$& x)
 {
-	UserException::operator =(x);
+    UserException::operator =(x);
     $exception.members : { member |$member_copy(ctx=ctx, member=member)$}; separator="\n"$
-	return *this;
+    return *this;
 }
 
 $exception.scopedname$& $exception.scopedname$::operator =(
         $exception.name$&& x)
 {
-	UserException::operator =(std::move(x));
-	$exception.members : { member |$member_move(member=member)$}; separator="\n"$
-	return *this;
+    UserException::operator =(std::move(x));
+    $exception.members : { member |$member_move(member=member)$}; separator="\n"$
+    return *this;
 }
 
 $exception.scopedname$::~$exception.name$() throw()
@@ -118,20 +124,10 @@ $exception.scopedname$::~$exception.name$() throw()
 
 void $exception.scopedname$::raise() const
 {
-	throw *this;
+    throw *this;
 }
 
 $if(ctx.anyCdr)$
-size_t $exception.scopedname$::getMaxCdrSerializedSize(
-        size_t current_alignment)
-{
-    size_t initial_alignment = current_alignment;
-
-    $exception.members : { member |$max_serialized_size(ctx=ctx, typecode=member.typecode, var="current_alignment")$}; separator="\n"$
-
-    return current_alignment - initial_alignment;
-}
-
 size_t $exception.scopedname$::getCdrSerializedSize(
         const $exception.scopedname$& data,
         size_t current_alignment)
@@ -278,13 +274,8 @@ $if(ctx.anyCdr)$
 size_t $struct.scopedname$::getMaxCdrSerializedSize(
         size_t current_alignment)
 {
-    size_t initial_alignment = current_alignment;
-
-    $if(struct.inheritances)$    $struct.inheritances : {current_alignment += $it.scopedname$::getMaxCdrSerializedSize(current_alignment);}; separator="\n"$ $endif$
-
-    $struct.members : { member | $if(!member.annotationNonSerialized)$$max_serialized_size(ctx=ctx, typecode=member.typecode, var="current_alignment")$$endif$}; separator="\n"$
-
-    return current_alignment - initial_alignment;
+    static_cast<void>(current_alignment);
+    return $struct.cScopedname$_max_cdr_typesize;
 }
 
 size_t $struct.scopedname$::getCdrSerializedSize(
@@ -409,18 +400,6 @@ bool $bitset.scopedname$::operator !=(
 }
 
 $if(ctx.anyCdr)$
-size_t $bitset.scopedname$::getMaxCdrSerializedSize(
-        size_t current_alignment)
-{
-    size_t initial_alignment = current_alignment;
-
-    $if(bitset.parents)$    $bitset.parents : {current_alignment += $it.scopedname$::getMaxCdrSerializedSize(current_alignment);}; separator="\n"$ $endif$
-
-    $bitset.bitfields : { member | $if(!member.annotationNonSerialized)$$if(member.name)$$max_serialized_size(ctx=ctx, typecode=member.spec.typecode, var="current_alignment")$$endif$$endif$}; separator="\n"$
-
-    return current_alignment - initial_alignment;
-}
-
 size_t $bitset.scopedname$::getCdrSerializedSize(
         const $bitset.scopedname$& $if(bitset.parents)$data$endif$,
         size_t current_alignment)
@@ -638,28 +617,6 @@ $union.discriminator.cppTypename$& $union.scopedname$::_d()
 $union.members:{$public_unionmember_declaration(class=union.scopedname, member=it, defaultvalue=union.defaultvalue, totallabels=union.totallabels)$}; separator="\n"$
 
 $if(ctx.anyCdr)$
-size_t $union.scopedname$::getMaxCdrSerializedSize(
-        size_t current_alignment)
-{
-    size_t initial_alignment = current_alignment;
-    size_t reset_alignment = 0;
-    size_t union_max_size_serialized = 0;
-
-    $max_serialized_size(ctx=ctx, typecode=union.discriminator, var="current_alignment")$
-
-    $union.members : { member |
-    reset_alignment = current_alignment;
-
-    $max_serialized_size(ctx=ctx, typecode=member.typecode, var="reset_alignment")$
-
-    if(union_max_size_serialized < reset_alignment)
-        union_max_size_serialized = reset_alignment;
-
-    }; separator="\n"$
-
-    return union_max_size_serialized - initial_alignment;
-}
-
 // TODO(Ricardo) Review
 size_t $union.scopedname$::getCdrSerializedSize(
         const $union.scopedname$& data,
@@ -1465,16 +1422,6 @@ bool& $scopedtypename$::release()
 }
 
 $if(ctx.anyCdr)$
-size_t $scopedtypename$::getMaxCdrSerializedSize(
-        size_t current_alignment)
-{
-    size_t initial_alignment = current_alignment;
-
-    $max_serialized_size(ctx=ctx, typecode=typecode, var="current_alignment")$
-
-    return current_alignment - initial_alignment;
-}
-
 size_t $scopedtypename$::getCdrSerializedSize(
         const $scopedtypename$& data,
         size_t current_alignment)

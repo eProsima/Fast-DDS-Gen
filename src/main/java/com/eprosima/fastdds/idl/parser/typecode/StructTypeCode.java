@@ -20,8 +20,11 @@ import com.eprosima.idl.parser.tree.Annotation;
 import java.util.ArrayList;
 
 public class StructTypeCode extends com.eprosima.idl.parser.typecode.StructTypeCode
+    implements TypeCode
 {
-    public StructTypeCode(String scope, String name)
+    public StructTypeCode(
+            String scope,
+            String name)
     {
         super(scope, name);
     }
@@ -33,34 +36,64 @@ public class StructTypeCode extends com.eprosima.idl.parser.typecode.StructTypeC
         for (int count = 0; count < getMembers().size() && !returnedValue; ++count)
         {
             Member member = getMembers().get(count);
-            Annotation key = member.getAnnotations().get("Key");
-
-            if (key != null)
-            {
-                String value = key.getValue("value");
-
-                if(value != null && value.equals("true"))
-                    returnedValue = true;
-            }
-            else // Try with lower case
-            {
-                key = member.getAnnotations().get("key");
-                if (key != null)
-                {
-                    String value = key.getValue("value");
-
-                    if(value != null && value.equals("true"))
-                    {
-                        returnedValue = true;
-                    }
-                }
-            }
+            returnedValue = member.isAnnotationKey();
         }
 
         return returnedValue;
     }
 
-    public void setIsTopic(boolean value)
+    public String getMaxSerializedSize()
+    {
+        return Long.toString(maxSerializedSize(0));
+    }
+
+    public long maxSerializedSize(
+            long current_alignment)
+    {
+        return maxSerializedSize(0, false);
+    }
+
+    private long maxSerializedSize(
+            long current_alignment,
+            boolean only_keys)
+    {
+        boolean ser_only_keys = only_keys ?
+                (0 == current_alignment || isHasKey()) : // Serialize all if no the top-level structure and no member
+                                                         // with @key annotation.
+                false;
+        long initial_alignment = current_alignment;
+
+        for (com.eprosima.idl.parser.typecode.TypeCode parent : getInheritances())
+        {
+            current_alignment += ((StructTypeCode)parent).maxSerializedSize(current_alignment, only_keys);
+        }
+
+        for (Member member : getMembers())
+        {
+            if (!member.isAnnotationNonSerialized() && (!ser_only_keys || member.isAnnotationKey()))
+            {
+                if (member.getTypecode() instanceof StructTypeCode)
+                {
+                    current_alignment +=
+                            ((StructTypeCode)member.getTypecode()).maxSerializedSize(current_alignment, ser_only_keys);
+                }
+                else
+                {
+                    current_alignment += ((TypeCode)member.getTypecode()).maxSerializedSize(current_alignment);
+                }
+            }
+        }
+
+        return current_alignment - initial_alignment;
+    }
+
+    public String getMaxKeySerializedSize()
+    {
+        return Long.toString(maxSerializedSize(0, true));
+    }
+
+    public void setIsTopic(
+            boolean value)
     {
         istopic_ = value;
     }
@@ -76,14 +109,14 @@ public class StructTypeCode extends com.eprosima.idl.parser.typecode.StructTypeC
         String scopes = getScope();
         int ch_pos = scopes.indexOf("::");
 
-        while(0 < ch_pos)
+        while (0 < ch_pos)
         {
             namespaces.add(scopes.substring(0, ch_pos));
             scopes = scopes.substring(ch_pos + 2);
             ch_pos = scopes.indexOf("::");
         }
 
-        if(!scopes.isEmpty())
+        if (!scopes.isEmpty())
         {
             namespaces.add(scopes);
         }

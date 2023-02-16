@@ -14,17 +14,25 @@
 
 package com.eprosima.fastdds.idl.grammar;
 
+import com.eprosima.fastdds.idl.parser.typecode.AliasTypeCode;
+import com.eprosima.fastdds.idl.parser.typecode.ArrayTypeCode;
+import com.eprosima.fastdds.idl.parser.typecode.BitmaskTypeCode;
+import com.eprosima.fastdds.idl.parser.typecode.BitsetTypeCode;
+import com.eprosima.fastdds.idl.parser.typecode.EnumTypeCode;
+import com.eprosima.fastdds.idl.parser.typecode.MapTypeCode;
+import com.eprosima.fastdds.idl.parser.typecode.PrimitiveTypeCode;
+import com.eprosima.fastdds.idl.parser.typecode.SequenceTypeCode;
+import com.eprosima.fastdds.idl.parser.typecode.SetTypeCode;
+import com.eprosima.fastdds.idl.parser.typecode.StringTypeCode;
 import com.eprosima.fastdds.idl.parser.typecode.StructTypeCode;
+import com.eprosima.fastdds.idl.parser.typecode.UnionTypeCode;
 import com.eprosima.idl.parser.tree.Annotation;
 import com.eprosima.idl.parser.tree.Interface;
 import com.eprosima.idl.parser.tree.TypeDeclaration;
 import com.eprosima.idl.parser.typecode.Kind;
 import com.eprosima.idl.parser.typecode.TypeCode;
 import com.eprosima.idl.parser.typecode.Member;
-import com.eprosima.idl.parser.typecode.MapTypeCode;
 import com.eprosima.idl.parser.typecode.MemberedTypeCode;
-import com.eprosima.idl.parser.typecode.SequenceTypeCode;
-import com.eprosima.idl.parser.typecode.EnumTypeCode;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map.Entry;
@@ -74,10 +82,101 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
     }
 
     @Override
+    public AliasTypeCode createAliasTypeCode(
+            String scope,
+            String name)
+    {
+        return new AliasTypeCode(scope, name);
+    }
+
+    @Override
+    public ArrayTypeCode createArrayTypeCode()
+    {
+        return new ArrayTypeCode();
+    }
+
+    @Override
+    public BitsetTypeCode createBitsetTypeCode(
+            String scope,
+            String name)
+    {
+        return new BitsetTypeCode(scope, name);
+    }
+
+    @Override
+    public BitmaskTypeCode createBitmaskTypeCode(
+            String scope,
+            String name)
+    {
+        return new BitmaskTypeCode(scope, name);
+    }
+
+    @Override
+    public EnumTypeCode createEnumTypeCode(
+            String scope,
+            String name)
+    {
+        return new EnumTypeCode(scope, name);
+    }
+
+    @Override
+    public MapTypeCode createMapTypeCode(
+            String maxsize)
+    {
+        return new MapTypeCode(maxsize);
+    }
+
+    @Override
+    public PrimitiveTypeCode createPrimitiveTypeCode(
+            int kind)
+    {
+        return new PrimitiveTypeCode(kind);
+    }
+
+    @Override
+    public SequenceTypeCode createSequenceTypeCode(
+            String maxsize)
+    {
+        return new SequenceTypeCode(maxsize);
+    }
+
+    @Override
+    public SetTypeCode createSetTypeCode(
+            String maxsize)
+    {
+        return new SetTypeCode(maxsize);
+    }
+
+    @Override
+    public StringTypeCode createStringTypeCode(
+            int kind,
+            String maxsize)
+    {
+        return new StringTypeCode(kind, maxsize);
+    }
+
+    @Override
     public StructTypeCode createStructTypeCode(
             String name)
     {
         return new StructTypeCode(getScope(), name);
+    }
+
+    @Override
+    public UnionTypeCode createUnionTypeCode(
+            String scope,
+            String name)
+    {
+        return new UnionTypeCode(scope, name);
+    }
+
+    @Override
+    public UnionTypeCode createUnionTypeCode(
+            String scope,
+            String name,
+            TypeCode discriminatorTypeCode)
+    {
+        return new UnionTypeCode(scope, name, discriminatorTypeCode);
     }
 
     @Override
