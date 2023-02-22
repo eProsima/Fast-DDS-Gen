@@ -14,6 +14,9 @@ on:
 jobs:
   ubuntu-build-test:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        java_version: ['openjdk-8-jdk', 'openjdk-11-jdk', 'openjdk-17-jdk']
 
     steps:
       - uses: actions/checkout@v3
@@ -21,6 +24,8 @@ jobs:
           path: src/fastddsgen
 
       - uses: ./src/fastddsgen/.github/actions/install-apt-packages
+        with:
+          java-version: ${{ matrix.java_version }}
       - uses: ./src/fastddsgen/.github/actions/install-python-packages
       - uses: ./src/fastddsgen/.github/actions/fetch-fastddsgen-repos
 

@@ -1,5 +1,9 @@
 name: 'install-apt-packages'
 description: 'Install necessary apt packages'
+inputs:
+  java-version:
+    description: 'Java version to be installed'
+    required: true
 runs:
   using: "composite"
   steps:
@@ -15,5 +19,5 @@ runs:
           libtinyxml2-dev \
           curl \
           grep \
-          openjdk-11-jdk
+          ${{ inputs.java-version }}
       shell: bash
