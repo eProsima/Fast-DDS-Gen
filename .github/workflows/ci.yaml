@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        java_version: ['openjdk-8-jdk', 'openjdk-11-jdk', 'openjdk-17-jdk']
+        java_version: ['openjdk-11-jdk', 'openjdk-17-jdk', 'openjdk-18-jdk', 'openjdk-19-jdk']
 
     steps:
       - uses: actions/checkout@v3
