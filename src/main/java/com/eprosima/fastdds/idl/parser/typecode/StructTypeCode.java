@@ -50,17 +50,13 @@ public class StructTypeCode extends com.eprosima.idl.parser.typecode.StructTypeC
     public long maxSerializedSize(
             long current_alignment)
     {
-        return maxSerializedSize(0, false);
+        return maxSerializedSize(current_alignment, false);
     }
 
     private long maxSerializedSize(
             long current_alignment,
             boolean only_keys)
     {
-        boolean ser_only_keys = only_keys ?
-                (0 == current_alignment || isHasKey()) : // Serialize all if no the top-level structure and no member
-                                                         // with @key annotation.
-                false;
         long initial_alignment = current_alignment;
 
         for (com.eprosima.idl.parser.typecode.TypeCode parent : getInheritances())
@@ -70,17 +66,28 @@ public class StructTypeCode extends com.eprosima.idl.parser.typecode.StructTypeC
 
         for (Member member : getMembers())
         {
-            if (!member.isAnnotationNonSerialized() && (!ser_only_keys || member.isAnnotationKey()))
+            if (member.isAnnotationNonSerialized())
             {
-                if (member.getTypecode() instanceof StructTypeCode)
+                continue;
+            }
+            if (only_keys && isHasKey())
+            {
+                if (member.isAnnotationKey())
                 {
-                    current_alignment +=
-                            ((StructTypeCode)member.getTypecode()).maxSerializedSize(current_alignment, ser_only_keys);
+                    if (member.getTypecode() instanceof StructTypeCode && ((StructTypeCode)member.getTypecode()).isHasKey())
+                    {
+                        current_alignment +=
+                            ((StructTypeCode)member.getTypecode()).maxSerializedSize(current_alignment, true);
+                    }
+                    else
+                    {
+                        current_alignment += ((TypeCode)member.getTypecode()).maxSerializedSize(current_alignment);
+                    }
                 }
-                else
-                {
-                    current_alignment += ((TypeCode)member.getTypecode()).maxSerializedSize(current_alignment);
-                }
+            }
+            else if (!only_keys)
+            {
+                current_alignment += ((TypeCode)member.getTypecode()).maxSerializedSize(current_alignment);
             }
         }
 
