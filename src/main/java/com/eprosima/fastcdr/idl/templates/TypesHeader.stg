@@ -494,7 +494,7 @@ bitmask_type(ctx, parent, bitmask) ::= <<
  */
 enum $bitmask.name$$bitmask.boundType$
 {
-    $bitmask.members:{$it.name$ = 0x01 << $it.position$}; separator=",\n"$
+    $bitmask.members:{$it.name$ = 0x01ull << $it.position$}; separator=",\n"$
 };
 >>
 
