@@ -92,6 +92,22 @@ $struct.members : {$member_getters(struct_name=struct.name, member=it)$}; separa
 
 >>
 
+template_sequence_name(typecode) ::= <<
+$if(typecode.isSequenceType)$
+$template_sequence_name(typecode.contentTypeCode)$_vector
+$else$
+$typecode.cppTypename$_vector
+$endif$
+>>
+
+template_sequence(typecode) ::= <<
+$if(typecode.contentTypeCode.isSequenceType)$
+$template_sequence(typecode.contentTypeCode)$
+$endif$
+
+%template($template_sequence_name(typecode.contentTypeCode)$) std::vector<$typecode.contentTypeCode.cppTypename$>;
+>>
+
 member_getters(struct_name, member) ::= <<
 %ignore $struct_name$::$member.name$($member.typecode.cppTypename$&&);
 
@@ -100,7 +116,7 @@ member_getters(struct_name, member) ::= <<
 // We ignore them to prevent this
 $if(member.typecode.isSequenceType)$
 %ignore $struct_name$::$member.name$() const;
-%template($member.typecode.contentTypeCode.cppTypename$_vector) std::vector<$member.typecode.contentTypeCode.cppTypename$>;
+$template_sequence(member.typecode)$
 $elseif(member.typecode.isMapType)$
 %ignore $struct_name$::$member.name$() const;
 %template($member.typecode.keyTypeCode.cppTypename$_$member.typecode.valueTypeCode.cppTypename$_map) std::map<$member.typecode.keyTypeCode.cppTypename$,$member.typecode.valueTypeCode.cppTypename$>;
