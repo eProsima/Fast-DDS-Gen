@@ -25,9 +25,6 @@ char dummy;
 #endif  // _WIN32
 
 #include "$ctx.filename$.h"
-$if(ctx.generateTypeObject)$
-#include "$ctx.filename$TypeObject.h"
-$endif$
 
 $if(ctx.cdr)$
 #include <fastcdr/Cdr.h>
@@ -210,11 +207,6 @@ $struct.scopedname$::$struct.name$()$if(struct.inheritances)$
     : $struct.inheritances : {$struct_inherit_default_init(it)$}; separator=",\n"$ $endif$
 {
     $struct.members:{ member |$member_default_init(ctx=ctx, member=member, loopvar=ctx.newLoopVarName)$}; separator="\n"$
-
-    $if(ctx.generateTypeObject)$
-    // Just to register all known types
-    register$ctx.filename$Types();
-    $endif$
 }
 
 $struct.scopedname$::~$struct.name$()
@@ -341,10 +333,6 @@ bitset_type(ctx, parent, bitset) ::= <<
 $bitset.scopedname$::$bitset.name$()$if(bitset.parents)$
     : $bitset.parents : {$bitset_inherit_default_init(it)$}; separator=",\n"$ $endif$
 {
-    $if(ctx.generateTypeObject)$
-    // Just to register all known types
-    register$ctx.filename$Types();
-    $endif$
 }
 
 $bitset.scopedname$::~$bitset.name$()

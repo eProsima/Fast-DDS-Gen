@@ -30,6 +30,10 @@ namespace { char dummy; }
 #include <fastrtps/rtps/common/SerializedPayload.h>
 #include <fastrtps/utils/md5.h>
 #include <fastrtps/types/TypeObjectFactory.h>
+#include <fastrtps/types/DynamicPubSubType.h>
+#include <fastrtps/types/DynamicType.h>
+#include <fastrtps/types/DynamicTypeBuilderFactory.h>
+#include <fastrtps/types/DynamicTypeMember.h>
 #include <fastrtps/types/TypeNamesGenerator.h>
 #include <fastrtps/types/AnnotationParameterValue.h>
 #include <fastcdr/FastBuffer.h>
@@ -46,12 +50,35 @@ using namespace eprosima::fastrtps::rtps;
 
 void register$ctx.filename$Types()
 {
-    static std::once_flag once_flag;
-    std::call_once(once_flag, []()
-            {
-                TypeObjectFactory *factory = TypeObjectFactory::get_instance();
-                $ctx.definitions: { def | $register_type(ctx=ctx, object=def, param="type_name")$}; separator="\n"$
-            });
+    TypeObjectFactory *factory = TypeObjectFactory::get_instance();
+    $ctx.definitions: { def | $register_type(ctx=ctx, object=def, param="type_name")$}; separator="\n"$
+
+    // WORKAROUND: force registration of array/sequence objects
+    auto dyn_type = eprosima::fastrtps::types::TypeObjectFactory::get_instance()->build_dynamic_type(
+            "$ctx.m_lastStructureScopedName$",
+            Get$ctx.m_lastStructureScopedName$Identifier(true),
+            Get$ctx.m_lastStructureScopedName$Object(true));
+
+    DynamicTypeBuilderFactory* dynFactory = DynamicTypeBuilderFactory::get_instance();
+
+    std::map<MemberId, DynamicTypeMember*> membersMap;
+    dyn_type->get_all_members(membersMap);
+    std::vector<const MemberDescriptor*> members;
+    for (auto it : membersMap)
+    {
+        members.push_back(it.second->get_descriptor());
+    }
+    TypeObject typeObj;
+    dynFactory->build_type_object(dyn_type->get_type_descriptor(), typeObj, &members);
+    dynFactory->build_type_object(dyn_type->get_type_descriptor(), typeObj, &members, false);
+
+    const TypeIdentifier* type_id = factory->get_type_identifier("$ctx.m_lastStructureScopedName$");
+    const TypeObject* type_obj = factory->get_type_object("$ctx.m_lastStructureScopedName$");
+    factory->add_type_object("$ctx.m_lastStructureScopedName$", type_id, type_obj);
+
+    const TypeIdentifier* type_id_complete = factory->get_type_identifier("$ctx.m_lastStructureScopedName$", true);
+    const TypeObject* type_obj_complete = factory->get_type_object("$ctx.m_lastStructureScopedName$", true);
+    factory->add_type_object("$ctx.m_lastStructureScopedName$", type_id_complete, type_obj_complete);
 }
 
 $definitions; separator="\n"$
