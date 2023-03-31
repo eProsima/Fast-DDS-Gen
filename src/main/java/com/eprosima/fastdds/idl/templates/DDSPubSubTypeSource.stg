@@ -22,6 +22,10 @@ $fileHeader(ctx=ctx,  file=[ctx.filename, "PubSubTypes.cpp"], description=["This
 #include <fastcdr/Cdr.h>
 
 #include "$ctx.filename$PubSubTypes.h"
+$if(ctx.generateTypeObject)$
+#include "$ctx.filename$TypeObject.h"
+$endif$
+
 
 using SerializedPayload_t = eprosima::fastrtps::rtps::SerializedPayload_t;
 using InstanceHandle_t = eprosima::fastrtps::rtps::InstanceHandle_t;
@@ -76,6 +80,11 @@ $if (parent.IsInterface)$$parent.name$_$endif$$struct.name$PubSubType::$if (pare
             $if (parent.IsInterface)$$struct.scopedname$$else$$struct.name$$endif$::getKeyMaxCdrSerializedSize() : 16;
     m_keyBuffer = reinterpret_cast<unsigned char*>(malloc(keyLength));
     memset(m_keyBuffer, 0, keyLength);
+
+    $if(ctx.generateTypeObject)$
+    // Just to register all known types
+    register$ctx.filename$Types();
+    $endif$
 }
 
 $if (parent.IsInterface)$$parent.name$_$endif$$struct.name$PubSubType::~$if (parent.IsInterface)$$parent.name$_$endif$$struct.name$PubSubType()
