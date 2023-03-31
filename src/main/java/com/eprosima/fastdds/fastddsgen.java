@@ -471,7 +471,7 @@ public class fastddsgen
 
             if (returnedValue && m_python)
             {
-                returnedValue = genSwigCMake(solution);
+                returnedValue = genSwigCMake(solution, m_type_object_files);
             }
 
 
@@ -1275,7 +1275,8 @@ public class fastddsgen
     }
 
     private boolean genSwigCMake(
-            Solution solution)
+            Solution solution,
+            boolean type_object)
     {
 
         boolean returnedValue = false;
@@ -1288,6 +1289,7 @@ public class fastddsgen
             swig = swigTemplates.getInstanceOf("swig_cmake");
 
             swig.setAttribute("solution", solution);
+            swig.setAttribute("type_object", type_object);
 
             returnedValue = Utils.writeFile(m_outputDir + "CMakeLists.txt", swig, m_replace);
 

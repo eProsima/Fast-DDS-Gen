@@ -14,7 +14,7 @@
 
 group SwigCMake;
 
-swig_cmake(solution) ::= <<
+swig_cmake(solution, type_object) ::= <<
 
 cmake_minimum_required(VERSION 3.16.3)
 
@@ -51,6 +51,9 @@ find_package(fastrtps REQUIRED)
 set(\${PROJECT_NAME}_FILES
     $it.name$.cxx
     $it.name$PubSubTypes.cxx
+    $if(type_object)$
+    $it.name$TypeObject.cxx
+    $endif$
     )
 
 include_directories()
