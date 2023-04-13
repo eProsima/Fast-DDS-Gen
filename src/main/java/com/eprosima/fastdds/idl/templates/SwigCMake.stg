@@ -96,6 +96,8 @@ include_directories(
     \${PROJECT_SOURCE_DIR}
     )
 
+set_property(SOURCE \${PROJECT_NAME}.i PROPERTY OUTPUT_DIR "\${CMAKE_CURRENT_BINARY_DIR}/$project.context.lastStructure.typeCode.namespaces : {$it$}; separator="/"$")
+
 SWIG_ADD_LIBRARY(\${\${PROJECT_NAME}_MODULE}
     TYPE SHARED
     LANGUAGE python
@@ -130,9 +132,8 @@ install(TARGETS \${PROJECT_NAME}
     LIBRARY DESTINATION lib/
     ARCHIVE DESTINATION lib/
     )
-install(TARGETS \${\${PROJECT_NAME}_MODULE} DESTINATION \${PYTHON_MODULE_PATH})
+install(TARGETS \${\${PROJECT_NAME}_MODULE} DESTINATION \${PYTHON_MODULE_PATH}/$project.context.lastStructure.typeCode.namespaces : {$it$}; separator="/"$)
 get_property(support_files TARGET \${\${PROJECT_NAME}_MODULE} PROPERTY SWIG_SUPPORT_FILES)
-install(FILES \${support_files} DESTINATION \${PYTHON_MODULE_PATH})
+install(FILES \${support_files} DESTINATION \${PYTHON_MODULE_PATH}/$project.context.lastStructure.typeCode.namespaces : {$it$}; separator="/"$)
 
 >>
-
