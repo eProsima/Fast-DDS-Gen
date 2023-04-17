@@ -77,7 +77,8 @@ functions_to_run.emplace_back([]() -> bool
     uint32_t payloadOutSize = static_cast<uint32_t>(pst.getSerializedSizeProvider(&$struct.name$_deserialization_topic)());
 
     int topic_equal = compare$struct.name$(&$struct.name$_serialization_topic, &$struct.name$_deserialization_topic);
-    int size_equal = payloadOutSize == payloadSize;
+    bool size_equal = payloadOutSize == payloadSize;
+    bool ge_than_max = ($struct.name$_serialization_topic.getMaxCdrSerializedSize() + 4)>= payloadSize;
 
     printf("\n");
     printf("===== Before serialize: =====\n");
@@ -88,22 +89,27 @@ functions_to_run.emplace_back([]() -> bool
     printf("\n");
     printf("SerializedPayload_t: \n");
     printf("length: %d - %d\n", payloadSize, payload.length);
-    printf("data: ");
-    for(uint32_t i = 0; i < payloadSize; ++i)
+    printf("max: %lu\n", $struct.name$_serialization_topic.getMaxCdrSerializedSize() + 4);
+    if (500 > payloadSize)
     {
-        printf("%02X ", payload.data[i]);
+        printf("data: ");
+        for(uint32_t i = 0; i < payloadSize; ++i)
+        {
+            printf("%02X ", payload.data[i]);
+        }
+        printf("\n\n");
     }
-    printf("\n\n");
 
     uint32_t type_size = sizeof($struct.name$);
-    printf("Topic $struct.name$ size: %s => payloadIn: %d, payloadOut: %d, type: %d\n", size_equal ? "OK" : "ERROR", payloadSize, payloadOutSize, type_size);
+    printf("Topic $struct.name$ size: %s => payloadIn: %d, payloadOut: %d, type: %d, max_size: %lu\n", size_equal ? "OK" : "ERROR", payloadSize, payloadOutSize, type_size,
+            $struct.name$_serialization_topic.getMaxCdrSerializedSize() + 4);
     printf("Topic $struct.name$ comparation: %s\n", topic_equal ? "OK" : "ERROR");
 
     $if((ctx.generateTypesC))$
     free_string$struct.name$(&$struct.name$_serialization_topic);
     $endif$
 
-    if (!topic_equal)
+    if (!topic_equal || !size_equal || !ge_than_max)
     {
         return false;
     }
