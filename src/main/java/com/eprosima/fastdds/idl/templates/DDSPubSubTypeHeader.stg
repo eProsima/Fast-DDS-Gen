@@ -75,6 +75,7 @@ $typedefs : { typedef |typedef $typedef.typedefContentTypeCode.cppTypename$ $typ
 
 struct_type(ctx, parent, struct) ::= <<
 
+$if(struct.isPlain)$
 namespace detail {
 
     template<typename Tag, typename Tag::type M>
@@ -96,6 +97,7 @@ namespace detail {
 
     template struct $if(parent.IsInterface)$$parent.name$_$endif$$struct.name$_rob<$if(parent.IsInterface)$$parent.name$_$endif$$struct.name$_f, &$struct.name$::m_$last(struct.members).name$>;
 }
+$endif$
 
 /*!
  * @brief This class represents the TopicDataType of the type $struct.name$ defined by the user in the IDL file.
@@ -143,7 +145,7 @@ public:
 #ifdef TOPIC_DATA_TYPE_API_HAS_IS_PLAIN
     eProsima_user_DllExport inline bool is_plain() const override
     {
-        return $struct.maxSerializedSize$ULL == size_of_();
+        return $if(struct.isPlain)$$struct.maxSerializedSize$ULL == size_of_()$else$false$endif$;
     }
 
 #endif  // TOPIC_DATA_TYPE_API_HAS_IS_PLAIN
@@ -163,10 +165,12 @@ public:
 
 private:
 
+    $if(struct.isPlain)$
     static constexpr size_t size_of_()
     {
         return ((::size_t) &reinterpret_cast<char const volatile&>(((($struct.name$*)0)->*get(detail::$if(parent.IsInterface)$$parent.name$_$endif$$struct.name$_f())))) + sizeof($last(struct.members).typecode.cppTypename$);
     }
+    $endif$
 };
 >>
 
