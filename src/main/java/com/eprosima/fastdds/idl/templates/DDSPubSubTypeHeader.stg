@@ -74,6 +74,29 @@ $typedefs : { typedef |typedef $typedef.typedefContentTypeCode.cppTypename$ $typ
 >>
 
 struct_type(ctx, parent, struct) ::= <<
+
+namespace detail {
+
+    template<typename Tag, typename Tag::type M>
+    struct $if(parent.IsInterface)$$parent.name$_$endif$$struct.name$_rob
+    {
+        friend constexpr typename Tag::type get(
+                Tag)
+        {
+            return M;
+        }
+    };
+
+    struct $if(parent.IsInterface)$$parent.name$_$endif$$struct.name$_f
+    {
+        typedef $last(struct.members).typecode.cppTypename$ $struct.name$::* type;
+        friend constexpr type get(
+                $if(parent.IsInterface)$$parent.name$_$endif$$struct.name$_f);
+    };
+
+    template struct $if(parent.IsInterface)$$parent.name$_$endif$$struct.name$_rob<$if(parent.IsInterface)$$parent.name$_$endif$$struct.name$_f, &$struct.name$::m_$last(struct.members).name$>;
+}
+
 /*!
  * @brief This class represents the TopicDataType of the type $struct.name$ defined by the user in the IDL file.
  * @ingroup $ctx.trimfilename$
@@ -120,7 +143,7 @@ public:
 #ifdef TOPIC_DATA_TYPE_API_HAS_IS_PLAIN
     eProsima_user_DllExport inline bool is_plain() const override
     {
-        return $if (struct.isPlain)$true$else$false$endif$;
+        return $struct.maxSerializedSize$ULL == size_of_();
     }
 
 #endif  // TOPIC_DATA_TYPE_API_HAS_IS_PLAIN
@@ -137,6 +160,13 @@ public:
 
     MD5 m_md5;
     unsigned char* m_keyBuffer;
+
+private:
+
+    static constexpr size_t size_of_()
+    {
+        return ((::size_t) &reinterpret_cast<char const volatile&>(((($struct.name$*)0)->*get(detail::$if(parent.IsInterface)$$parent.name$_$endif$$struct.name$_f())))) + sizeof($last(struct.members).typecode.cppTypename$);
+    }
 };
 >>
 
