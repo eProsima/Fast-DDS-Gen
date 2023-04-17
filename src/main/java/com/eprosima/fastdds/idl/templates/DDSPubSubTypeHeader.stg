@@ -163,14 +163,14 @@ public:
     MD5 m_md5;
     unsigned char* m_keyBuffer;
 
+$if(struct.isPlain)$
 private:
 
-    $if(struct.isPlain)$
     static constexpr size_t size_of_()
     {
         return ((::size_t) &reinterpret_cast<char const volatile&>(((($struct.name$*)0)->*get(detail::$if(parent.IsInterface)$$parent.name$_$endif$$struct.name$_f())))) + sizeof($last(struct.members).typecode.cppTypename$);
     }
-    $endif$
+$endif$
 };
 >>
 
