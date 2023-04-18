@@ -145,7 +145,7 @@ public:
 #ifdef TOPIC_DATA_TYPE_API_HAS_IS_PLAIN
     eProsima_user_DllExport inline bool is_plain() const override
     {
-        return $if(struct.isPlain)$$struct.maxSerializedSize$ULL == size_of_()$else$false$endif$;
+        return $if(struct.isPlain)$is_plain_impl()$else$false$endif$;
     }
 
 #endif  // TOPIC_DATA_TYPE_API_HAS_IS_PLAIN
@@ -166,9 +166,9 @@ public:
 $if(struct.isPlain)$
 private:
 
-    static constexpr size_t size_of_()
+    static constexpr bool is_plain_impl()
     {
-        return ((::size_t) &reinterpret_cast<char const volatile&>(((($struct.name$*)0)->*get(detail::$if(parent.IsInterface)$$parent.name$_$endif$$struct.name$_f())))) + sizeof($last(struct.members).typecode.cppTypename$);
+        return $struct.maxSerializedSize$ULL == ((::size_t) &reinterpret_cast<char const volatile&>(((($struct.name$*)0)->*get(detail::$if(parent.IsInterface)$$parent.name$_$endif$$struct.name$_f())))) + sizeof($last(struct.members).typecode.cppTypename$);
     }
 $endif$
 };
