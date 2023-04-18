@@ -25,7 +25,7 @@ public class ArrayTypeCode extends com.eprosima.idl.parser.typecode.ArrayTypeCod
         long size = 1;
         for (int count = 0; count < getDimensions().size(); ++count)
         {
-            size += Long.parseLong(getDimensions().get(count), 10);
+            size *= Long.parseLong(getDimensions().get(count), 10);
         }
 
         for (long count = 0; count < size; ++count)
