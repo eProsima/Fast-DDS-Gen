@@ -53,36 +53,49 @@ void register$ctx.filename$Types()
     static std::once_flag once_flag;
     std::call_once(once_flag, []()
             {
-                TypeObjectFactory *factory = TypeObjectFactory::get_instance();
                 $ctx.definitions: { def | $register_type(ctx=ctx, object=def, param="type_name")$}; separator="\n"$
-
-                // WORKAROUND: force registration of array/sequence objects
-                auto dyn_type = eprosima::fastrtps::types::TypeObjectFactory::get_instance()->build_dynamic_type(
-                        "$ctx.m_lastStructureScopedName$",
-                        Get$ctx.m_lastStructureScopedName$Identifier(true),
-                        Get$ctx.m_lastStructureScopedName$Object(true));
-
-                DynamicTypeBuilderFactory* dynFactory = DynamicTypeBuilderFactory::get_instance();
-
-                std::map<MemberId, DynamicTypeMember*> membersMap;
-                dyn_type->get_all_members(membersMap);
-                std::vector<const MemberDescriptor*> members;
-                for (auto it : membersMap)
-                {
-                    members.push_back(it.second->get_descriptor());
-                }
-                TypeObject typeObj;
-                dynFactory->build_type_object(dyn_type->get_type_descriptor(), typeObj, &members);
-                dynFactory->build_type_object(dyn_type->get_type_descriptor(), typeObj, &members, false);
-
-                const TypeIdentifier* type_id = factory->get_type_identifier("$ctx.m_lastStructureScopedName$");
-                const TypeObject* type_obj = factory->get_type_object("$ctx.m_lastStructureScopedName$");
-                factory->add_type_object("$ctx.m_lastStructureScopedName$", type_id, type_obj);
-
-                const TypeIdentifier* type_id_complete = factory->get_type_identifier("$ctx.m_lastStructureScopedName$", true);
-                const TypeObject* type_obj_complete = factory->get_type_object("$ctx.m_lastStructureScopedName$", true);
-                factory->add_type_object("$ctx.m_lastStructureScopedName$", type_id_complete, type_obj_complete);
             });
+}
+
+void register$ctx.filename$Type(
+        const std::string& type_name,
+        const TypeIdentifier* complete_identifier,
+        const TypeObject* complete_object,
+        const TypeIdentifier* minimal_identifier,
+        const TypeObject* minimal_object)
+{
+    TypeObjectFactory *factory = TypeObjectFactory::get_instance();
+
+    factory->add_type_object(type_name, complete_identifier, complete_object);
+    factory->add_type_object(type_name, minimal_identifier, minimal_object);
+
+    // WORKAROUND: force registration of array/sequence objects
+    auto dyn_type = eprosima::fastrtps::types::TypeObjectFactory::get_instance()->build_dynamic_type(
+            type_name,
+            complete_identifier,
+            complete_object);
+
+    DynamicTypeBuilderFactory* dynFactory = DynamicTypeBuilderFactory::get_instance();
+
+    std::map<MemberId, DynamicTypeMember*> membersMap;
+    dyn_type->get_all_members(membersMap);
+    std::vector<const MemberDescriptor*> members;
+    for (auto it : membersMap)
+    {
+        members.push_back(it.second->get_descriptor());
+    }
+
+    TypeObject typeObj;
+    dynFactory->build_type_object(dyn_type->get_type_descriptor(), typeObj, &members);
+    dynFactory->build_type_object(dyn_type->get_type_descriptor(), typeObj, &members, false);
+
+    const TypeIdentifier* type_id = factory->get_type_identifier(type_name);
+    const TypeObject* type_obj = factory->get_type_object(type_name);
+    factory->add_type_object(type_name, type_id, type_obj);
+
+    const TypeIdentifier* type_id_complete = factory->get_type_identifier(type_name, true);
+    const TypeObject* type_obj_complete = factory->get_type_object(type_name, true);
+    factory->add_type_object(type_name, type_id_complete, type_obj_complete);
 }
 
 $definitions; separator="\n"$
@@ -104,9 +117,10 @@ if ($param$ == $if(ctx.GenerateTypesROS2)$"$object.ROS2Scopedname$"$else$"$if(ob
 register_type(ctx, object, param) ::= <<
 $if(!object.isModule)$
 $if(!object.isConstDeclaration)$
-factory->add_type_object($if(ctx.GenerateTypesROS2)$"$object.ROS2Scopedname$"$else$"$if(object.hasScope)$$object.scope$::$endif$$object.name$"$endif$, $if(object.hasScope)$$object.scope$::$endif$Get$object.name$Identifier(true),
-        $if(object.hasScope)$$object.scope$::$endif$Get$object.name$Object(true));
-factory->add_type_object($if(ctx.GenerateTypesROS2)$"$object.ROS2Scopedname$"$else$"$if(object.hasScope)$$object.scope$::$endif$$object.name$"$endif$, $if(object.hasScope)$$object.scope$::$endif$Get$object.name$Identifier(false),
+register$ctx.filename$Type($if(ctx.GenerateTypesROS2)$"$object.ROS2Scopedname$"$else$"$if(object.hasScope)$$object.scope$::$endif$$object.name$"$endif$,
+        $if(object.hasScope)$$object.scope$::$endif$Get$object.name$Identifier(true),
+        $if(object.hasScope)$$object.scope$::$endif$Get$object.name$Object(true),
+        $if(object.hasScope)$$object.scope$::$endif$Get$object.name$Identifier(false),
         $if(object.hasScope)$$object.scope$::$endif$Get$object.name$Object(false));
 $if(object.isAnnotation)$
 {
