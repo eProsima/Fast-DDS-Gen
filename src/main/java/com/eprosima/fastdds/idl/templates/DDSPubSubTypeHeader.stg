@@ -79,7 +79,7 @@ $if(struct.isPlain)$
 namespace detail {
 
     template<typename Tag, typename Tag::type M>
-    struct $if(parent.IsInterface)$$parent.name$_$endif$$struct.name$_rob
+    struct $struct.name$_rob
     {
         friend constexpr typename Tag::type get(
                 Tag)
@@ -88,14 +88,19 @@ namespace detail {
         }
     };
 
-    struct $if(parent.IsInterface)$$parent.name$_$endif$$struct.name$_f
+    struct $struct.name$_f
     {
         typedef $last(struct.members).typecode.cppTypename$ $struct.name$::* type;
         friend constexpr type get(
-                $if(parent.IsInterface)$$parent.name$_$endif$$struct.name$_f);
+                $struct.name$_f);
     };
 
-    template struct $if(parent.IsInterface)$$parent.name$_$endif$$struct.name$_rob<$if(parent.IsInterface)$$parent.name$_$endif$$struct.name$_f, &$struct.name$::m_$last(struct.members).name$>;
+    template struct $struct.name$_rob<$struct.name$_f, &$struct.name$::m_$last(struct.members).name$>;
+
+    template <typename T, typename Tag>
+    inline size_t constexpr $struct.name$_offset_of() {
+        return ((::size_t) &reinterpret_cast<char const volatile&>((((T*)0)->*get(Tag()))));
+    }
 }
 $endif$
 
@@ -168,7 +173,7 @@ private:
 
     static constexpr bool is_plain_impl()
     {
-        return $struct.maxSerializedSize$ULL == ((::size_t) &reinterpret_cast<char const volatile&>(((($struct.name$*)0)->*get(detail::$if(parent.IsInterface)$$parent.name$_$endif$$struct.name$_f())))) + sizeof($last(struct.members).typecode.cppTypename$);
+        return $struct.maxSerializedSize$ULL == (detail::$struct.name$_offset_of<$struct.name$, detail::$struct.name$_f>() + sizeof($last(struct.members).typecode.cppTypename$));
     }
 $endif$
 };
