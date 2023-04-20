@@ -36,4 +36,14 @@ public class ArrayTypeCode extends com.eprosima.idl.parser.typecode.ArrayTypeCod
         return current_alignment - initial_alignment;
     }
 
+    public boolean isNotZeroArray()
+    {
+        long size = 1;
+        for (int count = 0; count < getDimensions().size(); ++count)
+        {
+            size *= Long.parseLong(getDimensions().get(count), 10);
+        }
+        return 0 != size;
+    }
+
 }
