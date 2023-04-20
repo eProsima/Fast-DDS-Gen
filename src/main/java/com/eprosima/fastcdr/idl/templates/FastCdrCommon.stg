@@ -455,11 +455,10 @@ $endif$
 
 array_serialized_size(ctx, typecodeArr, data, var, loopvar, dimensions) ::= <<
 $if(typecodeArr.contentTypeCode.primitive)$
-if ($typecodeArr.size$ > 0)
-{
-    $var$ += ($typecodeArr.size$ * $typecodeArr.contentTypeCode.size$)$if(ctx.cdr)$ + eprosima::fastcdr::Cdr::alignment($var$, $typecodeArr.contentTypeCode.size$)$endif$;
-}
+$if(typecodeArr.notZeroArray)$
+$var$ += ($typecodeArr.size$ * $typecodeArr.contentTypeCode.size$)$if(ctx.cdr)$ + eprosima::fastcdr::Cdr::alignment($var$, $typecodeArr.contentTypeCode.size$)$endif$;
 
+$endif$
 $else$
 $if(first(dimensions))$
 

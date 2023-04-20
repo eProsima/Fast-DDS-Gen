@@ -30,4 +30,12 @@ public class AliasTypeCode extends com.eprosima.idl.parser.typecode.AliasTypeCod
         return ((TypeCode) getTypedefContentTypeCode()).maxSerializedSize(current_alignment);
     }
 
+    public boolean isNotZeroArray()
+    {
+        if (super.getContentTypeCode() instanceof ArrayTypeCode)
+        {
+            return ((ArrayTypeCode) super.getContentTypeCode()).isNotZeroArray();
+        }
+        return true;
+    }
 }
