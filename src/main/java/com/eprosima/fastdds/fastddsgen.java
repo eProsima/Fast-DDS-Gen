@@ -808,10 +808,10 @@ public class fastddsgen
                 }
             	
                 System.out.println("Generating Type definition files...");
-                if (returned && returnedValue =
+                if ((returnedValue) && (returnedValue =
                         Utils.writeFile(m_outputDir + ctx.getFilename() + ".h",
                         maintemplates.getTemplate("TypesHeader"),
-                        m_replace))
+                        m_replace)))
                 {
                     if (returnedValue =
                             Utils.writeFile(m_outputDir + ctx.getFilename() + ".cxx",
