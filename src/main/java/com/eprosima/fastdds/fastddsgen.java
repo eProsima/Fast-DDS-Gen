@@ -89,7 +89,7 @@ public class fastddsgen
     protected static String m_localAppProduct = "fastrtps";
     private ArrayList<String> m_includePaths = new ArrayList<String>();
 
-    // Mapping where the key holds the path to the template file and the value the wanted ouput file name
+    // Mapping where the key holds the path to the template file and the value the wanted output file name
     private Map<String, String> m_customStgOutput = new HashMap<String, String>();
 
     private static VSConfiguration m_vsconfigurations[] = {
@@ -220,8 +220,16 @@ public class fastddsgen
                     throw new BadArgumentException("No URL specified after -ppPath argument");
                 }
             }
-            else if (arg.equals("-extrastg")) {
-            	m_customStgOutput.put(args[count++], args[count++]);
+            else if (arg.equals("-extrastg"))
+            {
+                if (count + 1 < args.length)
+                {
+                    m_customStgOutput.put(args[count++], args[count++]);
+                }
+                else
+                {
+                    throw new BadArgumentException("Missing arguments for -extrastg");
+                }
             } 
             else if (arg.equals("-ppDisable"))
             {
@@ -792,11 +800,15 @@ public class fastddsgen
                                 project.addCommonSrcFile(ctx.getFilename() + entry.getValue());
                             }
                         }
+                        else
+                        {
+                            break;
+                        }
                     }
                 }
             	
                 System.out.println("Generating Type definition files...");
-                if (returnedValue =
+                if (returned && returnedValue =
                         Utils.writeFile(m_outputDir + ctx.getFilename() + ".h",
                         maintemplates.getTemplate("TypesHeader"),
                         m_replace))
