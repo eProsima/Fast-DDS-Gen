@@ -76,6 +76,7 @@ $typedefs : { typedef |typedef $typedef.typedefContentTypeCode.cppTypename$ $typ
 struct_type(ctx, parent, struct) ::= <<
 
 $if(struct.isPlain)$
+$if(struct.members)$
 namespace detail {
 
     template<typename Tag, typename Tag::type M>
@@ -102,6 +103,7 @@ namespace detail {
         return ((::size_t) &reinterpret_cast<char const volatile&>((((T*)0)->*get(Tag()))));
     }
 }
+$endif$
 $endif$
 
 /*!
@@ -173,7 +175,17 @@ private:
 
     static constexpr bool is_plain_impl()
     {
+        $if(struct.members)$
         return $struct.maxSerializedSize$ULL == (detail::$struct.name$_offset_of<$struct.name$, detail::$struct.name$_f>() + sizeof($last(struct.members).typecode.cppTypename$));
+        $elseif(struct.inheritances)$
+        $if(last(struct.inheritances).isPlain)$
+        return $struct.maxSerializedSize$ULL == (detail::$last(struct.inheritances).name$_offset_of<$last(struct.inheritances).name$, detail::$last(struct.inheritances).name$_f>() + sizeof($last(last(struct.inheritances).members).typecode.cppTypename$));
+        $else$
+        return true;
+        $endif$
+        $else$
+        return true;
+        $endif$
     }
 $endif$
 };
