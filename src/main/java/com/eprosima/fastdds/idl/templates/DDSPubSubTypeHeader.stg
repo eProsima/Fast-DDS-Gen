@@ -26,6 +26,8 @@ $fileHeader(ctx=ctx,  file=[ctx.filename, "PubSubTypes.h"], description=["This h
 
 #include "$ctx.filename$.h"
 
+$ctx.directIncludeDependencies : {include | #include "$include$PubSubTypes.h"}; separator="\n"$
+
 #if !defined(GEN_API_VER) || (GEN_API_VER != 1)
 #error \
     Generated $ctx.filename$ is not compatible with current installed Fast DDS. Please, regenerate it with fastddsgen.
