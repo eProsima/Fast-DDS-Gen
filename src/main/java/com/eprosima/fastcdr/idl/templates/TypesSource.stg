@@ -261,7 +261,7 @@ bool $struct.scopedname$::operator ==(
 {
     $if(struct.inheritances)$    $struct.inheritances : { if ($it.scopedname$::operator !=(x)) return false;}; separator="\n"$ $endif$
 
-    return ($struct.members:{m_$it.name$ == x.m_$it.name$}; separator=" && "$);
+    return $if(struct.members)$($struct.members:{m_$it.name$ == x.m_$it.name$}; separator=" && "$)$else$true$endif$;
 }
 
 bool $struct.scopedname$::operator !=(
