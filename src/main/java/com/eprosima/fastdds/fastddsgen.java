@@ -390,7 +390,7 @@ public class fastddsgen
                 Path path = Paths.get(entry.getKey()).getParent();
                 if (path != null)
                 {
-                    extraPaths += ":" + path.toString();
+                    extraPaths += ":" + path.toString().replace("\\", "/");
                 }
                 else
                 {
