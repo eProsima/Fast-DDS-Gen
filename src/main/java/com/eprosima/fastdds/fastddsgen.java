@@ -398,8 +398,9 @@ public class fastddsgen
                 }
             }
         	
-            TemplateManager.setGroupLoaderDirectories(
-                "com/eprosima/fastdds/idl/templates:com/eprosima/fastcdr/idl/templates" + extraPaths);
+            String templatePaths = "com/eprosima/fastdds/idl/templates:com/eprosima/fastcdr/idl/templates" + extraPaths;
+            System.out.println("Template resource folders: " + templatePaths);
+            TemplateManager.setGroupLoaderDirectories(templatePaths);
 
             // In local for all products
             if (m_os.contains("Windows"))
@@ -739,6 +740,7 @@ public class fastddsgen
             {
                 for (Map.Entry<String, String> entry : m_customStgOutput.entrySet())
                 {
+                    System.out.println("Loading custom template " + entry.getKey() + "...");
                     Path path = Paths.get(entry.getKey());
                     String templateName = path.getFileName().toString().substring(0, path.getFileName().toString().lastIndexOf('.'));
                     tmanager.addGroup(templateName);
