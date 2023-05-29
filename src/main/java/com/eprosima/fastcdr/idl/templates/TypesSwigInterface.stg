@@ -96,13 +96,21 @@ template_sequence_name(typecode) ::= <<
 $if(typecode.isSequenceType)$
 $template_sequence_name(typecode.contentTypeCode)$_vector
 $else$
-$typecode.cppTypename$_vector
+$typecode.idlTypename$_vector
 $endif$
 >>
 
 template_sequence(typecode) ::= <<
 $if(typecode.contentTypeCode.isSequenceType)$
 $template_sequence(typecode.contentTypeCode)$
+$elseif(typecode.contentTypeCode.primitive)$
+%extend std::vector<$typecode.contentTypeCode.cppTypename$>
+{
+    const $typecode.contentTypeCode.cppTypename$* get_buffer() const
+    {
+        return self->data();
+    }
+}
 $endif$
 
 %template($template_sequence_name(typecode.contentTypeCode)$) std::vector<$typecode.contentTypeCode.cppTypename$>;
@@ -122,7 +130,16 @@ $elseif(member.typecode.isMapType)$
 %template($member.typecode.keyTypeCode.cppTypename$_$member.typecode.valueTypeCode.cppTypename$_map) std::map<$member.typecode.keyTypeCode.cppTypename$,$member.typecode.valueTypeCode.cppTypename$>;
 $elseif(member.typecode.isType_f)$
 %ignore $struct_name$::$member.name$() const;
-%template($member.typecode.contentTypeCode.cppTypename$_$member.typecode.dimensions$_array) std::array<$member.typecode.contentTypeCode.cppTypename$,$member.typecode.dimensions$>;
+%template($member.typecode.contentTypeCode.idlTypename$_$member.typecode.dimensions$_array) std::array<$member.typecode.contentTypeCode.cppTypename$,$member.typecode.dimensions$>;
+$if(member.typecode.contentTypeCode.primitive)$
+%extend std::array<$member.typecode.contentTypeCode.cppTypename$, $member.typecode.dimensions$>
+{
+    const $member.typecode.contentTypeCode.cppTypename$* get_buffer() const
+    {
+        return self->data();
+    }
+}
+$endif$
 $else$
 %ignore $struct_name$::$member.name$();
 %rename("%s") $struct_name$::$member.name$() const;
