@@ -48,11 +48,10 @@ void register$ctx.filename$Types()
 {
     static std::once_flag once_flag;
     std::call_once(once_flag, []()
-        {
-            TypeObjectFactory *factory = TypeObjectFactory::get_instance();
-            $ctx.definitions: { def | $register_type(ctx=ctx, object=def, param="type_name")$}; separator="\n"$
-        }
-    );
+            {
+                TypeObjectFactory *factory = TypeObjectFactory::get_instance();
+                $ctx.definitions: { def | $register_type(ctx=ctx, object=def, param="type_name")$}; separator="\n"$
+            });
 }
 
 $definitions; separator="\n"$
