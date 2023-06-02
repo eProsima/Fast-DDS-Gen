@@ -520,6 +520,11 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
         return getTrimfilename().replaceAll("\\.", "_").replaceAll("-", "_");
     }
 
+    public String getTrimFilenameNotSpecialCharsUpper()
+    {
+        return getTrimFilenameNotSpecialChars().toUpperCase();
+    }
+
     public String getJniFilename()
     {
         return getFilename().replace("_", "_1");
