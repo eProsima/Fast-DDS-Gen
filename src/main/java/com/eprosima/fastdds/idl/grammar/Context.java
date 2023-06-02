@@ -55,7 +55,7 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
             boolean generate_type_ros2)
     {
         super(filename, file, includePaths);
-        m_fileNameUpper = filename.toUpperCase();
+        m_fileNameUpper = getFilename().toUpperCase();
         m_subscribercode = subscribercode;
         m_publishercode = publishercode;
         m_randomGenNames = new Stack<String>();
@@ -444,10 +444,10 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
             if (m_lastStructure.getHasScope())
             {
                 return m_lastStructure.getScope().replaceAll("::", "_").toUpperCase() +
-                       "_" + m_fileNameUpper.replaceAll("\\.", "_").replaceAll("-", "_");
+                       "_" + m_fileNameUpper.replaceAll("\\.", "_");
             }
         }
-        return m_fileNameUpper.replaceAll("\\.", "_").replaceAll("-", "_");
+        return m_fileNameUpper;
     }
 
     public String getM_lastStructureTopicDataTypeName()
@@ -513,16 +513,6 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
     public String getFileNameUpper()
     {
         return m_fileNameUpper;
-    }
-
-    public String getTrimFilenameNotSpecialChars()
-    {
-        return getTrimfilename().replaceAll("\\.", "_").replaceAll("-", "_");
-    }
-
-    public String getTrimFilenameNotSpecialCharsUpper()
-    {
-        return getTrimFilenameNotSpecialChars().toUpperCase();
     }
 
     public String getJniFilename()
