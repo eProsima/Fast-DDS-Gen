@@ -55,7 +55,7 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
             boolean generate_type_ros2)
     {
         super(filename, file, includePaths);
-        m_fileNameUpper = filename.toUpperCase();
+        m_fileNameUpper = getFilename().toUpperCase();
         m_subscribercode = subscribercode;
         m_publishercode = publishercode;
         m_randomGenNames = new Stack<String>();

@@ -762,7 +762,7 @@ public class fastddsgen
                         {
                             System.out.println("Generating Swig interface files...");
                             if (returnedValue =
-                                    Utils.writeFile(m_outputDir + onlyFileName + ".i",
+                                    Utils.writeFile(m_outputDir + ctx.getFilename() + ".i",
                                     maintemplates.getTemplate("TypesSwigInterface"), m_replace))
                             {
 
