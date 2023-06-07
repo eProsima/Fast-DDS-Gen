@@ -720,7 +720,7 @@ public_primitive_member_declaration(class, member) ::= <<
  * @param _$member.name$ New value for member $member.name$
  */
 void $class$::$member.name$(
-        $member.typecode.cppTypename$ _$member.name$)
+        $member_type_declaration(member)$ _$member.name$)
 {
     $if(member.typecode.forwarded)$    *$else$    $endif$m_$member.name$ = _$member.name$;
 }
@@ -729,7 +729,7 @@ void $class$::$member.name$(
  * @brief This function returns the value of member $member.name$
  * @return Value of member $member.name$
  */
-$member.typecode.cppTypename$ $class$::$member.name$() const
+$member_type_declaration(member)$ $class$::$member.name$() const
 {
     return $if(member.typecode.forwarded)$*$endif$m_$member.name$;
 }
@@ -738,7 +738,7 @@ $member.typecode.cppTypename$ $class$::$member.name$() const
  * @brief This function returns a reference to member $member.name$
  * @return Reference to member $member.name$
  */
-$member.typecode.cppTypename$& $class$::$member.name$()
+$member_type_declaration(member)$& $class$::$member.name$()
 {
     return $if(member.typecode.forwarded)$*$endif$m_$member.name$;
 }
@@ -773,7 +773,7 @@ public_object_member_declaration(class, member) ::= <<
  * @param _$member.name$ New value to be copied in member $member.name$
  */
 void $class$::$member.name$(
-        const $member.typecode.cppTypename$& _$member.name$)
+        const $member_type_declaration(member)$& _$member.name$)
 {
     $if(member.typecode.forwarded)$    *$else$    $endif$m_$member.name$ = _$member.name$;
 }
@@ -783,7 +783,7 @@ void $class$::$member.name$(
  * @param _$member.name$ New value to be moved in member $member.name$
  */
 void $class$::$member.name$(
-        $member.typecode.cppTypename$&& _$member.name$)
+        $member_type_declaration(member)$&& _$member.name$)
 {
     $if(member.typecode.forwarded)$    *$else$    $endif$m_$member.name$ = std::move(_$member.name$);
 }
@@ -792,7 +792,7 @@ void $class$::$member.name$(
  * @brief This function returns a constant reference to member $member.name$
  * @return Constant reference to member $member.name$
  */
-const $member.typecode.cppTypename$& $class$::$member.name$() const
+const $member_type_declaration(member)$& $class$::$member.name$() const
 {
     return $if(member.typecode.forwarded)$*$endif$m_$member.name$;
 }
@@ -801,7 +801,7 @@ const $member.typecode.cppTypename$& $class$::$member.name$() const
  * @brief This function returns a reference to member $member.name$
  * @return Reference to member $member.name$
  */
-$member.typecode.cppTypename$& $class$::$member.name$()
+$member_type_declaration(member)$& $class$::$member.name$()
 {
     return $if(member.typecode.forwarded)$*$endif$m_$member.name$;
 }
