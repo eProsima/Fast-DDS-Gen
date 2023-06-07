@@ -26,6 +26,7 @@ $endif$
 
 $ctx.directIncludeDependencies : {include | #include "$include$.h"}; separator="\n"$
 
+#include <fastcdr/xcdr/optional.hpp>
 #include <fastrtps/utils/fixed_size_string.hpp>
 
 #include <stdint.h>
@@ -525,19 +526,19 @@ public_member_primitive_declaration(member) ::= <<
  * @param _$member.name$ New value for member $member.name$
  */
 eProsima_user_DllExport void $member.name$(
-        $member.typecode.cppTypename$ _$member.name$);
+        $member_type_declaration(member)$ _$member.name$);
 
 /*!
  * @brief This function returns the value of member $member.name$
  * @return Value of member $member.name$
  */
-eProsima_user_DllExport $member.typecode.cppTypename$ $member.name$() const;
+eProsima_user_DllExport $member_type_declaration(member)$ $member.name$() const;
 
 /*!
  * @brief This function returns a reference to member $member.name$
  * @return Reference to member $member.name$
  */
-eProsima_user_DllExport $member.typecode.cppTypename$& $member.name$();
+eProsima_user_DllExport $member_type_declaration(member)$& $member.name$();
 >>
 
 public_member_cstring_declaration(member) ::= <<
@@ -546,13 +547,13 @@ public_member_cstring_declaration(member) ::= <<
  * @param _$member.name$ New value for member $member.name$
  */
 eProsima_user_DllExport void $member.name$(
-        const $member.typecode.cppTypename$ _$member.name$);
+        const $member_type_declaration(member)$ _$member.name$);
 
 /*!
  * @brief This function returns the value of member $member.name$
  * @return Value of member $member.name$
  */
-eProsima_user_DllExport const $member.typecode.cppTypename$ $member.name$() const;
+eProsima_user_DllExport const $member_type_declaration(member)$ $member.name$() const;
 >>
 
 public_member_common_declaration(member) ::= <<
@@ -561,26 +562,26 @@ public_member_common_declaration(member) ::= <<
  * @param _$member.name$ New value to be copied in member $member.name$
  */
 eProsima_user_DllExport void $member.name$(
-        const $member.typecode.cppTypename$& _$member.name$);
+        const $member_type_declaration(member)$& _$member.name$);
 
 /*!
  * @brief This function moves the value in member $member.name$
  * @param _$member.name$ New value to be moved in member $member.name$
  */
 eProsima_user_DllExport void $member.name$(
-        $member.typecode.cppTypename$&& _$member.name$);
+        $member_type_declaration(member)$&& _$member.name$);
 
 /*!
  * @brief This function returns a constant reference to member $member.name$
  * @return Constant reference to member $member.name$
  */
-eProsima_user_DllExport const $member.typecode.cppTypename$& $member.name$() const;
+eProsima_user_DllExport const $member_type_declaration(member)$& $member.name$() const;
 
 /*!
  * @brief This function returns a reference to member $member.name$
  * @return Reference to member $member.name$
  */
-eProsima_user_DllExport $member.typecode.cppTypename$& $member.name$();
+eProsima_user_DllExport $member_type_declaration(member)$& $member.name$();
 >>
 
 public_bitfield_declaration(member) ::= <<
@@ -601,7 +602,11 @@ $endif$
 >>
 
 private_member_declaration(member) ::= <<
+$if(!member.annotationOptional)$
 $private_declaration(typecode=member.typecode, name=member.name)$
+$else$
+$private_optional_declaration(typecode=member.typecode, name=member.name)$
+$endif$
 >>
 
 public_unionmember_declaration(member) ::= <<
@@ -691,6 +696,9 @@ private_declaration(typecode, name) ::= <<
 $typecode.cppTypename$$if(typecode.forwarded)$*$endif$ m_$name$;
 >>
 
+private_optional_declaration(typecode, name) ::= <<
+eprosima::fastcdr::optional<$typecode.cppTypename$> m_$name$;
+>>
 
 /*! TODO Quitado de FastBuffers porque no encaja con las excepciones de fastrpc.
  * @brief This function calculates the space needed to serialize a type $type.scopedname$.
