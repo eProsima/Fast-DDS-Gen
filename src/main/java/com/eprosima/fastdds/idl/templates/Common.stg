@@ -127,6 +127,10 @@ class $type.name$;
 
 >>
 
+member_type_declaration(member) ::= <<
+$if(member.annotationOptional)$eprosima::fastcdr::optional<$endif$$member.typecode.cppTypename$$if(member.annotationOptional)$>$endif$
+>>
+
 boolean_converter ::= [
     "true":"true",
     default:
