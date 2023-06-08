@@ -56,12 +56,17 @@ $object_seq_serialization(ctx=ctx, object=object, preffix=preffix)$
 $elseif(object.typecode.isMapType)$
 $object_map_serialization(ctx=ctx, object=object, preffix=preffix)$
 $else$
-scdr << $member_id_serialization(object)$ $serializeCasting(typecode=object.typecode)$$preffix$$object.name$$if(object.typecode.isStringType)$$object_function_access(object)$c_str()$endif$;
+scdr << $member_id_serialization(object)$ $serializeCasting(typecode=object.typecode)$$preffix$$object.name$;
 $endif$
 >>
 
 object_array_serialization(ctx, object, preffix) ::= <<
-$if(object.typecode.contentTypeCode.isStringType)$
+$if(object.annotationOptional)$
+scdr << eprosima::fastcdr::MemberId($object.id$);
+$endif$
+$if(object.typecode.contentTypeCode.isType_c)$
+scdr.serializeArray(reinterpret_cast<const uint32_t*>($preffix$$object.name$.data()), $preffix$$object.name$.size());
+$elseif(object.typecode.contentTypeCode.isStringType)$
 $string_collection_serialization(ctx=ctx, object=object, preffix=preffix)$
 $elseif(rest(object.typecode.dimensions))$
 $recursive_array_array_serialization(ctx=ctx, name=cdrMemberName(name=object.name, preffix=preffix),  loopvar=ctx.nextLoopVarName, dims=object.typecode.dimensions, object=object)$
@@ -76,6 +81,9 @@ $endif$
 >>
 
 object_seq_serialization(ctx, object, preffix) ::= <<
+$if(object.annotationOptional)$
+scdr << eprosima::fastcdr::MemberId($object.id$);
+$endif$
 $if(object.typecode.contentTypeCode.isType_c)$
 scdr << static_cast<uint32_t>($preffix$$object.name$.size());
 scdr.serializeArray(reinterpret_cast<const uint32_t*>($preffix$$object.name$.data()), $preffix$$object.name$.size());
