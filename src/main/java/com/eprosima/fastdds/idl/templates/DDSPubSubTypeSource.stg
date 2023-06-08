@@ -97,6 +97,7 @@ bool $if (parent.IsInterface)$$parent.name$_$endif$$struct.name$PubSubType::seri
     // Object that serializes the data.
     eprosima::fastcdr::Cdr ser(fastbuffer, eprosima::fastcdr::Cdr::DEFAULT_ENDIAN, eprosima::fastcdr::Cdr::CdrVersion::XCDRv2);
     payload->encapsulation = ser.endianness() == eprosima::fastcdr::Cdr::BIG_ENDIANNESS ? CDR_BE : CDR_LE;
+    ser.set_encoding_flag(eprosima::fastcdr::Cdr::EncodingAlgorithmFlag::PLAIN_CDR2);
 
     try
     {

@@ -396,7 +396,7 @@ public:
 
 private:
 
-    $private_declaration(typecode=union.discriminator, name="_d")$
+    $union.discriminator.cppTypename$ m__d;
 
     $union.members:{$private_member_declaration(member=it)$}; separator="\n"$
 };
@@ -601,11 +601,7 @@ $endif$
 >>
 
 private_member_declaration(member) ::= <<
-$if(!member.annotationOptional)$
-$private_declaration(typecode=member.typecode, name=member.name)$
-$else$
-$private_optional_declaration(typecode=member.typecode, name=member.name)$
-$endif$
+$if(member.annotationOptional)$eprosima::fastcdr::optional<$endif$$member.typecode.cppTypename$$if(member.typecode.forwarded)$*$endif$$if(member.annotationOptional)$>$endif$ m_$member.name$$member_init_default(member)$;
 >>
 
 public_unionmember_declaration(member) ::= <<
@@ -691,12 +687,16 @@ eProsima_user_DllExport const $member.typecode.cppTypename$& $member.name$() con
 eProsima_user_DllExport $member.typecode.cppTypename$& $member.name$();
 >>
 
-private_declaration(typecode, name) ::= <<
-$typecode.cppTypename$$if(typecode.forwarded)$*$endif$ m_$name$;
->>
-
-private_optional_declaration(typecode, name) ::= <<
-eprosima::fastcdr::optional<$typecode.cppTypename$> m_$name$;
+member_init_default(member) ::= <<
+$if(!member.typecode.forwarded)$
+$if(member.annotationDefault)$
+{$member.annotationDefaultValue$}
+$elseif(!member.annotationOptional)$
+$if(member.typecode.initialValue)$
+{$member.typecode.initialValue$}
+$endif$
+$endif$
+$endif$
 >>
 
 /*! TODO Quitado de FastBuffers porque no encaja con las excepciones de fastrpc.
