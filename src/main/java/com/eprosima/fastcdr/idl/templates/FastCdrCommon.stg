@@ -634,20 +634,6 @@ $if(typecode.isStringType)$
 $else$
 dcdr \>> $if(typecode.forwarded)$*$endif$$preffix$$name$;
 $endif$
-$elseif(typecode.isStringType)$
-$if(typecode.isBounded)$
-{
-    std::string aux;
-    dcdr \>> aux;
-    $if(typecode.forwarded)$*$endif$$preffix$$name$ = aux.c_str();
-}
-$else$
-dcdr \>> $if(typecode.forwarded)$*$endif$$preffix$$name$;
-$endif$
-$else$
-dcdr \>> $if(typecode.forwarded)$*$endif$$preffix$$name$;
-$endif$
-
 $else$
 dcdr \>> $if(typecode.forwarded)$*$endif$$preffix$$name$;
 $endif$
