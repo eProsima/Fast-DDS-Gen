@@ -87,6 +87,7 @@ $endif$
 $definitions; separator="\n"$
 
 #endif // _FAST_DDS_GENERATED_$ctx.headerGuardName$_H_
+$"\n"$
 >>
 
 // TODO name -> module

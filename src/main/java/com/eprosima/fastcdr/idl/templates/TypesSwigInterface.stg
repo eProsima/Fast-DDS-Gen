@@ -52,7 +52,7 @@ $definitions; separator="\n"$
 
 // Include the corresponding TopicDataType
 %include "$ctx.filename$PubSubTypes.i"
-
+$"\n"$
 >>
 
 fast_macro_declarations() ::= <<
