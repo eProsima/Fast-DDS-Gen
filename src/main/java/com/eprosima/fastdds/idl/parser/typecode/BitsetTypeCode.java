@@ -27,6 +27,7 @@ public class BitsetTypeCode extends com.eprosima.idl.parser.typecode.BitsetTypeC
         super(scope, name);
     }
 
+    @Override
     public long maxSerializedSize(
             long current_alignment)
     {

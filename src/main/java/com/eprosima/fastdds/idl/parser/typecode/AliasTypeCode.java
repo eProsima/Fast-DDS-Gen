@@ -24,6 +24,7 @@ public class AliasTypeCode extends com.eprosima.idl.parser.typecode.AliasTypeCod
         super(scope, name);
     }
 
+    @Override
     public long maxSerializedSize(
             long current_alignment)
     {
