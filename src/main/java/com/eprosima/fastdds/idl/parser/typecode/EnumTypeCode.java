@@ -24,6 +24,7 @@ public class EnumTypeCode extends com.eprosima.idl.parser.typecode.EnumTypeCode
         super(scope, name);
     }
 
+    @Override
     public long maxSerializedSize(
             long current_alignment)
     {

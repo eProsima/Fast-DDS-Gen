@@ -34,6 +34,7 @@ public class UnionTypeCode extends com.eprosima.idl.parser.typecode.UnionTypeCod
         super(scope, name, discriminatorTypeCode);
     }
 
+    @Override
     public long maxSerializedSize(
             long current_alignment)
     {
@@ -55,5 +56,4 @@ public class UnionTypeCode extends com.eprosima.idl.parser.typecode.UnionTypeCod
 
         return union_max_size_serialized - initial_alignment;
     }
-
 }

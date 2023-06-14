@@ -23,6 +23,7 @@ public class SequenceTypeCode extends com.eprosima.idl.parser.typecode.SequenceT
         super(maxsize);
     }
 
+    @Override
     public long maxSerializedSize(
             long current_alignment)
     {

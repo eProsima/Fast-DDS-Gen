@@ -23,6 +23,7 @@ public class MapTypeCode extends com.eprosima.idl.parser.typecode.MapTypeCode
         super(maxsize);
     }
 
+    @Override
     public long maxSerializedSize(
             long current_alignment)
     {

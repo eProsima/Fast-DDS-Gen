@@ -24,6 +24,7 @@ public class PrimitiveTypeCode extends com.eprosima.idl.parser.typecode.Primitiv
         super(kind);
     }
 
+    @Override
     public long maxSerializedSize(
             long current_alignment)
     {
