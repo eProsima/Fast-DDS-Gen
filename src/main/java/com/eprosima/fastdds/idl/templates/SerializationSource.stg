@@ -45,7 +45,7 @@ void $if(struct.hasScope)$$struct.scope$::$endif$print$struct.name$(
         $struct.name$* topic)
 {
     printf("$struct.name$: { \n");
-    $struct.allMembers:{$member_print(ctx=ctx, typecode=it.typecode, name=it.name)$}; separator="\n"$
+    $struct.allMembers:{$member_print(ctx=ctx, typecode=it.typecode, name=it.name, optional=it.annotationOptional)$}; separator="\n"$
     printf("}\n");
 }
 
@@ -455,16 +455,20 @@ $endif$
 // ========================================================================================
 //                                         PRINT
 // ========================================================================================
-member_print(ctx, typecode, name, originName) ::= <<
+member_print(ctx, typecode, name, originName, optional) ::= <<
+$if(optional)$
+if (topic->$name$().has_value()) {
+$endif$
+
 $if(typecode.primitive)$
-printf("$name$: 0x%" PRIx64 "\n", (uint64_t)topic->$name$());
+printf("$name$: 0x%" PRIx64 "\n", (uint64_t)topic->$name$()$if(optional)$.value()$endif$);
 $elseif(typecode.isType_d)$
 $if(typecode.isWStringType)$
-printf("$name$: %S\n", topic->$name$().c_str());
+printf("$name$: %S\n", topic->$name$()$if(optional)$.value()$endif$.c_str());
 $elseif(ctx.generateTypesC)$
-printf("$name$: %s\n", topic->$name$());
+printf("$name$: %s\n", topic->$name$()$if(optional)$.value()$endif$);
 $else$
-printf("$name$: %s\n", topic->$name$().c_str());
+printf("$name$: %s\n", topic->$name$()$if(optional)$.value()$endif$.c_str());
 $endif$
 $elseif(typecode.isType_10)$
 $member_print(ctx=ctx, typecode=typecode.typedefContentTypeCode, name=name, originName=originName)$
@@ -475,7 +479,11 @@ $map_print(ctx=ctx, typecode=typecode, name=name, originName=originName, p="()",
 $elseif(typecode.isType_f)$
 $array_print(ctx=ctx, typecode=typecode, name=name, originName=originName, dimensions=typecode.dimensions, p="()", loopvar=ctx.newLoopVarName)$
 $else$
-$typecode.scope$::print$typecode.name$(&topic->$name$());
+$typecode.scope$::print$typecode.name$(&topic->$name$()$if(optional)$.value()$endif$);
+$endif$
+
+$if(optional)$
+}
 $endif$
 >>
 
@@ -801,4 +809,5 @@ free_string$typecode.name$(&topic->$name$());
 $elseif(typecode.isSequenceType)$$if(typecode.contentTypeCode.isType_d)$
 char** $name$_buffer = topic->$name$().value(true);
 delete[] $name$_buffer;
-$endif$$endif$$endif$>>
+$endif$$endif$$endif$
+>>

@@ -107,8 +107,6 @@ public class FastDDSGenTest
         tests.addCMakeArguments("-DCMAKE_BUILD_TYPE=Debug");
         tests.removeTests("basic_inner_types");
 
-
-
         boolean testResult = tests.runTests();
         System.exit(testResult ? 0 : -1);
     }
