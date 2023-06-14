@@ -18,6 +18,7 @@ public class ArrayTypeCode extends com.eprosima.idl.parser.typecode.ArrayTypeCod
     implements TypeCode
 {
 
+    @Override
     public long maxSerializedSize(
             long current_alignment)
     {

@@ -23,6 +23,7 @@ public class SetTypeCode extends com.eprosima.idl.parser.typecode.SetTypeCode
         super(maxsize);
     }
 
+    @Override
     public long maxSerializedSize(
             long current_alignment)
     {
