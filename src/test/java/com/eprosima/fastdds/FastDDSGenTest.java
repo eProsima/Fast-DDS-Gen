@@ -37,7 +37,7 @@ public class FastDDSGenTest
         TestManager tests = new TestManager(TestLevel.RUN, "share/fastddsgen/java/fastddsgen", INPUT_PATH,
                         OUTPUT_PATH + "/idls", "CMake");
         tests.addCMakeArguments("-DCMAKE_BUILD_TYPE=Debug");
-        tests.removeTests(IDL.ARRAY_NESTED, IDL.SEQUENCE_NESTED);
+        //tests.removeTests(IDL.ARRAY_NESTED, IDL.SEQUENCE_NESTED);
         boolean testResult = tests.runTests();
         System.exit(testResult ? 0 : -1);
     }
