@@ -26,6 +26,8 @@ $fileHeader(ctx=ctx,  file=[ctx.filename, "SerializationSource.cpp"], descriptio
 #include <string.h>
 #include <cassert>
 
+bool g_test_null_opt = false;
+
 $ctx.directIncludeDependencies:{#include "$it$Serialization.h"}; separator="\n"$
 
 $definitions; separator="\n"$
@@ -55,7 +57,16 @@ void $if(struct.hasScope)$$struct.scope$::$endif$initialize$struct.name$(
 {
     if (idx == 0)
     {
-        $struct.allMembers:{$member_assignment(ctx=ctx, typecode=it.typecode, name=it.name, originName=it.name)$}; separator="\n"$
+        $struct.allMembers:{
+            $if(it.annotationOptional)$
+            if(!g_test_null_opt)
+            {
+            $endif$
+            $member_assignment(ctx=ctx, typecode=it.typecode, name=it.name, originName=it.name)$
+            $if(it.annotationOptional)$
+            }
+            $endif$
+        }; separator="\n"$
     }
     else
     {
