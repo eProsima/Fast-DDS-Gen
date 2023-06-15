@@ -34,6 +34,7 @@ module(ctx, parent, module, definition_list) ::= <<
 namespace $module.name$ {
     $definition_list$
 } //End of namespace $module.name$
+
 >>
 
 definition_list(definitions) ::= <<

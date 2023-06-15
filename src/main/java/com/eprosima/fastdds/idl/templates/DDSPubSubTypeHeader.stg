@@ -36,6 +36,7 @@ $ctx.directIncludeDependencies : {include | #include "$include$PubSubTypes.h"}; 
 $definitions; separator="\n"$
 
 #endif // _FAST_DDS_GENERATED_$ctx.headerGuardName$_PUBSUBTYPES_H_
+$"\n"$
 >>
 
 // TODO name -> module
