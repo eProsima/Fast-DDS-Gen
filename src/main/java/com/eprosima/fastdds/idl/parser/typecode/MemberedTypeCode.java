@@ -50,20 +50,28 @@ public interface MemberedTypeCode extends TypeCode
     static long xcdr_extra_member_serialized_size(
             long current_alignment,
             com.eprosima.idl.parser.typecode.TypeCode.ExtensibilityKind memberedtypecode_ext_kind,
-            boolean member_optional)
+            boolean member_optional,
+            int member_size)
     {
         long returned_alignment = current_alignment;
 
         if (com.eprosima.idl.parser.typecode.TypeCode.ExtensibilityKind.MUTABLE.get_value() == memberedtypecode_ext_kind.get_value() ||
                 member_optional)
         {
-            // If member is from a MUTABLE type (or it is optional member) the maximum is XCDR1 LongMemberHeader.
-            // << ALIGN(4)
-            // << { FLAG_I + FLAG_M + PID_EXTENDED : UInt16 }
-            // << { slength=8 : UInt16 }
-            // << { M.id : <<: UInt32 }
-            // << { M.value.ssize : UInt32 }
-            returned_alignment += 4 + 4 + 4+ TypeCode.cdr_alignment(returned_alignment, 4);
+            if (5 > member_size)
+            {
+                returned_alignment += 4 + TypeCode.cdr_alignment(returned_alignment, 4);
+            }
+            else
+            {
+                // If member is from a MUTABLE type (or it is optional member) the maximum is XCDR1 LongMemberHeader.
+                // << ALIGN(4)
+                // << { FLAG_I + FLAG_M + PID_EXTENDED : UInt16 }
+                // << { slength=8 : UInt16 }
+                // << { M.id : <<: UInt32 }
+                // << { M.value.ssize : UInt32 }
+                returned_alignment += 4 + 4 + 4 + TypeCode.cdr_alignment(returned_alignment, 4);
+            }
         }
 
         return returned_alignment;

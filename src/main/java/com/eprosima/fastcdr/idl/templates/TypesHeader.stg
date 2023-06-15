@@ -26,6 +26,10 @@ $endif$
 
 $ctx.directIncludeDependencies : {include | #include "$include$.h"}; separator="\n"$
 
+$if(ctx.cdr)$
+#include <fastcdr/CdrSizeCalculator.hpp>
+
+$endif$
 #include <fastcdr/cdr/fixed_size_string.hpp>
 #include <fastcdr/xcdr/optional.hpp>
 
@@ -506,7 +510,9 @@ public_struct_inheritances(parent) ::= <<$parent.scopedname$>>
 public_bitset_inheritances(parent) ::= <<$parent.scopedname$>>
 
 public_member_declaration(member) ::= <<
-$if(member.typecode.primitive)$
+$if(member.annotationOptional)$
+$public_member_common_declaration(member=member)$
+$elseif(member.typecode.primitive)$
 $public_member_primitive_declaration(member=member)$
 $elseif(ctx.generateTypesC)$
 $if(member.typecode.isStringType)$
@@ -601,7 +607,7 @@ $endif$
 >>
 
 private_member_declaration(member) ::= <<
-$if(member.annotationOptional)$eprosima::fastcdr::optional<$endif$$member.typecode.cppTypename$$if(member.typecode.forwarded)$*$endif$$if(member.annotationOptional)$>$endif$ m_$member.name$$member_init_default(member)$;
+$object_cpptypename(object=member)$ m_$member.name$$member_init_default(member)$;
 >>
 
 public_unionmember_declaration(member) ::= <<
@@ -724,7 +730,8 @@ $if(ctx.anyCdr)$
  * @param current_alignment Buffer alignment.
  * @return Serialized size.
  */
-eProsima_user_DllExport static size_t getCdrSerializedSize(
+eProsima_user_DllExport static size_t calculate_serialized_size(
+        const eprosima::fastcdr::CdrSizeCalculator& calculator,
         const $type.scopedname$& data,
         size_t current_alignment = 0);
 
@@ -842,7 +849,8 @@ $if(ctx.anyCdr)$
     static size_t getMaxCdrSerializedSize(
             size_t current_alignment = 0);
 
-    static size_t getCdrSerializedSize(
+    static size_t calculate_serialized_size(
+            const eprosima::fastcdr::CdrSizeCalculator& calculator,
             const $typename$& data,
             size_t current_alignment = 0);
 

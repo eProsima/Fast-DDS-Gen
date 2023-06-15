@@ -48,7 +48,7 @@ int main(void)
 
 >>
 
-struct_type(ctx, parent, struct) ::= <<
+function_to_run(ctx, parent, struct, cdr_version, test_null_optional) ::= <<
 functions_to_run.emplace_back([]() -> bool
 {
     printf("\n========================================Testing $struct.name$ ========================================\n");
@@ -58,23 +58,29 @@ functions_to_run.emplace_back([]() -> bool
     $struct.name$ $struct.name$_serialization_topic;
     $struct.name$ $struct.name$_deserialization_topic;
 
+    g_test_null_opt = $test_null_optional$;
+
     initialize$struct.name$(&$struct.name$_serialization_topic);
 
     $struct.name$PubSubType pst;
-    uint32_t payloadSize = static_cast<uint32_t>(pst.getSerializedSizeProvider(&$struct.name$_serialization_topic)());
+    uint32_t payloadSize = static_cast<uint32_t>(pst.getSerializedSizeProvider(&$struct.name$_serialization_topic,
+                $cdr_version$)());
 
     SerializedPayload_t payload(payloadSize);
-    if (pst.serialize(&$struct.name$_serialization_topic, &payload) == 0)
+    if (pst.serialize(&$struct.name$_serialization_topic, &payload,
+                $cdr_version$) == 0)
     {
         return false;
     }
 
-    if (pst.deserialize(&payload, &$struct.name$_deserialization_topic) == 0)
+    if (pst.deserialize(&payload, &$struct.name$_deserialization_topic,
+                $cdr_version$) == 0)
     {
         return false;
     }
 
-    uint32_t payloadOutSize = static_cast<uint32_t>(pst.getSerializedSizeProvider(&$struct.name$_deserialization_topic)());
+    uint32_t payloadOutSize = static_cast<uint32_t>(pst.getSerializedSizeProvider(&$struct.name$_deserialization_topic,
+                $cdr_version$)());
 
     int topic_equal = compare$struct.name$(&$struct.name$_serialization_topic, &$struct.name$_deserialization_topic);
     bool size_equal = payloadOutSize == payloadSize;
@@ -116,6 +122,26 @@ functions_to_run.emplace_back([]() -> bool
 
     return payload.length == payloadSize;
 });
+>>
+
+struct_type(ctx, parent, struct) ::= <<
+$function_to_run(ctx=ctx, parent=parent, struct=struct,
+        cdr_version="eprosima::fastdds::dds::DataRepresentationId_t::XCDR_DATA_REPRESENTATION",
+        test_null_optional="false")$
+
+$function_to_run(ctx=ctx, parent=parent, struct=struct,
+        cdr_version="eprosima::fastdds::dds::DataRepresentationId_t::XCDR2_DATA_REPRESENTATION",
+        test_null_optional="false")$
+
+$if (struct.containsOptional)$
+$function_to_run(ctx=ctx, parent=parent, struct=struct,
+        cdr_version="eprosima::fastdds::dds::DataRepresentationId_t::XCDR_DATA_REPRESENTATION",
+        test_null_optional="true")$
+
+$function_to_run(ctx=ctx, parent=parent, struct=struct,
+        cdr_version="eprosima::fastdds::dds::DataRepresentationId_t::XCDR2_DATA_REPRESENTATION",
+        test_null_optional="true")$
+$endif$
 >>
 
 union_type(ctx, parent, union) ::= <<>>

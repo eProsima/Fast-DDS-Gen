@@ -332,10 +332,12 @@ $endif$
 >>
 
 serialized_size(ctx, object, data, var) ::= <<
-$if(object.typecode.isType_13)$
+$if(object.annotationOptional)$
+$var$ += calculator.calculate_serialized_size(eprosima::fastcdr::MemberId($object.id$), $data$.$object.name$(), $var$);
+$elseif(object.typecode.isType_13)$
 $var$ += 16$if(ctx.cdr)$ + eprosima::fastcdr::Cdr::alignment($var$, 8)$endif$; // 128 bits, but aligned as 64
 $elseif(object.typecode.primitive)$
-$var$ += $object.typecode.size$$if(ctx.cdr)$ + eprosima::fastcdr::Cdr::alignment($var$, $object.typecode.size$)$endif$;
+$var$ += calculator.calculate_serialized_size($data$.$object.name$(), $var$);
 
 $elseif(object.typecode.isWStringType)$
 $var$ += 4$if(ctx.cdr)$ + eprosima::fastcdr::Cdr::alignment($var$, 4)$endif$ + ($data$.$object.name$()$object_function_access(object)$size()) * 4; // 32 bits
@@ -384,18 +386,7 @@ else
 }
 $endif$
 $else$
-$if(!object.annotationOptional)$
-$var$ += $object.typecode.scopedname$::getCdrSerializedSize($data$.$object.name$(), $var$);
-$else$
-if ($data$.$object.name$().has_value())
-{
-    $var$ += $object.typecode.scopedname$::getCdrSerializedSize(*$data$.$object.name$(), $var$);
-}
-else
-{
-    //TODO
-}
-$endif$
+$var$ += $object.typecode.scopedname$::calculate_serialized_size(calculator, $data$.$object.name$(), $var$);
 $endif$
 
 >>
@@ -472,7 +463,7 @@ $elseif(typecodeSeq.contentTypeCode.isType_f)$
     $array_serialized_size(ctx=ctx, typecodeArr=typecodeSeq.contentTypeCode, data=[data, access, "at(", loopvar, ")"], var=var, loopvar=ctx.nextLoopVarName, dimensions=typecodeSeq.contentTypeCode.dimensions)$
     $endif$
 $else$
-    $var$ += $typecodeSeq.contentTypeCode.scopedname$::getCdrSerializedSize($if(ctx.generateTypesC)$$data$$access$value()[$loopvar$]$else$$data$$access$at($loopvar$)$endif$, $var$);
+    $var$ += $typecodeSeq.contentTypeCode.scopedname$::calculate_serialized_size(calculator, $if(ctx.generateTypesC)$$data$$access$value()[$loopvar$]$else$$data$$access$at($loopvar$)$endif$, $var$);
 $endif$
 }
 $endif$
@@ -535,7 +526,7 @@ $elseif(typecodeArr.contentTypeCode.isType_e)$
 $elseif(typecodeArr.contentTypeCode.isType_f)$
     $array_serialized_size(ctx=ctx, typecodeArr=typecodeArr.contentTypeCode, data=data, var=var, loopvar=loopvar, dimensions=typecodeArr.contentTypeCode.dimensions)$
 $else$
-    $var$ += $typecodeArr.contentTypeCode.scopedname$::getCdrSerializedSize($data$, $var$);
+    $var$ += $typecodeArr.contentTypeCode.scopedname$::calculate_serialized_size(calculator, $data$, $var$);
 $endif$
 $endif$
 $endif$
@@ -600,7 +591,7 @@ $elseif(typecodeMapElement.isType_e)$
 $elseif(typecodeMapElement.isType_f)$
     $array_serialized_size(ctx=ctx, typecodeArr=typecodeMapElement, data=data, var=var, loopvar=ctx.nextLoopVarName, dimensions=typecodeMapElement.dimensions)$
 $else$
-    $var$ += $typecodeMapElement.scopedname$::getCdrSerializedSize($data$, $var$);
+    $var$ += $typecodeMapElement.scopedname$::calculate_serialized_size(calculator, $data$, $var$);
 $endif$
 >>
 
@@ -644,6 +635,10 @@ cdrIndexName(name, loopvar) ::= <<$name$[$loopvar$]>>
 cdrMemberName(name, preffix) ::= <<$preffix$$name$>>
 
 const_decl(ctx, parent, const) ::= <<>>
+
+object_cpptypename(object) ::= <<
+$if(object.annotationOptional)$eprosima::fastcdr::optional<$endif$$object.typecode.cppTypename$$if(object.typecode.forwarded)$*$endif$$if(object.annotationOptional)$>$endif$
+>>
 
 object_function_access(object) ::= <<$if(object.annotationOptional)$->$else$.$endif$>>
 

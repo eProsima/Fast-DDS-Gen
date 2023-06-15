@@ -20,11 +20,13 @@ $fileHeader(ctx=ctx,  file=[ctx.filename, "PubSubTypes.cpp"], description=["This
 
 #include <fastcdr/FastBuffer.h>
 #include <fastcdr/Cdr.h>
+#include <fastcdr/CdrSizeCalculator.hpp>
 
 #include "$ctx.filename$PubSubTypes.h"
 
 using SerializedPayload_t = eprosima::fastrtps::rtps::SerializedPayload_t;
 using InstanceHandle_t = eprosima::fastrtps::rtps::InstanceHandle_t;
+using DataRepresentationId_t = eprosima::fastdds::dds::DataRepresentationId_t;
 
 $definitions; separator="\n"$
 
@@ -88,16 +90,17 @@ $if (parent.IsInterface)$$parent.name$_$endif$$struct.name$PubSubType::~$if (par
 
 bool $if (parent.IsInterface)$$parent.name$_$endif$$struct.name$PubSubType::serialize(
         void* data,
-        SerializedPayload_t* payload)
+        SerializedPayload_t* payload,
+        DataRepresentationId_t data_representation)
 {
     $if (parent.IsInterface)$$struct.scopedname$$else$$struct.name$$endif$* p_type = static_cast<$if (parent.IsInterface)$$struct.scopedname$$else$$struct.name$$endif$*>(data);
 
     // Object that manages the raw buffer.
     eprosima::fastcdr::FastBuffer fastbuffer(reinterpret_cast<char*>(payload->data), payload->max_size);
     // Object that serializes the data.
-    eprosima::fastcdr::Cdr ser(fastbuffer, eprosima::fastcdr::Cdr::DEFAULT_ENDIAN, eprosima::fastcdr::Cdr::CdrVersion::XCDRv2);
+    eprosima::fastcdr::Cdr ser(fastbuffer, eprosima::fastcdr::Cdr::DEFAULT_ENDIAN,
+            data_representation == DataRepresentationId_t::XCDR_DATA_REPRESENTATION ? eprosima::fastcdr::CdrVersion::XCDRv1 : eprosima::fastcdr::CdrVersion::XCDRv2);
     payload->encapsulation = ser.endianness() == eprosima::fastcdr::Cdr::BIG_ENDIANNESS ? CDR_BE : CDR_LE;
-    ser.set_encoding_flag(eprosima::fastcdr::Cdr::EncodingAlgorithmFlag::PLAIN_CDR2);
 
     try
     {
@@ -118,7 +121,8 @@ bool $if (parent.IsInterface)$$parent.name$_$endif$$struct.name$PubSubType::seri
 
 bool $if (parent.IsInterface)$$parent.name$_$endif$$struct.name$PubSubType::deserialize(
         SerializedPayload_t* payload,
-        void* data)
+        void* data,
+        DataRepresentationId_t data_representation)
 {
     try
     {
@@ -129,7 +133,8 @@ bool $if (parent.IsInterface)$$parent.name$_$endif$$struct.name$PubSubType::dese
         eprosima::fastcdr::FastBuffer fastbuffer(reinterpret_cast<char*>(payload->data), payload->length);
 
         // Object that deserializes the data.
-        eprosima::fastcdr::Cdr deser(fastbuffer, eprosima::fastcdr::Cdr::DEFAULT_ENDIAN, eprosima::fastcdr::Cdr::CdrVersion::XCDRv2);
+        eprosima::fastcdr::Cdr deser(fastbuffer, eprosima::fastcdr::Cdr::DEFAULT_ENDIAN,
+                data_representation == DataRepresentationId_t::XCDR_DATA_REPRESENTATION ? eprosima::fastcdr::CdrVersion::XCDRv1 :eprosima::fastcdr::CdrVersion::XCDRv2);
 
         // Deserialize encapsulation.
         deser.read_encapsulation();
@@ -147,12 +152,16 @@ bool $if (parent.IsInterface)$$parent.name$_$endif$$struct.name$PubSubType::dese
 }
 
 std::function<uint32_t()> $if (parent.IsInterface)$$parent.name$_$endif$$struct.name$PubSubType::getSerializedSizeProvider(
-        void* data)
+        void* data,
+        DataRepresentationId_t data_representation)
 {
-    return [data]() -> uint32_t
+    return [data, data_representation]() -> uint32_t
            {
-               return static_cast<uint32_t>(type::getCdrSerializedSize(*static_cast<$if (parent.IsInterface)$$parent.name$_$endif$$struct.name$*>(data))) +
-                      4u /*encapsulation*/;
+               eprosima::fastcdr::CdrSizeCalculator calculator(
+                       data_representation == DataRepresentationId_t::XCDR_DATA_REPRESENTATION ? eprosima::fastcdr::CdrVersion::XCDRv1 :eprosima::fastcdr::CdrVersion::XCDRv2);
+               return static_cast<uint32_t>(type::calculate_serialized_size(calculator,
+                           *static_cast<$if (parent.IsInterface)$$parent.name$_$endif$$struct.name$*>(data))) +
+                            4u /*encapsulation*/;
            };
 }
 
