@@ -3,7 +3,7 @@ package test.com.eprosima.fastdds;
 import org.junit.jupiter.api.Test;
 
 import com.eprosima.integration.Command;
-import com.eprosima.integration.IDL;
+
 import com.eprosima.integration.TestManager;
 import com.eprosima.integration.TestManager.TestLevel;
 
@@ -15,8 +15,9 @@ import java.nio.file.Files;
 
 public class FastDDSGenTest
 {
-    private static final String INPUT_PATH = "thirdparty/idl-parser/test/idls";
-    private static final String OUTPUT_PATH = "build/test/integration";
+    //private static final String INPUT_PATH = "thirdparty/idl-parser/test/idls";
+    private static final String INPUT_PATH = "thirdparty/dds-types-test/IDL";
+    private static final String OUTPUT_PATH = "build/test/integration/idls";
 
     private static boolean isUnix()
     {
@@ -102,9 +103,12 @@ public class FastDDSGenTest
 
         //Configure idl tests
         TestManager tests = new TestManager(TestLevel.RUN, "share/fastddsgen/java/fastddsgen", INPUT_PATH,
-                        OUTPUT_PATH + "/idls", "CMake");
+                        OUTPUT_PATH, "CMake");
         tests.addCMakeArguments("-DCMAKE_BUILD_TYPE=Debug");
-        tests.removeTests(IDL.ARRAY_NESTED, IDL.SEQUENCE_NESTED);
+        tests.removeTests("basic_inner_types");
+
+
+
         boolean testResult = tests.runTests();
         System.exit(testResult ? 0 : -1);
     }
