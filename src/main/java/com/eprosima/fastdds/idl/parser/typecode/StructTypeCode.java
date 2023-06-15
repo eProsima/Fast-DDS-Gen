@@ -96,7 +96,8 @@ public class StructTypeCode extends com.eprosima.idl.parser.typecode.StructTypeC
             }
             else if (!only_keys)
             {
-                current_alignment = MemberedTypeCode.xcdr_extra_member_serialized_size(current_alignment, struct_ext_kind, member.isAnnotationOptional());
+                current_alignment = MemberedTypeCode.xcdr_extra_member_serialized_size(current_alignment, struct_ext_kind, member.isAnnotationOptional(),
+                        member.getTypecode() instanceof PrimitiveTypeCode ? Integer.parseInt(((PrimitiveTypeCode)member.getTypecode()).getSize()) : 8);
                 current_alignment += ((TypeCode)member.getTypecode()).maxSerializedSize(current_alignment);
             }
         }

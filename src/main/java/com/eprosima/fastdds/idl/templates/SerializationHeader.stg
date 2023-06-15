@@ -24,6 +24,8 @@ $fileHeader(ctx=ctx,  file=[ctx.filename, "Serialization.h"], description=["This
 
 $definitions; separator="\n"$
 
+extern bool g_test_null_opt;
+
 #endif //_FAST_DDS_GENERATED_$ctx.headerGuardName$_SERIALIZATION_H_
 >>
 

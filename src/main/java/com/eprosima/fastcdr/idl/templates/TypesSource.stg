@@ -128,7 +128,8 @@ void $exception.scopedname$::raise() const
 }
 
 $if(ctx.anyCdr)$
-size_t $exception.scopedname$::getCdrSerializedSize(
+size_t $exception.scopedname$::calculate_serialized_size(
+        const eprosima::fastcdr::CdrSizeCalculator& calculator,
         const $exception.scopedname$& data,
         size_t current_alignment)
 {
@@ -278,7 +279,8 @@ size_t $struct.scopedname$::getMaxCdrSerializedSize(
     return $struct.cScopedname$_max_cdr_typesize;
 }
 
-size_t $struct.scopedname$::getCdrSerializedSize(
+size_t $struct.scopedname$::calculate_serialized_size(
+        const eprosima::fastcdr::CdrSizeCalculator& calculator,
         const $struct.scopedname$& data,
         size_t current_alignment)
 {
@@ -618,7 +620,8 @@ $union.members:{$public_unionmember_declaration(class=union.scopedname, member=i
 
 $if(ctx.anyCdr)$
 // TODO(Ricardo) Review
-size_t $union.scopedname$::getCdrSerializedSize(
+size_t $union.scopedname$::calculate_serialized_size(
+        const eprosima::fastcdr::CdrSizeCalculator& calculator,
         const $union.scopedname$& data,
         size_t current_alignment)
 {
@@ -701,7 +704,9 @@ bitmask_type(ctx, parent, bitmask) ::= <<>>
 /***** Utils *****/
 
 public_member_declaration(class, member) ::= <<
-$if(member.typecode.primitive)$
+$if(member.annotationOptional)$
+$public_object_member_declaration(class=class, member=member)$
+$elseif(member.typecode.primitive)$
 $public_primitive_member_declaration(class=class, member=member)$
 $elseif(ctx.generateTypesC)$
 $if(member.typecode.isStringType)$
@@ -1422,7 +1427,8 @@ bool& $scopedtypename$::release()
 }
 
 $if(ctx.anyCdr)$
-size_t $scopedtypename$::getCdrSerializedSize(
+size_t $scopedtypename$::calculate_serialized_size(
+        const eprosima::fastcdr::CdrSizeCalculator& calculator,
         const $scopedtypename$& data,
         size_t current_alignment)
 {
