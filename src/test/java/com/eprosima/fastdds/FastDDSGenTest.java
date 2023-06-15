@@ -15,7 +15,7 @@ import java.nio.file.Files;
 
 public class FastDDSGenTest
 {
-    //private static final String INPUT_PATH = "thirdparty/idl-parser/test/idls";
+
     private static final String INPUT_PATH = "thirdparty/dds-types-test/IDL";
     private static final String OUTPUT_PATH = "build/test/integration/idls";
 
