@@ -58,7 +58,7 @@ functions_to_run.emplace_back([]() -> bool
     $struct.name$ $struct.name$_serialization_topic;
     $struct.name$ $struct.name$_deserialization_topic;
 
-    g_test_null_opt = $test_null_optional$;
+    g_$ctx.filename$_test_null_opt = $test_null_optional$;
 
     initialize$struct.name$(&$struct.name$_serialization_topic);
 

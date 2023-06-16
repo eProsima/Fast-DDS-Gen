@@ -35,6 +35,7 @@ namespace { char dummy; }
 #include <fastcdr/FastBuffer.h>
 $if(ctx.cdr)$
 #include <fastcdr/Cdr.h>
+#include <fastcdr/CdrSizeCalculator.h>
 
 $endif$
 $if(ctx.fastcdr)$
@@ -167,8 +168,9 @@ const TypeObject* GetMinimal$annotation.name$Object()
     TypeIdentifier identifier;
     identifier._d(EK_MINIMAL);
 
+    eprosima::fastcdr::CdrSizeCalculator calculator(eprosima::fastcdr::CdrVersion::XCDRv1);
     SerializedPayload_t payload(static_cast<uint32_t>(
-        MinimalAnnotationType::getCdrSerializedSize(type_object->minimal().annotation_type()) + 4));
+        MinimalAnnotationType::calculate_serialized_size(calculator, type_object->minimal().annotation_type()) + 4));
     eprosima::fastcdr::FastBuffer fastbuffer((char*) payload.data, payload.max_size);
     // Fixed endian (Page 221, EquivalenceHash definition of Extensible and Dynamic Topic Types for DDS document)
     eprosima::fastcdr::Cdr ser(
@@ -218,8 +220,9 @@ const TypeObject* GetComplete$annotation.name$Object()
     TypeIdentifier identifier;
     identifier._d(EK_COMPLETE);
 
+    eprosima::fastcdr::CdrSizeCalculator calculator(eprosima::fastcdr::CdrVersion::XCDRv1);
     SerializedPayload_t payload(static_cast<uint32_t>(
-        CompleteAnnotationType::getCdrSerializedSize(type_object->complete().annotation_type()) + 4));
+        CompleteAnnotationType::calculate_serialized_size(calculator, type_object->complete().annotation_type()) + 4));
     eprosima::fastcdr::FastBuffer fastbuffer((char*) payload.data, payload.max_size);
     // Fixed endian (Page 221, EquivalenceHash definition of Extensible and Dynamic Topic Types for DDS document)
     eprosima::fastcdr::Cdr ser(
@@ -375,8 +378,9 @@ const TypeObject* GetMinimal$typedefs.name$Object()
     TypeIdentifier identifier;
     identifier._d(EK_MINIMAL);
 
+    eprosima::fastcdr::CdrSizeCalculator calculator(eprosima::fastcdr::CdrVersion::XCDRv1);
     SerializedPayload_t payload(static_cast<uint32_t>(
-        MinimalAliasType::getCdrSerializedSize(type_object->minimal().alias_type()) + 4));
+        MinimalAliasType::calculate_serialized_size(calculator, type_object->minimal().alias_type()) + 4));
     eprosima::fastcdr::FastBuffer fastbuffer((char*) payload.data, payload.max_size);
     // Fixed endian (Page 221, EquivalenceHash definition of Extensible and Dynamic Topic Types for DDS document)
     eprosima::fastcdr::Cdr ser(
@@ -457,8 +461,9 @@ const TypeObject* GetComplete$typedefs.name$Object()
     TypeIdentifier identifier;
     identifier._d(EK_COMPLETE);
 
+    eprosima::fastcdr::CdrSizeCalculator calculator(eprosima::fastcdr::CdrVersion::XCDRv1);
     SerializedPayload_t payload(static_cast<uint32_t>(
-        CompleteAliasType::getCdrSerializedSize(type_object->complete().alias_type()) + 4));
+        CompleteAliasType::calculate_serialized_size(calculator, type_object->complete().alias_type()) + 4));
     eprosima::fastcdr::FastBuffer fastbuffer((char*) payload.data, payload.max_size);
     // Fixed endian (Page 221, EquivalenceHash definition of Extensible and Dynamic Topic Types for DDS document)
     eprosima::fastcdr::Cdr ser(
@@ -541,8 +546,9 @@ const TypeObject* GetMinimal$enum.name$Object()
     TypeIdentifier identifier;
     identifier._d(EK_MINIMAL);
 
+    eprosima::fastcdr::CdrSizeCalculator calculator(eprosima::fastcdr::CdrVersion::XCDRv1);
     SerializedPayload_t payload(static_cast<uint32_t>(
-        MinimalEnumeratedType::getCdrSerializedSize(type_object->minimal().enumerated_type()) + 4));
+        MinimalEnumeratedType::calculate_serialized_size(calculator, type_object->minimal().enumerated_type()) + 4));
     eprosima::fastcdr::FastBuffer fastbuffer((char*) payload.data, payload.max_size);
     // Fixed endian (Page 221, EquivalenceHash definition of Extensible and Dynamic Topic Types for DDS document)
     eprosima::fastcdr::Cdr ser(
@@ -621,8 +627,9 @@ const TypeObject* GetComplete$enum.name$Object()
     TypeIdentifier identifier;
     identifier._d(EK_COMPLETE);
 
+    eprosima::fastcdr::CdrSizeCalculator calculator(eprosima::fastcdr::CdrVersion::XCDRv1);
     SerializedPayload_t payload(static_cast<uint32_t>(
-        CompleteEnumeratedType::getCdrSerializedSize(type_object->complete().enumerated_type()) + 4));
+        CompleteEnumeratedType::calculate_serialized_size(calculator, type_object->complete().enumerated_type()) + 4));
     eprosima::fastcdr::FastBuffer fastbuffer((char*) payload.data, payload.max_size);
     // Fixed endian (Page 221, EquivalenceHash definition of Extensible and Dynamic Topic Types for DDS document)
     eprosima::fastcdr::Cdr ser(
@@ -768,8 +775,9 @@ const TypeObject* GetMinimal$struct.name$Object()
     TypeIdentifier identifier;
     identifier._d(EK_MINIMAL);
 
+    eprosima::fastcdr::CdrSizeCalculator calculator(eprosima::fastcdr::CdrVersion::XCDRv1);
     SerializedPayload_t payload(static_cast<uint32_t>(
-        MinimalStructType::getCdrSerializedSize(type_object->minimal().struct_type()) + 4));
+        MinimalStructType::calculate_serialized_size(calculator, type_object->minimal().struct_type()) + 4));
     eprosima::fastcdr::FastBuffer fastbuffer((char*) payload.data, payload.max_size);
     // Fixed endian (Page 221, EquivalenceHash definition of Extensible and Dynamic Topic Types for DDS document)
     eprosima::fastcdr::Cdr ser(
@@ -849,8 +857,9 @@ const TypeObject* GetComplete$struct.name$Object()
     TypeIdentifier identifier;
     identifier._d(EK_COMPLETE);
 
+    eprosima::fastcdr::CdrSizeCalculator calculator(eprosima::fastcdr::CdrVersion::XCDRv1);
     SerializedPayload_t payload(static_cast<uint32_t>(
-        CompleteStructType::getCdrSerializedSize(type_object->complete().struct_type()) + 4));
+        CompleteStructType::calculate_serialized_size(calculator, type_object->complete().struct_type()) + 4));
     eprosima::fastcdr::FastBuffer fastbuffer((char*) payload.data, payload.max_size);
     // Fixed endian (Page 221, EquivalenceHash definition of Extensible and Dynamic Topic Types for DDS document)
     eprosima::fastcdr::Cdr ser(
@@ -1033,8 +1042,9 @@ const TypeObject* GetMinimal$union.name$Object()
     TypeIdentifier* identifier = new TypeIdentifier();
     identifier->_d(EK_MINIMAL);
 
+    eprosima::fastcdr::CdrSizeCalculator calculator(eprosima::fastcdr::CdrVersion::XCDRv1);
     SerializedPayload_t payload(static_cast<uint32_t>(
-        MinimalUnionType::getCdrSerializedSize(type_object->minimal().union_type()) + 4));
+        MinimalUnionType::calculate_serialized_size(calculator, type_object->minimal().union_type()) + 4));
     eprosima::fastcdr::FastBuffer fastbuffer((char*) payload.data, payload.max_size);
     // Fixed endian (Page 221, EquivalenceHash definition of Extensible and Dynamic Topic Types for DDS document)
     eprosima::fastcdr::Cdr ser(
@@ -1151,8 +1161,9 @@ const TypeObject* GetComplete$union.name$Object()
     TypeIdentifier* identifier = new TypeIdentifier();
     identifier->_d(EK_COMPLETE);
 
+    eprosima::fastcdr::CdrSizeCalculator calculator(eprosima::fastcdr::CdrVersion::XCDRv1);
     SerializedPayload_t payload(static_cast<uint32_t>(
-        CompleteUnionType::getCdrSerializedSize(type_object->complete().union_type()) + 4));
+        CompleteUnionType::calculate_serialized_size(calculator, type_object->complete().union_type()) + 4));
     eprosima::fastcdr::FastBuffer fastbuffer((char*) payload.data, payload.max_size);
     // Fixed endian (Page 221, EquivalenceHash definition of Extensible and Dynamic Topic Types for DDS document)
     eprosima::fastcdr::Cdr ser(
@@ -1314,8 +1325,9 @@ const TypeObject* GetMinimal$bitmask.name$Object()
     TypeIdentifier identifier;
     identifier._d(EK_MINIMAL);
 
+    eprosima::fastcdr::CdrSizeCalculator calculator(eprosima::fastcdr::CdrVersion::XCDRv1);
     SerializedPayload_t payload(static_cast<uint32_t>(
-        MinimalBitmaskType::getCdrSerializedSize(type_object->minimal().bitmask_type()) + 4));
+        MinimalBitmaskType::calculate_serialized_size(calculator, type_object->minimal().bitmask_type()) + 4));
     eprosima::fastcdr::FastBuffer fastbuffer((char*) payload.data, payload.max_size);
     // Fixed endian (Page 221, EquivalenceHash definition of Extensible and Dynamic Topic Types for DDS document)
     eprosima::fastcdr::Cdr ser(
@@ -1394,8 +1406,9 @@ const TypeObject* GetComplete$bitmask.name$Object()
     TypeIdentifier identifier;
     identifier._d(EK_COMPLETE);
 
+    eprosima::fastcdr::CdrSizeCalculator calculator(eprosima::fastcdr::CdrVersion::XCDRv1);
     SerializedPayload_t payload(static_cast<uint32_t>(
-        CompleteBitmaskType::getCdrSerializedSize(type_object->complete().bitmask_type()) + 4));
+        CompleteBitmaskType::calculate_serialized_size(calculator, type_object->complete().bitmask_type()) + 4));
     eprosima::fastcdr::FastBuffer fastbuffer((char*) payload.data, payload.max_size);
     // Fixed endian (Page 221, EquivalenceHash definition of Extensible and Dynamic Topic Types for DDS document)
     eprosima::fastcdr::Cdr ser(
@@ -1552,8 +1565,9 @@ const TypeObject* GetMinimal$bitset.name$Object()
     TypeIdentifier identifier;
     identifier._d(EK_MINIMAL);
 
+    eprosima::fastcdr::CdrSizeCalculator calculator(eprosima::fastcdr::CdrVersion::XCDRv1);
     SerializedPayload_t payload(static_cast<uint32_t>(
-        MinimalBitsetType::getCdrSerializedSize(type_object->minimal().bitset_type()) + 4));
+        MinimalBitsetType::calculate_serialized_size(calculator, type_object->minimal().bitset_type()) + 4));
     eprosima::fastcdr::FastBuffer fastbuffer((char*) payload.data, payload.max_size);
     // Fixed endian (Page 221, EquivalenceHash definition of Extensible and Dynamic Topic Types for DDS document)
     eprosima::fastcdr::Cdr ser(
@@ -1632,8 +1646,9 @@ const TypeObject* GetComplete$bitset.name$Object()
     TypeIdentifier identifier;
     identifier._d(EK_COMPLETE);
 
+    eprosima::fastcdr::CdrSizeCalculator calculator(eprosima::fastcdr::CdrVersion::XCDRv1);
     SerializedPayload_t payload(static_cast<uint32_t>(
-        CompleteBitsetType::getCdrSerializedSize(type_object->complete().bitset_type()) + 4));
+        CompleteBitsetType::calculate_serialized_size(calculator, type_object->complete().bitset_type()) + 4));
     eprosima::fastcdr::FastBuffer fastbuffer((char*) payload.data, payload.max_size);
     // Fixed endian (Page 221, EquivalenceHash definition of Extensible and Dynamic Topic Types for DDS document)
     eprosima::fastcdr::Cdr ser(

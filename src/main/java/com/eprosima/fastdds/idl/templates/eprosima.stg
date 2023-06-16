@@ -36,12 +36,6 @@ bitset_inherit_copy_init(parent) ::= <<$parent.scopedname$(x)>>
 
 bitset_inherit_move_init(parent) ::= <<$parent.scopedname$(std::move(x))>>
 
-member_default_init(ctx, member, loopvar) ::= <<
-$if(member.typecode.forwarded)$
-m_$member.name$ = new $member.typecode.cppTypename$($if(member.annotationDefault)$$member.annotationDefaultValue$$endif$);
-$endif$
->>
-
 member_array_default_cstring_init(ctx, name, loopvar, dims) ::= <<$if(rest(dims))$for (uint32_t $loopvar$ = 0; $loopvar$ < $name$.size(); ++$loopvar$)
 {
     $member_array_default_cstring_init(ctx=ctx, name=indexName(name=name,loopvar=loopvar),  loopvar=ctx.nextLoopVarName, dims=rest(dims))$
