@@ -608,7 +608,7 @@ $endif$
 >>
 
 private_member_declaration(member) ::= <<
-$object_cpptypename(object=member)$ m_$member.name$$member_init_default(member)$;
+$object_cpptypename(object=member)$ m_$member.name$$member_default_init(member)$;
 >>
 
 public_unionmember_declaration(member) ::= <<
@@ -694,7 +694,7 @@ eProsima_user_DllExport const $member.typecode.cppTypename$& $member.name$() con
 eProsima_user_DllExport $member.typecode.cppTypename$& $member.name$();
 >>
 
-member_init_default(member) ::= <<
+member_default_init(member) ::= <<
 $if(!member.typecode.forwarded)$
 $if(member.annotationDefault)$
 {$member.annotationDefaultValue$}

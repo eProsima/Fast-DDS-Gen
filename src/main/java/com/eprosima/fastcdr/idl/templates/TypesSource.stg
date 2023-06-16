@@ -287,7 +287,8 @@ size_t $struct.scopedname$::calculate_serialized_size(
     (void)data;
     size_t initial_alignment = current_alignment;
 
-    $if(struct.inheritances)$    $struct.inheritances : {current_alignment += $it.scopedname$::getCdrSerializedSize(data, current_alignment);}; separator="\n"$ $endif$
+    $if(struct.inheritances)$    $struct.inheritances : {current_alignment +=
+        $it.scopedname$::calculate_serialized_size(calculator, data, current_alignment);}; separator="\n"$ $endif$
 
     $struct.members : { member |$if(!member.annotationNonSerialized)$$serialized_size(ctx=ctx, object=member, data="data", var="current_alignment")$$endif$}; separator="\n"$
 
@@ -402,13 +403,14 @@ bool $bitset.scopedname$::operator !=(
 }
 
 $if(ctx.anyCdr)$
-size_t $bitset.scopedname$::getCdrSerializedSize(
+size_t $bitset.scopedname$::calculate_serialized_size(
+        const eprosima::fastcdr::CdrSizeCalculator& calculator,
         const $bitset.scopedname$& $if(bitset.parents)$data$endif$,
         size_t current_alignment)
 {
     size_t initial_alignment = current_alignment;
 
-    $if(bitset.parents)$    $bitset.parents : {current_alignment += $it.scopedname$::getCdrSerializedSize(data, current_alignment);}; separator="\n"$ $endif$
+    $if(bitset.parents)$    $bitset.parents : {current_alignment += $it.scopedname$::calculate_serialized_size(calculator, data, current_alignment);}; separator="\n"$ $endif$
 
     $bitset.bitfields : { member | $if(!member.annotationNonSerialized)$$if(member.name)$$serialized_size_type(ctx=ctx, typecode=member.spec.typecode, var="current_alignment")$$endif$$endif$}; separator="\n"$
 
@@ -1524,5 +1526,11 @@ void $scopedtypename$::free_memory()
     value_ = nullptr;
 }
 
+$endif$
+>>
+
+member_default_init(ctx, member, loopvar) ::= <<
+$if(member.typecode.forwarded)$
+m_$member.name$ = new $member.typecode.cppTypename$($if(member.annotationDefault)$$member.annotationDefaultValue$$endif$);
 $endif$
 >>
