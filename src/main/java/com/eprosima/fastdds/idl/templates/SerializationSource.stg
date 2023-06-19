@@ -62,7 +62,7 @@ void $if(struct.hasScope)$$struct.scope$::$endif$initialize$struct.name$(
             if(!g_$ctx.filename$_test_null_opt)
             {
             $endif$
-            $member_assignment(ctx=ctx, typecode=it.typecode, name=it.name, originName=it.name)$
+            $member_assignment(ctx=ctx, typecode=it.typecode, name=it.name, originName=it.name, optional=it.annotationOptional)$
             $if(it.annotationOptional)$
             }
             $endif$
@@ -70,7 +70,16 @@ void $if(struct.hasScope)$$struct.scope$::$endif$initialize$struct.name$(
     }
     else
     {
-        $struct.allMembers:{$simply_member_assignment(ctx=ctx, typecode=it.typecode, name=it.name)$}; separator="\n"$
+        $struct.allMembers:{
+            $if(it.annotationOptional)$
+            if(!g_$ctx.filename$_test_null_opt)
+            {
+            $endif$
+            $simply_member_assignment(ctx=ctx, typecode=it.typecode, name=it.name, optional=it.annotationOptional)$
+            $if(it.annotationOptional)$
+            }
+            $endif$
+        }; separator="\n"$
     }
 }
 
@@ -78,7 +87,7 @@ int $if(struct.hasScope)$$struct.scope$::$endif$compare$struct.name$(
         $struct.name$* topic_a,
         $struct.name$* topic_b)
 {
-    $struct.allMembers:{$member_comparision(ctx=ctx, typecode=it.typecode, name=it.name, name=it.name)$}; separator="\n"$
+    $struct.allMembers:{$member_comparision(ctx=ctx, typecode=it.typecode, name=it.name, originName=it.name, optional=it.annotationOptional)$}; separator="\n"$
     return 1;
 }
 
@@ -172,7 +181,7 @@ int $if(bitset.hasScope)$$bitset.scope$::$endif$compare$bitset.name$(
 // ========================================================================================
 //                                      ASSIGNMENT
 // ========================================================================================
-simply_member_assignment(ctx, typecode, name) ::= <<
+simply_member_assignment(ctx, typecode, name, optional) ::= <<
 // $typecode.cppTypename$ - $typecode.kind$
 $if(typecode.isType_7)$
 topic->$name$(static_cast<$typecode.cppTypename$>(idx%2==1));
@@ -182,9 +191,9 @@ $elseif(typecode.isType_d)$
 $if(typecode.isWStringType)$
 topic->$name$(std::to_wstring(idx));
 $elseif(ctx.generateTypesC)$
-topic->$name$(std::to_string(idx).c_str());
+topic->$name$() = std::to_string(idx).c_str();
 $else$
-topic->$name$(std::to_string(idx));
+topic->$name$() = std::to_string(idx);
 $endif$
 $elseif(typecode.isType_10)$
 $simply_member_assignment(ctx=ctx, typecode=typecode.typedefContentTypeCode, name=name)$
@@ -203,7 +212,7 @@ assert(false);
 $endif$
 >>
 
-member_assignment(ctx, typecode, name, originName) ::= <<
+member_assignment(ctx, typecode, name, originName, optional) ::= <<
 // $typecode.cppTypename$ - $typecode.kind$
 $if(typecode.isType_7)$
 topic->$name$(static_cast<$typecode.cppTypename$>(rand()%2==1));
@@ -213,18 +222,22 @@ $elseif(typecode.isType_d)$
 $if(typecode.isWStringType)$
 topic->$name$(std::wstring($typecode.maxsize$,'W'));
 $else$
-topic->$name$(u8"AAAu8u8ñññöAA\u2602");
+topic->$name$() = u8"AAAu8u8ñññöAA\u2602";
 $endif$
 $elseif(typecode.isType_10)$
 $member_assignment(ctx=ctx, typecode=typecode.typedefContentTypeCode, name=name, originName=originName)$
 $elseif(typecode.isSequenceType)$
-$sequence_assigment(ctx=ctx, typecode=typecode, name=name, p="()", loopvar=ctx.newLoopVarName)$
+$if(optional)$topic->$name$().reset(true);$endif$
+$sequence_assigment(ctx=ctx, typecode=typecode, name=name, p=optional_suffix(p="()", optional=optional), loopvar=ctx.newLoopVarName)$
 $elseif(typecode.isType_f)$
-$array_assigment(ctx=ctx, typecode=typecode, name=name, originName=originName, dimensions=typecode.dimensions, p="()", loopvar=ctx.newLoopVarName)$
+$if(optional)$topic->$name$().reset(true);$endif$
+$array_assigment(ctx=ctx, typecode=typecode, name=name, originName=originName, dimensions=typecode.dimensions, p=optional_suffix(p="()", optional=optional), loopvar=ctx.newLoopVarName)$
 $elseif(typecode.isMapType)$
-$map_assigment(ctx=ctx, typecode=typecode, name=name, originName=originName, p="()", loopvar=ctx.newLoopVarName)$
+$if(optional)$topic->$name$().reset(true);$endif$
+$map_assigment(ctx=ctx, typecode=typecode, name=name, originName=originName, p=optional_suffix(p="()", optional=optional), loopvar=ctx.newLoopVarName)$
 $else$
-$typecode.scope$::initialize$typecode.name$(&topic->$name$());
+$if(optional)$topic->$name$().reset(true);$endif$
+$typecode.scope$::initialize$typecode.name$(&topic->$name$()$if(optional)$.value()$endif$);
 $endif$
 >>
 
@@ -484,11 +497,11 @@ $endif$
 $elseif(typecode.isType_10)$
 $member_print(ctx=ctx, typecode=typecode.typedefContentTypeCode, name=name, originName=originName)$
 $elseif(typecode.isSequenceType)$
-$sequence_print(ctx=ctx, typecode=typecode, name=name, originName=originName, p="()", loopvar=ctx.newLoopVarName)$
+$sequence_print(ctx=ctx, typecode=typecode, name=name, originName=originName, p=optional_suffix(p="()", optional=optional), loopvar=ctx.newLoopVarName)$
 $elseif(typecode.isMapType)$
-$map_print(ctx=ctx, typecode=typecode, name=name, originName=originName, p="()", loopvar=ctx.newLoopVarName)$
+$map_print(ctx=ctx, typecode=typecode, name=name, originName=originName, p=optional_suffix(p="()", optional=optional), loopvar=ctx.newLoopVarName)$
 $elseif(typecode.isType_f)$
-$array_print(ctx=ctx, typecode=typecode, name=name, originName=originName, dimensions=typecode.dimensions, p="()", loopvar=ctx.newLoopVarName)$
+$array_print(ctx=ctx, typecode=typecode, name=name, originName=originName, dimensions=typecode.dimensions, p=optional_suffix(p="()", optional=optional), loopvar=ctx.newLoopVarName)$
 $else$
 $typecode.scope$::print$typecode.name$(&topic->$name$()$if(optional)$.value()$endif$);
 $endif$
@@ -685,7 +698,7 @@ printf("\n");
 // ========================================================================================
 //                                      COMPARISION
 // ========================================================================================
-member_comparision(ctx, typecode, name, originName) ::= <<
+member_comparision(ctx, typecode, name, originName, optional) ::= <<
 $if(typecode.primitive)$
 if (topic_a->$name$() != topic_b->$name$()) return 0;
 $elseif(typecode.isType_d)$
@@ -701,13 +714,57 @@ $endif$
 $elseif(typecode.isType_10)$
 $member_comparision(ctx=ctx, typecode=typecode.typedefContentTypeCode, name=name, originName=originName)$
 $elseif(typecode.isSequenceType)$
-$sequence_comparision(ctx=ctx, typecode=typecode, name=name, p="()", loopvar=ctx.newLoopVarName)$
+$if(optional)$
+if(topic_a->$name$().has_value())
+{
+$endif$
+$sequence_comparision(ctx=ctx, typecode=typecode, name=name, p=optional_suffix(p="()", optional=optional), loopvar=ctx.newLoopVarName)$
+$if(optional)$
+}
+else
+{
+    if (topic_a->$name$().has_value() != topic_b->$name$().has_value()) return 0;
+}
+$endif$
 $elseif(typecode.isMapType)$
-$map_comparision(ctx=ctx, typecode=typecode, name=name, p="()", loopvar=ctx.newLoopVarName)$
+$if(optional)$
+if(topic_a->$name$().has_value())
+{
+$endif$
+$map_comparision(ctx=ctx, typecode=typecode, name=name, p=optional_suffix(p="()", optional=optional), loopvar=ctx.newLoopVarName)$
+$if(optional)$
+}
+else
+{
+    if (topic_a->$name$().has_value() != topic_b->$name$().has_value()) return 0;
+}
+$endif$
 $elseif(typecode.isType_f)$
-$array_comparision(ctx=ctx, typecode=typecode, name=name, originName=originName, dimensions=typecode.dimensions, p="()", loopvar=ctx.newLoopVarName)$
+$if(optional)$
+if(topic_a->$name$().has_value())
+{
+$endif$
+$array_comparision(ctx=ctx, typecode=typecode, name=name, originName=originName, dimensions=typecode.dimensions, p=optional_suffix(p="()", optional=optional), loopvar=ctx.newLoopVarName)$
+$if(optional)$
+}
+else
+{
+    if (topic_a->$name$().has_value() != topic_b->$name$().has_value()) return 0;
+}
+$endif$
 $else$
-if (!$typecode.scope$::compare$typecode.name$(&topic_a->$name$(), &topic_b->$name$())) return 0;
+$if(optional)$
+if(topic_a->$name$().has_value())
+{
+$endif$
+if (!$typecode.scope$::compare$typecode.name$(&topic_a->$name$()$if(optional)$.value()$endif$, &topic_b->$name$()$if(optional)$.value()$endif$)) return 0;
+$if(optional)$
+}
+else
+{
+    if (topic_a->$name$().has_value() != topic_b->$name$().has_value()) return 0;
+}
+$endif$
 $endif$
 >>
 
@@ -822,3 +879,5 @@ char** $name$_buffer = topic->$name$().value(true);
 delete[] $name$_buffer;
 $endif$$endif$$endif$
 >>
+
+optional_suffix(p, optional) ::= <<$if(optional)$$p$.value()$else$$p$$endif$>>
