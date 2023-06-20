@@ -45,10 +45,10 @@ $if(params)$$separatorInicial$$endif$$params : {param | /*$param.comment$*/ $par
 object_serialization(ctx, object, preffix) ::= <<
 $if(object.typecode.isType_f)$
 $object_array_serialization(ctx=ctx, object=object, preffix=preffix)$
-
 $elseif(object.typecode.isType_e)$
 $object_map_seq_serialization(ctx=ctx, object=object, preffix=preffix)$
-
+$elseif(object.typecode.isMapType)$
+$object_map_seq_serialization(ctx=ctx, object=object, preffix=preffix)$
 $else$
 scdr << $serializeCasting(typecode=object.typecode)$$preffix$$object.name$$if(object.typecode.isStringType)$.c_str()$endif$;
 
@@ -66,15 +66,19 @@ $endif$
 >>
 
 object_map_seq_serialization(ctx, object, preffix) ::= <<
-$if(object.typecode.contentTypeCode.isType_c)$
+$if(object.typecode.valueTypeCode.isType_c)$
 scdr << static_cast<uint32_t>($preffix$$object.name$.size());
-scdr.serializeArray(reinterpret_cast<const uint32_t*>($preffix$$object.name$.data()), $preffix$$object.name$.size());
-$elseif(object.typecode.contentTypeCode.isBitmaskType)$
+for (const auto& pair : $preffix$$object.name$) {
+    scdr << pair.first;
+    scdr << static_cast<uint32_t>(pair.second);
+}
+$elseif(object.typecode.valueTypeCode.isBitmaskType)$
 scdr << static_cast<uint32_t>($preffix$$object.name$.size());
-scdr.serializeArray(reinterpret_cast<const uint32_t*>($preffix$$object.name$.data()), $preffix$$object.name$.size());
-
-
-$elseif(object.typecode.contentTypeCode.isStringType)$
+for (const auto& pair : $preffix$$object.name$) {
+    scdr << pair.first;
+    scdr << static_cast<uint32_t>(pair.second);
+}
+$elseif(object.typecode.valueTypeCode.isStringType)$
 $string_collection_serialization(ctx=ctx, object=object, preffix=preffix)$
 $else$
 scdr << $serializeCasting(typecode=object.typecode)$$preffix$$object.name$;
@@ -150,6 +154,8 @@ scdr << static_cast<$member.spec.cppTypename$>($member.name$());$endif$
 object_deserialization(ctx, object, preffix) ::= <<
 $if(object.typecode.isType_f)$
 $object_array_deserialization(ctx=ctx, object=object, preffix=preffix)$
+$elseif(object.typecode.isMapType)$
+$object_map_seq_deserialization(ctx=ctx, object=object, preffix=preffix)$
 $elseif(object.typecode.isType_e)$
 $object_map_seq_deserialization(ctx=ctx, object=object, preffix=preffix)$
 $else$
@@ -168,21 +174,40 @@ $endif$
 >>
 
 object_map_seq_deserialization(ctx, object, preffix) ::= <<
-$if(object.typecode.contentTypeCode.isType_c)$
+$if(object.typecode.valueTypeCode.isType_c)$
 {
     uint32_t seq_length = 0;
     dcdr \>> seq_length;
-    $preffix$$object.name$.resize(seq_length);
-    dcdr.deserializeArray(reinterpret_cast<uint32_t*>($preffix$$object.name$.data()), seq_length);
+    $preffix$$object.name$.clear();
+    
+    for (uint32_t i = 0; i < seq_length; ++i) {
+        int key;
+        uint32_t value;
+        
+        dcdr \>> key;
+        dcdr \>> value;
+        
+        $preffix$$object.name$[key] = static_cast<$object.typecode.valueTypeCode.name$>(value);
+    }
 }
-$elseif(object.typecode.contentTypeCode.isBitmaskType)$
+
+$elseif(object.typecode.valueTypeCode.isBitmaskType)$
 {
-    $object.typecode.contentTypeCode.castingType$ seq_length = 0;
+    uint32_t seq_length = 0;
     dcdr \>> seq_length;
-    $preffix$$object.name$.resize(seq_length);
-    dcdr.deserializeArray(reinterpret_cast<$object.typecode.contentTypeCode.castingType$*>($preffix$$object.name$.data()), seq_length);
+    $preffix$$object.name$.clear();
+    
+    for (decltype(seq_length) i = 0; i < seq_length; ++i) {
+        int key;
+        uint32_t value;
+        
+        dcdr \>> key;
+        dcdr \>> value;
+        
+        $preffix$$object.name$[key] = static_cast<$object.typecode.valueTypeCode.name$>(value);
+    }
 }
-$elseif(object.typecode.contentTypeCode.isStringType)$
+$elseif(object.typecode.valueTypeCode.isStringType)$
 $string_collection_deserialization(ctx=ctx, object=object, preffix=preffix)$
 $else$
 dcdr \>> $preffix$$object.name$;
@@ -515,25 +540,26 @@ $endif$
 >>
 
 map_max_serialized_size_element(ctx, typecodeMapElement, var, loopvar) ::= <<
-    $if(typecodeMapElement.primitive)$
-    $var$ += $typecodeMapElement.size$$if(ctx.cdr)$ + eprosima::fastcdr::Cdr::alignment($var$, $typecodeMapElement.size$)$endif$;
 
-    $elseif(typecodeMapElement.isType_d)$
-    $var$ += 4$if(ctx.cdr)$ + eprosima::fastcdr::Cdr::alignment($var$, 4)$endif$ + $typecodeMapElement.maxsize$ + 1;
+$elseif(typecodeMapElement.primitive)$
+$var$ += $typecodeMapElement.size$$if(ctx.cdr)$ + eprosima::fastcdr::Cdr::alignment($var$, $typecodeMapElement.size$)$endif$;
 
-    $elseif(typecodeMapElement.isMapType)$
-    $var$ += 4$if(ctx.cdr)$ + eprosima::fastcdr::Cdr::alignment($var$, 4)$endif$;
+$elseif(typecodeMapElement.isType_d)$
+$var$ += 4$if(ctx.cdr)$ + eprosima::fastcdr::Cdr::alignment($var$, 4)$endif$ + $typecodeMapElement.maxsize$ + 1;
 
-    $map_max_serialized_size(ctx=ctx, typecodeMap=typecodeMapElement, var=var, loopvar=ctx.nextLoopVarName)$
-    $elseif(typecodeMapElement.isType_e)$
-    $var$ += 4$if(ctx.cdr)$ + eprosima::fastcdr::Cdr::alignment($var$, 4)$endif$;
+$elseif(typecodeMapElement.isMapType)$
+$var$ += 4$if(ctx.cdr)$ + eprosima::fastcdr::Cdr::alignment($var$, 4)$endif$;
 
-    $sequence_max_serialized_size(ctx=ctx, typecodeSeq=typecodeMapElement, var=var, loopvar=ctx.nextLoopVarName)$
-    $elseif(typecodeMapElement.isType_f)$
-    $array_max_serialized_size(ctx=ctx, typecodeArr=typecodeMapElement, var=var, loopvar=ctx.nextLoopVarName)$
-    $else$
-    $var$ += $typecodeMapElement.scopedname$::getMaxCdrSerializedSize($var$);
-    $endif$
+$map_max_serialized_size(ctx=ctx, typecodeMap=typecodeMapElement, var=var, loopvar=ctx.nextLoopVarName)$
+$elseif(typecodeMapElement.isType_e)$
+$var$ += 4$if(ctx.cdr)$ + eprosima::fastcdr::Cdr::alignment($var$, 4)$endif$;
+
+$sequence_max_serialized_size(ctx=ctx, typecodeSeq=typecodeMapElement, var=var, loopvar=ctx.nextLoopVarName)$
+$elseif(typecodeMapElement.isType_f)$
+$array_max_serialized_size(ctx=ctx, typecodeArr=typecodeMapElement, var=var, loopvar=ctx.nextLoopVarName)$
+$else$
+$var$ += $typecodeMapElement.scopedname$::getMaxCdrSerializedSize($var$);
+$endif$
 >>
 
 map_serialized_size(ctx, typecodeMap, data, var, loopvar) ::= <<
@@ -548,8 +574,12 @@ $endif$
 >>
 
 map_serialized_size_element(ctx, typecodeMapElement, data, var, loopvar) ::= <<
-$if(typecodeMapElement.primitive)$
+$if(typecodeMapElement.isType_13)$
+    $var$ += 16$if(ctx.cdr)$ + eprosima::fastcdr::Cdr::alignment($var$, 8)$endif$; // 128 bits, but aligned as 64
+$elseif(typecodeMapElement.primitive)$
     $var$ += $typecodeMapElement.size$$if(ctx.cdr)$ + eprosima::fastcdr::Cdr::alignment($var$, $typecodeMapElement.size$)$endif$;
+$elseif(typecodeMapElement.isWStringType)$
+    $var$ += 4$if(ctx.cdr)$ + eprosima::fastcdr::Cdr::alignment($var$, 4)$endif$ + ($data$.size() * 4);
 $elseif(typecodeMapElement.isType_d)$
     $var$ += 4$if(ctx.cdr)$ + eprosima::fastcdr::Cdr::alignment($var$, 4)$endif$ + $if(ctx.generateTypesC)$strlen($loopvar$)$else$$data$.size()$endif$ + 1;
 $elseif(typecodeMapElement.isMapType)$
