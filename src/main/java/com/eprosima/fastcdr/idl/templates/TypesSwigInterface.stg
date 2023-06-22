@@ -104,6 +104,7 @@ template_sequence(typecode) ::= <<
 $if(typecode.contentTypeCode.isSequenceType)$
 $template_sequence(typecode.contentTypeCode)$
 $elseif(typecode.contentTypeCode.primitive)$
+$if(!typecode.contentTypeCode.isType_7)$
 %extend std::vector<$typecode.contentTypeCode.cppTypename$>
 {
     const $typecode.contentTypeCode.cppTypename$* get_buffer() const
@@ -111,6 +112,7 @@ $elseif(typecode.contentTypeCode.primitive)$
         return self->data();
     }
 }
+$endif$
 $endif$
 
 %template($template_sequence_name(typecode.contentTypeCode)$) std::vector<$typecode.contentTypeCode.cppTypename$>;
