@@ -59,23 +59,23 @@ $definitions; separator="\n"$
 
 
 try_create(ctx, object, param) ::= <<
-if ($param$ == $if(ctx.GenerateTypesROS2)$"$object.ROS2Scopedname$"$else$"$object.scopedname$"$endif$) return $if(object.hasScope)$$object.scope$::$endif$Get$object.name$Identifier(complete);
+if ($param$ == $if(ctx.GenerateTypesROS2)$"$object.ROS2Scopedname$"$else$"$if(object.hasScope)$$object.scope$::$endif$$object.name$"$endif$) return $if(object.hasScope)$$object.scope$::$endif$Get$object.name$Identifier(complete);
 >>
 
 try_object(ctx, object, param) ::= <<
-if ($param$ == $if(ctx.GenerateTypesROS2)$"$object.ROS2Scopedname$"$else$"$object.scopedname$"$endif$)
+if ($param$ == $if(ctx.GenerateTypesROS2)$"$object.ROS2Scopedname$"$else$"$if(object.hasScope)$$object.scope$::$endif$$object.name$"$endif$)
 {
     $if(object.hasScope)$$object.scope$::$endif$Get$object.name$Identifier(complete);
-    return TypeObjectFactory::get_instance()->get_type_object($if(ctx.GenerateTypesROS2)$"$object.ROS2Scopedname$"$else$"$object.scopedname$"$endif$, complete);
+    return TypeObjectFactory::get_instance()->get_type_object($if(ctx.GenerateTypesROS2)$"$object.ROS2Scopedname$"$else$"$if(object.hasScope)$$object.scope$::$endif$$object.name$"$endif$, complete);
 }
 >>
 
 register_type(ctx, object, param) ::= <<
 $if(!object.isModule)$
 $if(!object.isConstDeclaration)$
-factory->add_type_object($if(ctx.GenerateTypesROS2)$"$object.ROS2Scopedname$"$else$"$object.scopedname$"$endif$, $if(object.hasScope)$$object.scope$::$endif$Get$object.name$Identifier(true),
+factory->add_type_object($if(ctx.GenerateTypesROS2)$"$object.ROS2Scopedname$"$else$"$if(object.hasScope)$$object.scope$::$endif$$object.name$"$endif$, $if(object.hasScope)$$object.scope$::$endif$Get$object.name$Identifier(true),
         $if(object.hasScope)$$object.scope$::$endif$Get$object.name$Object(true));
-factory->add_type_object($if(ctx.GenerateTypesROS2)$"$object.ROS2Scopedname$"$else$"$object.scopedname$"$endif$, $if(object.hasScope)$$object.scope$::$endif$Get$object.name$Identifier(false),
+factory->add_type_object($if(ctx.GenerateTypesROS2)$"$object.ROS2Scopedname$"$else$"$if(object.hasScope)$$object.scope$::$endif$$object.name$"$endif$, $if(object.hasScope)$$object.scope$::$endif$Get$object.name$Identifier(false),
         $if(object.hasScope)$$object.scope$::$endif$Get$object.name$Object(false));
 $if(object.isAnnotation)$
 {
