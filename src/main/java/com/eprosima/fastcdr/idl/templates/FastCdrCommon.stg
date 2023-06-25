@@ -46,12 +46,11 @@ object_serialization(ctx, object, preffix) ::= <<
 $if(object.typecode.isType_f)$
 $object_array_serialization(ctx=ctx, object=object, preffix=preffix)$
 $elseif(object.typecode.isType_e)$
-$object_map_seq_serialization(ctx=ctx, object=object, preffix=preffix)$
+$object_seq_serialization(ctx=ctx, object=object, preffix=preffix)$
 $elseif(object.typecode.isMapType)$
-$object_map_seq_serialization(ctx=ctx, object=object, preffix=preffix)$
+$object_map_serialization(ctx=ctx, object=object, preffix=preffix)$
 $else$
 scdr << $serializeCasting(typecode=object.typecode)$$preffix$$object.name$$if(object.typecode.isStringType)$.c_str()$endif$;
-
 $endif$
 >>
 
@@ -65,24 +64,54 @@ scdr << $serializeCasting(typecode=object.typecode)$$preffix$$object.name$;
 $endif$
 >>
 
-object_map_seq_serialization(ctx, object, preffix) ::= <<
-$if(object.typecode.valueTypeCode.isType_c)$
+object_seq_serialization(ctx, object, preffix) ::= <<
+$if(object.typecode.contentTypeCode.isType_c)$
 scdr << static_cast<uint32_t>($preffix$$object.name$.size());
-for (const auto& pair : $preffix$$object.name$) {
-    scdr << pair.first;
-    scdr << static_cast<uint32_t>(pair.second);
-}
-$elseif(object.typecode.valueTypeCode.isBitmaskType)$
+scdr.serializeArray(reinterpret_cast<const uint32_t*>($preffix$$object.name$.data()), $preffix$$object.name$.size());
+$elseif(object.typecode.contentTypeCode.isBitmaskType)$
 scdr << static_cast<uint32_t>($preffix$$object.name$.size());
-for (const auto& pair : $preffix$$object.name$) {
-    scdr << pair.first;
-    scdr << static_cast<uint32_t>(pair.second);
-}
-$elseif(object.typecode.valueTypeCode.isStringType)$
+scdr.serializeArray(reinterpret_cast<const uint32_t*>($preffix$$object.name$.data()), $preffix$$object.name$.size());
+$elseif(object.typecode.contentTypeCode.isStringType)$
 $string_collection_serialization(ctx=ctx, object=object, preffix=preffix)$
 $else$
 scdr << $serializeCasting(typecode=object.typecode)$$preffix$$object.name$;
 $endif$
+>>
+
+object_map_serialization(ctx, object, preffix) ::= <<
+scdr << static_cast<uint32_t>($preffix$$object.name$.size());
+for (const auto& pair : $preffix$$object.name$)
+{
+$if(object.typecode.keyTypeCode.isType_c)$
+    scdr << static_cast<uint32_t>(pair.first);
+$elseif(object.typecode.keyTypeCode.isBitmaskType)$
+    scdr << static_cast<uint32_t>(pair.first);
+$elseif(object.typecode.keyTypeCode.isType_d)$
+    scdr << pair.first$if(object.typecode.keyTypeCode.isStringType)$.c_str()$endif$;
+$elseif(object.typecode.keyTypeCode.isStringType)$
+    scdr << pair.first$if(object.typecode.keyTypeCode.isStringType)$.c_str()$endif$;
+$elseif(object.typecode.keyTypeCode.isWStringType)$
+    scdr << pair.first$if(object.typecode.keyTypeCode.isStringType)$.c_str()$endif$;
+$else$
+    scdr << pair.first;
+$endif$
+
+$if(object.typecode.valueTypeCode.isType_c)$
+    scdr << static_cast<uint32_t>(pair.second);
+$elseif(object.typecode.valueTypeCode.isBitmaskType)$
+    scdr << static_cast<uint32_t>(pair.second);
+$elseif(object.typecode.valueTypeCode.isType_d)$
+    scdr << pair.second$if(object.typecode.valueTypeCode.isStringType)$.c_str()$endif$;
+$elseif(object.typecode.valueTypeCode.isStringType)$
+    scdr << pair.first$if(object.typecode.valueTypeCode.isStringType)$.c_str()$endif$;
+$elseif(object.typecode.valueTypeCode.isWStringType)$
+    scdr << pair.first$if(object.typecode.valueTypeCode.isStringType)$.c_str()$endif$;
+$else$
+    scdr << pair.second;
+$endif$
+
+}
+
 >>
 
 string_collection_serialization(ctx, object, preffix, array) ::= <<
@@ -110,7 +139,6 @@ $if(object.typecode.contentTypeCode.isBounded)$
 $if(object.typecode.isType_e)$
     scdr << static_cast<uint32_t>($preffix$$object.name$.size());
 $endif$
-
     for (const auto& item : $preffix$$object.name$)
     {
         scdr << item.c_str();
@@ -143,7 +171,6 @@ for (const auto& str : $name$)
 {
     scdr << str$if(object.typecode.contentTypeCode.isStringType)$.c_str()$endif$;
 }
-
 $endif$
 >>
 
@@ -155,7 +182,7 @@ object_deserialization(ctx, object, preffix) ::= <<
 $if(object.typecode.isType_f)$
 $object_array_deserialization(ctx=ctx, object=object, preffix=preffix)$
 $elseif(object.typecode.isMapType)$
-$object_map_seq_deserialization(ctx=ctx, object=object, preffix=preffix)$
+$object_map_map_deserialization(ctx=ctx, object=object, preffix=preffix)$
 $elseif(object.typecode.isType_e)$
 $object_map_seq_deserialization(ctx=ctx, object=object, preffix=preffix)$
 $else$
@@ -173,46 +200,246 @@ dcdr \>> $preffix$$object.name$;
 $endif$
 >>
 
-object_map_seq_deserialization(ctx, object, preffix) ::= <<
-$if(object.typecode.valueTypeCode.isType_c)$
-{
-    uint32_t seq_length = 0;
-    dcdr \>> seq_length;
-    $preffix$$object.name$.clear();
-    
-    for (uint32_t i = 0; i < seq_length; ++i) {
-        int key;
-        uint32_t value;
-        
-        dcdr \>> key;
-        dcdr \>> value;
-        
-        $preffix$$object.name$[key] = static_cast<$object.typecode.valueTypeCode.name$>(value);
-    }
-}
+object_map_seq_deserializationNEW(ctx, object, preffix) ::= <<
+$if(object.typecode.contentTypeCode.isType_c)$
+    dcdr.deserializeArray(reinterpret_cast<uint32_t*>($preffix$$object.name$.data()), $preffix$$object.name$.size());
+$elseif(object.typecode.contentTypeCode.isBitmaskType)$
+    dcdr.deserializeArray(reinterpret_cast<uint32_t*>($preffix$$object.name$.data()), $preffix$$object.name$.size());
+$elseif(object.typecode.contentTypeCode.isStringType)$
+    $string_collection_deserialization(ctx=ctx, object=object, preffix=preffix)$
+$else$
+    dcdr \>> $preffix$$object.name$;
+$endif$
+>>
 
-$elseif(object.typecode.valueTypeCode.isBitmaskType)$
+object_map_seq_deserialization(ctx, object, preffix) ::= <<
+$if(object.typecode.contentTypeCode.isType_c)$
 {
     uint32_t seq_length = 0;
     dcdr \>> seq_length;
-    $preffix$$object.name$.clear();
-    
-    for (decltype(seq_length) i = 0; i < seq_length; ++i) {
-        int key;
-        uint32_t value;
-        
-        dcdr \>> key;
-        dcdr \>> value;
-        
-        $preffix$$object.name$[key] = static_cast<$object.typecode.valueTypeCode.name$>(value);
-    }
+    $preffix$$object.name$.resize(seq_length);
+    dcdr.deserializeArray(reinterpret_cast<uint32_t*>($preffix$$object.name$.data()), seq_length);
 }
-$elseif(object.typecode.valueTypeCode.isStringType)$
+$elseif(object.typecode.contentTypeCode.isBitmaskType)$
+{
+    $object.typecode.contentTypeCode.castingType$ seq_length = 0;
+    dcdr \>> seq_length;
+    $preffix$$object.name$.resize(seq_length);
+    dcdr.deserializeArray(reinterpret_cast<$object.typecode.contentTypeCode.castingType$*>($preffix$$object.name$.data()), seq_length);
+}
+$elseif(object.typecode.contentTypeCode.isStringType)$
 $string_collection_deserialization(ctx=ctx, object=object, preffix=preffix)$
 $else$
 dcdr \>> $preffix$$object.name$;
 $endif$
 >>
+
+
+
+
+object_map_map_deserialization(ctx, object, preffix) ::= <<
+$if(object.typecode.valueTypeCode.isType_c)$
+    uint32_t seq_length = 0;
+    dcdr \>> seq_length;
+    $preffix$$object.name$.clear();    
+    for (uint32_t i = 0; i < seq_length; ++i)
+    {
+        $if(object.typecode.keyTypeCode.isStringType)$
+            std::string key;
+                $if(object.typecode.keyTypeCode.isBounded)$
+                    std::string aux;
+                    dcdr \>> aux;
+                    key = aux.c_str();
+                $else$
+                    dcdr \>> key;
+                $endif$
+        $elseif(object.typecode.keyTypeCode.isWStringType)$
+            std::wstring key;
+                $if(object.typecode.keyTypeCode.isBounded)$
+                    std::wstring aux;
+                    dcdr \>> aux;
+                    key = aux.c_str();
+                $else$
+                    dcdr \>> key;
+                $endif$
+    $else$
+        $object.typecode.keyTypeCode.cppTypename$ key;
+        dcdr \>> key;
+    $endif$
+        uint32_t value;
+        dcdr \>> value;        
+        $preffix$$object.name$[key] = static_cast<$object.typecode.valueTypeCode.cppTypename$>(value);
+    }
+$elseif(object.typecode.valueTypeCode.isBitmaskType)$
+    uint32_t seq_length = 0;
+    dcdr \>> seq_length;
+    $preffix$$object.name$.clear();    
+    for (uint32_t i = 0; i < seq_length; ++i)
+    {
+        $if(object.typecode.keyTypeCode.isStringType)$
+            std::string key;
+                $if(object.typecode.keyTypeCode.isBounded)$
+                    std::string aux;
+                    dcdr \>> aux;
+                    key = aux.c_str();
+                $else$
+                    dcdr \>> key;
+                $endif$
+        $elseif(object.typecode.keyTypeCode.isWStringType)$
+            std::wstring key;
+                $if(object.typecode.keyTypeCode.isBounded)$
+                    std::wstring aux;
+                    dcdr \>> aux;
+                    key = aux.c_str();
+                $else$
+                    dcdr \>> key;
+                $endif$
+    $else$
+        $object.typecode.keyTypeCode.cppTypename$ key;
+        dcdr \>> key;
+    $endif$
+        uint32_t value;        
+        dcdr \>> value;        
+        $preffix$$object.name$[key] = static_cast<$object.typecode.valueTypeCode.cppTypename$>(value);
+    }    
+$elseif(object.typecode.valueTypeCode.isStringType)$
+    $object_map_seq_string_value_deserialization(ctx=ctx, object=object, preffix=preffix)$
+$elseif(object.typecode.valueTypeCode.isWStringType)$
+    $object_map_seq_string_value_deserialization(ctx=ctx, object=object, preffix=preffix)$
+$elseif(object.typecode.keyTypeCode.isStringType)$
+    $object_map_seq_string_value_deserialization(ctx=ctx, object=object, preffix=preffix)$
+$elseif(object.typecode.keyTypeCode.isWStringType)$
+    $object_map_seq_string_value_deserialization(ctx=ctx, object=object, preffix=preffix)$
+$else$
+    dcdr \>> $preffix$$object.name$;
+$endif$
+>>
+
+object_map_seq_string_value_deserialization(ctx, object, preffix) ::= <<
+uint32_t seq_length = 0;
+dcdr \>> seq_length;
+$preffix$$object.name$.clear();
+for (uint32_t i = 0; i < seq_length; ++i)
+{
+$if(object.typecode.valueTypeCode.isStringType)$
+    $if(object.typecode.keyTypeCode.isType_10)$
+        $if(object.typecode.keyTypeCode.isStringType)$
+            std::string key;
+                $if(object.typecode.keyTypeCode.isBounded)$
+                    std::string aux;
+                    dcdr \>> aux;
+                    key = aux.c_str();
+                $else$
+                    dcdr \>> key;
+                $endif$
+        $elseif(object.typecode.keyTypeCode.isWStringType)$
+            std::wstring key;
+                $if(object.typecode.keyTypeCode.isBounded)$
+                    std::wstring aux;
+                    dcdr \>> aux;
+                    key = aux.c_str();
+                $else$
+                    dcdr \>> key;
+                $endif$              
+        $else$
+            dcdr \>> key;
+        $endif$
+    $else$
+        $object.typecode.keyTypeCode.cppTypename$ key;
+        dcdr \>> key;
+    $endif$
+    std::string value;
+    dcdr \>> value;        
+    $preffix$$object.name$[key$if(object.typecode.keyTypeCode.isStringType)$.c_str()$endif$] = value$if(object.typecode.valueTypeCode.isStringType)$.c_str()$endif$;
+
+$elseif(object.typecode.valueTypeCode.isWStringType)$
+    $if(object.typecode.keyTypeCode.isType_10)$
+        $if(object.typecode.keyTypeCode.isStringType)$
+            std::string key;
+                $if(object.typecode.keyTypeCode.isBounded)$
+                    std::string aux;
+                    dcdr \>> aux;
+                    key = aux.c_str();
+                $else$
+                    dcdr \>> key;
+                $endif$
+        $elseif(object.typecode.keyTypeCode.isWStringType)$
+            std::wstring key;
+                $if(object.typecode.keyTypeCode.isBounded)$
+                    std::wstring aux;
+                    dcdr \>> aux;
+                    key = aux.c_str();
+                $else$
+                    dcdr \>> key;
+                $endif$
+        $else$
+            dcdr \>> key;
+        $endif$
+    $else$
+        $object.typecode.keyTypeCode.cppTypename$ key;
+        dcdr \>> key;
+    $endif$
+
+    std::wstring value;
+    dcdr \>> value;        
+    $preffix$$object.name$[key$if(object.typecode.keyTypeCode.isStringType)$.c_str()$endif$] = value$if(object.typecode.valueTypeCode.isStringType)$.c_str()$endif$;
+
+$else$
+    $if(object.typecode.keyTypeCode.isType_10)$
+        $if(object.typecode.keyTypeCode.isStringType)$
+            std::string key;
+                $if(object.typecode.keyTypeCode.isBounded)$
+                    std::string aux;
+                    dcdr \>> aux;
+                    key = aux.c_str();
+                $else$
+                    dcdr \>> key;
+                $endif$
+        $elseif(object.typecode.keyTypeCode.isWStringType)$
+            std::wstring key;
+                $if(object.typecode.keyTypeCode.isBounded)$
+                    std::wstring aux;
+                    dcdr \>> aux;
+                    key = aux.c_str();
+                $else$
+                    dcdr \>> key;
+                $endif$
+        $else$
+            dcdr \>> key;
+        $endif$
+    $else$
+        $object.typecode.keyTypeCode.cppTypename$ key;
+        dcdr \>> key;
+    $endif$
+    $if(object.typecode.valueTypeCode.isType_10)$
+        $if(object.typecode.valueTypeCode.contentTypeCode.isType_d)$
+            $if(object.typecode.valueTypeCode.contentTypeCode.isStringType)$
+                std::string value;
+                dcdr \>> value;
+                $preffix$$object.name$[key$if(object.typecode.keyTypeCode.isStringType)$.c_str()$endif$] = value$if(object.typecode.valueTypeCode.isStringType)$.c_str()$endif$;
+            $elseif(object.typecode.valueTypeCode.contentTypeCode.isWStringType)$
+                std::wstring value;
+                dcdr \>> value;
+                $preffix$$object.name$[key$if(object.typecode.keyTypeCode.isStringType)$.c_str()$endif$] = value$if(object.typecode.valueTypeCode.isStringType)$.c_str()$endif$;
+            $endif$
+
+        $else$
+            $object.typecode.valueTypeCode.cppTypename$ value;
+            dcdr \>> value;
+            $preffix$$object.name$[key$if(object.typecode.keyTypeCode.isStringType)$.c_str()$endif$] = value$if(object.typecode.valueTypeCode.isStringType)$.c_str()$endif$;
+        $endif$
+    $else$
+        $object.typecode.valueTypeCode.cppTypename$ value;
+        dcdr \>> value;
+        $preffix$$object.name$[key$if(object.typecode.keyTypeCode.isStringType)$.c_str()$endif$] = value$if(object.typecode.valueTypeCode.isStringType)$.c_str()$endif$;
+
+    $endif$
+
+
+$endif$
+}
+>>
+
 
 string_collection_deserialization(ctx, object, preffix) ::= <<
 $if(object.typecode.isType_f)$
@@ -240,6 +467,7 @@ $else$
     }
 }
 $endif$
+
 $elseif(object.typecode.contentTypeCode.isStringType)$
 $if(object.typecode.contentTypeCode.isBounded)$
 {
@@ -248,7 +476,6 @@ $if(object.typecode.isType_e)$
     dcdr \>> sequence_size;
     $preffix$$object.name$$if(object.typecode.forwarded)$->$else$.$endif$resize(sequence_size);
 $endif$
-
     for (auto& item : $if(object.typecode.forwarded)$*$endif$$preffix$$object.name$)
     {
         std::string s;
