@@ -113,7 +113,7 @@ void $struct.scopedname$::serializeKey(
 {
     (void) scdr;
     $if(struct.inheritances)$ $struct.inheritances : { $it.scopedname$::serializeKey(scdr); }; separator="\n"$ $endif$
-    $if(struct.hasKey)$ $struct.members : { member | $if(member.annotationKey)$ $if(member.typecode.isStructType)$ $if(member.typecode.hasKey)$ m_$member.name$.serializeKey(scdr); $else$ m_$member.name$.serialize(scdr); $endif$ $else$ $object_serialization(ctx=ctx, object=member, preffix="m_")$ $endif$ $endif$ }; separator="\n"$ $endif$
+    $if(struct.hasKey)$ $struct.members : { member | $if(member.annotationKey)$ $if(member.typecode.isStructType)$ $if(member.typecode.hasKey)$ m_$member.name$.serializeKey(scdr); $else$ m_$member.name$.serialize(scdr); $endif$ $else$ $object_serialization(ctx=ctx, object=member)$ $endif$ $endif$ }; separator="\n"$ $endif$
 }
 $"\n"$
 >>
