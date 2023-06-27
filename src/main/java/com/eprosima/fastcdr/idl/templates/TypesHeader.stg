@@ -731,7 +731,7 @@ $if(ctx.anyCdr)$
  * @return Serialized size.
  */
 eProsima_user_DllExport static size_t calculate_serialized_size(
-        const eprosima::fastcdr::CdrSizeCalculator& calculator,
+        eprosima::fastcdr::CdrSizeCalculator& calculator,
         const $type.scopedname$& data,
         size_t current_alignment = 0);
 
@@ -850,7 +850,7 @@ $if(ctx.anyCdr)$
             size_t current_alignment = 0);
 
     static size_t calculate_serialized_size(
-            const eprosima::fastcdr::CdrSizeCalculator& calculator,
+            eprosima::fastcdr::CdrSizeCalculator& calculator,
             const $typename$& data,
             size_t current_alignment = 0);
 
