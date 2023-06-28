@@ -779,7 +779,7 @@ public class fastddsgen
             if (returnedValue)
             {
                 // Create information of project for solution
-                project = new Project(ctx.getFilename(), idlFilename, ctx.getDependencies());
+                project = new Project(ctx, idlFilename, ctx.getDependencies());
 
                 // Create all custom files for template
                 if (processCustomTemplates)
