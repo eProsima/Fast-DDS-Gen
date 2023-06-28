@@ -55,6 +55,15 @@ $definitions; separator="\n"$
 $"\n"$
 >>
 
+module(ctx, parent, module, definition_list) ::= <<
+$definition_list$
+>>
+
+definition_list(definitions) ::= <<
+$definitions; separator="\n"$
+
+>>
+
 fast_macro_declarations() ::= <<
 // Macro declarations
 // Any macro used on the Fast DDS header files will give an error if it is not redefined here
@@ -64,27 +73,27 @@ fast_macro_declarations() ::= <<
 
 struct_type(ctx, parent, struct, extensions) ::= <<
 ////////////////////////////////////////////////////////
-// Binding for class $struct.name$
+// Binding for class $struct.scopedname$
 ////////////////////////////////////////////////////////
 
 // Ignore overloaded methods that have no application on Python
 // Otherwise they will issue a warning
-%ignore $struct.name$::$struct.name$($struct.name$&&);
+%ignore $struct.scopedname$::$struct.name$($struct.scopedname$&&);
 
 // Overloaded getter methods shadow each other and are equivalent in python
 // Avoid a warning ignoring all but one
-$struct.members : {$member_getters(struct_name=struct.name, member=it)$}; separator="\n"$
+$struct.members : {$member_getters(struct_name=struct.scopedname, member=it)$}; separator="\n"$
 
-%template(_$struct.name$Seq) eprosima::fastdds::dds::LoanableTypedCollection<$struct.name$, std::false_type>;
-%template($struct.name$Seq) eprosima::fastdds::dds::LoanableSequence<$struct.name$, std::false_type>;
-%extend eprosima::fastdds::dds::LoanableSequence<$struct.name$, std::false_type>
+%template(_$struct.name$Seq) eprosima::fastdds::dds::LoanableTypedCollection<$struct.scopedname$, std::false_type>;
+%template($struct.name$Seq) eprosima::fastdds::dds::LoanableSequence<$struct.scopedname$, std::false_type>;
+%extend eprosima::fastdds::dds::LoanableSequence<$struct.scopedname$, std::false_type>
 {
     size_t __len__() const
     {
         return self->length();
     }
 
-    const $struct.name$& __getitem__(size_t i) const
+    const $struct.scopedname$& __getitem__(size_t i) const
     {
         return (*self)[i];
     }
@@ -129,7 +138,7 @@ $if(member.typecode.isSequenceType)$
 $template_sequence(member.typecode)$
 $elseif(member.typecode.isMapType)$
 %ignore $struct_name$::$member.name$() const;
-%template($member.typecode.keyTypeCode.cppTypename$_$member.typecode.valueTypeCode.cppTypename$_map) std::map<$member.typecode.keyTypeCode.cppTypename$,$member.typecode.valueTypeCode.cppTypename$>;
+%template($member.typecode.keyTypeCode.name$_$member.typecode.valueTypeCode.cppTypename$_map) std::map<$member.typecode.keyTypeCode.cppTypename$,$member.typecode.valueTypeCode.cppTypename$>;
 $elseif(member.typecode.isType_f)$
 %ignore $struct_name$::$member.name$() const;
 %template($member.typecode.contentTypeCode.formatedCppTypename$_$member.typecode.dimensions$_array) std::array<$member.typecode.contentTypeCode.cppTypename$,$member.typecode.dimensions$>;
