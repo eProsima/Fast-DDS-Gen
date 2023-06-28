@@ -18,13 +18,14 @@ import java.util.ArrayList;
 import java.util.LinkedHashSet;
 
 import com.eprosima.solution.GUIDGenerator;
+import com.eprosima.fastdds.idl.grammar.Context;
 import com.eprosima.idl.util.Util;
 
 public class Project extends com.eprosima.solution.Project
 {
-    public Project(String name, String file, LinkedHashSet<String> dependencies)
+    public Project(Context ctx, String file, LinkedHashSet<String> dependencies)
     {
-        super(name, file, dependencies);
+        super(ctx.getFilename(), file, dependencies);
 
         m_subscribersrcfiles = new ArrayList<String>();
         m_subscriberincludefiles = new ArrayList<String>();
@@ -36,6 +37,7 @@ public class Project extends com.eprosima.solution.Project
         m_jniincludefiles = new ArrayList<String>();
         m_idlincludefiles = new ArrayList<String>();
         m_idlincludefiles.addAll((LinkedHashSet<String>)dependencies);
+        ctx_ = ctx;
     }
 
     public void addSubscriberSrcFile(String file)
@@ -213,6 +215,11 @@ public class Project extends com.eprosima.solution.Project
         return m_idlincludefiles;
     }
 
+    public Context getContext()
+    {
+        return ctx_;
+    }
+
     private boolean m_containsInterfaces = false;
     private ArrayList<String> m_subscribersrcfiles = null;
     private ArrayList<String> m_subscriberincludefiles = null;
@@ -226,4 +233,6 @@ public class Project extends com.eprosima.solution.Project
     private ArrayList<String> m_jniincludefiles = null;
     private ArrayList<String> m_idlincludefiles = null;
     String m_guid = null;
+
+    private Context ctx_ = null;
 }
