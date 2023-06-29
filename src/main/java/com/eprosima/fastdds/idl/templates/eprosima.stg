@@ -48,7 +48,31 @@ bitset_inherit_move_init(parent) ::= <<$parent.scopedname$(std::move(x))>>
 
 member_default_init(ctx, member, loopvar) ::= <<
 // $member.typecode.idlTypename$ m_$member.name$
-$if(member.typecode.forwarded)$m_$member.name$ = new $member.typecode.cppTypename$($if(member.annotationDefault)$$member.annotationDefaultValue$$endif$);$else$$if(member.typecode.primitive)$$if(member.typecode.isBitmaskType)$m_$member.name$ = $if(member.annotationDefault)$$member.annotationDefaultValue$$else$static_cast<$member.typecode.cppTypename$>(0)$endif$;$else$m_$member.name$ = $if(member.annotationDefault)$$member.annotationDefaultValue$$else$$member.typecode.initialValue$$endif$;$endif$$elseif(member.typecode.isStringType)$m_$member.name$ =$if(ctx.generateTypesC)$$if(member.annotationDefault)$$member.annotationDefaultValue$$else$nullptr$endif$$else$$if(member.annotationDefault)$$member.annotationDefaultValue$$else$$member.typecode.initialValue$$endif$$endif$;$elseif(member.typecode.isType_f)$$if(member.typecode.contentTypeCode.primitive)$memset(&m_$member.name$, $if(member.annotationDefault)$$member.annotationDefaultValue$$else$0$endif$, $member.typecode.size$ * $member.typecode.contentTypeCode.size$);$elseif(member.typecode.contentTypeCode.isStringType)$$if(ctx.generateTypesC)$$member_array_default_cstring_init(ctx=ctx, name=memberName(member.name), loopvar=ctx.newLoopVarName, dims=member.typecode.dimensions)$$endif$$endif$$endif$$endif$>>
+$if(member.typecode.forwarded)$
+    m_$member.name$ = new $member.typecode.cppTypename$($if(member.annotationDefault)$$member.annotationDefaultValue$$endif$);
+$else$
+$if(member.typecode.primitive)$
+$if(member.typecode.isBitmaskType)$
+m_$member.name$ = $if(member.annotationDefault)$$member.annotationDefaultValue$$else$static_cast<$member.typecode.cppTypename$>(0)$endif$;
+$else$
+m_$member.name$ = $if(member.annotationDefault)$$member.annotationDefaultValue$$else$$member.typecode.initialValue$$endif$;
+$endif$
+$elseif(member.typecode.isStringType)$
+m_$member.name$ = $if(ctx.generateTypesC)$$if(member.annotationDefault)$$member.annotationDefaultValue$$else$nullptr$endif$$else$$if(member.annotationDefault)$$member.annotationDefaultValue$$else$$member.typecode.initialValue$$endif$$endif$;
+$elseif(member.typecode.isWStringType)$
+m_$member.name$ = $if(ctx.generateTypesC)$$if(member.annotationDefault)$$member.annotationDefaultValue$$else$nullptr$endif$$else$$if(member.annotationDefault)$$member.annotationDefaultValue$$else$$member.typecode.initialValue$$endif$$endif$;
+$elseif(member.typecode.isType_f)$
+$if(member.typecode.contentTypeCode.primitive)$
+memset(&m_$member.name$, $if(member.annotationDefault)$$member.annotationDefaultValue$$else$0$endif$, $member.typecode.size$ * $member.typecode.contentTypeCode.size$);
+$elseif(member.typecode.contentTypeCode.isStringType)$
+$if(ctx.generateTypesC)$
+$member_array_default_cstring_init(ctx=ctx, name=memberName(member.name), loopvar=ctx.newLoopVarName, dims=member.typecode.dimensions)$
+$endif$
+$endif$
+$endif$
+$endif$
+>>
+
 
 member_array_default_cstring_init(ctx, name, loopvar, dims) ::= <<$if(rest(dims))$for (uint32_t $loopvar$ = 0; $loopvar$ < $name$.size(); ++$loopvar$)
 {
