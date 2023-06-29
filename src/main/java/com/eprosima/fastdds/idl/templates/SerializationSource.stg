@@ -226,13 +226,13 @@ $elseif(typecode.primitive)$
 topic->$name$ = static_cast<$typecode.cppTypename$>(rand());
 $elseif(typecode.isType_d)$
 $if(typecode.isWStringType)$
-topic->$name$ = L"WWWWWW";
+topic->$name$ = std::wstring($typecode.maxsize$,'W');
 $elseif(ctx.generateTypesC)$
 free(topic->$name$);
 topic->$name$ = (char*)malloc(6); // AAAAA\0
 strncpy(topic->$name$, "AAAAA", 6);
 $else$
-topic->$name$ = "AAAAA";
+topic->$name$ = std::string($typecode.maxsize$,'A');
 $endif$
 $elseif(typecode.isType_10)$
 $array_member_assignment(ctx=ctx, typecode=typecode.typedefContentTypeCode, name=name, originName=originName, loopvar=loopvar)$
@@ -263,7 +263,7 @@ $endif$
 $elseif(typecode.isType_d)$
 $if(typecode.isWStringType)$
 $if(ctx.generateTypesC)$
-topic->$name$$p$.value()[$currentvar$] = L"WWWWWW";
+topic->$name$$p$.value()[$currentvar$] = std::wstring($typecode.maxsize$,'W');
 $else$
 topic->$name$$p$.push_back(std::wstring($typecode.maxsize$,'W'));
 $endif$
@@ -307,19 +307,21 @@ $map_member_value_assignment(ctx=ctx, valueTypeCode=valueTypeCode, name=name, or
 $elseif(keytypecode.isType_d)$
 $if(keytypecode.isWStringType)$
 $if(keytypecode.isBounded)$
-std::wstring var_map_Key$loopvar$ = (L"WWWWWW");
+std::wstring var_map_Key$loopvar$ = std::wstring($keytypecode.maxsize$, 'W');
 $else$
-$keytypecode.cppTypename$ var_map_Key$loopvar$ = (L"WWWWWW");
+$keytypecode.cppTypename$ var_map_Key$loopvar$ = std::wstring($keytypecode.maxsize$, 'W');
 $endif$
-var_map_Key$loopvar$ += std::to_wstring(rand());
+var_map_Key$loopvar$ = std::to_wstring(rand()) + var_map_Key$loopvar$ ;
+var_map_Key$loopvar$ = var_map_Key$loopvar$.substr(0, $keytypecode.maxsize$);
 $map_member_value_assignment(ctx=ctx, valueTypeCode=valueTypeCode, name=name, originName=originName, p=p, loopvar=loopvar)$
 $else$
 $if(keytypecode.isBounded)$
-std::string var_map_Key$loopvar$ = "AAAAA";
+std::string var_map_Key$loopvar$ = std::string($keytypecode.maxsize$,'A');
 $else$
-$keytypecode.cppTypename$ var_map_Key$loopvar$ = "AAAAA";
+$keytypecode.cppTypename$ var_map_Key$loopvar$ = std::string($keytypecode.maxsize$,'A');
 $endif$
-var_map_Key$loopvar$ += std::to_string(rand());
+var_map_Key$loopvar$ = std::to_string(rand()) + var_map_Key$loopvar$ ;
+var_map_Key$loopvar$ = var_map_Key$loopvar$.substr(0, $keytypecode.maxsize$);
 $map_member_value_assignment(ctx=ctx, valueTypeCode=valueTypeCode, name=name, originName=originName, p=p, loopvar=loopvar)$
 $endif$
 $elseif(keytypecode.isSequenceType)$
@@ -351,13 +353,13 @@ $elseif(valueTypeCode.primitive)$
 topic->$name$$p$[var_map_Key$loopvar$] = static_cast<$valueTypeCode.cppTypename$>(rand());
 $elseif(valueTypeCode.isType_d)$
 $if(valueTypeCode.isWStringType)$
-topic->$name$$p$[var_map_Key$loopvar$] = L"WWWWWW";
+topic->$name$$p$[var_map_Key$loopvar$] = std::wstring($valueTypeCode.maxsize$,'W');
 $elseif(ctx.generateTypesC)$
 free(topic->$name$$p$[var_map_Key$loopvar$]);
 topic->$name$$p$[var_map_Key$loopvar$] = (char*)malloc(6); // AAAAA\0
 strncpy(topic->$name$$p$[var_map_Key$loopvar$], "AAAAA", 6);
 $else$
-topic->$name$$p$[var_map_Key$loopvar$] = "AAAAA";
+topic->$name$$p$[var_map_Key$loopvar$] = std::string($valueTypeCode.maxsize$,'A');
 $endif$
 $elseif(valueTypeCode.isType_10)$
 $map_member_value_assignment(ctx=ctx, valueTypeCode=valueTypeCode.typedefContentTypeCode, name=name, originName=originName, p=p, loopvar=loopvar)$
