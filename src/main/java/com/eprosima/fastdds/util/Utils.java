@@ -58,7 +58,7 @@ public class Utils
         if(index != -1)
             auxString = auxString.substring(0, index);
 
-           returnedValue = auxString;
+        returnedValue = auxString;
 
         return returnedValue;
     }
@@ -105,9 +105,9 @@ public class Utils
     }
 
     public static String getFileExtension(String fileName)
-	{
-	    int lastDot = fileName.lastIndexOf(".");
+    {
+        int lastDot = fileName.lastIndexOf(".");
 
-	    return fileName.substring(lastDot+1);
-	}
+        return fileName.substring(lastDot+1);
+    }
 }

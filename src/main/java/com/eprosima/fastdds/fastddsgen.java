@@ -435,7 +435,7 @@ public class fastddsgen
 
             for (int count = 0; returnedValue && (count < m_idlFiles.size()); ++count)
             {
-                Project project = process(m_idlFiles.get(count), Util.getIDLFileDirectoryOnly(m_idlFiles.get(count)), true);
+                Project project = process(m_idlFiles.get(count), null, true);
 
                 if (project != null)
                 {
@@ -452,7 +452,7 @@ public class fastddsgen
 
                 for (String include : project.getIDLIncludeFiles())
                 {
-                    Project inner = process(include, Util.getIDLFileDirectoryOnly(include), false);
+                    Project inner = process(include, Util.getIDLFileDirectoryOnly(m_idlFiles.get(count)), false);
                     if (inner != null && !solution.existsProject(inner.getFile()))
                     {
                         System.out.println("Adding project: " + inner.getFile());
@@ -600,42 +600,16 @@ public class fastddsgen
 
     private Project process(
             String idlFilename,
-            String relative_directory,
+            String dependant_idl_dir,
             boolean processCustomTemplates)
     {
         Project project = null;
         System.out.println("Processing the file " + idlFilename + "...");
 
-        String output_dir = m_outputDir;
-        String relative_dir = "";
-
-        if(null != relative_directory && !relative_directory.isEmpty())
-        {
-            File rel_dir = new File(relative_directory);
-
-            if (!rel_dir.isAbsolute())
-            {
-                output_dir += relative_directory;
-                relative_dir = relative_directory;
-            }
-        }
-
-        // Check the output directory exists or create it.
-        File dir = new File(output_dir);
-
-        if (!dir.exists())
-        {
-            if (!dir.mkdirs())
-            {
-                System.out.println(ColorMessage.error() + "Directory " + output_dir + " cannot be created");
-                return null;
-            }
-        }
-
         try
         {
             // Protocol CDR
-            project = parseIDL(idlFilename, output_dir, relative_dir, processCustomTemplates); // TODO: Quitar archivos copiados TypesHeader.stg, TypesSource.stg, PubSubTypeHeader.stg de la carpeta com.eprosima.fastdds.idl.templates
+            project = parseIDL(idlFilename, dependant_idl_dir, processCustomTemplates); // TODO: Quitar archivos copiados TypesHeader.stg, TypesSource.stg, PubSubTypeHeader.stg de la carpeta com.eprosima.fastdds.idl.templates
         }
         catch (Exception ioe)
         {
@@ -652,15 +626,12 @@ public class fastddsgen
 
     private Project parseIDL(
             String idlFilename,
-            String output_dir,
-            String relative_dir,
+            String dependant_idl_dir,
             boolean processCustomTemplates)
     {
         boolean returnedValue = false;
         String idlParseFileName = idlFilename;
         Project project = null;
-
-        String onlyFileName = Util.getIDLFileNameOnly(idlFilename);
 
         if (!m_ppDisable)
         {
@@ -669,8 +640,24 @@ public class fastddsgen
 
         if (idlParseFileName != null)
         {
-            Context ctx = new Context(onlyFileName, idlFilename, m_includePaths, m_subscribercode, m_publishercode,
+            Context ctx = new Context(idlFilename, m_includePaths, m_subscribercode, m_publishercode,
                             m_localAppProduct, m_type_object_files, m_typesc, m_type_ros2);
+
+            String relative_dir = ctx.getRelativeDir(dependant_idl_dir);
+            String output_dir = m_outputDir + relative_dir;
+
+            // Check the output directory exists or create it.
+            File dir = new File(output_dir);
+
+            if (!dir.exists())
+            {
+                if (!dir.mkdirs())
+                {
+                    System.out.println(ColorMessage.error() + "Directory " + output_dir + " cannot be created");
+                    return null;
+                }
+            }
+
 
             if (m_case_sensitive)
             {
