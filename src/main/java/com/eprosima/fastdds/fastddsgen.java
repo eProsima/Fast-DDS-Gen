@@ -862,16 +862,25 @@ public class fastddsgen
                     String fileName = output_dir + ctx.getFilename() + "SerializationTest.cpp";
                     returnedValue =
                             Utils.writeFile(fileName, maintemplates.getTemplate("SerializationTestSource"), m_replace);
+                    project.addCommonTestingFile(relative_dir + ctx.getFilename() + "SerializationTest.cpp");
 
                     System.out.println("Generating Serialization Source file...");
                     String fileNameS = output_dir + ctx.getFilename() + "Serialization.cpp";
                     returnedValue =
                             Utils.writeFile(fileNameS, maintemplates.getTemplate("SerializationSource"), m_replace);
+                    project.addCommonTestingFile(relative_dir + ctx.getFilename() + "Serialization.cpp");
 
                     System.out.println("Generating Serialization Header file...");
                     String fileNameH = output_dir + ctx.getFilename() + "Serialization.h";
                     returnedValue =
                             Utils.writeFile(fileNameH, maintemplates.getTemplate("SerializationHeader"), m_replace);
+                    project.addCommonTestingFile(relative_dir + ctx.getFilename() + "PubSubTypes.cxx");
+                    
+                    for (String element : project.getFullDependencies())
+                    {
+                        String trimmedElement = element.substring(0, element.length() - 4);// Remove .idl
+                        project.addCommonTestingFile(trimmedElement + "Serialization.cpp");
+                    }
                 }
 
                 // TODO: Uncomment following lines and create templates
