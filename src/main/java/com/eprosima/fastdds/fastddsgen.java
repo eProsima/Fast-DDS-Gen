@@ -535,8 +535,7 @@ public class fastddsgen
         System.out.println("\t\t-I <path>: add directory to preprocessor include paths.");
         System.out.println("\t\t-d <path>: sets an output directory for generated files.");
         System.out.println("\t\t-t <temp dir>: sets a specific directory as a temporary directory.");
-        System.out.print("\t\t-typeobject: generates TypeObject files to automatically register the types as");
-        System.out.println(" dynamic.");
+        System.out.print("\t\t-typeobject: generates TypeObject files to uniquely identify each type (XTYPES specification)");
         System.out.println("\t\t-cs: IDL grammar apply case sensitive matching.");
         System.out.println("\t\t-test: executes FastDDSGen tests.");
         System.out.println("\t\t-python: generates python bindings for the generated types.");
