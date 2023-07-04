@@ -34,10 +34,10 @@ $ctx.directIncludeDependencies : {include | #include "$include$TypeObject.h"}; s
 #define eProsima_user_DllExport __declspec( dllexport )
 #else
 #define eProsima_user_DllExport
-#endif
+#endif // defined(EPROSIMA_USER_DLL_EXPORT)
 #else
 #define eProsima_user_DllExport
-#endif
+#endif // defined(_WIN32)
 
 using namespace eprosima::fastrtps::types;
 
