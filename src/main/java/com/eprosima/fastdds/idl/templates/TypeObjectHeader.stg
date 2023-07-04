@@ -51,57 +51,85 @@ $definitions; separator="\n"$
 >>
 
 typedef_decl(ctx, parent, typedefs) ::= <<
+$get_type_identifier_doxydoc(ctx=ctx, param=typedefs)$
 eProsima_user_DllExport const TypeIdentifier* Get$typedefs.name$Identifier(bool complete = false);
+$get_type_object_doxydoc(ctx=ctx, param=typedefs)$
 eProsima_user_DllExport const TypeObject* Get$typedefs.name$Object(bool complete = false);
+$get_minimal_type_object_doxydoc(ctx=ctx, param=typedefs)$
 eProsima_user_DllExport const TypeObject* GetMinimal$typedefs.name$Object();
+$get_complete_type_object_doxydoc(ctx=ctx, param=typedefs)$
 eProsima_user_DllExport const TypeObject* GetComplete$typedefs.name$Object();
 
 >>
 
 enum_type(ctx, parent, enum) ::= <<
+$get_type_identifier_doxydoc(ctx=ctx, param=enum)$
 eProsima_user_DllExport const TypeIdentifier* Get$enum.name$Identifier(bool complete = false);
+$get_type_object_doxydoc(ctx=ctx, param=enum)$
 eProsima_user_DllExport const TypeObject* Get$enum.name$Object(bool complete = false);
+$get_minimal_type_object_doxydoc(ctx=ctx, param=enum)$
 eProsima_user_DllExport const TypeObject* GetMinimal$enum.name$Object();
+$get_complete_type_object_doxydoc(ctx=ctx, param=enum)$
 eProsima_user_DllExport const TypeObject* GetComplete$enum.name$Object();
 
 >>
 
 bitmask_type(ctx, parent, bitmask) ::= <<
+$get_type_identifier_doxydoc(ctx=ctx, param=bitmask)$
 eProsima_user_DllExport const TypeIdentifier* Get$bitmask.name$Identifier(bool complete = false);
+$get_type_object_doxydoc(ctx=ctx, param=bitmask)$
 eProsima_user_DllExport const TypeObject* Get$bitmask.name$Object(bool complete = false);
+$get_minimal_type_object_doxydoc(ctx=ctx, param=bitmask)$
 eProsima_user_DllExport const TypeObject* GetMinimal$bitmask.name$Object();
+$get_complete_type_object_doxydoc(ctx=ctx, param=bitmask)$
 eProsima_user_DllExport const TypeObject* GetComplete$bitmask.name$Object();
 
 >>
 
 struct_type(ctx, parent, struct, extensions) ::= <<
+$get_type_identifier_doxydoc(ctx=ctx, param=struct)$
 eProsima_user_DllExport const TypeIdentifier* Get$struct.name$Identifier(bool complete = false);
+$get_type_object_doxydoc(ctx=ctx, param=struct)$
 eProsima_user_DllExport const TypeObject* Get$struct.name$Object(bool complete = false);
+$get_minimal_type_object_doxydoc(ctx=ctx, param=struct)$
 eProsima_user_DllExport const TypeObject* GetMinimal$struct.name$Object();
+$get_complete_type_object_doxydoc(ctx=ctx, param=struct)$
 eProsima_user_DllExport const TypeObject* GetComplete$struct.name$Object();
 
 >>
 
 union_type(ctx, parent, union, extensions) ::= <<
+$get_type_identifier_doxydoc(ctx=ctx, param=union)$
 eProsima_user_DllExport const TypeIdentifier* Get$union.name$Identifier(bool complete = false);
+$get_type_object_doxydoc(ctx=ctx, param=union)$
 eProsima_user_DllExport const TypeObject* Get$union.name$Object(bool complete = false);
+$get_minimal_type_object_doxydoc(ctx=ctx, param=union)$
 eProsima_user_DllExport const TypeObject* GetMinimal$union.name$Object();
+$get_complete_type_object_doxydoc(ctx=ctx, param=union)$
 eProsima_user_DllExport const TypeObject* GetComplete$union.name$Object();
 
 >>
 
 bitset_type(ctx, parent, bitset, extensions) ::= <<
+$get_type_identifier_doxydoc(ctx=ctx, param=bitset)$
 eProsima_user_DllExport const TypeIdentifier* Get$bitset.name$Identifier(bool complete = false);
+$get_type_object_doxydoc(ctx=ctx, param=bitset)$
 eProsima_user_DllExport const TypeObject* Get$bitset.name$Object(bool complete = false);
+$get_minimal_type_object_doxydoc(ctx=ctx, param=bitset)$
 eProsima_user_DllExport const TypeObject* GetMinimal$bitset.name$Object();
+$get_complete_type_object_doxydoc(ctx=ctx, param=bitset)$
 eProsima_user_DllExport const TypeObject* GetComplete$bitset.name$Object();
 
 >>
 
 annotation(ctx, annotation) ::= <<
+$get_type_identifier_doxydoc(ctx=ctx, param=annotation)$
 eProsima_user_DllExport const TypeIdentifier* Get$annotation.name$Identifier(bool complete = false);
+$get_type_object_doxydoc(ctx=ctx, param=annotation)$
 eProsima_user_DllExport const TypeObject* Get$annotation.name$Object(bool complete = false);
+$get_minimal_type_object_doxydoc(ctx=ctx, param=annotation)$
 eProsima_user_DllExport const TypeObject* GetMinimal$annotation.name$Object();
+$get_complete_type_object_doxydoc(ctx=ctx, param=annotation)$
 eProsima_user_DllExport const TypeObject* GetComplete$annotation.name$Object();
 
 namespace $annotation.name$
@@ -128,3 +156,44 @@ const_decl(ctx, parent, const) ::= <<>>
 fwd_decl(ctx, parent, type) ::= <<>>
 
 /***** Utils *****/
+get_type_identifier_doxydoc(ctx, param) ::= <<
+/**
+ * @brief Get $param.name$ TypeIdentifier.
+ *        First the TypeObjectFactory is queried and if not found it is registered into the TypeObjectFactory.
+ *
+ * @param complete Flag to query the complete or the minimal TypeIdentifier of the given type.
+ * @return TypeIdentifier* Constant pointer to the TypeIdentifier registered in the TypeObjectFactory.
+ *         nullptr if the TypeIdentifier is not found in the TypeObjectFactory.
+ */
+>>
+
+get_type_object_doxydoc(ctx, param) ::= <<
+/**
+ * @brief Get $param.name$ TypeObject.
+ *        First the TypeObjectFactory is queried and if not found it is registered into the TypeObjectFactory.
+ *
+ * @param complete Flag to query the complete or the minimal TypeObject of the given type.
+ * @return TypeObject* Constant pointer to the TypeObject registered in the TypeObjectFactory.
+ *         nullptr if the TypeObject is not found in the TypeObjectFactory.
+ */
+>>
+
+get_complete_type_object_doxydoc(ctx, param) ::= <<
+/**
+ * @brief Get $param.name$ complete TypeObject.
+ *        First the complete TypeObject is queried and if not found it is registered into the TypeObjectFactory.
+ *
+ * @return TypeObject* Constant pointer to the complete TypeObject registered in the TypeObjectFactory.
+ *         nullptr if the complete TypeObject is not found in the TypeObjectFactory.
+ */
+>>
+
+get_minimal_type_object_doxydoc(ctx, param) ::= <<
+/**
+ * @brief Get $param.name$ minimal TypeObject.
+ *        First the minimal TypeObject is queried and if not found it is registered into the TypeObjectFactory.
+ *
+ * @return TypeObject* Constant pointer to the minimal TypeObject registered in the TypeObjectFactory.
+ *         nullptr if the minimal TypeObject is not found in the TypeObjectFactory.
+ */
+>>
