@@ -17,23 +17,21 @@ group TypeObjectSource;
 import "eprosima.stg"
 
 main(ctx, definitions) ::= <<
-$fileHeader(ctx=ctx, file=[ctx.filename, "TypeObject.cpp"], description=["This source file contains the definition of the described types in the IDL file."])$
+$fileHeader(ctx=ctx, file=[ctx.filename, "TypeObject.cpp"], description=["This source file contains the TypeObject definition of the described types in the IDL file."])$
+
+/* *INDENT-OFF* */
 
 #ifdef _WIN32
 // Remove linker warning LNK4221 on Visual Studio
 namespace { char dummy; }
 #endif
 
-#include "$ctx.filename$.h"
 #include "$ctx.filename$TypeObject.h"
+
 #include <mutex>
-#include <utility>
 #include <sstream>
-#include <fastrtps/rtps/common/SerializedPayload.h>
-#include <fastrtps/utils/md5.h>
-#include <fastrtps/types/TypeObjectFactory.h>
-#include <fastrtps/types/TypeNamesGenerator.h>
-#include <fastrtps/types/AnnotationParameterValue.h>
+#include <utility>
+
 #include <fastcdr/FastBuffer.h>
 $if(ctx.cdr)$
 #include <fastcdr/Cdr.h>
@@ -42,8 +40,14 @@ $if(ctx.cdr)$
 $endif$
 $if(ctx.fastcdr)$
 #include <fastcdr/FastCdr.h>
-
 $endif$
+#include <fastrtps/rtps/common/SerializedPayload.h>
+#include <fastrtps/types/AnnotationParameterValue.h>
+#include <fastrtps/types/TypeNamesGenerator.h>
+#include <fastrtps/types/TypeObjectFactory.h>
+#include <fastrtps/utils/md5.h>
+
+#include "$ctx.filename$.h"
 
 using namespace eprosima::fastrtps::rtps;
 
@@ -58,6 +62,9 @@ void register$ctx.filename$Types()
 }
 
 $definitions; separator="\n"$
+
+/* *INDENT-ON* */
+
 >>
 
 
