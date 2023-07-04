@@ -38,6 +38,7 @@ $if(ctx.cdr)$
 $endif$
 $if(ctx.fastcdr)$
 #include <fastcdr/FastCdr.h>
+
 $endif$
 #include <fastrtps/rtps/common/SerializedPayload.h>
 #include <fastrtps/types/AnnotationParameterValue.h>
@@ -55,7 +56,7 @@ void register$ctx.filename$Types()
     std::call_once(once_flag, []()
             {
                 TypeObjectFactory *factory = TypeObjectFactory::get_instance();
-                $ctx.definitions: { def | $register_type(ctx=ctx, object=def, param="type_name")$}; separator="\n"$
+                $ctx.definitions: { def | $register_type(ctx=ctx, object=def)$}; separator="\n"$
             });
 }
 
@@ -78,13 +79,12 @@ if ($param$ == $if(ctx.GenerateTypesROS2)$"$object.ROS2Scopedname$"$else$"$if(ob
 }
 >>
 
-register_type(ctx, object, param) ::= <<
+register_type(ctx, object) ::= <<
 $if(!object.isModule)$
 $if(!object.isConstDeclaration)$
-factory->add_type_object($if(ctx.GenerateTypesROS2)$"$object.ROS2Scopedname$"$else$"$if(object.hasScope)$$object.scope$::$endif$$object.name$"$endif$, $if(object.hasScope)$$object.scope$::$endif$Get$object.name$Identifier(true),
-        $if(object.hasScope)$$object.scope$::$endif$Get$object.name$Object(true));
-factory->add_type_object($if(ctx.GenerateTypesROS2)$"$object.ROS2Scopedname$"$else$"$if(object.hasScope)$$object.scope$::$endif$$object.name$"$endif$, $if(object.hasScope)$$object.scope$::$endif$Get$object.name$Identifier(false),
-        $if(object.hasScope)$$object.scope$::$endif$Get$object.name$Object(false));
+// TypeObject is registered internally if not previously registered into TypeObjectFactory
+$if(object.hasScope)$$object.scope$::$endif$Get$object.name$Identifier(true);
+$if(object.hasScope)$$object.scope$::$endif$Get$object.name$Identifier(false);
 $if(object.isAnnotation)$
 {
     using namespace $object.name$;
@@ -104,19 +104,13 @@ $annotation.typeDefs : { it | $register_annotation_typedef(it)$}; separator="\n"
 >>
 
 register_annotation_enum(enum) ::= <<
-factory->add_type_object("$enum.name$", $if(enum.hasScope)$$enum.scope$::$endif$Get$enum.name$Identifier(true),
-        $if(enum.hasScope)$$enum.scope$::$endif$Get$enum.name$Object(true));
-factory->add_type_object("$enum.name$", $if(enum.hasScope)$$enum.scope$::$endif$Get$enum.name$Identifier(false),
-        $if(enum.hasScope)$$enum.scope$::$endif$Get$enum.name$Object(false));
+$if(enum.hasScope)$$enum.scope$::$endif$Get$enum.name$Identifier(true);
+$if(enum.hasScope)$$enum.scope$::$endif$Get$enum.name$Identifier(false);
 >>
 
 register_annotation_typedef(typedef) ::= <<
-factory->add_type_object("$typedef.name$",
-        $if(typedef.hasScope)$$typedef.scope$::$endif$Get$typedef.name$Identifier(true),
-        $if(typedef.hasScope)$$typedef.scope$::$endif$Get$typedef.name$Object(true));
-factory->add_type_object("$typedef.name$",
-        $if(typedef.hasScope)$$typedef.scope$::$endif$Get$typedef.name$Identifier(false),
-        $if(typedef.hasScope)$$typedef.scope$::$endif$Get$typedef.name$Object(false));
+$if(typedef.hasScope)$$typedef.scope$::$endif$Get$typedef.name$Identifier(true);
+$if(typedef.hasScope)$$typedef.scope$::$endif$Get$typedef.name$Identifier(false);
 >>
 
 module(ctx, parent, module, definition_list) ::= <<
