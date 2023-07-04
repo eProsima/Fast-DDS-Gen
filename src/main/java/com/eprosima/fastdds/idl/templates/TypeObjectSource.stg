@@ -121,19 +121,10 @@ const TypeIdentifier* get_$annotation.name$_identifier(
     $get_type_identifier_impl(ctx=ctx, param=annotation)$
 }
 
-const TypeObject* get_$annotation.name$_object(bool complete)
+const TypeObject* get_$annotation.name$_object(
+        bool complete)
 {
-    const TypeObject* c_type_object = TypeObjectFactory::get_instance()->get_type_object("$annotation.name$", complete);
-    if (c_type_object != nullptr)
-    {
-        return c_type_object;
-    }
-    else if (complete)
-    {
-        return get_complete_$annotation.name$_object();
-    }
-    // else
-    return get_minimal_$annotation.name$_object();
+    $get_type_object_impl(ctx=ctx, param=annotation)$
 }
 
 const TypeObject* get_minimal_$annotation.name$_object()
@@ -297,21 +288,10 @@ const TypeIdentifier* get_$typedefs.name$_identifier(
     $get_type_identifier_impl(ctx=ctx, param=typedefs)$
 }
 
-const TypeObject* get_$typedefs.name$_object(bool complete)
+const TypeObject* get_$typedefs.name$_object(
+        bool complete)
 {
-    const TypeObject* c_type_object = TypeObjectFactory::get_instance()->get_type_object("$typedefs.name$", complete);
-    if (c_type_object != nullptr)
-    {
-        return c_type_object;
-    }
-    else if (complete)
-    {
-        return get_complete_$typedefs.name$_object();
-    }
-    else
-    {
-        return get_minimal_$typedefs.name$_object();
-    }
+    $get_type_object_impl(ctx=ctx, param=typedefs)$
 }
 
 const TypeObject* get_minimal_$typedefs.name$_object()
@@ -484,19 +464,10 @@ const TypeIdentifier* get_$enum.name$_identifier(
     $get_type_identifier_impl(ctx=ctx, param=enum)$
 }
 
-const TypeObject* get_$enum.name$_object(bool complete)
+const TypeObject* get_$enum.name$_object(
+        bool complete)
 {
-    const TypeObject* c_type_object = TypeObjectFactory::get_instance()->get_type_object("$enum.name$", complete);
-    if (c_type_object != nullptr)
-    {
-        return c_type_object;
-    }
-    else if (complete)
-    {
-        return get_complete_$enum.name$_object();
-    }
-    // else
-    return get_minimal_$enum.name$_object();
+    $get_type_object_impl(ctx=ctx, param=enum)$
 }
 
 const TypeObject* get_minimal_$enum.name$_object()
@@ -706,19 +677,10 @@ const TypeIdentifier* get_$struct.name$_identifier(
     $get_type_identifier_impl(ctx=ctx, param=struct)$
 }
 
-const TypeObject* get_$struct.name$_object(bool complete)
+const TypeObject* get_$struct.name$_object(
+        bool complete)
 {
-    const TypeObject* c_type_object = TypeObjectFactory::get_instance()->get_type_object("$struct.name$", complete);
-    if (c_type_object != nullptr)
-    {
-        return c_type_object;
-    }
-    else if (complete)
-    {
-        return get_complete_$struct.name$_object();
-    }
-    //else
-    return get_minimal_$struct.name$_object();
+    $get_type_object_impl(ctx=ctx, param=struct)$
 }
 
 const TypeObject* get_minimal_$struct.name$_object()
@@ -962,19 +924,10 @@ const TypeIdentifier* get_$union.name$_identifier(
     $get_type_identifier_impl(ctx=ctx, param=union)$
 }
 
-const TypeObject* get_$union.name$_object(bool complete)
+const TypeObject* get_$union.name$_object(
+        bool complete)
 {
-    const TypeObject* c_type_object = TypeObjectFactory::get_instance()->get_type_object("$union.name$", complete);
-    if (c_type_object != nullptr)
-    {
-        return c_type_object;
-    }
-    else if (complete)
-    {
-        return get_complete_$union.name$_object();
-    }
-    // else
-    return get_minimal_$union.name$_object();
+    $get_type_object_impl(ctx=ctx, param=union)$
 }
 
 const TypeObject* get_minimal_$union.name$_object()
@@ -1259,19 +1212,10 @@ const TypeIdentifier* get_$bitmask.name$_identifier(
     $get_type_identifier_impl(ctx=ctx, param=bitmask)$
 }
 
-const TypeObject* get_$bitmask.name$_object(bool complete)
+const TypeObject* get_$bitmask.name$_object(
+        bool complete)
 {
-    const TypeObject* c_type_object = TypeObjectFactory::get_instance()->get_type_object("$bitmask.name$", complete);
-    if (c_type_object != nullptr)
-    {
-        return c_type_object;
-    }
-    else if (complete)
-    {
-        return get_complete_$bitmask.name$_object();
-    }
-    // else
-    return get_minimal_$bitmask.name$_object();
+    $get_type_object_impl(ctx=ctx, param=bitmask)$
 }
 
 const TypeObject* get_minimal_$bitmask.name$_object()
@@ -1495,19 +1439,10 @@ const TypeIdentifier* get_$bitset.name$_identifier(
     $get_type_identifier_impl(ctx=ctx, param=bitset)$
 }
 
-const TypeObject* get_$bitset.name$_object(bool complete)
+const TypeObject* get_$bitset.name$_object(
+        bool complete)
 {
-    const TypeObject* c_type_object = TypeObjectFactory::get_instance()->get_type_object("$bitset.name$", complete);
-    if (c_type_object != nullptr)
-    {
-        return c_type_object;
-    }
-    else if (complete)
-    {
-        return get_complete_$bitset.name$_object();
-    }
-    // else
-    return get_minimal_$bitset.name$_object();
+    $get_type_object_impl(ctx=ctx, param=bitset)$
 }
 
 const TypeObject* get_minimal_$bitset.name$_object()
@@ -1765,7 +1700,7 @@ type_object->complete().bitset_type().header().base_type(*get_$parent.name$_iden
 get_type_identifier_impl(ctx, param) ::= <<
 const TypeIdentifier* c_identifier =
         TypeObjectFactory::get_instance()->get_type_identifier(
-            "$if(ctx.GenerateTypesROS2)$$param.ROS2Scopedname$$else$$param.scopedname$$endif$", complete);
+    "$if(ctx.GenerateTypesROS2)$$param.ROS2Scopedname$$else$$param.scopedname$$endif$", complete);
 if (c_identifier != nullptr && (!complete || c_identifier->_d() == EK_COMPLETE))
 {
     return c_identifier;
@@ -1773,5 +1708,21 @@ if (c_identifier != nullptr && (!complete || c_identifier->_d() == EK_COMPLETE))
 
 get_$param.name$_object(complete); // Generated inside
 return TypeObjectFactory::get_instance()->get_type_identifier(
-            "$if(ctx.GenerateTypesROS2)$$param.ROS2Scopedname$$else$$param.scopedname$$endif$", complete);
+    "$if(ctx.GenerateTypesROS2)$$param.ROS2Scopedname$$else$$param.scopedname$$endif$", complete);
+>>
+
+get_type_object_impl(ctx, param) ::= <<
+const TypeObject* c_type_object =
+        TypeObjectFactory::get_instance()->get_type_object(
+    "$if(ctx.GenerateTypesROS2)$$param.ROS2Scopedname$$else$$param.scopedname$$endif$", complete);
+if (c_type_object != nullptr)
+{
+    return c_type_object;
+}
+else if (complete)
+{
+    return get_complete_$param.name$_object();
+}
+// else
+return get_minimal_$param.name$_object();
 >>
