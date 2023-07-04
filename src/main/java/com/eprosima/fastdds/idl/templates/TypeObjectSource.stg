@@ -29,8 +29,6 @@ namespace { char dummy; }
 #include "$ctx.filename$TypeObject.h"
 
 #include <mutex>
-#include <sstream>
-#include <utility>
 
 #include <fastcdr/FastBuffer.h>
 $if(ctx.cdr)$
