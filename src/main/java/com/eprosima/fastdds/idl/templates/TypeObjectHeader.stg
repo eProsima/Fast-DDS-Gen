@@ -41,96 +41,113 @@ $ctx.directIncludeDependencies : {include | #include "$include$TypeObject.h"}; s
 
 using namespace eprosima::fastrtps::types;
 
+/**
+ * @brief Register every TypeObject representation defined in the IDL file in the TypeObjectFactory.
+ */
 eProsima_user_DllExport void register$ctx.filename$Types();
 
 $definitions; separator="\n"$
-
 /* *INDENT-ON* */
 
 #endif // _FAST_DDS_GENERATED_$ctx.headerGuardName$_TYPE_OBJECT_H_
+
 >>
 
 typedef_decl(ctx, parent, typedefs) ::= <<
 $get_type_identifier_doxydoc(ctx=ctx, param=typedefs)$
-eProsima_user_DllExport const TypeIdentifier* Get$typedefs.name$Identifier(bool complete = false);
+eProsima_user_DllExport const TypeIdentifier* get_$typedefs.name$_identifier(
+        bool complete = false);
 $get_type_object_doxydoc(ctx=ctx, param=typedefs)$
-eProsima_user_DllExport const TypeObject* Get$typedefs.name$Object(bool complete = false);
+eProsima_user_DllExport const TypeObject* get_$typedefs.name$_object(
+        bool complete = false);
 $get_minimal_type_object_doxydoc(ctx=ctx, param=typedefs)$
-eProsima_user_DllExport const TypeObject* GetMinimal$typedefs.name$Object();
+eProsima_user_DllExport const TypeObject* get_minimal_$typedefs.name$_object();
 $get_complete_type_object_doxydoc(ctx=ctx, param=typedefs)$
-eProsima_user_DllExport const TypeObject* GetComplete$typedefs.name$Object();
+eProsima_user_DllExport const TypeObject* get_complete_$typedefs.name$_object();
 
 >>
 
 enum_type(ctx, parent, enum) ::= <<
 $get_type_identifier_doxydoc(ctx=ctx, param=enum)$
-eProsima_user_DllExport const TypeIdentifier* Get$enum.name$Identifier(bool complete = false);
+eProsima_user_DllExport const TypeIdentifier* get_$enum.name$_identifier(
+        bool complete = false);
 $get_type_object_doxydoc(ctx=ctx, param=enum)$
-eProsima_user_DllExport const TypeObject* Get$enum.name$Object(bool complete = false);
+eProsima_user_DllExport const TypeObject* get_$enum.name$_object(
+        bool complete = false);
 $get_minimal_type_object_doxydoc(ctx=ctx, param=enum)$
-eProsima_user_DllExport const TypeObject* GetMinimal$enum.name$Object();
+eProsima_user_DllExport const TypeObject* get_minimal_$enum.name$_object();
 $get_complete_type_object_doxydoc(ctx=ctx, param=enum)$
-eProsima_user_DllExport const TypeObject* GetComplete$enum.name$Object();
+eProsima_user_DllExport const TypeObject* get_complete_$enum.name$_object();
 
 >>
 
 bitmask_type(ctx, parent, bitmask) ::= <<
 $get_type_identifier_doxydoc(ctx=ctx, param=bitmask)$
-eProsima_user_DllExport const TypeIdentifier* Get$bitmask.name$Identifier(bool complete = false);
+eProsima_user_DllExport const TypeIdentifier* get_$bitmask.name$_identifier(
+        bool complete = false);
 $get_type_object_doxydoc(ctx=ctx, param=bitmask)$
-eProsima_user_DllExport const TypeObject* Get$bitmask.name$Object(bool complete = false);
+eProsima_user_DllExport const TypeObject* get_$bitmask.name$_object(
+        bool complete = false);
 $get_minimal_type_object_doxydoc(ctx=ctx, param=bitmask)$
-eProsima_user_DllExport const TypeObject* GetMinimal$bitmask.name$Object();
+eProsima_user_DllExport const TypeObject* get_minimal_$bitmask.name$_object();
 $get_complete_type_object_doxydoc(ctx=ctx, param=bitmask)$
-eProsima_user_DllExport const TypeObject* GetComplete$bitmask.name$Object();
+eProsima_user_DllExport const TypeObject* get_complete_$bitmask.name$_object();
 
 >>
 
 struct_type(ctx, parent, struct, extensions) ::= <<
 $get_type_identifier_doxydoc(ctx=ctx, param=struct)$
-eProsima_user_DllExport const TypeIdentifier* Get$struct.name$Identifier(bool complete = false);
+eProsima_user_DllExport const TypeIdentifier* get_$struct.name$_identifier(
+        bool complete = false);
 $get_type_object_doxydoc(ctx=ctx, param=struct)$
-eProsima_user_DllExport const TypeObject* Get$struct.name$Object(bool complete = false);
+eProsima_user_DllExport const TypeObject* get_$struct.name$_object(
+        bool complete = false);
 $get_minimal_type_object_doxydoc(ctx=ctx, param=struct)$
-eProsima_user_DllExport const TypeObject* GetMinimal$struct.name$Object();
+eProsima_user_DllExport const TypeObject* get_minimal_$struct.name$_object();
 $get_complete_type_object_doxydoc(ctx=ctx, param=struct)$
-eProsima_user_DllExport const TypeObject* GetComplete$struct.name$Object();
+eProsima_user_DllExport const TypeObject* get_complete_$struct.name$_object();
 
 >>
 
 union_type(ctx, parent, union, extensions) ::= <<
 $get_type_identifier_doxydoc(ctx=ctx, param=union)$
-eProsima_user_DllExport const TypeIdentifier* Get$union.name$Identifier(bool complete = false);
+eProsima_user_DllExport const TypeIdentifier* get_$union.name$_identifier(
+        bool complete = false);
 $get_type_object_doxydoc(ctx=ctx, param=union)$
-eProsima_user_DllExport const TypeObject* Get$union.name$Object(bool complete = false);
+eProsima_user_DllExport const TypeObject* get_$union.name$_object(
+        bool complete = false);
 $get_minimal_type_object_doxydoc(ctx=ctx, param=union)$
-eProsima_user_DllExport const TypeObject* GetMinimal$union.name$Object();
+eProsima_user_DllExport const TypeObject* get_minimal_$union.name$_object();
 $get_complete_type_object_doxydoc(ctx=ctx, param=union)$
-eProsima_user_DllExport const TypeObject* GetComplete$union.name$Object();
+eProsima_user_DllExport const TypeObject* get_complete_$union.name$_object();
 
 >>
 
 bitset_type(ctx, parent, bitset, extensions) ::= <<
 $get_type_identifier_doxydoc(ctx=ctx, param=bitset)$
-eProsima_user_DllExport const TypeIdentifier* Get$bitset.name$Identifier(bool complete = false);
+eProsima_user_DllExport const TypeIdentifier* get_$bitset.name$_identifier(
+        bool complete = false);
 $get_type_object_doxydoc(ctx=ctx, param=bitset)$
-eProsima_user_DllExport const TypeObject* Get$bitset.name$Object(bool complete = false);
+eProsima_user_DllExport const TypeObject* get_$bitset.name$_object(
+        bool complete = false);
 $get_minimal_type_object_doxydoc(ctx=ctx, param=bitset)$
-eProsima_user_DllExport const TypeObject* GetMinimal$bitset.name$Object();
+eProsima_user_DllExport const TypeObject* get_minimal_$bitset.name$_object();
 $get_complete_type_object_doxydoc(ctx=ctx, param=bitset)$
-eProsima_user_DllExport const TypeObject* GetComplete$bitset.name$Object();
+eProsima_user_DllExport const TypeObject* get_complete_$bitset.name$_object();
 
 >>
 
 annotation(ctx, annotation) ::= <<
 $get_type_identifier_doxydoc(ctx=ctx, param=annotation)$
-eProsima_user_DllExport const TypeIdentifier* Get$annotation.name$Identifier(bool complete = false);
+eProsima_user_DllExport const TypeIdentifier* get_$annotation.name$_identifier(
+        bool complete = false);
 $get_type_object_doxydoc(ctx=ctx, param=annotation)$
-eProsima_user_DllExport const TypeObject* Get$annotation.name$Object(bool complete = false);
+eProsima_user_DllExport const TypeObject* get_$annotation.name$_object(
+        bool complete = false);
 $get_minimal_type_object_doxydoc(ctx=ctx, param=annotation)$
-eProsima_user_DllExport const TypeObject* GetMinimal$annotation.name$Object();
+eProsima_user_DllExport const TypeObject* get_minimal_$annotation.name$_object();
 $get_complete_type_object_doxydoc(ctx=ctx, param=annotation)$
-eProsima_user_DllExport const TypeObject* GetComplete$annotation.name$Object();
+eProsima_user_DllExport const TypeObject* get_complete_$annotation.name$_object();
 
 namespace $annotation.name$
 {
