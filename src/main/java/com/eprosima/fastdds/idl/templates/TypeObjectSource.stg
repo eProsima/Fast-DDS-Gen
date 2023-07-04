@@ -23,8 +23,10 @@ $fileHeader(ctx=ctx, file=[ctx.filename, "TypeObject.cpp"], description=["This s
 
 #ifdef _WIN32
 // Remove linker warning LNK4221 on Visual Studio
-namespace { char dummy; }
-#endif
+namespace {
+char dummy;
+} // namespace
+#endif // _WIN32
 
 #include "$ctx.filename$TypeObject.h"
 
@@ -55,7 +57,7 @@ void register$ctx.filename$Types()
     static std::once_flag once_flag;
     std::call_once(once_flag, []()
             {
-                TypeObjectFactory *factory = TypeObjectFactory::get_instance();
+                TypeObjectFactory* factory = TypeObjectFactory::get_instance();
                 $ctx.definitions: { def | $register_type(ctx=ctx, object=def)$}; separator="\n"$
             });
 }
@@ -114,16 +116,9 @@ $definitions; separator="\n"$
 
 annotation(ctx, annotation) ::= <<
 const TypeIdentifier* get_$annotation.name$_identifier(
-    bool complete)
+        bool complete)
 {
-    const TypeIdentifier* c_identifier = TypeObjectFactory::get_instance()->get_type_identifier("$annotation.name$", complete);
-    if (c_identifier != nullptr && (!complete || c_identifier->_d() == EK_COMPLETE))
-    {
-        return c_identifier;
-    }
-
-    get_$annotation.name$_object(complete); // Generated inside
-    return TypeObjectFactory::get_instance()->get_type_identifier("$annotation.name$", complete);
+    $get_type_identifier_impl(ctx=ctx, param=annotation)$
 }
 
 const TypeObject* get_$annotation.name$_object(bool complete)
@@ -296,16 +291,10 @@ const_decl(ctx, parent, const) ::= <<>>
 fwd_decl(ctx, parent, type) ::= <<>>
 
 typedef_decl(ctx, parent, typedefs) ::= <<
-const TypeIdentifier* get_$typedefs.name$_identifier(bool complete)
+const TypeIdentifier* get_$typedefs.name$_identifier(
+        bool complete)
 {
-    const TypeIdentifier* c_identifier = TypeObjectFactory::get_instance()->get_type_identifier("$typedefs.name$", complete);
-    if (c_identifier != nullptr && (!complete || c_identifier->_d() == EK_COMPLETE))
-    {
-        return c_identifier;
-    }
-
-    get_$typedefs.name$_object(complete); // Generated inside
-    return TypeObjectFactory::get_instance()->get_type_identifier("$typedefs.name$", complete);
+    $get_type_identifier_impl(ctx=ctx, param=typedefs)$
 }
 
 const TypeObject* get_$typedefs.name$_object(bool complete)
@@ -489,16 +478,10 @@ const TypeObject* get_complete_$typedefs.name$_object()
 >>
 
 enum_type(ctx, parent, enum) ::= <<
-const TypeIdentifier* get_$enum.name$_identifier(bool complete)
+const TypeIdentifier* get_$enum.name$_identifier(
+        bool complete)
 {
-    const TypeIdentifier* c_identifier = TypeObjectFactory::get_instance()->get_type_identifier("$enum.name$", complete);
-    if (c_identifier != nullptr && (!complete || c_identifier->_d() == EK_COMPLETE))
-    {
-        return c_identifier;
-    }
-
-    get_$enum.name$_object(complete); // Generated inside
-    return TypeObjectFactory::get_instance()->get_type_identifier("$enum.name$", complete);
+    $get_type_identifier_impl(ctx=ctx, param=enum)$
 }
 
 const TypeObject* get_$enum.name$_object(bool complete)
@@ -717,16 +700,10 @@ type_object->complete().enumerated_type().literal_seq().emplace_back(cel_$object
 >>
 
 struct_type(ctx, parent, struct, extensions) ::= <<
-const TypeIdentifier* get_$struct.name$_identifier(bool complete)
+const TypeIdentifier* get_$struct.name$_identifier(
+        bool complete)
 {
-    const TypeIdentifier * c_identifier = TypeObjectFactory::get_instance()->get_type_identifier("$struct.name$", complete);
-    if (c_identifier != nullptr && (!complete || c_identifier->_d() == EK_COMPLETE))
-    {
-        return c_identifier;
-    }
-
-    get_$struct.name$_object(complete); // Generated inside
-    return TypeObjectFactory::get_instance()->get_type_identifier("$struct.name$", complete);
+    $get_type_identifier_impl(ctx=ctx, param=struct)$
 }
 
 const TypeObject* get_$struct.name$_object(bool complete)
@@ -979,16 +956,10 @@ get_type_identifier(ctx, type, ek) ::= <<$if(type.isSequenceType)$TypeObjectFact
 get_content_type(ctx, type) ::= <<$if(type.plainType)$$if(type.isSequenceType)$TypeNamesGenerator::get_sequence_type_name($get_content_type(ctx=ctx, type=type.contentTypeCode)$, $type.maxsize$)$elseif(type.isArrayType)$TypeNamesGenerator::get_array_type_name($get_content_type(ctx=ctx, type=type.contentTypeCode)$, {$type.dimensions:{ dim |$dim$}; separator=", "$})$elseif(type.isSetType)$TypeNamesGenerator::get_sequence_type_name($get_content_type(ctx=ctx, type=type.contentTypeCode)$, $type.maxsize$)$elseif(type.isMapType)$TypeNamesGenerator::get_map_type_name($get_content_type(ctx=ctx, type=type.keyTypeCode)$, $get_content_type(ctx=ctx, type=type.valueTypeCode)$, $type.maxsize$)$elseif(type.isStringType)$TypeNamesGenerator::get_string_type_name($type.maxsize$, false)$elseif(type.isWStringType)$TypeNamesGenerator::get_string_type_name($type.maxsize$, true)$else$"$type.cppTypenameForTypeId$"$endif$$else$"$type.cppTypenameForTypeId$"$endif$>>
 
 union_type(ctx, parent, union) ::= <<
-const TypeIdentifier* get_$union.name$_identifier(bool complete)
+const TypeIdentifier* get_$union.name$_identifier(
+        bool complete)
 {
-    const TypeIdentifier * c_identifier = TypeObjectFactory::get_instance()->get_type_identifier("$union.name$", complete);
-    if (c_identifier != nullptr && (!complete || c_identifier->_d() == EK_COMPLETE))
-    {
-        return c_identifier;
-    }
-
-    get_$union.name$_object(complete);
-    return TypeObjectFactory::get_instance()->get_type_identifier("$union.name$", complete);
+    $get_type_identifier_impl(ctx=ctx, param=union)$
 }
 
 const TypeObject* get_$union.name$_object(bool complete)
@@ -1282,16 +1253,10 @@ type_object->complete().union_type().member_seq().emplace_back(cst_$object.name$
 >>
 
 bitmask_type(ctx, parent, bitmask) ::= <<
-const TypeIdentifier* get_$bitmask.name$_identifier(bool complete)
+const TypeIdentifier* get_$bitmask.name$_identifier(
+        bool complete)
 {
-    const TypeIdentifier* c_identifier = TypeObjectFactory::get_instance()->get_type_identifier("$bitmask.name$", complete);
-    if (c_identifier != nullptr && (!complete || c_identifier->_d() == EK_COMPLETE))
-    {
-        return c_identifier;
-    }
-
-    get_$bitmask.name$_object(complete); // Generated inside
-    return TypeObjectFactory::get_instance()->get_type_identifier("$bitmask.name$", complete);
+    $get_type_identifier_impl(ctx=ctx, param=bitmask)$
 }
 
 const TypeObject* get_$bitmask.name$_object(bool complete)
@@ -1524,16 +1489,10 @@ type_object->complete().bitmask_type().flag_seq().emplace_back(cbf_$object.name$
 >>
 
 bitset_type(ctx, parent, bitset, extensions) ::= <<
-const TypeIdentifier* get_$bitset.name$_identifier(bool complete)
+const TypeIdentifier* get_$bitset.name$_identifier(
+        bool complete)
 {
-    const TypeIdentifier* c_identifier = TypeObjectFactory::get_instance()->get_type_identifier("$bitset.name$", complete);
-    if (c_identifier != nullptr && (!complete || c_identifier->_d() == EK_COMPLETE))
-    {
-        return c_identifier;
-    }
-
-    get_$bitset.name$_object(complete); // Generated inside
-    return TypeObjectFactory::get_instance()->get_type_identifier("$bitset.name$", complete);
+    $get_type_identifier_impl(ctx=ctx, param=bitset)$
 }
 
 const TypeObject* get_$bitset.name$_object(bool complete)
@@ -1803,3 +1762,16 @@ type_object->complete().bitset_type().header().base_type(*get_$parent.name$_iden
 >>
 
 /***** Utils *****/
+get_type_identifier_impl(ctx, param) ::= <<
+const TypeIdentifier* c_identifier =
+        TypeObjectFactory::get_instance()->get_type_identifier(
+            "$if(ctx.GenerateTypesROS2)$$param.ROS2Scopedname$$else$$param.scopedname$$endif$", complete);
+if (c_identifier != nullptr && (!complete || c_identifier->_d() == EK_COMPLETE))
+{
+    return c_identifier;
+}
+
+get_$param.name$_object(complete); // Generated inside
+return TypeObjectFactory::get_instance()->get_type_identifier(
+            "$if(ctx.GenerateTypesROS2)$$param.ROS2Scopedname$$else$$param.scopedname$$endif$", complete);
+>>
