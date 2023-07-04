@@ -96,8 +96,6 @@ void $if(union.hasScope)$$union.scope$::$endif$print$union.name$(
 void $if(union.hasScope)$$union.scope$::$endif$initialize$union.name$(
         $union.name$* topic)
 {
-
-    topic->_d(static_cast<$union.discriminator.cppTypename$>($first(first(union.members).labels)$));
     $if(union.members)$
     $member_assignment(ctx=ctx, typecode=first(union.members).typecode, name=first(union.members).name, originName=first(union.members).name)$
     $endif$
