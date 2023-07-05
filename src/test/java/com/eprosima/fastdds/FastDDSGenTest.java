@@ -25,6 +25,73 @@ public class FastDDSGenTest
     }
 
     @Test
+    public void Context_getRelativeDir_Test()
+    {
+        {
+            com.eprosima.idl.context.Context ctx = new com.eprosima.idl.context.Context(
+                    "Prueba.idl", new ArrayList<String>());
+
+            assertEquals("", ctx.getRelativeDir(null));
+        }
+
+        {
+            com.eprosima.idl.context.Context ctx = new com.eprosima.idl.context.Context(
+                    "dir/Prueba.idl", new ArrayList<String>());
+
+            assertEquals("dir/", ctx.getRelativeDir(null));
+        }
+
+        {
+            com.eprosima.idl.context.Context ctx = new com.eprosima.idl.context.Context(
+                    "../../dir/Prueba.idl", new ArrayList<String>());
+
+            assertEquals("../../dir/", ctx.getRelativeDir(null));
+        }
+
+        {
+            com.eprosima.idl.context.Context ctx = new com.eprosima.idl.context.Context(
+                    System.getProperty("user.dir") + "Prueba.idl", new ArrayList<String>());
+
+            assertEquals("", ctx.getRelativeDir(null));
+        }
+
+        {
+            com.eprosima.idl.context.Context ctx = new com.eprosima.idl.context.Context(
+                    System.getProperty("user.dir") + "dir/Prueba.idl", new ArrayList<String>());
+
+            assertEquals("dir/", ctx.getRelativeDir(null));
+        }
+
+        {
+            com.eprosima.idl.context.Context ctx = new com.eprosima.idl.context.Context(
+                    System.getProperty("user.dir") + "../../dir/Prueba.idl", new ArrayList<String>());
+
+            assertEquals("../../dir/", ctx.getRelativeDir(null));
+        }
+
+        {
+            com.eprosima.idl.context.Context ctx = new com.eprosima.idl.context.Context(
+                    "/home/testing/Prueba.idl", new ArrayList<String>());
+
+            assertEquals("", ctx.getRelativeDir(null));
+        }
+
+        {
+            com.eprosima.idl.context.Context ctx = new com.eprosima.idl.context.Context(
+                    "/home/testing/Prueba.idl", new ArrayList<String>());
+
+            assertEquals("", ctx.getRelativeDir("/home/testing/"));
+        }
+
+        {
+            com.eprosima.idl.context.Context ctx = new com.eprosima.idl.context.Context(
+                    "/home/testing/Prueba.idl", new ArrayList<String>());
+
+            assertEquals("testing/", ctx.getRelativeDir("/home/"));
+        }
+    }
+
+    @Test
     public void runTests()
     {
         if (!isUnix())
@@ -41,5 +108,4 @@ public class FastDDSGenTest
         boolean testResult = tests.runTests();
         System.exit(testResult ? 0 : -1);
     }
-
 }

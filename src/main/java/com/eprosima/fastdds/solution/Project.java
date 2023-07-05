@@ -188,7 +188,6 @@ public class Project extends com.eprosima.solution.Project
             if(!getParent().getOS().contains("Windows") ||
                     getParent().existsProject(deps.get(count)))
             {
-                //System.out.println("Adding GUID of " + deps.get(count));
                 array.add(GUIDGenerator.genGUID(deps.get(count) + "JNI"));
             }
         }

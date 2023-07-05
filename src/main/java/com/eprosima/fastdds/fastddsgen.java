@@ -230,7 +230,7 @@ public class fastddsgen
                 {
                     throw new BadArgumentException("Missing arguments for -extrastg");
                 }
-            } 
+            }
             else if (arg.equals("-ppDisable"))
             {
                 m_ppDisable = true;
@@ -382,7 +382,7 @@ public class fastddsgen
                             getVersion(), m_publishercode, m_subscribercode);
 
             // Load string templates
-            System.out.println("Loading templates from " + System.getProperty("java.class.path"));           
+            System.out.println("Loading templates from " + System.getProperty("java.class.path"));
             // Add path of custom templates to manager search path
             String extraPaths = "";
             for (Map.Entry<String, String> entry : m_customStgOutput.entrySet())
@@ -397,7 +397,7 @@ public class fastddsgen
                     extraPaths += ":./";
                 }
             }
-        	
+
             String templatePaths = "com/eprosima/fastdds/idl/templates:com/eprosima/fastcdr/idl/templates" + extraPaths;
             System.out.println("Template resource folders: " + templatePaths);
             TemplateManager.setGroupLoaderDirectories(templatePaths);
@@ -433,16 +433,9 @@ public class fastddsgen
             // Add product library
             solution.addLibrary("fastrtps");
 
-            ArrayList<String> includedIDL = new ArrayList<String>();
             for (int count = 0; returnedValue && (count < m_idlFiles.size()); ++count)
             {
-                Project project = process(m_idlFiles.get(count), true);
-
-                for (String include : project.getIDLIncludeFiles())
-                {
-                    //System.out.println(ColorMessage.error() + m_idlFiles.get(count) +  " includes " + include);
-                    includedIDL.add(include);
-                }
+                Project project = process(m_idlFiles.get(count), null, true);
 
                 if (project != null)
                 {
@@ -456,16 +449,15 @@ public class fastddsgen
                 {
                     returnedValue = false;
                 }
-            }
 
-            // Add include idl files
-            for (String included : includedIDL)
-            {
-                Project inner = process(included, false);
-                if (inner != null && !solution.existsProject(inner.getFile()))
+                for (String include : project.getIDLIncludeFiles())
                 {
-                    System.out.println("Adding project: " + inner.getFile());
-                    solution.addProject(inner);
+                    Project inner = process(include, Util.getIDLFileDirectoryOnly(m_idlFiles.get(count)), false);
+                    if (inner != null && !solution.existsProject(inner.getFile()))
+                    {
+                        System.out.println("Adding project: " + inner.getFile());
+                        solution.addProject(inner);
+                    }
                 }
             }
 
@@ -608,6 +600,7 @@ public class fastddsgen
 
     private Project process(
             String idlFilename,
+            String dependant_idl_dir,
             boolean processCustomTemplates)
     {
         Project project = null;
@@ -616,7 +609,7 @@ public class fastddsgen
         try
         {
             // Protocol CDR
-            project = parseIDL(idlFilename, processCustomTemplates); // TODO: Quitar archivos copiados TypesHeader.stg, TypesSource.stg, PubSubTypeHeader.stg de la carpeta com.eprosima.fastdds.idl.templates
+            project = parseIDL(idlFilename, dependant_idl_dir, processCustomTemplates); // TODO: Quitar archivos copiados TypesHeader.stg, TypesSource.stg, PubSubTypeHeader.stg de la carpeta com.eprosima.fastdds.idl.templates
         }
         catch (Exception ioe)
         {
@@ -633,13 +626,12 @@ public class fastddsgen
 
     private Project parseIDL(
             String idlFilename,
+            String dependant_idl_dir,
             boolean processCustomTemplates)
     {
         boolean returnedValue = false;
         String idlParseFileName = idlFilename;
         Project project = null;
-
-        String onlyFileName = Util.getIDLFileNameOnly(idlFilename);
 
         if (!m_ppDisable)
         {
@@ -648,8 +640,24 @@ public class fastddsgen
 
         if (idlParseFileName != null)
         {
-            Context ctx = new Context(onlyFileName, idlFilename, m_includePaths, m_subscribercode, m_publishercode,
+            Context ctx = new Context(idlFilename, m_includePaths, m_subscribercode, m_publishercode,
                             m_localAppProduct, m_type_object_files, m_typesc, m_type_ros2);
+
+            String relative_dir = ctx.getRelativeDir(dependant_idl_dir);
+            String output_dir = m_outputDir + relative_dir;
+
+            // Check the output directory exists or create it.
+            File dir = new File(output_dir);
+
+            if (!dir.exists())
+            {
+                if (!dir.mkdirs())
+                {
+                    System.out.println(ColorMessage.error() + "Directory " + output_dir + " cannot be created");
+                    return null;
+                }
+            }
+
 
             if (m_case_sensitive)
             {
@@ -734,7 +742,7 @@ public class fastddsgen
                 tmanager.addGroup("TypesSwigInterface");
                 tmanager.addGroup("DDSPubSubTypeSwigInterface");
             }
-            
+
             // Load custom templates into manager
             if (processCustomTemplates)
             {
@@ -790,16 +798,16 @@ public class fastddsgen
                         String templateName = path.getFileName().toString().substring(0, path.getFileName().toString().lastIndexOf('.'));
                         System.out.println("Generating from custom " + templateName + " to " + entry.getValue());
 
-                        if (returnedValue = Utils.writeFile(m_outputDir + entry.getValue(), maintemplates.getTemplate(templateName), m_replace))
+                        if (returnedValue = Utils.writeFile(output_dir + entry.getValue(), maintemplates.getTemplate(templateName), m_replace))
                         {
                             // Try to determine if the file is a header file.
                             if (entry.getValue().contains(".hpp") || entry.getValue().contains(".h"))
                             {
-                                project.addCommonIncludeFile(entry.getValue());
+                                project.addCommonIncludeFile(relative_dir + entry.getValue());
                             }
                             else
                             {
-                                project.addCommonSrcFile(ctx.getFilename() + entry.getValue());
+                                project.addCommonSrcFile(relative_dir + ctx.getFilename() + entry.getValue());
                             }
                         }
                         else
@@ -808,30 +816,30 @@ public class fastddsgen
                         }
                     }
                 }
-            	
+
                 System.out.println("Generating Type definition files...");
                 if ((returnedValue) && (returnedValue =
-                        Utils.writeFile(m_outputDir + ctx.getFilename() + ".h",
+                        Utils.writeFile(output_dir + ctx.getFilename() + ".h",
                         maintemplates.getTemplate("TypesHeader"),
                         m_replace)))
                 {
                     if (returnedValue =
-                            Utils.writeFile(m_outputDir + ctx.getFilename() + ".cxx",
+                            Utils.writeFile(output_dir + ctx.getFilename() + ".cxx",
                             maintemplates.getTemplate("TypesSource"), m_replace))
                     {
-                        project.addCommonIncludeFile(ctx.getFilename() + ".h");
-                        project.addCommonSrcFile(ctx.getFilename() + ".cxx");
+                        project.addCommonIncludeFile(relative_dir + ctx.getFilename() + ".h");
+                        project.addCommonSrcFile(relative_dir + ctx.getFilename() + ".cxx");
                         if (m_type_object_files)
                         {
                             System.out.println("Generating TypeObject files...");
-                            if (returnedValue = Utils.writeFile(m_outputDir + ctx.getFilename() + "TypeObject.h",
+                            if (returnedValue = Utils.writeFile(output_dir + ctx.getFilename() + "TypeObject.h",
                                     maintemplates.getTemplate("TypeObjectHeader"), m_replace))
                             {
-                                if (returnedValue = Utils.writeFile(m_outputDir + ctx.getFilename() + "TypeObject.cxx",
+                                if (returnedValue = Utils.writeFile(output_dir + ctx.getFilename() + "TypeObject.cxx",
                                         maintemplates.getTemplate("TypeObjectSource"), m_replace))
                                 {
-                                    project.addCommonIncludeFile(ctx.getFilename() + "TypeObject.h");
-                                    project.addCommonSrcFile(ctx.getFilename() + "TypeObject.cxx");
+                                    project.addCommonIncludeFile(relative_dir + ctx.getFilename() + "TypeObject.h");
+                                    project.addCommonSrcFile(relative_dir + ctx.getFilename() + "TypeObject.cxx");
                                 }
                             }
                         }
@@ -839,7 +847,7 @@ public class fastddsgen
                         {
                             System.out.println("Generating Swig interface files...");
                             if (returnedValue =
-                                    Utils.writeFile(m_outputDir + ctx.getFilename() + ".i",
+                                    Utils.writeFile(output_dir + ctx.getFilename() + ".i",
                                     maintemplates.getTemplate("TypesSwigInterface"), m_replace))
                             {
 
@@ -851,19 +859,28 @@ public class fastddsgen
                 if (m_test)
                 {
                     System.out.println("Generating Serialization Test file...");
-                    String fileName = m_outputDir + ctx.getFilename() + "SerializationTest.cpp";
+                    String fileName = output_dir + ctx.getFilename() + "SerializationTest.cpp";
                     returnedValue =
                             Utils.writeFile(fileName, maintemplates.getTemplate("SerializationTestSource"), m_replace);
+                    project.addCommonTestingFile(relative_dir + ctx.getFilename() + "SerializationTest.cpp");
 
                     System.out.println("Generating Serialization Source file...");
-                    String fileNameS = m_outputDir + ctx.getFilename() + "Serialization.cpp";
+                    String fileNameS = output_dir + ctx.getFilename() + "Serialization.cpp";
                     returnedValue =
                             Utils.writeFile(fileNameS, maintemplates.getTemplate("SerializationSource"), m_replace);
+                    project.addCommonTestingFile(relative_dir + ctx.getFilename() + "Serialization.cpp");
 
                     System.out.println("Generating Serialization Header file...");
-                    String fileNameH = m_outputDir + ctx.getFilename() + "Serialization.h";
+                    String fileNameH = output_dir + ctx.getFilename() + "Serialization.h";
                     returnedValue =
                             Utils.writeFile(fileNameH, maintemplates.getTemplate("SerializationHeader"), m_replace);
+                    project.addCommonTestingFile(relative_dir + ctx.getFilename() + "PubSubTypes.cxx");
+                    
+                    for (String element : project.getFullDependencies())
+                    {
+                        String trimmedElement = element.substring(0, element.length() - 4);// Remove .idl
+                        project.addCommonTestingFile(trimmedElement + "Serialization.cpp");
+                    }
                 }
 
                 // TODO: Uncomment following lines and create templates
@@ -874,20 +891,20 @@ public class fastddsgen
 
                     System.out.println("Generating TopicDataTypes files...");
                     if (returnedValue =
-                            Utils.writeFile(m_outputDir + ctx.getFilename() + "PubSubTypes.h",
+                            Utils.writeFile(output_dir + ctx.getFilename() + "PubSubTypes.h",
                             maintemplates.getTemplate("DDSPubSubTypeHeader"), m_replace))
                     {
                         if (returnedValue =
-                                Utils.writeFile(m_outputDir + ctx.getFilename() + "PubSubTypes.cxx",
+                                Utils.writeFile(output_dir + ctx.getFilename() + "PubSubTypes.cxx",
                                 maintemplates.getTemplate("DDSPubSubTypeSource"), m_replace))
                         {
-                            project.addProjectIncludeFile(ctx.getFilename() + "PubSubTypes.h");
-                            project.addProjectSrcFile(ctx.getFilename() + "PubSubTypes.cxx");
+                            project.addProjectIncludeFile(relative_dir + ctx.getFilename() + "PubSubTypes.h");
+                            project.addProjectSrcFile(relative_dir + ctx.getFilename() + "PubSubTypes.cxx");
                             if (m_python)
                             {
                                 System.out.println("Generating Swig interface files...");
                                 returnedValue = Utils.writeFile(
-                                    m_outputDir + ctx.getFilename() + "PubSubTypes.i",
+                                    output_dir + ctx.getFilename() + "PubSubTypes.i",
                                     maintemplates.getTemplate("DDSPubSubTypeSwigInterface"), m_replace);
                             }
                         }
@@ -897,38 +914,38 @@ public class fastddsgen
                     {
                         System.out.println("Generating Publisher files...");
                         if (returnedValue =
-                                Utils.writeFile(m_outputDir + ctx.getFilename() + "Publisher.h",
+                                Utils.writeFile(output_dir + ctx.getFilename() + "Publisher.h",
                                 maintemplates.getTemplate("DDSPublisherHeader"), m_replace))
                         {
                             if (returnedValue =
-                                    Utils.writeFile(m_outputDir + ctx.getFilename() + "Publisher.cxx",
+                                    Utils.writeFile(output_dir + ctx.getFilename() + "Publisher.cxx",
                                     maintemplates.getTemplate("DDSPublisherSource"), m_replace))
                             {
-                                project.addProjectIncludeFile(ctx.getFilename() + "Publisher.h");
-                                project.addProjectSrcFile(ctx.getFilename() + "Publisher.cxx");
+                                project.addProjectIncludeFile(relative_dir + ctx.getFilename() + "Publisher.h");
+                                project.addProjectSrcFile(relative_dir + ctx.getFilename() + "Publisher.cxx");
                             }
                         }
 
                         System.out.println("Generating Subscriber files...");
                         if (returnedValue =
-                                Utils.writeFile(m_outputDir + ctx.getFilename() + "Subscriber.h",
+                                Utils.writeFile(output_dir + ctx.getFilename() + "Subscriber.h",
                                 maintemplates.getTemplate("DDSSubscriberHeader"), m_replace))
                         {
                             if (returnedValue =
-                                    Utils.writeFile(m_outputDir + ctx.getFilename() + "Subscriber.cxx",
+                                    Utils.writeFile(output_dir + ctx.getFilename() + "Subscriber.cxx",
                                     maintemplates.getTemplate("DDSSubscriberSource"), m_replace))
                             {
-                                project.addProjectIncludeFile(ctx.getFilename() + "Subscriber.h");
-                                project.addProjectSrcFile(ctx.getFilename() + "Subscriber.cxx");
+                                project.addProjectIncludeFile(relative_dir + ctx.getFilename() + "Subscriber.h");
+                                project.addProjectSrcFile(relative_dir + ctx.getFilename() + "Subscriber.cxx");
                             }
                         }
 
                         System.out.println("Generating main file...");
                         if (returnedValue =
-                                Utils.writeFile(m_outputDir + ctx.getFilename() + "PubSubMain.cxx",
+                                Utils.writeFile(output_dir + ctx.getFilename() + "PubSubMain.cxx",
                                 maintemplates.getTemplate("DDSPubSubMain"), m_replace))
                         {
-                            project.addProjectSrcFile(ctx.getFilename() + "PubSubMain.cxx");
+                            project.addProjectSrcFile(relative_dir + ctx.getFilename() + "PubSubMain.cxx");
                         }
                     }
                 }
@@ -937,12 +954,12 @@ public class fastddsgen
             // Java support (Java classes and JNI code)
             if (returnedValue && m_languageOption == LANGUAGE.JAVA)
             {
-                String outputDir = m_outputDir;
+                String outputDir = output_dir;
 
                 // Make directories from package.
                 if (!m_package.isEmpty())
                 {
-                    outputDir = m_outputDir + File.separator + m_package.replace('.', File.separatorChar);
+                    outputDir = output_dir + File.separator + m_package.replace('.', File.separatorChar);
                     File dirs = new File(outputDir);
 
                     if (!dirs.exists())
@@ -956,7 +973,7 @@ public class fastddsgen
                 }
 
                 // Java classes.
-                TypesGenerator typeGen = new TypesGenerator(tmanager, m_outputDir, m_replace);
+                TypesGenerator typeGen = new TypesGenerator(tmanager, output_dir, m_replace);
                 TypeCode.javapackage = m_package + (m_package.isEmpty() ? "" : ".");
                 if (!typeGen.generate(ctx, outputDir + File.separator, m_package, ctx.getFilename(), null))
                 {
@@ -966,7 +983,7 @@ public class fastddsgen
 
                 if (ctx.existsLastStructure())
                 {
-                    System.out.println("Generando fichero " + m_outputDir + ctx.getFilename() + "PubSub.java");
+                    System.out.println("Generando fichero " + output_dir + ctx.getFilename() + "PubSub.java");
                     if (!Utils.writeFile(outputDir + File.separator + ctx.getFilename() + "PubSub.java",
                             maintemplates.getTemplate("JavaSource"), m_replace))
                     {
@@ -980,11 +997,11 @@ public class fastddsgen
                     }
                 }
 
-                if (Utils.writeFile(m_outputDir + ctx.getFilename() + "PubSubJNII.h",
+                if (Utils.writeFile(output_dir + ctx.getFilename() + "PubSubJNII.h",
                         maintemplates.getTemplate("JNIHeader"),
                         m_replace))
                 {
-                    project.addJniIncludeFile(ctx.getFilename() + "PubSubJNII.h");
+                    project.addJniIncludeFile(relative_dir + ctx.getFilename() + "PubSubJNII.h");
                 }
                 else
                 {
@@ -992,9 +1009,9 @@ public class fastddsgen
                 }
 
                 StringTemplate jnisourceTemplate = maintemplates.getTemplate("JNISource");
-                if (Utils.writeFile(m_outputDir + ctx.getFilename() + "PubSubJNI.cxx", jnisourceTemplate, m_replace))
+                if (Utils.writeFile(output_dir + ctx.getFilename() + "PubSubJNI.cxx", jnisourceTemplate, m_replace))
                 {
-                    project.addJniSrcFile(ctx.getFilename() + "PubSubJNI.cxx");
+                    project.addJniSrcFile(relative_dir + ctx.getFilename() + "PubSubJNI.cxx");
                 }
                 else
                 {

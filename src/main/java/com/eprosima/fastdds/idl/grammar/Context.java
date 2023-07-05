@@ -44,7 +44,6 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
 {
     // TODO Remove middleware parameter. It is temporal while cdr and rest don't have async functions.
     public Context(
-            String filename,
             String file,
             ArrayList<String> includePaths,
             boolean subscribercode,
@@ -54,7 +53,7 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
             boolean generate_typesc,
             boolean generate_type_ros2)
     {
-        super(filename, file, includePaths);
+        super(file, includePaths);
         m_fileNameUpper = getFilename().toUpperCase();
         m_subscribercode = subscribercode;
         m_publishercode = publishercode;
