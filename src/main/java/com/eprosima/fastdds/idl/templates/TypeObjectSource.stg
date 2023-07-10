@@ -130,14 +130,7 @@ const TypeObject* get_$annotation.name$_object(
 const TypeObject* get_minimal_$annotation.name$_object()
 {
     using namespace $annotation.name$;
-    const TypeObject* c_type_object = TypeObjectFactory::get_instance()->get_type_object("$annotation.name$", false);
-    if (c_type_object != nullptr)
-    {
-        return c_type_object;
-    }
-
-    TypeObject *type_object = new TypeObject();
-    type_object->_d(EK_MINIMAL);
+    $get_minimal_type_object_impl(ctx=ctx, param=annotation)$
     type_object->minimal()._d(TK_ANNOTATION);
 
     $annotation.members:{ member | $minimal_annotation_member(ctx=ctx, object=member)$}; separator="\n"$
@@ -174,14 +167,7 @@ const TypeObject* get_minimal_$annotation.name$_object()
 const TypeObject* get_complete_$annotation.name$_object()
 {
     using namespace $annotation.name$;
-    const TypeObject* c_type_object = TypeObjectFactory::get_instance()->get_type_object("$annotation.name$", true);
-    if (c_type_object != nullptr && c_type_object->_d() == EK_COMPLETE)
-    {
-        return c_type_object;
-    }
-
-    TypeObject *type_object = new TypeObject();
-    type_object->_d(EK_COMPLETE);
+    $get_complete_type_object_impl(ctx=ctx, param=annotation)$
     type_object->complete()._d(TK_ANNOTATION);
 
     // No flags apply
@@ -296,14 +282,7 @@ const TypeObject* get_$typedefs.name$_object(
 
 const TypeObject* get_minimal_$typedefs.name$_object()
 {
-    const TypeObject* c_type_object = TypeObjectFactory::get_instance()->get_type_object("$typedefs.name$", false);
-    if (c_type_object != nullptr)
-    {
-        return c_type_object;
-    }
-
-    TypeObject *type_object = new TypeObject();
-    type_object->_d(EK_MINIMAL);
+    $get_minimal_type_object_impl(ctx=ctx, param=typedefs)$
     type_object->minimal()._d(TK_ALIAS);
 
     // No flags apply
@@ -373,14 +352,7 @@ const TypeObject* get_minimal_$typedefs.name$_object()
 
 const TypeObject* get_complete_$typedefs.name$_object()
 {
-    const TypeObject* c_type_object = TypeObjectFactory::get_instance()->get_type_object("$typedefs.name$", true);
-    if (c_type_object != nullptr && c_type_object->_d() == EK_COMPLETE)
-    {
-        return c_type_object;
-    }
-
-    TypeObject *type_object = new TypeObject();
-    type_object->_d(EK_COMPLETE);
+    $get_complete_type_object_impl(ctx=ctx, param=typedefs)$
     type_object->complete()._d(TK_ALIAS);
 
     // No flags apply
@@ -472,14 +444,7 @@ const TypeObject* get_$enum.name$_object(
 
 const TypeObject* get_minimal_$enum.name$_object()
 {
-    const TypeObject* c_type_object = TypeObjectFactory::get_instance()->get_type_object("$enum.name$", false);
-    if (c_type_object != nullptr)
-    {
-        return c_type_object;
-    }
-
-    TypeObject *type_object = new TypeObject();
-    type_object->_d(EK_MINIMAL);
+    $get_minimal_type_object_impl(ctx=ctx, param=enum)$
     type_object->minimal()._d(TK_ENUM);
 
     // No flags apply
@@ -525,14 +490,7 @@ const TypeObject* get_minimal_$enum.name$_object()
 
 const TypeObject* get_complete_$enum.name$_object()
 {
-    const TypeObject* c_type_object = TypeObjectFactory::get_instance()->get_type_object("$enum.name$", true);
-    if (c_type_object != nullptr && c_type_object->_d() == EK_COMPLETE)
-    {
-        return c_type_object;
-    }
-
-    TypeObject *type_object = new TypeObject();
-    type_object->_d(EK_COMPLETE);
+    $get_complete_type_object_impl(ctx=ctx, param=enum)$
     type_object->complete()._d(TK_ENUM);
 
     // No flags apply
@@ -685,14 +643,7 @@ const TypeObject* get_$struct.name$_object(
 
 const TypeObject* get_minimal_$struct.name$_object()
 {
-    const TypeObject* c_type_object = TypeObjectFactory::get_instance()->get_type_object("$struct.name$", false);
-    if (c_type_object != nullptr)
-    {
-        return c_type_object;
-    }
-
-    TypeObject *type_object = new TypeObject();
-    type_object->_d(EK_MINIMAL);
+    $get_minimal_type_object_impl(ctx=ctx, param=struct)$
     type_object->minimal()._d(TK_STRUCTURE);
 
     type_object->minimal().struct_type().struct_flags().IS_FINAL($struct.annotationFinal$);
@@ -741,14 +692,7 @@ const TypeObject* get_minimal_$struct.name$_object()
 
 const TypeObject* get_complete_$struct.name$_object()
 {
-    const TypeObject* c_type_object = TypeObjectFactory::get_instance()->get_type_object("$struct.name$", true);
-    if (c_type_object != nullptr && c_type_object->_d() == EK_COMPLETE)
-    {
-        return c_type_object;
-    }
-
-    TypeObject *type_object = new TypeObject();
-    type_object->_d(EK_COMPLETE);
+    $get_complete_type_object_impl(ctx=ctx, param=struct)$
     type_object->complete()._d(TK_STRUCTURE);
 
     type_object->complete().struct_type().struct_flags().IS_FINAL($struct.annotationFinal$);
@@ -932,14 +876,7 @@ const TypeObject* get_$union.name$_object(
 
 const TypeObject* get_minimal_$union.name$_object()
 {
-    const TypeObject* c_type_object = TypeObjectFactory::get_instance()->get_type_object("$union.name$", false);
-    if (c_type_object != nullptr)
-    {
-        return c_type_object;
-    }
-
-    TypeObject *type_object = new TypeObject();
-    type_object->_d(EK_MINIMAL);
+    $get_minimal_type_object_impl(ctx=ctx, param=union)$
     type_object->minimal()._d(TK_UNION);
 
     type_object->minimal().union_type().union_flags().IS_FINAL($union.annotationFinal$);
@@ -996,14 +933,7 @@ const TypeObject* get_minimal_$union.name$_object()
 
 const TypeObject* get_complete_$union.name$_object()
 {
-    const TypeObject* c_type_object = TypeObjectFactory::get_instance()->get_type_object("$union.name$", true);
-    if (c_type_object != nullptr && c_type_object->_d() == EK_COMPLETE)
-    {
-        return c_type_object;
-    }
-
-    TypeObject *type_object = new TypeObject();
-    type_object->_d(EK_COMPLETE);
+    $get_complete_type_object_impl(ctx=ctx, param=union)$
     type_object->complete()._d(TK_UNION);
 
     type_object->complete().union_type().union_flags().IS_FINAL($union.annotationFinal$);
@@ -1220,14 +1150,7 @@ const TypeObject* get_$bitmask.name$_object(
 
 const TypeObject* get_minimal_$bitmask.name$_object()
 {
-    const TypeObject* c_type_object = TypeObjectFactory::get_instance()->get_type_object("$bitmask.name$", false);
-    if (c_type_object != nullptr)
-    {
-        return c_type_object;
-    }
-
-    TypeObject *type_object = new TypeObject();
-    type_object->_d(EK_MINIMAL);
+    $get_minimal_type_object_impl(ctx=ctx, param=bitmask)$
     type_object->minimal()._d(TK_BITMASK);
 
     type_object->minimal().bitmask_type().header().common().bit_bound($bitmask.bitBound$);
@@ -1265,14 +1188,7 @@ const TypeObject* get_minimal_$bitmask.name$_object()
 
 const TypeObject* get_complete_$bitmask.name$_object()
 {
-    const TypeObject* c_type_object = TypeObjectFactory::get_instance()->get_type_object("$bitmask.name$", true);
-    if (c_type_object != nullptr && c_type_object->_d() == EK_COMPLETE)
-    {
-        return c_type_object;
-    }
-
-    TypeObject *type_object = new TypeObject();
-    type_object->_d(EK_COMPLETE);
+    $get_complete_type_object_impl(ctx=ctx, param=bitmask)$
     type_object->complete()._d(TK_BITMASK);
 
     // No flags apply
@@ -1447,14 +1363,7 @@ const TypeObject* get_$bitset.name$_object(
 
 const TypeObject* get_minimal_$bitset.name$_object()
 {
-    const TypeObject* c_type_object = TypeObjectFactory::get_instance()->get_type_object("$bitset.name$", false);
-    if (c_type_object != nullptr)
-    {
-        return c_type_object;
-    }
-
-    TypeObject *type_object = new TypeObject();
-    type_object->_d(EK_MINIMAL);
+    $get_minimal_type_object_impl(ctx=ctx, param=bitset)$
     type_object->minimal()._d(TK_BITSET);
 
     $bitset.bitfields:{ member | $minimal_bitfield(ctx=ctx, object=member)$}; separator="\n"$
@@ -1492,14 +1401,7 @@ const TypeObject* get_minimal_$bitset.name$_object()
 
 const TypeObject* get_complete_$bitset.name$_object()
 {
-    const TypeObject* c_type_object = TypeObjectFactory::get_instance()->get_type_object("$bitset.name$", true);
-    if (c_type_object != nullptr && c_type_object->_d() == EK_COMPLETE)
-    {
-        return c_type_object;
-    }
-
-    TypeObject *type_object = new TypeObject();
-    type_object->_d(EK_COMPLETE);
+    $get_complete_type_object_impl(ctx=ctx, param=bitset)$
     type_object->complete()._d(TK_BITSET);
 
     // No flags apply
@@ -1698,8 +1600,7 @@ type_object->complete().bitset_type().header().base_type(*get_$parent.name$_iden
 
 /***** Utils *****/
 get_type_identifier_impl(ctx, param) ::= <<
-const TypeIdentifier* c_identifier =
-        TypeObjectFactory::get_instance()->get_type_identifier(
+const TypeIdentifier* c_identifier = TypeObjectFactory::get_instance()->get_type_identifier(
     "$if(ctx.GenerateTypesROS2)$$param.ROS2Scopedname$$else$$param.scopedname$$endif$", complete);
 if (c_identifier != nullptr && (!complete || c_identifier->_d() == EK_COMPLETE))
 {
@@ -1712,8 +1613,7 @@ return TypeObjectFactory::get_instance()->get_type_identifier(
 >>
 
 get_type_object_impl(ctx, param) ::= <<
-const TypeObject* c_type_object =
-        TypeObjectFactory::get_instance()->get_type_object(
+const TypeObject* c_type_object = TypeObjectFactory::get_instance()->get_type_object(
     "$if(ctx.GenerateTypesROS2)$$param.ROS2Scopedname$$else$$param.scopedname$$endif$", complete);
 if (c_type_object != nullptr)
 {
@@ -1725,4 +1625,28 @@ else if (complete)
 }
 // else
 return get_minimal_$param.name$_object();
+>>
+
+get_minimal_type_object_impl(ctx, param) ::= <<
+const TypeObject* c_type_object = TypeObjectFactory::get_instance()->get_type_object(
+    "$if(ctx.GenerateTypesROS2)$$param.ROS2Scopedname$$else$$param.scopedname$$endif$", false);
+if (c_type_object != nullptr)
+{
+    return c_type_object;
+}
+
+TypeObject* type_object = new TypeObject();
+type_object->_d(EK_MINIMAL);
+>>
+
+get_complete_type_object_impl(ctx, param) ::= <<
+const TypeObject* c_type_object = TypeObjectFactory::get_instance()->get_type_object(
+    "$if(ctx.GenerateTypesROS2)$$param.ROS2Scopedname$$else$$param.scopedname$$endif$", true);
+if (c_type_object != nullptr && c_type_object->_d() == EK_COMPLETE)
+{
+    return c_type_object;
+}
+
+TypeObject* type_object = new TypeObject();
+type_object->_d(EK_COMPLETE);
 >>
