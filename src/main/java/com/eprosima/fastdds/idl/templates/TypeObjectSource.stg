@@ -142,26 +142,7 @@ const TypeObject* get_minimal_$annotation.name$_object()
     size_t current_alignment {0};
     SerializedPayload_t payload(static_cast<uint32_t>(
         calculator.calculate_serialized_size(type_object->minimal().annotation_type(), current_alignment) + 4));
-    eprosima::fastcdr::FastBuffer fastbuffer((char*) payload.data, payload.max_size);
-    // Fixed endian (Page 221, EquivalenceHash definition of Extensible and Dynamic Topic Types for DDS document)
-    eprosima::fastcdr::Cdr ser(
-        fastbuffer, eprosima::fastcdr::Cdr::DEFAULT_ENDIAN,
-        eprosima::fastcdr::CdrVersion::XCDRv2); // Object that serializes the data.
-    payload.encapsulation = ser.endianness() == eprosima::fastcdr::Cdr::BIG_ENDIANNESS ? CDR_BE : CDR_LE;
-
-    ser << *type_object;
-    payload.length = (uint32_t)ser.get_serialized_data_length(); //Get the serialized length
-    MD5 objectHash;
-    objectHash.update((char*)payload.data, payload.length);
-    objectHash.finalize();
-    for(int i = 0; i < 14; ++i)
-    {
-        identifier.equivalence_hash()[i] = objectHash.digest[i];
-    }
-
-    TypeObjectFactory::get_instance()->add_type_object("$annotation.name$", &identifier, type_object);
-    delete type_object;
-    return TypeObjectFactory::get_instance()->get_type_object("$annotation.name$", false);
+    $type_identifier_impl(ctx=ctx, param=annotation, complete=["false"])$
 }
 
 const TypeObject* get_complete_$annotation.name$_object()
@@ -188,26 +169,7 @@ const TypeObject* get_complete_$annotation.name$_object()
     size_t current_alignment {0};
     SerializedPayload_t payload(static_cast<uint32_t>(
         calculator.calculate_serialized_size(type_object->complete().annotation_type(), current_alignment) + 4));
-    eprosima::fastcdr::FastBuffer fastbuffer((char*) payload.data, payload.max_size);
-    // Fixed endian (Page 221, EquivalenceHash definition of Extensible and Dynamic Topic Types for DDS document)
-    eprosima::fastcdr::Cdr ser(
-        fastbuffer, eprosima::fastcdr::Cdr::DEFAULT_ENDIAN,
-        eprosima::fastcdr::CdrVersion::XCDRv2); // Object that serializes the data.
-    payload.encapsulation = ser.endianness() == eprosima::fastcdr::Cdr::BIG_ENDIANNESS ? CDR_BE : CDR_LE;
-
-    ser << *type_object;
-    payload.length = (uint32_t)ser.get_serialized_data_length(); //Get the serialized length
-    MD5 objectHash;
-    objectHash.update((char*)payload.data, payload.length);
-    objectHash.finalize();
-    for(int i = 0; i < 14; ++i)
-    {
-        identifier.equivalence_hash()[i] = objectHash.digest[i];
-    }
-
-    TypeObjectFactory::get_instance()->add_type_object("$annotation.name$", &identifier, type_object);
-    delete type_object;
-    return TypeObjectFactory::get_instance()->get_type_object("$annotation.name$", true);
+    $type_identifier_impl(ctx=ctx, param=annotation, complete=["true"])$
 }
 
 namespace $annotation.name$
@@ -466,26 +428,7 @@ const TypeObject* get_minimal_$enum.name$_object()
     size_t current_alignment {0};
     SerializedPayload_t payload(static_cast<uint32_t>(
         calculator.calculate_serialized_size(type_object->minimal().enumerated_type(), current_alignment) + 4));
-    eprosima::fastcdr::FastBuffer fastbuffer((char*) payload.data, payload.max_size);
-    // Fixed endian (Page 221, EquivalenceHash definition of Extensible and Dynamic Topic Types for DDS document)
-    eprosima::fastcdr::Cdr ser(
-        fastbuffer, eprosima::fastcdr::Cdr::DEFAULT_ENDIAN,
-        eprosima::fastcdr::CdrVersion::XCDRv2); // Object that serializes the data.
-    payload.encapsulation = ser.endianness() == eprosima::fastcdr::Cdr::BIG_ENDIANNESS ? CDR_BE : CDR_LE;
-
-    ser << *type_object;
-    payload.length = (uint32_t)ser.get_serialized_data_length(); //Get the serialized length
-    MD5 objectHash;
-    objectHash.update((char*)payload.data, payload.length);
-    objectHash.finalize();
-    for(int i = 0; i < 14; ++i)
-    {
-        identifier.equivalence_hash()[i] = objectHash.digest[i];
-    }
-
-    TypeObjectFactory::get_instance()->add_type_object("$enum.name$", &identifier, type_object);
-    delete type_object;
-    return TypeObjectFactory::get_instance()->get_type_object("$enum.name$", false);
+    $type_identifier_impl(ctx=ctx, param=enum, complete=["false"])$
 }
 
 const TypeObject* get_complete_$enum.name$_object()
@@ -541,26 +484,7 @@ const TypeObject* get_complete_$enum.name$_object()
     size_t current_alignment {0};
     SerializedPayload_t payload(static_cast<uint32_t>(
         calculator.calculate_serialized_size(type_object->complete().enumerated_type(), current_alignment) + 4));
-    eprosima::fastcdr::FastBuffer fastbuffer((char*) payload.data, payload.max_size);
-    // Fixed endian (Page 221, EquivalenceHash definition of Extensible and Dynamic Topic Types for DDS document)
-    eprosima::fastcdr::Cdr ser(
-        fastbuffer, eprosima::fastcdr::Cdr::DEFAULT_ENDIAN,
-        eprosima::fastcdr::CdrVersion::XCDRv2); // Object that serializes the data.
-    payload.encapsulation = ser.endianness() == eprosima::fastcdr::Cdr::BIG_ENDIANNESS ? CDR_BE : CDR_LE;
-
-    ser << *type_object;
-    payload.length = (uint32_t)ser.get_serialized_data_length(); //Get the serialized length
-    MD5 objectHash;
-    objectHash.update((char*)payload.data, payload.length);
-    objectHash.finalize();
-    for(int i = 0; i < 14; ++i)
-    {
-        identifier.equivalence_hash()[i] = objectHash.digest[i];
-    }
-
-    TypeObjectFactory::get_instance()->add_type_object("$enum.name$", &identifier, type_object);
-    delete type_object;
-    return TypeObjectFactory::get_instance()->get_type_object("$enum.name$", true);
+    $type_identifier_impl(ctx=ctx, param=enum, complete=["true"])$
 }
 
 >>
@@ -668,26 +592,7 @@ const TypeObject* get_minimal_$struct.name$_object()
     size_t current_alignment {0};
     SerializedPayload_t payload(static_cast<uint32_t>(
         calculator.calculate_serialized_size(type_object->minimal().struct_type(), current_alignment) + 4));
-    eprosima::fastcdr::FastBuffer fastbuffer((char*) payload.data, payload.max_size);
-    // Fixed endian (Page 221, EquivalenceHash definition of Extensible and Dynamic Topic Types for DDS document)
-    eprosima::fastcdr::Cdr ser(
-        fastbuffer, eprosima::fastcdr::Cdr::DEFAULT_ENDIAN,
-        eprosima::fastcdr::CdrVersion::XCDRv2); // Object that serializes the data.
-    payload.encapsulation = ser.endianness() == eprosima::fastcdr::Cdr::BIG_ENDIANNESS ? CDR_BE : CDR_LE;
-
-    ser << *type_object;
-    payload.length = (uint32_t)ser.get_serialized_data_length(); //Get the serialized length
-    MD5 objectHash;
-    objectHash.update((char*)payload.data, payload.length);
-    objectHash.finalize();
-    for(int i = 0; i < 14; ++i)
-    {
-        identifier.equivalence_hash()[i] = objectHash.digest[i];
-    }
-
-    TypeObjectFactory::get_instance()->add_type_object("$struct.name$", &identifier, type_object);
-    delete type_object;
-    return TypeObjectFactory::get_instance()->get_type_object("$struct.name$", false);
+    $type_identifier_impl(ctx=ctx, param=struct, complete=["false"])$
 }
 
 const TypeObject* get_complete_$struct.name$_object()
@@ -744,26 +649,7 @@ const TypeObject* get_complete_$struct.name$_object()
     size_t current_alignment {0};
     SerializedPayload_t payload(static_cast<uint32_t>(
         calculator.calculate_serialized_size(type_object->complete().struct_type(), current_alignment) + 4));
-    eprosima::fastcdr::FastBuffer fastbuffer((char*) payload.data, payload.max_size);
-    // Fixed endian (Page 221, EquivalenceHash definition of Extensible and Dynamic Topic Types for DDS document)
-    eprosima::fastcdr::Cdr ser(
-        fastbuffer, eprosima::fastcdr::Cdr::DEFAULT_ENDIAN,
-        eprosima::fastcdr::CdrVersion::XCDRv2); // Object that serializes the data.
-    payload.encapsulation = ser.endianness() == eprosima::fastcdr::Cdr::BIG_ENDIANNESS ? CDR_BE : CDR_LE;
-
-    ser << *type_object;
-    payload.length = (uint32_t)ser.get_serialized_data_length(); //Get the serialized length
-    MD5 objectHash;
-    objectHash.update((char*)payload.data, payload.length);
-    objectHash.finalize();
-    for(int i = 0; i < 14; ++i)
-    {
-        identifier.equivalence_hash()[i] = objectHash.digest[i];
-    }
-
-    TypeObjectFactory::get_instance()->add_type_object("$struct.name$", &identifier, type_object);
-    delete type_object;
-    return TypeObjectFactory::get_instance()->get_type_object("$struct.name$", true);
+    $type_identifier_impl(ctx=ctx, param=struct, complete=["true"])$
 }
 
 >>
@@ -901,34 +787,14 @@ const TypeObject* get_minimal_$union.name$_object()
     // Header
     //type_object->minimal().union_type().header().detail()... // Empty
 
-    TypeIdentifier* identifier = new TypeIdentifier();
-    identifier->_d(EK_MINIMAL);
+    TypeIdentifier identifier;
+    identifier._d(EK_MINIMAL);
 
     eprosima::fastcdr::CdrSizeCalculator calculator(eprosima::fastcdr::CdrVersion::XCDRv2);
     size_t current_alignment {0};
     SerializedPayload_t payload(static_cast<uint32_t>(
         calculator.calculate_serialized_size(type_object->minimal().union_type(), current_alignment) + 4));
-    eprosima::fastcdr::FastBuffer fastbuffer((char*) payload.data, payload.max_size);
-    // Fixed endian (Page 221, EquivalenceHash definition of Extensible and Dynamic Topic Types for DDS document)
-    eprosima::fastcdr::Cdr ser(
-        fastbuffer, eprosima::fastcdr::Cdr::DEFAULT_ENDIAN,
-        eprosima::fastcdr::CdrVersion::XCDRv2); // Object that serializes the data.
-    payload.encapsulation = ser.endianness() == eprosima::fastcdr::Cdr::BIG_ENDIANNESS ? CDR_BE : CDR_LE;
-
-    ser << *type_object;
-    payload.length = (uint32_t)ser.get_serialized_data_length(); //Get the serialized length
-    MD5 objectHash;
-    objectHash.update((char*)payload.data, payload.length);
-    objectHash.finalize();
-    for(int i = 0; i < 14; ++i)
-    {
-        identifier->equivalence_hash()[i] = objectHash.digest[i];
-    }
-
-    TypeObjectFactory::get_instance()->add_type_object("$union.name$", identifier, type_object);
-    delete type_object;
-    delete identifier;
-    return TypeObjectFactory::get_instance()->get_type_object("$union.name$", false);
+    $type_identifier_impl(ctx=ctx, param=union, complete=["false"])$
 }
 
 const TypeObject* get_complete_$union.name$_object()
@@ -1014,34 +880,14 @@ const TypeObject* get_complete_$union.name$_object()
     }; separator="\n"$
     $endif$
 
-    TypeIdentifier* identifier = new TypeIdentifier();
-    identifier->_d(EK_COMPLETE);
+    TypeIdentifier identifier;
+    identifier._d(EK_COMPLETE);
 
     eprosima::fastcdr::CdrSizeCalculator calculator(eprosima::fastcdr::CdrVersion::XCDRv2);
     size_t current_alignment {0};
     SerializedPayload_t payload(static_cast<uint32_t>(
         calculator.calculate_serialized_size(type_object->complete().union_type(), current_alignment) + 4));
-    eprosima::fastcdr::FastBuffer fastbuffer((char*) payload.data, payload.max_size);
-    // Fixed endian (Page 221, EquivalenceHash definition of Extensible and Dynamic Topic Types for DDS document)
-    eprosima::fastcdr::Cdr ser(
-        fastbuffer, eprosima::fastcdr::Cdr::DEFAULT_ENDIAN,
-        eprosima::fastcdr::CdrVersion::XCDRv2); // Object that serializes the data.
-    payload.encapsulation = ser.endianness() == eprosima::fastcdr::Cdr::BIG_ENDIANNESS ? CDR_BE : CDR_LE;
-
-    ser << *type_object;
-    payload.length = (uint32_t)ser.get_serialized_data_length(); //Get the serialized length
-    MD5 objectHash;
-    objectHash.update((char*)payload.data, payload.length);
-    objectHash.finalize();
-    for(int i = 0; i < 14; ++i)
-    {
-        identifier->equivalence_hash()[i] = objectHash.digest[i];
-    }
-
-    TypeObjectFactory::get_instance()->add_type_object("$union.name$", identifier, type_object);
-    delete type_object;
-    delete identifier;
-    return TypeObjectFactory::get_instance()->get_type_object("$union.name$", true);
+    $type_identifier_impl(ctx=ctx, param=union, complete=["true"])$
 }
 
 >>
@@ -1164,26 +1010,7 @@ const TypeObject* get_minimal_$bitmask.name$_object()
     size_t current_alignment {0};
     SerializedPayload_t payload(static_cast<uint32_t>(
         calculator.calculate_serialized_size(type_object->minimal().bitmask_type(), current_alignment) + 4));
-    eprosima::fastcdr::FastBuffer fastbuffer((char*) payload.data, payload.max_size);
-    // Fixed endian (Page 221, EquivalenceHash definition of Extensible and Dynamic Topic Types for DDS document)
-    eprosima::fastcdr::Cdr ser(
-        fastbuffer, eprosima::fastcdr::Cdr::DEFAULT_ENDIAN,
-        eprosima::fastcdr::CdrVersion::XCDRv2); // Object that serializes the data.
-    payload.encapsulation = ser.endianness() == eprosima::fastcdr::Cdr::BIG_ENDIANNESS ? CDR_BE : CDR_LE;
-
-    ser << *type_object;
-    payload.length = (uint32_t)ser.get_serialized_data_length(); //Get the serialized length
-    MD5 objectHash;
-    objectHash.update((char*)payload.data, payload.length);
-    objectHash.finalize();
-    for(int i = 0; i < 14; ++i)
-    {
-        identifier.equivalence_hash()[i] = objectHash.digest[i];
-    }
-
-    TypeObjectFactory::get_instance()->add_type_object("$bitmask.name$", &identifier, type_object);
-    delete type_object;
-    return TypeObjectFactory::get_instance()->get_type_object("$bitmask.name$", false);
+    $type_identifier_impl(ctx=ctx, param=bitmask, complete=["false"])$
 }
 
 const TypeObject* get_complete_$bitmask.name$_object()
@@ -1239,26 +1066,7 @@ const TypeObject* get_complete_$bitmask.name$_object()
     size_t current_alignment {0};
     SerializedPayload_t payload(static_cast<uint32_t>(
         calculator.calculate_serialized_size(type_object->complete().bitmask_type(), current_alignment) + 4));
-    eprosima::fastcdr::FastBuffer fastbuffer((char*) payload.data, payload.max_size);
-    // Fixed endian (Page 221, EquivalenceHash definition of Extensible and Dynamic Topic Types for DDS document)
-    eprosima::fastcdr::Cdr ser(
-        fastbuffer, eprosima::fastcdr::Cdr::DEFAULT_ENDIAN,
-        eprosima::fastcdr::CdrVersion::XCDRv2); // Object that serializes the data.
-    payload.encapsulation = ser.endianness() == eprosima::fastcdr::Cdr::BIG_ENDIANNESS ? CDR_BE : CDR_LE;
-
-    ser << *type_object;
-    payload.length = (uint32_t)ser.get_serialized_data_length(); //Get the serialized length
-    MD5 objectHash;
-    objectHash.update((char*)payload.data, payload.length);
-    objectHash.finalize();
-    for(int i = 0; i < 14; ++i)
-    {
-        identifier.equivalence_hash()[i] = objectHash.digest[i];
-    }
-
-    TypeObjectFactory::get_instance()->add_type_object("$bitmask.name$", &identifier, type_object);
-    delete type_object;
-    return TypeObjectFactory::get_instance()->get_type_object("$bitmask.name$", true);
+    $type_identifier_impl(ctx=ctx, param=bitmask, complete=["true"])$
 }
 
 >>
@@ -1377,26 +1185,7 @@ const TypeObject* get_minimal_$bitset.name$_object()
     size_t current_alignment {0};
     SerializedPayload_t payload(static_cast<uint32_t>(
         calculator.calculate_serialized_size(type_object->minimal().bitset_type(), current_alignment) + 4));
-    eprosima::fastcdr::FastBuffer fastbuffer((char*) payload.data, payload.max_size);
-    // Fixed endian (Page 221, EquivalenceHash definition of Extensible and Dynamic Topic Types for DDS document)
-    eprosima::fastcdr::Cdr ser(
-        fastbuffer, eprosima::fastcdr::Cdr::DEFAULT_ENDIAN,
-        eprosima::fastcdr::CdrVersion::XCDRv2); // Object that serializes the data.
-    payload.encapsulation = ser.endianness() == eprosima::fastcdr::Cdr::BIG_ENDIANNESS ? CDR_BE : CDR_LE;
-
-    ser << *type_object;
-    payload.length = (uint32_t)ser.get_serialized_data_length(); //Get the serialized length
-    MD5 objectHash;
-    objectHash.update((char*)payload.data, payload.length);
-    objectHash.finalize();
-    for(int i = 0; i < 14; ++i)
-    {
-        identifier.equivalence_hash()[i] = objectHash.digest[i];
-    }
-
-    TypeObjectFactory::get_instance()->add_type_object("$bitset.name$", &identifier, type_object);
-    delete type_object;
-    return TypeObjectFactory::get_instance()->get_type_object("$bitset.name$", false);
+    $type_identifier_impl(ctx=ctx, param=bitset, complete=["false"])$
 }
 
 const TypeObject* get_complete_$bitset.name$_object()
@@ -1452,26 +1241,7 @@ const TypeObject* get_complete_$bitset.name$_object()
     size_t current_alignment {0};
     SerializedPayload_t payload(static_cast<uint32_t>(
         calculator.calculate_serialized_size(type_object->complete().bitset_type(), current_alignment) + 4));
-    eprosima::fastcdr::FastBuffer fastbuffer((char*) payload.data, payload.max_size);
-    // Fixed endian (Page 221, EquivalenceHash definition of Extensible and Dynamic Topic Types for DDS document)
-    eprosima::fastcdr::Cdr ser(
-        fastbuffer, eprosima::fastcdr::Cdr::DEFAULT_ENDIAN,
-        eprosima::fastcdr::CdrVersion::XCDRv2); // Object that serializes the data.
-    payload.encapsulation = ser.endianness() == eprosima::fastcdr::Cdr::BIG_ENDIANNESS ? CDR_BE : CDR_LE;
-
-    ser << *type_object;
-    payload.length = (uint32_t)ser.get_serialized_data_length(); //Get the serialized length
-    MD5 objectHash;
-    objectHash.update((char*)payload.data, payload.length);
-    objectHash.finalize();
-    for(int i = 0; i < 14; ++i)
-    {
-        identifier.equivalence_hash()[i] = objectHash.digest[i];
-    }
-
-    TypeObjectFactory::get_instance()->add_type_object("$bitset.name$", &identifier, type_object);
-    delete type_object;
-    return TypeObjectFactory::get_instance()->get_type_object("$bitset.name$", true);
+    $type_identifier_impl(ctx=ctx, param=bitset, complete=["true"])$
 }
 
 >>
@@ -1649,4 +1419,29 @@ if (c_type_object != nullptr && c_type_object->_d() == EK_COMPLETE)
 
 TypeObject* type_object = new TypeObject();
 type_object->_d(EK_COMPLETE);
+>>
+
+type_identifier_impl(ctx, param, complete) ::= <<
+eprosima::fastcdr::FastBuffer fastbuffer(static_cast<char*>(payload.data), payload.max_size);
+// XTypes v1.3 Annex B: EquivalenceHash, first 14 bytes of MD5 of the serialized TypeObject using XCDR version 2.
+eprosima::fastcdr::Cdr ser(
+    fastbuffer, eprosima::fastcdr::Cdr::DEFAULT_ENDIAN,
+    eprosima::fastcdr::CdrVersion::XCDRv2); // Object that serializes the data.
+payload.encapsulation = ser.endianness() == eprosima::fastcdr::Cdr::BIG_ENDIANNESS ? CDR_BE : CDR_LE;
+
+ser << *type_object;
+payload.length = static_cast<uint32_t>(ser.get_serialized_data_length()); //Get the serialized length
+MD5 objectHash;
+objectHash.update(static_cast<char*>(payload.data), payload.length);
+objectHash.finalize();
+for(int i = 0; i < 14; ++i)
+{
+    identifier.equivalence_hash()[i] = objectHash.digest[i];
+}
+
+TypeObjectFactory::get_instance()->add_type_object(
+    "$if(ctx.GenerateTypesROS2)$$param.ROS2Scopedname$$else$$param.scopedname$$endif$", &identifier, type_object);
+delete type_object;
+return TypeObjectFactory::get_instance()->get_type_object(
+    "$if(ctx.GenerateTypesROS2)$$param.ROS2Scopedname$$else$$param.scopedname$$endif$", $complete$);
 >>
