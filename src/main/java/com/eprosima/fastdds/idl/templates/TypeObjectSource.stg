@@ -133,6 +133,10 @@ const TypeObject* get_minimal_$annotation.name$_object()
     $get_minimal_type_object_impl(ctx=ctx, param=annotation)$
     type_object->minimal()._d(TK_ANNOTATION);
 
+    // MinimalAnnotationType
+    //    - AnnotationTypeFlag: unused. No flags apply.
+    //    - MinimalAnnotationHeader: empty. Available for future extension.
+    //    - MinimalAnnotationParameterSeq
     $annotation.members:{ member | $minimal_annotation_member(ctx=ctx, object=member)$}; separator="\n"$
 
     TypeIdentifier identifier;
@@ -151,15 +155,14 @@ const TypeObject* get_complete_$annotation.name$_object()
     $get_complete_type_object_impl(ctx=ctx, param=annotation)$
     type_object->complete()._d(TK_ANNOTATION);
 
-    // No flags apply
-    //type_object->complete().annotation_type().annotation_flags().IS_FINAL(false);
-    //type_object->complete().annotation_type().annotation_flags().IS_APPENDABLE(false);
-    //type_object->complete().annotation_type().annotation_flags().IS_MUTABLE(false);
-    //type_object->complete().annotation_type().annotation_flags().IS_NESTED(false);
-    //type_object->complete().annotation_type().annotation_flags().IS_AUTOID_HASH(false);
+    // CompleteAnnotationType
+    //    - AnnotationTypeFlag: unused. No flags apply.
+    //    - CompleteAnnotationHeader
+    //        - QualifiedTypeName
+    type_object->complete().annotation_type().header().annotation_name(
+        "$if(ctx.GenerateTypesROS2)$$annotation.ROS2Scopedname$$else$$annotation.scopedname$$endif$");
 
-    type_object->complete().annotation_type().header().annotation_name("$annotation.name$");
-
+    //    - CompleteAnnotationParameterSeq
     $annotation.members:{ member | $complete_annotation_member(ctx=ctx, object=member)$}; separator="\n"$
 
     TypeIdentifier identifier;
@@ -177,6 +180,8 @@ namespace $annotation.name$
 $annotation.enums : { it |$enum_type(ctx=ctx, parent=annotation, enum=it)$}; separator="\n"$
 
 $annotation.typeDefs : { it |$typedef_decl(ctx=ctx, parent=annotation, typedefs=it)$}; separator="\n"$
+
+$annotation.bitmasks : {$bitmask_type(ctx=ctx, parent=annotation, bitmask=it)$}; separator="\n"$
 
 } // $annotation.name$ namespace
 >>
@@ -1407,6 +1412,7 @@ if (c_type_object != nullptr)
 
 TypeObject* type_object = new TypeObject();
 type_object->_d(EK_MINIMAL);
+// MinimalTypeObject
 >>
 
 get_complete_type_object_impl(ctx, param) ::= <<
@@ -1419,6 +1425,7 @@ if (c_type_object != nullptr && c_type_object->_d() == EK_COMPLETE)
 
 TypeObject* type_object = new TypeObject();
 type_object->_d(EK_COMPLETE);
+// CompleteTypeObject
 >>
 
 type_identifier_impl(ctx, param, complete) ::= <<
