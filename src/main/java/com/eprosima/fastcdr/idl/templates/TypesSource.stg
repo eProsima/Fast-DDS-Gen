@@ -31,6 +31,7 @@ $endif$
 
 $if(ctx.cdr)$
 #include <fastcdr/Cdr.h>
+#include <fastcdr/CdrSizeCalculator.hpp>
 
 $endif$
 
@@ -128,6 +129,14 @@ void $exception.scopedname$::raise() const
 }
 
 $if(ctx.anyCdr)$
+size_t $exception.scopedname$::calculate_serialized_size(
+        const $exception.scopedname$& data,
+        size_t current_alignment)
+{
+    eprosima::fastcdr::CdrSizeCalculator calculator(eprosima::fastcdr::CdrVersion::XCDRv2);
+    return calculate_serialized_size(calculator, data, current_alignment);
+}
+
 size_t $exception.scopedname$::calculate_serialized_size(
         eprosima::fastcdr::CdrSizeCalculator& calculator,
         const $exception.scopedname$& data,
@@ -344,6 +353,14 @@ size_t $struct.scopedname$::getMaxCdrSerializedSize(
 }
 
 size_t $struct.scopedname$::calculate_serialized_size(
+        const $struct.scopedname$& data,
+        size_t current_alignment)
+{
+    eprosima::fastcdr::CdrSizeCalculator calculator(eprosima::fastcdr::CdrVersion::XCDRv2);
+    return calculate_serialized_size(calculator, data, current_alignment);
+}
+
+size_t $struct.scopedname$::calculate_serialized_size(
         eprosima::fastcdr::CdrSizeCalculator& calculator,
         const $struct.scopedname$& data,
         size_t current_alignment)
@@ -521,6 +538,14 @@ bool $bitset.scopedname$::operator !=(
 }
 
 $if(ctx.anyCdr)$
+size_t $bitset.scopedname$::calculate_serialized_size(
+        const $bitset.scopedname$& $if(bitset.parents)$data$endif$,
+        size_t current_alignment)
+{
+    eprosima::fastcdr::CdrSizeCalculator calculator(eprosima::fastcdr::CdrVersion::XCDRv2);
+    return calculate_serialized_size(calculator, data, current_alignment);
+}
+
 size_t $bitset.scopedname$::calculate_serialized_size(
         eprosima::fastcdr::CdrSizeCalculator& calculator,
         const $bitset.scopedname$& $if(bitset.parents)$data$endif$,
@@ -739,6 +764,14 @@ $union.discriminator.cppTypename$& $union.scopedname$::_d()
 $union.members:{$public_unionmember_declaration(class=union.scopedname, member=it, defaultvalue=union.defaultvalue, totallabels=union.totallabels)$}; separator="\n"$
 
 $if(ctx.anyCdr)$
+size_t $union.scopedname$::calculate_serialized_size(
+        const $union.scopedname$& data,
+        size_t current_alignment)
+{
+    eprosima::fastcdr::CdrSizeCalculator calculator(eprosima::fastcdr::CdrVersion::XCDRv2);
+    return calculate_serialized_size(calculator, data, current_alignment);
+}
+
 size_t $union.scopedname$::calculate_serialized_size(
         eprosima::fastcdr::CdrSizeCalculator& calculator,
         const $union.scopedname$& data,
@@ -1599,6 +1632,13 @@ bool& $scopedtypename$::release()
 }
 
 $if(ctx.anyCdr)$
+size_t $scopedtypename$::calculate_serialized_size(
+        const $scopedtypename$& data,
+        size_t current_alignment)
+{
+    eprosima::fastcdr::CdrSizeCalculator calculator(eprosima::fastcdr::CdrVersion::XCDRv2);
+    return calculate_serialized_size(calculator, data, current_alignment);
+}
 size_t $scopedtypename$::calculate_serialized_size(
         eprosima::fastcdr::CdrSizeCalculator& calculator,
         const $scopedtypename$& data,
