@@ -131,8 +131,7 @@ bool $if (parent.IsInterface)$$parent.name$_$endif$$struct.name$PubSubType::seri
 
 bool $if (parent.IsInterface)$$parent.name$_$endif$$struct.name$PubSubType::deserialize(
         SerializedPayload_t* payload,
-        void* data,
-        DataRepresentationId_t data_representation)
+        void* data)
 {
     try
     {
@@ -143,8 +142,7 @@ bool $if (parent.IsInterface)$$parent.name$_$endif$$struct.name$PubSubType::dese
         eprosima::fastcdr::FastBuffer fastbuffer(reinterpret_cast<char*>(payload->data), payload->length);
 
         // Object that deserializes the data.
-        eprosima::fastcdr::Cdr deser(fastbuffer, eprosima::fastcdr::Cdr::DEFAULT_ENDIAN,
-                data_representation == DataRepresentationId_t::XCDR_DATA_REPRESENTATION ? eprosima::fastcdr::CdrVersion::XCDRv1 :eprosima::fastcdr::CdrVersion::XCDRv2);
+        eprosima::fastcdr::Cdr deser(fastbuffer, eprosima::fastcdr::Cdr::DEFAULT_ENDIAN);
 
         // Deserialize encapsulation.
         deser.read_encapsulation();
