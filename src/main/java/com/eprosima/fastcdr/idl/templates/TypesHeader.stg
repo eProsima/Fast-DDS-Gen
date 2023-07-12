@@ -26,10 +26,6 @@ $endif$
 
 $ctx.directIncludeDependencies : {include | #include "$include$.h"}; separator="\n"$
 
-$if(ctx.cdr)$
-#include <fastcdr/CdrSizeCalculator.hpp>
-
-$endif$
 #include <fastcdr/cdr/fixed_size_string.hpp>
 #include <fastcdr/xcdr/optional.hpp>
 
@@ -68,6 +64,9 @@ $if(ctx.cdr)$
 namespace eprosima {
 namespace fastcdr {
 class Cdr;
+$if(ctx.cdr)$
+class CdrSizeCalculator;
+$endif$
 } // namespace fastcdr
 } // namespace eprosima
 
@@ -731,6 +730,10 @@ $if(ctx.anyCdr)$
  * @param current_alignment Buffer alignment.
  * @return Serialized size.
  */
+eProsima_user_DllExport static size_t calculate_serialized_size(
+        const $type.scopedname$& data,
+        size_t current_alignment = 0);
+
 eProsima_user_DllExport static size_t calculate_serialized_size(
         eprosima::fastcdr::CdrSizeCalculator& calculator,
         const $type.scopedname$& data,
