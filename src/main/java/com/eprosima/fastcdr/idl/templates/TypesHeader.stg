@@ -182,8 +182,6 @@ public:
 
     $exception.members:{ member |$public_member_declaration(member=member)$}; separator="\n"$
 
-    $size_functions(exception)$
-
     $serialization_functions(exception)$
 
 private:
@@ -296,8 +294,6 @@ public:
             size_t current_alignment = 0);
     $endif$
 
-    $size_functions(struct)$
-
     $serialization_functions(struct)$
 
     $extensions : {$it$}; separator="\n"$
@@ -392,8 +388,6 @@ public:
 
     $union.members:{$public_unionmember_declaration(it)$}; separator="\n"$
 
-    $size_functions(union)$
-
     $serialization_functions(union)$
 
     $extensions : {$it$}; separator="\n"$
@@ -468,8 +462,6 @@ public:
             const $bitset.name$& x) const;
 
     $bitset.bitfields:{$public_bitfield_declaration(it)$}; separator="\n"$
-
-    $size_functions(bitset)$
 
     $serialization_functions(bitset)$
 
@@ -721,26 +713,6 @@ $endif$
  inline
  size_t getMaxSerializedSizeWithoutAlign(){ return $type.maxSerializedSizeWithoutAlignment$;}
  */
-
-size_functions(type) ::= <<
-$if(ctx.anyCdr)$
-/*!
- * @brief This function returns the serialized size of a data depending on the buffer alignment.
- * @param data Data which is calculated its serialized size.
- * @param current_alignment Buffer alignment.
- * @return Serialized size.
- */
-eProsima_user_DllExport static size_t calculate_serialized_size(
-        const $type.scopedname$& data,
-        size_t current_alignment = 0);
-
-eProsima_user_DllExport static size_t calculate_serialized_size(
-        eprosima::fastcdr::CdrSizeCalculator& calculator,
-        const $type.scopedname$& data,
-        size_t current_alignment = 0);
-
-$endif$
->>
 
 serialization_functions(type) ::= <<
 $if(ctx.cdr)$

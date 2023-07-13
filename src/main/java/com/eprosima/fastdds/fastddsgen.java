@@ -704,6 +704,7 @@ public class fastddsgen
             tmanager.addGroup("TypesSource", extensions);
 
             // Load Types common templates
+            tmanager.addGroup("TypesCdrAuxHeader");
             tmanager.addGroup("DDSPubSubTypeHeader");
             tmanager.addGroup("DDSPubSubTypeSource");
 
@@ -875,7 +876,7 @@ public class fastddsgen
                     returnedValue =
                             Utils.writeFile(fileNameH, maintemplates.getTemplate("SerializationHeader"), m_replace);
                     project.addCommonTestingFile(relative_dir + ctx.getFilename() + "PubSubTypes.cxx");
-                    
+
                     for (String element : project.getFullDependencies())
                     {
                         String trimmedElement = element.substring(0, element.length() - 4);// Remove .idl
@@ -883,7 +884,6 @@ public class fastddsgen
                     }
                 }
 
-                // TODO: Uncomment following lines and create templates
                 if (ctx.existsLastStructure())
                 {
                     m_atLeastOneStructure = true;
@@ -891,21 +891,27 @@ public class fastddsgen
 
                     System.out.println("Generating TopicDataTypes files...");
                     if (returnedValue =
-                            Utils.writeFile(output_dir + ctx.getFilename() + "PubSubTypes.h",
-                            maintemplates.getTemplate("DDSPubSubTypeHeader"), m_replace))
+                            Utils.writeFile(output_dir + ctx.getFilename() + "CdrAux.hpp",
+                            maintemplates.getTemplate("TypesCdrAuxHeader"), m_replace))
                     {
                         if (returnedValue =
-                                Utils.writeFile(output_dir + ctx.getFilename() + "PubSubTypes.cxx",
-                                maintemplates.getTemplate("DDSPubSubTypeSource"), m_replace))
+                                Utils.writeFile(output_dir + ctx.getFilename() + "PubSubTypes.h",
+                                    maintemplates.getTemplate("DDSPubSubTypeHeader"), m_replace))
                         {
-                            project.addProjectIncludeFile(relative_dir + ctx.getFilename() + "PubSubTypes.h");
-                            project.addProjectSrcFile(relative_dir + ctx.getFilename() + "PubSubTypes.cxx");
-                            if (m_python)
+                            if (returnedValue =
+                                    Utils.writeFile(output_dir + ctx.getFilename() + "PubSubTypes.cxx",
+                                        maintemplates.getTemplate("DDSPubSubTypeSource"), m_replace))
                             {
-                                System.out.println("Generating Swig interface files...");
-                                returnedValue = Utils.writeFile(
-                                    output_dir + ctx.getFilename() + "PubSubTypes.i",
-                                    maintemplates.getTemplate("DDSPubSubTypeSwigInterface"), m_replace);
+                                project.addProjectIncludeFile(relative_dir + ctx.getFilename() + "CdrAux.hpp");
+                                project.addProjectIncludeFile(relative_dir + ctx.getFilename() + "PubSubTypes.h");
+                                project.addProjectSrcFile(relative_dir + ctx.getFilename() + "PubSubTypes.cxx");
+                                if (m_python)
+                                {
+                                    System.out.println("Generating Swig interface files...");
+                                    returnedValue = Utils.writeFile(
+                                            output_dir + ctx.getFilename() + "PubSubTypes.i",
+                                            maintemplates.getTemplate("DDSPubSubTypeSwigInterface"), m_replace);
+                                }
                             }
                         }
                     }

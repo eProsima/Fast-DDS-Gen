@@ -1,0 +1,231 @@
+// Copyright 2023 Proyectos y Sistemas de Mantenimiento SL (eProsima).
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+group TypesCdrAuxHeader;
+
+main(ctx, definitions, extensions) ::= <<
+$fileHeader(file=[ctx.filename, "CdrAux.hpp"], description=["This source file contains the definition of the described types in the IDL file."])$
+
+#ifdef _WIN32
+// Remove linker warning LNK4221 on Visual Studio
+namespace {
+char dummy;
+}  // namespace
+#endif  // _WIN32
+
+#include "$ctx.filename$.h"
+
+$if(ctx.cdr)$
+#include <fastcdr/Cdr.h>
+#include <fastcdr/CdrSizeCalculator.hpp>
+
+$endif$
+
+$if(ctx.fastcdr)$
+#include <fastcdr/FastCdr.h>
+
+$endif$
+
+#include <fastcdr/exceptions/BadParamException.h>
+using namespace eprosima::fastcdr::exception;
+
+namespace eprosima {
+namespace fastcdr {
+
+$definitions; separator="\n"$
+
+} // namespace fastcdr
+} // namespace eprosima
+>>
+
+module(ctx, parent, module, definition_list) ::= <<
+$definition_list$
+>>
+
+definition_list(definitions) ::= <<
+$definitions; separator="\n"$
+
+>>
+
+annotation(ctx, annotation) ::= <<>>
+
+interface(ctx, parent, interface, export_list) ::= <<
+$export_list$
+>>
+
+export_list(exports) ::= <<
+$exports; separator="\n"$
+
+>>
+
+exception(ctx, parent, exception) ::= <<
+
+$if(ctx.anyCdr)$
+size_t calculate_serialized_size(
+        eprosima::fastcdr::CdrSizeCalculator& calculator,
+        const $exception.scopedname$& data,
+        size_t current_alignment)
+{
+    static_cast<void>(calculator);
+    static_cast<void>(data);
+    size_t initial_alignment = current_alignment;
+
+    eprosima::fastcdr::EncodingAlgorithmFlag previous_encoding = calculator.get_encoding();
+    current_alignment += calculator.begin_calculate_type_serialized_size(
+            eprosima::fastcdr::CdrVersion::XCDRv2 == calculator.get_cdr_version() ?
+            $if(exception.annotationFinal)$eprosima::fastcdr::EncodingAlgorithmFlag::PLAIN_CDR2
+            $elseif(exception.annotationAppendable)$eprosima::fastcdr::EncodingAlgorithmFlag::DELIMIT_CDR2
+            $elseif(exception.annotationMutable)$eprosima::fastcdr::EncodingAlgorithmFlag::PL_CDR2
+            $endif$ :
+            $if(exception.annotationFinal)$eprosima::fastcdr::EncodingAlgorithmFlag::PLAIN_CDR
+            $elseif(exception.annotationAppendable)$eprosima::fastcdr::EncodingAlgorithmFlag::PLAIN_CDR
+            $elseif(exception.annotationMutable)$eprosima::fastcdr::EncodingAlgorithmFlag::PL_CDR
+            $endif$,
+            current_alignment);
+
+
+    $exception.members : { member |
+        $if(!member.annotationNonSerialized)$
+            current_alignment += calculator.calculate_member_serialized_size(eprosima::fastcdr::MemberId($member.id$),
+                    data.$member.name$(), current_alignment);
+        $endif$}; separator="\n"$
+
+    current_alignment += calculator.end_calculate_type_serialized_size(previous_encoding, current_alignment);
+
+    return current_alignment - initial_alignment;
+}
+
+$endif$
+>>
+
+operation(ctx, parent, operation, param_list) ::= <<>>
+
+param_list(parameters) ::= <<>>
+
+param(parameter) ::= <<>>
+
+const_decl(ctx, parent, const) ::= <<>>
+
+typedef_decl(ctx, parent, typedefs) ::= <<>>
+
+struct_type(ctx, parent, struct, extensions) ::= <<
+$if(ctx.anyCdr)$
+size_t calculate_serialized_size(
+        eprosima::fastcdr::CdrSizeCalculator& calculator,
+        const $struct.scopedname$& data,
+        size_t current_alignment)
+{
+    static_cast<void>(calculator);
+    static_cast<void>(data);
+    size_t initial_alignment = current_alignment;
+
+    eprosima::fastcdr::EncodingAlgorithmFlag previous_encoding = calculator.get_encoding();
+    current_alignment += calculator.begin_calculate_type_serialized_size(
+            eprosima::fastcdr::CdrVersion::XCDRv2 == calculator.get_cdr_version() ?
+            $if(struct.annotationFinal)$eprosima::fastcdr::EncodingAlgorithmFlag::PLAIN_CDR2
+            $elseif(struct.annotationAppendable)$eprosima::fastcdr::EncodingAlgorithmFlag::DELIMIT_CDR2
+            $elseif(struct.annotationMutable)$eprosima::fastcdr::EncodingAlgorithmFlag::PL_CDR2
+            $endif$ :
+            $if(struct.annotationFinal)$eprosima::fastcdr::EncodingAlgorithmFlag::PLAIN_CDR
+            $elseif(struct.annotationAppendable)$eprosima::fastcdr::EncodingAlgorithmFlag::PLAIN_CDR
+            $elseif(struct.annotationMutable)$eprosima::fastcdr::EncodingAlgorithmFlag::PL_CDR
+            $endif$,
+            current_alignment);
+
+
+    $struct.allIdentifiedMembers : { member |
+        $if(!member.value.annotationNonSerialized)$
+            current_alignment += calculator.calculate_member_serialized_size(eprosima::fastcdr::MemberId($member.key$), data.$member.value.name$(), current_alignment);
+    $endif$}; separator="\n"$
+
+    current_alignment += calculator.end_calculate_type_serialized_size(previous_encoding, current_alignment);
+
+    return current_alignment - initial_alignment;
+}
+$endif$
+>>
+
+bitset_type(ctx, parent, bitset) ::= <<
+$if(ctx.anyCdr)$
+size_t calculate_serialized_size(
+        eprosima::fastcdr::CdrSizeCalculator& calculator,
+        const $bitset.scopedname$& $if(bitset.parents)$data$endif$,
+        size_t current_alignment)
+{
+    static_cast<void>(calculator);
+    size_t initial_alignment = current_alignment;
+
+    $if(bitset.parents)$    $bitset.parents : {current_alignment += calculator.calculate_serialized_size(data, current_alignment);}; separator="\n"$ $endif$
+
+    $bitset.bitfields : { member | $if(!member.annotationNonSerialized)$$if(member.name)$$serialized_size_type(ctx=ctx, typecode=member.spec.typecode, var="current_alignment")$$endif$$endif$}; separator="\n"$
+
+    return current_alignment - initial_alignment;
+}
+$endif$
+>>
+
+public_bitfield_definition(member) ::= <<>>
+
+union_type(ctx, parent, union) ::= <<
+$if(ctx.anyCdr)$
+size_t calculate_serialized_size(
+        eprosima::fastcdr::CdrSizeCalculator& calculator,
+        const $union.scopedname$& data,
+        size_t current_alignment)
+{
+    static_cast<void>(calculator);
+    static_cast<void>(data);
+    size_t initial_alignment = current_alignment;
+
+    eprosima::fastcdr::EncodingAlgorithmFlag previous_encoding = calculator.get_encoding();
+    current_alignment += calculator.begin_calculate_type_serialized_size(
+            eprosima::fastcdr::CdrVersion::XCDRv2 == calculator.get_cdr_version() ?
+            $if(union.annotationFinal)$eprosima::fastcdr::EncodingAlgorithmFlag::PLAIN_CDR2
+            $elseif(union.annotationAppendable)$eprosima::fastcdr::EncodingAlgorithmFlag::DELIMIT_CDR2
+            $elseif(union.annotationMutable)$eprosima::fastcdr::EncodingAlgorithmFlag::PL_CDR2
+            $endif$ :
+            $if(union.annotationFinal)$eprosima::fastcdr::EncodingAlgorithmFlag::PLAIN_CDR
+            $elseif(union.annotationAppendable)$eprosima::fastcdr::EncodingAlgorithmFlag::PLAIN_CDR
+            $elseif(union.annotationMutable)$eprosima::fastcdr::EncodingAlgorithmFlag::PL_CDR
+            $endif$,
+            current_alignment);
+
+    // TODO Member id del discriminador
+    current_alignment += calculator.calculate_member_serialized_size(eprosima::fastcdr::MemberId(0), data._d(),
+            current_alignment);
+
+    switch(data._d())
+    {
+        $union.identifiedMembers:{ member |
+            $if(member.value.printable)$
+                $member.value.labels:{ label |case $if(union.hasScope)$$union.scope$::$endif$$label$:}; separator="\n"$
+                $if(member.value.default)$default:$endif$
+                current_alignment += calculator.calculate_member_serialized_size(eprosima::fastcdr::MemberId($member.key$),
+                        data.$member.value.name$(), current_alignment);
+                break;
+            $endif$
+        }; separator="\n"$
+    }
+
+    current_alignment += calculator.end_calculate_type_serialized_size(previous_encoding, current_alignment);
+
+    return current_alignment - initial_alignment;
+}
+
+$endif$
+>>
+
+enum_type(ctx, parent, enum) ::= <<>>
+
+bitmask_type(ctx, parent, bitmask) ::= <<>>

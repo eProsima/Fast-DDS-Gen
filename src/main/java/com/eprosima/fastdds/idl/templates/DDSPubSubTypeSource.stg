@@ -23,6 +23,7 @@ $fileHeader(ctx=ctx,  file=[ctx.filename, "PubSubTypes.cpp"], description=["This
 #include <fastcdr/CdrSizeCalculator.hpp>
 
 #include "$ctx.filename$PubSubTypes.h"
+#include "$ctx.filename$CdrAux.hpp"
 
 using SerializedPayload_t = eprosima::fastrtps::rtps::SerializedPayload_t;
 using InstanceHandle_t = eprosima::fastrtps::rtps::InstanceHandle_t;
@@ -168,7 +169,7 @@ std::function<uint32_t()> $if (parent.IsInterface)$$parent.name$_$endif$$struct.
            {
                eprosima::fastcdr::CdrSizeCalculator calculator(
                        data_representation == DataRepresentationId_t::XCDR_DATA_REPRESENTATION ? eprosima::fastcdr::CdrVersion::XCDRv1 :eprosima::fastcdr::CdrVersion::XCDRv2);
-               return static_cast<uint32_t>(type::calculate_serialized_size(calculator,
+               return static_cast<uint32_t>(calculator.calculate_serialized_size(
                            *static_cast<$if (parent.IsInterface)$$parent.name$_$endif$$struct.name$*>(data))) +
                             4u /*encapsulation*/;
            };
