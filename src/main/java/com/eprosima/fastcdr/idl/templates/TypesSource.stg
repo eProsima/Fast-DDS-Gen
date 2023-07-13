@@ -31,7 +31,6 @@ $endif$
 
 $if(ctx.cdr)$
 #include <fastcdr/Cdr.h>
-#include <fastcdr/CdrSizeCalculator.hpp>
 
 $endif$
 
@@ -127,50 +126,6 @@ void $exception.scopedname$::raise() const
 {
     throw *this;
 }
-
-$if(ctx.anyCdr)$
-size_t $exception.scopedname$::calculate_serialized_size(
-        const $exception.scopedname$& data,
-        size_t current_alignment)
-{
-    eprosima::fastcdr::CdrSizeCalculator calculator(eprosima::fastcdr::CdrVersion::XCDRv2);
-    return calculate_serialized_size(calculator, data, current_alignment);
-}
-
-size_t $exception.scopedname$::calculate_serialized_size(
-        eprosima::fastcdr::CdrSizeCalculator& calculator,
-        const $exception.scopedname$& data,
-        size_t current_alignment)
-{
-    (void)data;
-    size_t initial_alignment = current_alignment;
-
-    eprosima::fastcdr::EncodingAlgorithmFlag previous_encoding = calculator.get_encoding();
-    current_alignment += calculator.begin_calculate_type_serialized_size(
-            eprosima::fastcdr::CdrVersion::XCDRv2 == calculator.get_cdr_version() ?
-            $if(exception.annotationFinal)$eprosima::fastcdr::EncodingAlgorithmFlag::PLAIN_CDR2
-            $elseif(exception.annotationAppendable)$eprosima::fastcdr::EncodingAlgorithmFlag::DELIMIT_CDR2
-            $elseif(exception.annotationMutable)$eprosima::fastcdr::EncodingAlgorithmFlag::PL_CDR2
-            $endif$ :
-            $if(exception.annotationFinal)$eprosima::fastcdr::EncodingAlgorithmFlag::PLAIN_CDR
-            $elseif(exception.annotationAppendable)$eprosima::fastcdr::EncodingAlgorithmFlag::PLAIN_CDR
-            $elseif(exception.annotationMutable)$eprosima::fastcdr::EncodingAlgorithmFlag::PL_CDR
-            $endif$,
-            current_alignment);
-
-
-    $exception.members : { member |
-        $if(!member.annotationNonSerialized)$
-            current_alignment += calculator.calculate_member_serialized_size(eprosima::fastcdr::MemberId($member.id$),
-                    data.$member.name$(), current_alignment);
-        $endif$}; separator="\n"$
-
-    current_alignment += calculator.end_calculate_type_serialized_size(previous_encoding, current_alignment);
-
-    return current_alignment - initial_alignment;
-}
-
-$endif$
 
 $if(ctx.cdr)$
 void $exception.scopedname$::serialize(
@@ -351,47 +306,6 @@ size_t $struct.scopedname$::getMaxCdrSerializedSize(
     static_cast<void>(current_alignment);
     return $struct.cScopedname$_max_cdr_typesize;
 }
-
-size_t $struct.scopedname$::calculate_serialized_size(
-        const $struct.scopedname$& data,
-        size_t current_alignment)
-{
-    eprosima::fastcdr::CdrSizeCalculator calculator(eprosima::fastcdr::CdrVersion::XCDRv2);
-    return calculate_serialized_size(calculator, data, current_alignment);
-}
-
-size_t $struct.scopedname$::calculate_serialized_size(
-        eprosima::fastcdr::CdrSizeCalculator& calculator,
-        const $struct.scopedname$& data,
-        size_t current_alignment)
-{
-    (void)data;
-    size_t initial_alignment = current_alignment;
-
-    eprosima::fastcdr::EncodingAlgorithmFlag previous_encoding = calculator.get_encoding();
-    current_alignment += calculator.begin_calculate_type_serialized_size(
-            eprosima::fastcdr::CdrVersion::XCDRv2 == calculator.get_cdr_version() ?
-            $if(struct.annotationFinal)$eprosima::fastcdr::EncodingAlgorithmFlag::PLAIN_CDR2
-            $elseif(struct.annotationAppendable)$eprosima::fastcdr::EncodingAlgorithmFlag::DELIMIT_CDR2
-            $elseif(struct.annotationMutable)$eprosima::fastcdr::EncodingAlgorithmFlag::PL_CDR2
-            $endif$ :
-            $if(struct.annotationFinal)$eprosima::fastcdr::EncodingAlgorithmFlag::PLAIN_CDR
-            $elseif(struct.annotationAppendable)$eprosima::fastcdr::EncodingAlgorithmFlag::PLAIN_CDR
-            $elseif(struct.annotationMutable)$eprosima::fastcdr::EncodingAlgorithmFlag::PL_CDR
-            $endif$,
-            current_alignment);
-
-
-    $struct.allIdentifiedMembers : { member |
-        $if(!member.value.annotationNonSerialized)$
-            current_alignment += calculator.calculate_member_serialized_size(eprosima::fastcdr::MemberId($member.key$), data.$member.value.name$(), current_alignment);
-    $endif$}; separator="\n"$
-
-    current_alignment += calculator.end_calculate_type_serialized_size(previous_encoding, current_alignment);
-
-    return current_alignment - initial_alignment;
-}
-
 $endif$
 
 $if(ctx.cdr)$
@@ -536,31 +450,6 @@ bool $bitset.scopedname$::operator !=(
 {
     return !(*this == x);
 }
-
-$if(ctx.anyCdr)$
-size_t $bitset.scopedname$::calculate_serialized_size(
-        const $bitset.scopedname$& $if(bitset.parents)$data$endif$,
-        size_t current_alignment)
-{
-    eprosima::fastcdr::CdrSizeCalculator calculator(eprosima::fastcdr::CdrVersion::XCDRv2);
-    return calculate_serialized_size(calculator, data, current_alignment);
-}
-
-size_t $bitset.scopedname$::calculate_serialized_size(
-        eprosima::fastcdr::CdrSizeCalculator& calculator,
-        const $bitset.scopedname$& $if(bitset.parents)$data$endif$,
-        size_t current_alignment)
-{
-    size_t initial_alignment = current_alignment;
-
-    $if(bitset.parents)$    $bitset.parents : {current_alignment += $it.scopedname$::calculate_serialized_size(calculator, data, current_alignment);}; separator="\n"$ $endif$
-
-    $bitset.bitfields : { member | $if(!member.annotationNonSerialized)$$if(member.name)$$serialized_size_type(ctx=ctx, typecode=member.spec.typecode, var="current_alignment")$$endif$$endif$}; separator="\n"$
-
-    return current_alignment - initial_alignment;
-}
-
-$endif$
 
 $if(ctx.cdr)$
 void $bitset.scopedname$::serialize(
@@ -762,60 +651,6 @@ $union.discriminator.cppTypename$& $union.scopedname$::_d()
 }
 
 $union.members:{$public_unionmember_declaration(class=union.scopedname, member=it, defaultvalue=union.defaultvalue, totallabels=union.totallabels)$}; separator="\n"$
-
-$if(ctx.anyCdr)$
-size_t $union.scopedname$::calculate_serialized_size(
-        const $union.scopedname$& data,
-        size_t current_alignment)
-{
-    eprosima::fastcdr::CdrSizeCalculator calculator(eprosima::fastcdr::CdrVersion::XCDRv2);
-    return calculate_serialized_size(calculator, data, current_alignment);
-}
-
-size_t $union.scopedname$::calculate_serialized_size(
-        eprosima::fastcdr::CdrSizeCalculator& calculator,
-        const $union.scopedname$& data,
-        size_t current_alignment)
-{
-    (void)data;
-    size_t initial_alignment = current_alignment;
-
-    eprosima::fastcdr::EncodingAlgorithmFlag previous_encoding = calculator.get_encoding();
-    current_alignment += calculator.begin_calculate_type_serialized_size(
-            eprosima::fastcdr::CdrVersion::XCDRv2 == calculator.get_cdr_version() ?
-            $if(union.annotationFinal)$eprosima::fastcdr::EncodingAlgorithmFlag::PLAIN_CDR2
-            $elseif(union.annotationAppendable)$eprosima::fastcdr::EncodingAlgorithmFlag::DELIMIT_CDR2
-            $elseif(union.annotationMutable)$eprosima::fastcdr::EncodingAlgorithmFlag::PL_CDR2
-            $endif$ :
-            $if(union.annotationFinal)$eprosima::fastcdr::EncodingAlgorithmFlag::PLAIN_CDR
-            $elseif(union.annotationAppendable)$eprosima::fastcdr::EncodingAlgorithmFlag::PLAIN_CDR
-            $elseif(union.annotationMutable)$eprosima::fastcdr::EncodingAlgorithmFlag::PL_CDR
-            $endif$,
-            current_alignment);
-
-    // TODO Member id del discriminador
-    current_alignment += calculator.calculate_member_serialized_size(eprosima::fastcdr::MemberId(0), data.m__d,
-            current_alignment);
-
-    switch(data.m__d)
-    {
-        $union.identifiedMembers:{ member |
-            $if(member.value.printable)$
-                $member.value.labels:{ label |case $label$:}; separator="\n"$
-                $if(member.value.default)$default:$endif$
-                current_alignment += calculator.calculate_member_serialized_size(eprosima::fastcdr::MemberId($member.key$),
-                        data.m_$member.value.name$, current_alignment);
-                break;
-            $endif$
-        }; separator="\n"$
-    }
-
-    current_alignment += calculator.end_calculate_type_serialized_size(previous_encoding, current_alignment);
-
-    return current_alignment - initial_alignment;
-}
-
-$endif$
 
 $if(ctx.cdr)$
 void $union.scopedname$::serialize(
