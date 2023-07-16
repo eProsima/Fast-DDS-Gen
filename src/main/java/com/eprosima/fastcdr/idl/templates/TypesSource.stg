@@ -29,6 +29,40 @@ $if(ctx.generateTypeObject)$
 #include "$ctx.filename$TypeObject.h"
 $endif$
 
+/*
+ * Convert primitive values to string for json representation
+ */
+namespace {
+template<class T>
+std::string ToJsonString(T const& value)
+{
+    return std::to_string(value);
+}
+
+template<>
+std::string ToJsonString<bool>(bool const& value)
+{
+    return value? "true" : "false";
+}
+
+template<>
+std::string ToJsonString<double>(double const& value)
+{
+    std::string result(31, 0);
+    snprintf(const_cast<char*>(result.c_str()), 31, "%.16f", value);
+    return result;
+}
+
+template<>
+std::string ToJsonString<float>(float const& value)
+{
+    std::string result(15, 0);
+    snprintf(const_cast<char*>(result.c_str()), 14, "%.9f", value);
+    return result;
+}
+} // namespace
+
+
 $if(ctx.cdr)$
 #include <fastcdr/Cdr.h>
 
@@ -61,6 +95,60 @@ $definitions; separator="\n"$
 
 module(ctx, parent, module, definition_list) ::= <<
 $definition_list$
+>>
+
+json_member_access(member) ::= "$member.name$()"
+
+json_element_name(member) ::= "element_$member.name$"
+
+json_map_key(member) ::= "element_$member.name$.first"
+
+json_map_value(member) ::= "element_$member.name$.second"
+
+to_json_sequence(member) ::= <<
+json += "[";
+for (auto const& $json_element_name(member)$ : $member.name$()) {
+    $to_json_value(member=member, typecode=member.typecode.contentTypeCode, access=json_element_name(member))$
+    json += ',';
+}
+if (json.back() == '[') 
+    json.push_back(']');    
+else
+    json.back() = ']';
+>>
+
+to_json_map(member) ::= <<
+json += "{";
+for (auto const& entry_$member.name$ : $member.name$()) {       
+    $if (member.typecode.keyTypeCode.isStringType)$
+    json += "\"" + $json_map_key(member)$ "\":";
+    $else$
+    json += "\"" + ToJsonString($json_map_key(member)$) "\":";
+    $endif$                
+    $to_json_value(member=member, typecode=member.typecode.valueTypeCode, access=json_map_value(member))$        
+    json += ',';
+}
+if (json.back() == '{') 
+    json.push_back('}');
+else 
+    json.back() = '}';
+>>
+
+
+to_json_value(member, typecode, access) ::= <<
+$! 
+ ! Note the strange formatting is used to suppress unwanted newlines in the output 
+ !$
+$if(typecode.primitive)$
+json += ToJsonString($access$);$elseif(typecode.isStringType)$json += "\"" + $access$ + "\"";$elseif(typecode.isStructType)$json += $access$.toJson();$elseif(typecode.isMapType)$$to_json_map(member)$$elseif(typecode.isUnionType)$json += $access$.toJson();$elseif(typecode.isSequenceType)$$to_json_sequence(member)$$elseif(typecode.isArrayType)$$to_json_sequence(member)$$elseif(typecode.isBitsetType)$json += $access$.toJson();$else$// Unhandled typecode $typecode$ for $member.name$
+$endif$
+>>
+
+
+to_json(member) ::= <<
+json += "\"$member.name$\":";
+$to_json_value(member=member, typecode=member.typecode, access=json_member_access(member))$
+json += ",";
 >>
 
 definition_list(definitions) ::= <<
@@ -270,6 +358,16 @@ bool $struct.scopedname$::operator !=(
     return !(*this == x);
 }
 
+std::string $struct.scopedname$::toJson() const
+{
+    std::string json;
+    json += "{";    
+    $trunc(struct.members):to_json(); separator="\n"$
+    $last(struct.members):{member | json += "\"$member.name$\":";$\n$$to_json_value(member=member, typecode=member.typecode, access=json_member_access(member))$}$    
+    json += "}";
+    return json;
+}
+
 $if(ctx.anyCdr)$
 size_t $struct.scopedname$::getMaxCdrSerializedSize(
         size_t current_alignment)
@@ -397,6 +495,11 @@ bool $bitset.scopedname$::operator !=(
         const $bitset.name$& x) const
 {
     return !(*this == x);
+}
+
+std::string $bitset.scopedname$::toJson() const
+{    
+    return "\"" + m_bitset.to_string() + "\"";
 }
 
 $if(ctx.anyCdr)$
@@ -615,6 +718,21 @@ $union.discriminator.cppTypename$& $union.scopedname$::_d()
 }
 
 $union.members:{$public_unionmember_declaration(class=union.scopedname, member=it, defaultvalue=union.defaultvalue, totallabels=union.totallabels)$}; separator="\n"$
+
+std::string $union.scopedname$::toJson() const
+{
+    std::string json;
+    json += "{";
+    switch(m__d) {
+        $union.members:{member | $member.labels:{case $it$: }; separator="\n"$ 
+        json += "\"$member.name$\":";
+        $to_json_value(member=member, typecode=member.typecode, access=json_member_access(member))$break; }; anchor, separator="\n"$
+        default: 
+            json += "\"unknown\":null";
+    }
+    json += "}";
+    return json;
+}
 
 $if(ctx.anyCdr)$
 // TODO(Ricardo) Review

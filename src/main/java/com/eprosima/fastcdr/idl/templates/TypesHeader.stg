@@ -281,6 +281,11 @@ public:
 
     $struct.members:{$public_member_declaration(it)$}; separator="\n"$
 
+    /*!
+     * @brief Serialize to JSON.
+     */
+     eProsima_user_DllExport std::string toJson() const;
+
     $if(ctx.anyCdr)$
     /*!
     * @brief This function returns the maximum serialized size of an object
@@ -388,6 +393,11 @@ public:
 
     $union.members:{$public_unionmember_declaration(it)$}; separator="\n"$
 
+    /*!
+     * @brief Serialize the active member to Json.
+     */
+    std::string toJson() const;
+
     $size_functions(union)$
 
     $serialization_functions(union)$
@@ -464,6 +474,11 @@ public:
             const $bitset.name$& x) const;
 
     $bitset.bitfields:{$public_bitfield_declaration(it)$}; separator="\n"$
+
+    /*!
+     * @brief Make a json representation
+     */
+     std::string toJson() const;
 
     $size_functions(bitset)$
 
