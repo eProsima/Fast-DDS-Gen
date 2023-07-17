@@ -53,6 +53,8 @@ $sequences_definition(it.value)$
 $endif$
 
 $definitions; separator="\n"$
+
+#include "$ctx.filename$CdrAux.ipp"
 >>
 
 module(ctx, parent, module, definition_list) ::= <<
