@@ -680,31 +680,20 @@ public class fastddsgen
             // Create template manager
             TemplateManager tmanager = new TemplateManager("FastCdrCommon:eprosima:Common", ctx, m_typesc);
 
-            List<TemplateExtension> extensions = new ArrayList<TemplateExtension>();
-
             // Load common types template
-            /// Add extension for @key related function definitions for each struct_type.
-            extensions.add(new TemplateExtension("struct_type", "keyFunctionHeadersStruct"));
-            tmanager.addGroup("TypesHeader", extensions);
+            tmanager.addGroup("TypesHeader");
             if (m_type_object_files)
             {
-                tmanager.addGroup("TypeObjectHeader", extensions);
+                tmanager.addGroup("TypeObjectHeader");
             }
-            extensions.clear();
-            /// Add extension for @key related function declarations for each struct_type.
-            extensions.add(new TemplateExtension("struct_type", "keyFunctionSourcesStruct"));
-            tmanager.addGroup("TypesSource", extensions);
+            tmanager.addGroup("TypesSource");
             if (m_type_object_files)
             {
-                tmanager.addGroup("TypeObjectSource", extensions);
+                tmanager.addGroup("TypeObjectSource");
             }
-            extensions.clear();
-            /// Add extension for @key related preprocessor definitions in main for each struct typecode.
-            extensions.add(new TemplateExtension("main", "keyFunctionSourcesMain"));
-            tmanager.addGroup("TypesSource", extensions);
-
             // Load Types common templates
             tmanager.addGroup("TypesCdrAuxHeader");
+            tmanager.addGroup("TypesCdrAuxHeaderImpl");
             tmanager.addGroup("DDSPubSubTypeHeader");
             tmanager.addGroup("DDSPubSubTypeSource");
 
@@ -901,17 +890,22 @@ public class fastddsgen
                             maintemplates.getTemplate("TypesCdrAuxHeader"), m_replace))
                     {
                         if (returnedValue =
-                                Utils.writeFile(output_dir + ctx.getFilename() + "PubSubTypes.cxx",
-                                    maintemplates.getTemplate("DDSPubSubTypeSource"), m_replace))
+                                Utils.writeFile(output_dir + ctx.getFilename() + "CdrAux.ipp",
+                                    maintemplates.getTemplate("TypesCdrAuxHeaderImpl"), m_replace))
                         {
+                            if (returnedValue =
+                                    Utils.writeFile(output_dir + ctx.getFilename() + "PubSubTypes.cxx",
+                                        maintemplates.getTemplate("DDSPubSubTypeSource"), m_replace))
+                            {
                             project.addProjectIncludeFile(relative_dir + ctx.getFilename() + "CdrAux.hpp");
                             project.addProjectSrcFile(relative_dir + ctx.getFilename() + "PubSubTypes.cxx");
-                            if (m_python)
-                            {
-                                System.out.println("Generating Swig interface files...");
-                                returnedValue = Utils.writeFile(
-                                        output_dir + ctx.getFilename() + "PubSubTypes.i",
-                                        maintemplates.getTemplate("DDSPubSubTypeSwigInterface"), m_replace);
+                                if (m_python)
+                                {
+                                    System.out.println("Generating Swig interface files...");
+                                    returnedValue = Utils.writeFile(
+                                            output_dir + ctx.getFilename() + "PubSubTypes.i",
+                                            maintemplates.getTemplate("DDSPubSubTypeSwigInterface"), m_replace);
+                                }
                             }
                         }
                     }

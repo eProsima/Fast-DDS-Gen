@@ -44,10 +44,6 @@ using namespace eprosima::fastcdr::exception;
 
 #include <utility>
 
-$if(ctx.anyCdr)$
-$ctx.types:{ type | $if(type.typeCode.isStructType)$#define $type.typeCode.cScopedname$_max_cdr_typesize $type.typeCode.maxSerializedSize$ULL;$endif$}; separator="\n"$
-$endif$
-
 $extensions : {$it$}; separator="\n"$
 
 $if(ctx.generateTypesC)$
@@ -126,65 +122,6 @@ void $exception.scopedname$::raise() const
 {
     throw *this;
 }
-
-$if(ctx.cdr)$
-void $exception.scopedname$::serialize(
-        eprosima::fastcdr::Cdr& scdr) const
-{
-    eprosima::fastcdr::Cdr::state current_state(scdr);
-    scdr.begin_serialize_type(current_state,
-            eprosima::fastcdr::CdrVersion::XCDRv2 == scdr.get_cdr_version() ?
-            $if(exception.annotationFinal)$eprosima::fastcdr::EncodingAlgorithmFlag::PLAIN_CDR2
-            $elseif(exception.annotationAppendable)$eprosima::fastcdr::EncodingAlgorithmFlag::DELIMIT_CDR2
-            $elseif(exception.annotationMutable)$eprosima::fastcdr::EncodingAlgorithmFlag::PL_CDR2
-            $endif$ :
-            $if(exception.annotationFinal)$eprosima::fastcdr::EncodingAlgorithmFlag::PLAIN_CDR
-            $elseif(exception.annotationAppendable)$eprosima::fastcdr::EncodingAlgorithmFlag::PLAIN_CDR
-            $elseif(exception.annotationMutable)$eprosima::fastcdr::EncodingAlgorithmFlag::PL_CDR
-            $endif$);
-
-    $exception.members : { member |$object_serialization(ctx=ctx, object=member)$}; separator=""$
-
-    scdr.end_serialize_type(current_state);
-}
-
-void $exception.scopedname$::deserialize(
-        eprosima::fastcdr::Cdr& cdr)
-{
-    cdr.deserialize_type(eprosima::fastcdr::CdrVersion::XCDRv2 == cdr.get_cdr_version() ?
-            $if(exception.annotationFinal)$eprosima::fastcdr::EncodingAlgorithmFlag::PLAIN_CDR2
-            $elseif(exception.annotationAppendable)$eprosima::fastcdr::EncodingAlgorithmFlag::DELIMIT_CDR2
-            $elseif(exception.annotationMutable)$eprosima::fastcdr::EncodingAlgorithmFlag::PL_CDR2
-            $endif$ :
-            $if(exception.annotationFinal)$eprosima::fastcdr::EncodingAlgorithmFlag::PLAIN_CDR
-            $elseif(exception.annotationAppendable)$eprosima::fastcdr::EncodingAlgorithmFlag::PLAIN_CDR
-            $elseif(exception.annotationMutable)$eprosima::fastcdr::EncodingAlgorithmFlag::PL_CDR
-            $endif$,
-            [this](eprosima::fastcdr::Cdr& dcdr, const eprosima::fastcdr::MemberId& mid) -> bool
-            {
-                bool ret_value = true;
-                switch (mid.id)
-                {
-                    $trunc(exception.members) : { member |
-                    case $member.id$:
-                        $if(!member.annotationNonSerialized)$$object_deserialization(ctx=ctx, object=member)$$endif$
-                        break;
-                    }; separator="\n"$
-                    $if(length(exception.members))$
-                    case $last(exceptions.members).id$:
-                        $if(!last(exception.members).annotationNonSerialized)$$object_deserialization(ctx=ctx, object=last(exception.members))$$endif$
-                        $if(!exception.annotationMutable)$ret_value = false;$endif$
-                        break;
-                    $endif$
-                    default:
-                        ret_value = false;
-                        break;
-                }
-                return ret_value;
-            });
-}
-
-$endif$
 
 $if(ctx.fastcdr)$
 void $exception.scopedname$::serialize(
@@ -299,72 +236,6 @@ bool $struct.scopedname$::operator !=(
     return !(*this == x);
 }
 
-$if(ctx.anyCdr)$
-size_t $struct.scopedname$::getMaxCdrSerializedSize(
-        size_t current_alignment)
-{
-    static_cast<void>(current_alignment);
-    return $struct.cScopedname$_max_cdr_typesize;
-}
-$endif$
-
-$if(ctx.cdr)$
-void $struct.scopedname$::serialize(
-        eprosima::fastcdr::Cdr& scdr) const
-{
-    eprosima::fastcdr::Cdr::state current_state(scdr);
-    scdr.begin_serialize_type(current_state,
-            eprosima::fastcdr::CdrVersion::XCDRv2 == scdr.get_cdr_version() ?
-            $if(struct.annotationFinal)$eprosima::fastcdr::EncodingAlgorithmFlag::PLAIN_CDR2
-            $elseif(struct.annotationAppendable)$eprosima::fastcdr::EncodingAlgorithmFlag::DELIMIT_CDR2
-            $elseif(struct.annotationMutable)$eprosima::fastcdr::EncodingAlgorithmFlag::PL_CDR2
-            $endif$ :
-            $if(struct.annotationFinal)$eprosima::fastcdr::EncodingAlgorithmFlag::PLAIN_CDR
-            $elseif(struct.annotationAppendable)$eprosima::fastcdr::EncodingAlgorithmFlag::PLAIN_CDR
-            $elseif(struct.annotationMutable)$eprosima::fastcdr::EncodingAlgorithmFlag::PL_CDR
-            $endif$);
-
-    scdr $struct.allIdentifiedMembers : { member |
-        $if(!member.value.annotationNonSerialized)$
-            << eprosima::fastcdr::MemberId($member.key$) << $member.value.name$()
-        $endif$
-    }; separator=""$;
-
-    scdr.end_serialize_type(current_state);
-}
-
-void $struct.scopedname$::deserialize(
-        eprosima::fastcdr::Cdr& cdr)
-{
-    cdr.deserialize_type(eprosima::fastcdr::CdrVersion::XCDRv2 == cdr.get_cdr_version() ?
-            $if(struct.annotationFinal)$eprosima::fastcdr::EncodingAlgorithmFlag::PLAIN_CDR2
-            $elseif(struct.annotationAppendable)$eprosima::fastcdr::EncodingAlgorithmFlag::DELIMIT_CDR2
-            $elseif(struct.annotationMutable)$eprosima::fastcdr::EncodingAlgorithmFlag::PL_CDR2
-            $endif$ :
-            $if(struct.annotationFinal)$eprosima::fastcdr::EncodingAlgorithmFlag::PLAIN_CDR
-            $elseif(struct.annotationAppendable)$eprosima::fastcdr::EncodingAlgorithmFlag::PLAIN_CDR
-            $elseif(struct.annotationMutable)$eprosima::fastcdr::EncodingAlgorithmFlag::PL_CDR
-            $endif$,
-            [this](eprosima::fastcdr::Cdr& dcdr, const eprosima::fastcdr::MemberId& mid) -> bool
-            {
-                bool ret_value = true;
-                switch (mid.id)
-                {
-                    $struct.allIdentifiedMembers : { member |
-                    case $member.key$:
-                        $if(!member.value.annotationNonSerialized)$dcdr \>> $member.value.name$();$endif$
-                        break;
-                    }; separator="\n"$
-                    default:
-                        ret_value = false;
-                        break;
-                }
-                return ret_value;
-            });
-}
-
-$endif$
-
 $if(ctx.fastcdr)$
 void $struct.scopedname$::serialize(
         eprosima::fastcdr::FastCdr &scdr) const
@@ -451,25 +322,6 @@ bool $bitset.scopedname$::operator !=(
     return !(*this == x);
 }
 
-$if(ctx.cdr)$
-void $bitset.scopedname$::serialize(
-        eprosima::fastcdr::Cdr& scdr) const
-{
-    $if(bitset.parents)$    $bitset.parents : {$it.scopedname$::serialize(scdr);}; separator="\n"$ $endif$
-
-    $bitset.bitfields : { member |$if(!member.annotationNonSerialized)$$bitfield_serialization(ctx=ctx, object=member)$$endif$}; separator="\n"$
-}
-
-void $bitset.scopedname$::deserialize(
-        eprosima::fastcdr::Cdr& dcdr)
-{
-    $if(bitset.parents)$    $bitset.parents : {$it.scopedname$::deserialize(dcdr);}; separator="\n"$ $endif$
-
-    $bitset.bitfields : { member |$if(!member.annotationNonSerialized)$$bitfield_deserialization(ctx=ctx, object=member)$$endif$}; separator="\n"$
-}
-
-$endif$
-
 $if(ctx.fastcdr)$
 void $bitset.scopedname$::serialize(
         eprosima::fastcdr::FastCdr& scdr) const
@@ -491,6 +343,16 @@ $endif$
 
 
 $bitset.bitfields:{$public_bitfield_definition(it)$}; separator="\n"$
+
+const std::bitset<$bitset.bitSize$>& $bitset.scopedname$::bitset() const
+{
+    return m_bitset;
+}
+
+std::bitset<$bitset.bitSize$>& $bitset.scopedname$::bitset()
+{
+    return m_bitset;
+}
 
 >>
 
@@ -651,81 +513,6 @@ $union.discriminator.cppTypename$& $union.scopedname$::_d()
 }
 
 $union.members:{$public_unionmember_declaration(class=union.scopedname, member=it, defaultvalue=union.defaultvalue, totallabels=union.totallabels)$}; separator="\n"$
-
-$if(ctx.cdr)$
-void $union.scopedname$::serialize(
-        eprosima::fastcdr::Cdr& scdr) const
-{
-    eprosima::fastcdr::Cdr::state current_state(scdr);
-    scdr.begin_serialize_type(current_state,
-            eprosima::fastcdr::CdrVersion::XCDRv2 == scdr.get_cdr_version() ?
-            $if(union.annotationFinal)$eprosima::fastcdr::EncodingAlgorithmFlag::PLAIN_CDR2
-            $elseif(union.annotationAppendable)$eprosima::fastcdr::EncodingAlgorithmFlag::DELIMIT_CDR2
-            $elseif(union.annotationMutable)$eprosima::fastcdr::EncodingAlgorithmFlag::PL_CDR2
-            $endif$ :
-            $if(union.annotationFinal)$eprosima::fastcdr::EncodingAlgorithmFlag::PLAIN_CDR
-            $elseif(union.annotationAppendable)$eprosima::fastcdr::EncodingAlgorithmFlag::PLAIN_CDR
-            $elseif(union.annotationMutable)$eprosima::fastcdr::EncodingAlgorithmFlag::PL_CDR
-            $endif$);
-
-    scdr << eprosima::fastcdr::MemberId(0) << _d();
-
-    switch(_d())
-    {
-        $union.identifiedMembers:{ member |
-            $if(member.value.printable)$
-                $member.value.labels:{ label |case $label$:}; separator="\n"$
-                $if(member.value.default)$default:$endif$
-                scdr << eprosima::fastcdr::MemberId($member.key$) << m_$member.value.name$;
-                break;
-            $endif$
-        }; separator="\n"$
-    }
-
-    scdr.end_serialize_type(current_state);
-}
-
-void $union.scopedname$::deserialize(
-        eprosima::fastcdr::Cdr& cdr)
-{
-    cdr.deserialize_type(eprosima::fastcdr::CdrVersion::XCDRv2 == cdr.get_cdr_version() ?
-            $if(union.annotationFinal)$eprosima::fastcdr::EncodingAlgorithmFlag::PLAIN_CDR2
-            $elseif(union.annotationAppendable)$eprosima::fastcdr::EncodingAlgorithmFlag::DELIMIT_CDR2
-            $elseif(union.annotationMutable)$eprosima::fastcdr::EncodingAlgorithmFlag::PL_CDR2
-            $endif$ :
-            $if(union.annotationFinal)$eprosima::fastcdr::EncodingAlgorithmFlag::PLAIN_CDR
-            $elseif(union.annotationAppendable)$eprosima::fastcdr::EncodingAlgorithmFlag::PLAIN_CDR
-            $elseif(union.annotationMutable)$eprosima::fastcdr::EncodingAlgorithmFlag::PL_CDR
-            $endif$,
-            [this](eprosima::fastcdr::Cdr& dcdr, const eprosima::fastcdr::MemberId& mid) -> bool
-            {
-                bool ret_value = true;
-                switch (mid.id)
-                {
-                    case 0:
-                        dcdr \>> _d();
-                        break;
-                    default:
-                        switch (_d())
-                        {
-                            $union.identifiedMembers:{ member |
-                                $if(member.value.printable)$
-                                    $member.value.labels:{ label |case $label$:}; separator="\n"$
-                                    $if(member.value.default)$default:$endif$
-                                    // TODO Test on mutable the MemberId
-                                    dcdr \>> m_$member.value.name$;
-                                    break;
-                                $endif$
-                            }; separator="\n"$
-                        }
-                        $if(!union.annotationMutable)$ret_value = false;$endif$
-                        break;
-                }
-                return ret_value;
-            });
-}
-
-$endif$
 
 $if(ctx.fastcdr)$
 void $union.scopedname$::serialize(
