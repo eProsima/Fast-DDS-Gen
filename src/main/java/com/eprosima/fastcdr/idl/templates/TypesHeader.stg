@@ -283,17 +283,6 @@ public:
 
     $struct.members:{$public_member_declaration(it)$}; separator="\n"$
 
-    $if(ctx.anyCdr)$
-    /*!
-    * @brief This function returns the maximum serialized size of an object
-    * depending on the buffer alignment.
-    * @param current_alignment Buffer alignment.
-    * @return Maximum serialized size.
-    */
-    eProsima_user_DllExport static size_t getMaxCdrSerializedSize(
-            size_t current_alignment = 0);
-    $endif$
-
     $serialization_functions(struct)$
 
     $extensions : {$it$}; separator="\n"$
@@ -462,6 +451,10 @@ public:
             const $bitset.name$& x) const;
 
     $bitset.bitfields:{$public_bitfield_declaration(it)$}; separator="\n"$
+
+    eProsima_user_DllExport const std::bitset<$bitset.bitSize$>& bitset() const;
+
+    eProsima_user_DllExport std::bitset<$bitset.bitSize$>& bitset();
 
     $serialization_functions(bitset)$
 
@@ -697,41 +690,7 @@ $endif$
 $endif$
 >>
 
-/*! TODO Quitado de FastBuffers porque no encaja con las excepciones de fastrpc.
- * @brief This function calculates the space needed to serialize a type $type.scopedname$.
- *        For all types with a variable size (strings, sequences) and without a maximum limit, this function uses
- *        255 as maximum limit.
- *
- inline
- size_t getMaxSerializedSize() { return $type.maxSerializedSize$;}
-
- *!
- * @brief This function calculates the space needed to serialize a type $type.scopedname$ without alignment.
- *        For all types with a variable size (strings, sequences) and without a maximum limit, this function uses
- *        255 as maximum limit.
- *
- inline
- size_t getMaxSerializedSizeWithoutAlign(){ return $type.maxSerializedSizeWithoutAlignment$;}
- */
-
 serialization_functions(type) ::= <<
-$if(ctx.cdr)$
-/*!
- * @brief This function serializes an object using CDR serialization.
- * @param cdr CDR serialization object.
- */
-eProsima_user_DllExport void serialize(
-        eprosima::fastcdr::Cdr& cdr) const;
-
-/*!
- * @brief This function deserializes an object using CDR serialization.
- * @param cdr CDR serialization object.
- */
-eProsima_user_DllExport void deserialize(
-        eprosima::fastcdr::Cdr& cdr);
-
-$endif$
-
 $if(ctx.fastcdr)$
 /*!
  * @brief This function serializes an object using FastCDR serialization.
@@ -820,17 +779,6 @@ public:
     bool release() const;
 
     bool& release();
-
-$if(ctx.anyCdr)$
-    static size_t getMaxCdrSerializedSize(
-            size_t current_alignment = 0);
-
-    static size_t calculate_serialized_size(
-            eprosima::fastcdr::CdrSizeCalculator& calculator,
-            const $typename$& data,
-            size_t current_alignment = 0);
-
-$endif$
 
     void serialize(
             eprosima::fastcdr::Cdr& cdr) const;

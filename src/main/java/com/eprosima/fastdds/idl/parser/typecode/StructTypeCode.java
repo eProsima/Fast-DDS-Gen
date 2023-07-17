@@ -33,6 +33,11 @@ public class StructTypeCode extends com.eprosima.idl.parser.typecode.StructTypeC
     {
         boolean returnedValue = false;
 
+        for (com.eprosima.idl.parser.typecode.TypeCode parent : getInheritances())
+        {
+            returnedValue |= ((StructTypeCode)parent).isHasKey();
+        }
+
         for (int count = 0; count < getMembers().size() && !returnedValue; ++count)
         {
             Member member = getMembers().get(count);
