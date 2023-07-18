@@ -501,6 +501,7 @@ enum $enum.name$ : uint32_t
 {
     $enum.members:{$it.name$}; separator=",\n"$
 };
+std::string to_string($enum.name$ const& value);
 >>
 
 bitmask_type(ctx, parent, bitmask) ::= <<

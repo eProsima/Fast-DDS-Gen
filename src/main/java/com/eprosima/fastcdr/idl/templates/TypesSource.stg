@@ -36,7 +36,8 @@ namespace {
 template<class T>
 std::string ToJsonString(T const& value)
 {
-    return std::to_string(value);
+    using std::to_string;
+    return to_string(value);
 }
 
 template<>
@@ -48,17 +49,17 @@ std::string ToJsonString<bool>(bool const& value)
 template<>
 std::string ToJsonString<double>(double const& value)
 {
-    std::string result(31, 0);
-    snprintf(const_cast<char*>(result.c_str()), 31, "%.16f", value);
-    return result;
+    char buf[32];
+    snprintf(buf, sizeof(buf), "%.16g", value);
+    return buf;
 }
 
 template<>
 std::string ToJsonString<float>(float const& value)
 {
-    std::string result(15, 0);
-    snprintf(const_cast<char*>(result.c_str()), 14, "%.9f", value);
-    return result;
+    char buf[32];
+    snprintf(buf, sizeof(buf), "%.9g", value);
+    return buf;
 }
 } // namespace
 
@@ -109,7 +110,7 @@ to_json_sequence(member) ::= <<
 json += "[";
 for (auto const& $json_element_name(member)$ : $member.name$()) {
     $to_json_value(member=member, typecode=member.typecode.contentTypeCode, access=json_element_name(member))$
-    json += ',';
+    json += ",";
 }
 if (json.back() == '[') 
     json.push_back(']');    
@@ -121,26 +122,40 @@ to_json_map(member) ::= <<
 json += "{";
 for (auto const& entry_$member.name$ : $member.name$()) {       
     $if (member.typecode.keyTypeCode.isStringType)$
-    json += "\"" + $json_map_key(member)$ "\":";
+    json += "\"" + $json_map_key(member)$ + "\":";
     $else$
-    json += "\"" + ToJsonString($json_map_key(member)$) "\":";
+    json += "\"" + ToJsonString($json_map_key(member)$) + "\":";
     $endif$                
     $to_json_value(member=member, typecode=member.typecode.valueTypeCode, access=json_map_value(member))$        
-    json += ',';
+    json += ",";
 }
-if (json.back() == '{') 
+if (json.back() =='{') 
     json.push_back('}');
 else 
     json.back() = '}';
 >>
 
-
 to_json_value(member, typecode, access) ::= <<
-$! 
- ! Note the strange formatting is used to suppress unwanted newlines in the output 
- !$
-$if(typecode.primitive)$
-json += ToJsonString($access$);$elseif(typecode.isStringType)$json += "\"" + $access$ + "\"";$elseif(typecode.isStructType)$json += $access$.toJson();$elseif(typecode.isMapType)$$to_json_map(member)$$elseif(typecode.isUnionType)$json += $access$.toJson();$elseif(typecode.isSequenceType)$$to_json_sequence(member)$$elseif(typecode.isArrayType)$$to_json_sequence(member)$$elseif(typecode.isBitsetType)$json += $access$.toJson();$else$// Unhandled typecode $typecode$ for $member.name$
+$if(typecode.isEnumType)$
+json += "\"" + ToJsonString($access$) + "\"";
+$elseif(typecode.primitive)$
+json += ToJsonString($access$);
+$elseif(typecode.isStringType)$
+json += "\"" + $access$ + "\"";
+$elseif(typecode.isStructType)$
+json += $access$.toJson();
+$elseif(typecode.isMapType)$
+$to_json_map(member)$
+$elseif(typecode.isUnionType)$
+json += $access$.toJson();
+$elseif(typecode.isSequenceType)$
+$to_json_sequence(member)$
+$elseif(typecode.isArrayType)$
+$to_json_sequence(member)$
+$elseif(typecode.isBitsetType)$
+json += $access$.toJson();
+$else$
+// Unhandled typecode $typecode$ for $member.name$
 $endif$
 >>
 
@@ -499,7 +514,13 @@ bool $bitset.scopedname$::operator !=(
 
 std::string $bitset.scopedname$::toJson() const
 {    
-    return "\"" + m_bitset.to_string() + "\"";
+    std::string json;
+    json += "{";
+    $trunc(bitset.bitfields):{$if(!it.annotationNonSerialized)$json += "\"$it.name$\":" + std::to_string($it.name$()) + ",";$endif$}; separator="\n"$
+    $last(bitset.bitfields):{$if(!it.annotationNonSerialized)$json += "\"$it.name$\":" + std::to_string($it.name$());$endif$}; separator="\n"$
+    json += "}";
+    return json;
+    // return "\"" + m_bitset.to_string() + "\"";
 }
 
 $if(ctx.anyCdr)$
@@ -812,7 +833,15 @@ $endif$
 
 >>
 
-enum_type(ctx, parent, enum) ::= <<>>
+enum_type(ctx, parent, enum) ::= <<
+std::string $if(enum.hasScope)$$enum.scope$::$endif$to_string($enum.scopedname$ const& value)
+{
+    switch(value) {
+        $enum.members:{case $enum.scopedname$::$it.name$: return "$it.name$";}; separator="\n"$
+        default: return "";
+    }    
+}
+>>
 
 bitmask_type(ctx, parent, bitmask) ::= <<>>
 
