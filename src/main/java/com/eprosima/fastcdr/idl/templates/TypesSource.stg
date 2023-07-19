@@ -1041,7 +1041,7 @@ $endif$
 
 if(!b)
 {
-    throw BadParamException("This member is not been selected");
+    throw BadParamException("This member has not been selected");
 }
 >>
 

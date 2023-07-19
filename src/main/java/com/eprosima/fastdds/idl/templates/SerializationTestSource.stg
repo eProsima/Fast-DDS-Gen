@@ -118,6 +118,7 @@ functions_to_run.emplace_back([]() -> bool
 });
 >>
 
+fwd_decl(ctx, parent, type) ::= <<>>
 union_type(ctx, parent, union) ::= <<>>
 
 enum_type(ctx, parent, enum) ::= <<>>
