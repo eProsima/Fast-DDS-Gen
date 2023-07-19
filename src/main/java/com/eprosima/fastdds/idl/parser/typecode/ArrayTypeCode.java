@@ -23,6 +23,14 @@ public class ArrayTypeCode extends com.eprosima.idl.parser.typecode.ArrayTypeCod
             long current_alignment)
     {
         long initial_alignment = current_alignment;
+
+        if (!getContentTypeCode().isPrimitive() &&
+            !getContentTypeCode().isIsType_c() /*enum*/)
+        {
+            // DHEADER if XCDRv2
+            current_alignment += 4 + TypeCode.cdr_alignment(current_alignment, 4);
+        }
+
         long size = 1;
         for (int count = 0; count < getDimensions().size(); ++count)
         {

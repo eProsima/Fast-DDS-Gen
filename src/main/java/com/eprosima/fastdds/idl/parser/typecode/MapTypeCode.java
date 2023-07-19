@@ -30,6 +30,14 @@ public class MapTypeCode extends com.eprosima.idl.parser.typecode.MapTypeCode
         long initial_alignment = current_alignment;
         long maxsize = Long.parseLong(getMaxsize(), 10);
 
+
+        if (!getValueTypeCode().isPrimitive() &&
+            !getValueTypeCode().isIsType_c() /*enum*/)
+        {
+            // DHEADER if XCDRv2
+            current_alignment += 4 + TypeCode.cdr_alignment(current_alignment, 4);
+        }
+
         current_alignment += 4 + TypeCode.cdr_alignment(current_alignment, 4);
 
         for (long count = 0; count < maxsize; ++count)
