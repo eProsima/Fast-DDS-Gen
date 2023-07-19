@@ -39,6 +39,13 @@ public class SequenceTypeCode extends com.eprosima.idl.parser.typecode.SequenceT
             detect_recursive_ = true;
         }
 
+        if (!getContentTypeCode().isPrimitive() &&
+            !getContentTypeCode().isIsType_c() /*enum*/)
+        {
+            // DHEADER if XCDRv2
+            current_alignment += 4 + TypeCode.cdr_alignment(current_alignment, 4);
+        }
+
         current_alignment += 4 + TypeCode.cdr_alignment(current_alignment, 4);
 
         for (long count = 0; count < maxsize; ++count)
