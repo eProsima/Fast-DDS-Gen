@@ -516,7 +516,101 @@ $endif$
 
 enum_type(ctx, parent, enum) ::= <<>>
 
-bitmask_type(ctx, parent, bitmask) ::= <<>>
+bitmask_type(ctx, parent, bitmask) ::= <<
+$bitmask.scopedname$::$bitmask.name$()
+{
+    $if(ctx.generateTypeObject)$
+    // Just to register all known types
+    register$ctx.filename$Types();
+    $endif$
+}
+
+$bitmask.scopedname$::~$bitmask.name$()
+{
+}
+
+$bitmask.scopedname$::$bitmask.name$(
+        const $bitmask.name$& x)
+{
+    m_bitmask = x.m_bitmask;
+}
+
+$bitmask.scopedname$::$bitmask.name$(
+        $bitmask.name$&& x) noexcept
+{
+    m_bitmask = x.m_bitmask;
+}
+
+$bitmask.scopedname$& $bitmask.scopedname$::operator =(
+        const $bitmask.name$& x)
+{
+    m_bitmask = x.m_bitmask;
+
+    return *this;
+}
+
+$bitmask.scopedname$& $bitmask.scopedname$::operator =(
+        $bitmask.name$&& x) noexcept
+{
+    m_bitmask = x.m_bitmask;
+
+    return *this;
+}
+
+bool $bitmask.scopedname$::operator ==(
+        const $bitmask.name$& x) const
+{
+    return m_bitmask == x.m_bitmask;
+}
+
+bool $bitmask.scopedname$::operator !=(
+        const $bitmask.name$& x) const
+{
+    return !(*this == x);
+}
+
+$if(ctx.fastcdr)$
+void $bitmask.scopedname$::serialize(
+        eprosima::fastcdr::FastCdr& scdr) const
+{
+    scdr << m_bitmask;
+}
+
+void $bitmask.scopedname$::deserialize(
+        eprosima::fastcdr::FastCdr& dcdr)
+{
+    dcdr \>> m_bitmask;
+}
+
+$endif$
+
+
+$bitmask.members:{$public_bitmask_definition(it)$}; separator="\n"$
+
+const std::bitset<$bitmask.bitBound$>& $bitmask.scopedname$::bitmask() const
+{
+    return m_bitmask;
+}
+
+std::bitset<$bitmask.bitBound$>& $bitmask.scopedname$::bitmask()
+{
+    return m_bitmask;
+}
+
+>>
+
+public_bitmask_definition(member) ::= <<
+void $bitmask.scopedname$::$member.name$(
+        bool _$member.name$)
+{
+    m_bitmask.set($member.position$, _$member.name$);
+}
+
+bool $bitmask.scopedname$::$member.name$() const
+{
+    return m_bitmask.test($member.position$);
+}
+>>
 
 /***** Utils *****/
 

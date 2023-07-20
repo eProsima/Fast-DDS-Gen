@@ -418,9 +418,79 @@ bitmask_type(ctx, parent, bitmask) ::= <<
  * @brief This class represents the bitmask $bitmask.name$ defined by the user in the IDL file.
  * @ingroup $ctx.trimfilename$
  */
-enum $bitmask.name$$bitmask.boundType$
+class $bitmask.name$
 {
-    $bitmask.members:{ member | $member.name$ = 0x01ull << $member.position$}; separator=",\n"$
+public:
+
+    /*!
+     * @brief Default constructor.
+     */
+    eProsima_user_DllExport $bitmask.name$();
+
+    /*!
+     * @brief Default destructor.
+     */
+    eProsima_user_DllExport ~$bitmask.name$();
+
+    /*!
+     * @brief Copy constructor.
+     *
+     * @param x Reference to the object $bitmask.scopedname$ that will be copied.
+     */
+    eProsima_user_DllExport $bitmask.name$(
+            const $bitmask.name$& x);
+
+    /*!
+     * @brief Move constructor.
+     *
+     * @param x Reference to the object $bitmask.scopedname$ that will be copied.
+     */
+    eProsima_user_DllExport $bitmask.name$(
+            $bitmask.name$&& x) noexcept;
+
+    /*!
+     * @brief Copy assignment.
+     *
+     * @param x Reference to the object $bitmask.scopedname$ that will be copied.
+     */
+    eProsima_user_DllExport $bitmask.name$& operator =(
+            const $bitmask.name$& x);
+
+    /*!
+     * @brief Move assignment.
+     *
+     * @param x Reference to the object $bitmask.scopedname$ that will be copied.
+     */
+    eProsima_user_DllExport $bitmask.name$& operator =(
+            $bitmask.name$&& x) noexcept;
+
+    /*!
+     * @brief Comparison operator.
+     *
+     * @param x $bitmask.scopedname$ object to compare.
+     */
+    eProsima_user_DllExport bool operator ==(
+            const $bitmask.name$& x) const;
+
+    /*!
+     * @brief Comparison operator.
+     *
+     * @param x $bitmask.scopedname$ object to compare.
+     */
+    eProsima_user_DllExport bool operator !=(
+            const $bitmask.name$& x) const;
+
+    $bitmask.members:{$public_bitflag_declaration(it)$}; separator="\n"$
+
+    eProsima_user_DllExport const std::bitset<$bitmask.bitBound$>& bitmask() const;
+
+    eProsima_user_DllExport std::bitset<$bitmask.bitBound$>& bitmask();
+
+    $serialization_functions(bitmask)$
+
+private:
+
+    std::bitset<$bitmask.bitBound$> m_bitmask;
 };
 >>
 
@@ -619,7 +689,24 @@ eProsima_user_DllExport const $member.typecode.cppTypename$& $member.name$() con
 eProsima_user_DllExport $member.typecode.cppTypename$& $member.name$();
 >>
 
-member_default_init(member) ::= <%
+public_bitflag_declaration(member) ::= <<
+/*!
+ * @brief This function sets a value in flag $member.name$
+ *
+ * @param _$member.name$ New value for flag $member.name$
+ */
+eProsima_user_DllExport void $member.name$(
+        bool _$member.name$);
+
+/*!
+ * @brief This function returns the value of flag $member.name$
+ *
+ * @return Value of flag $member.name$
+ */
+eProsima_user_DllExport bool $member.name$() const;
+>>
+
+member_default_init(member) ::= <<%
 $if(!member.typecode.forwarded)$
 $if(member.annotationDefault)$
  {$member.annotationDefaultValue$}
