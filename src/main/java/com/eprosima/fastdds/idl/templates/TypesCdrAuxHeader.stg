@@ -95,4 +95,21 @@ union_type(ctx, parent, union) ::= <<>>
 
 enum_type(ctx, parent, enum) ::= <<>>
 
-bitmask_type(ctx, parent, bitmask) ::= <<>>
+bitmask_type(ctx, parent, bitmask) ::= <<
+$if(ctx.anyCdr)$
+size_t calculate_serialized_size(
+        eprosima::fastcdr::CdrSizeCalculator& calculator,
+        const $bitmask.scopedname$& data,
+        size_t current_alignment);
+$endif$
+
+$if(ctx.cdr)$
+void serialize(
+        eprosima::fastcdr::Cdr& scdr,
+        cons $bitmask.scopedname$& data);
+
+void deserialize(
+        eprosima::fastcdr::Cdr& dcdr,
+        $bitmask.scopedname$& data);
+$endif$
+>>
