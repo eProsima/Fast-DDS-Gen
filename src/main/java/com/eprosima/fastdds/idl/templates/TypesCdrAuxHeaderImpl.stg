@@ -304,13 +304,7 @@ size_t calculate_serialized_size(
 
     $if(bitset.parents)$    $bitset.parents : {current_alignment += calculator.calculate_serialized_size(data, current_alignment);}; separator="\n"$ $endif$
 
-    $bitset.bitfields : { member |
-        $if(!member.annotationNonSerialized)$
-            $if(member.name)$
-                $serialized_size_type(ctx=ctx, typecode=member.spec.typecode, var="current_alignment")$
-            $endif$
-        $endif$
-    }; separator="\n"$
+    current_alignment += calculator.calculate_serialized_size(data.bitset(), current_alignment);
 
     return current_alignment - initial_alignment;
 }
