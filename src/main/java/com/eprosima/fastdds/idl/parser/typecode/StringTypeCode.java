@@ -39,7 +39,7 @@ public class StringTypeCode extends com.eprosima.idl.parser.typecode.StringTypeC
                 current_alignment += 4 + TypeCode.cdr_alignment(current_alignment, 4) + maxsize + 1;
                 break;
             case Kind.KIND_WSTRING:
-                current_alignment += 4 + TypeCode.cdr_alignment(current_alignment, 4) + (maxsize * 4);
+                current_alignment += 4 + TypeCode.cdr_alignment(current_alignment, 4) + (maxsize * 2);
                 break;
         }
 
