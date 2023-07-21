@@ -217,6 +217,8 @@ member_assignment(ctx, typecode, name, originName, optional) ::= <<
 // $typecode.cppTypename$ - $typecode.kind$
 $if(typecode.isType_7)$
 topic->$name$(static_cast<$typecode.cppTypename$>(rand()%2==1));
+$elseif(typecode.isWCharType)$
+topic->$name$(L'W');
 $elseif(typecode.primitive)$
 topic->$name$(static_cast<$typecode.cppTypename$>(rand()));
 $elseif(typecode.isType_d)$
