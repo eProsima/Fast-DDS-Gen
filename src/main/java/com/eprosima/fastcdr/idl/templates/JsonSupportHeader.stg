@@ -1,0 +1,99 @@
+/*
+ * 
+ */
+
+group JsonSupportHeader;
+
+fromJsonDeclaration(type) ::= <<
+/*!
+ * @brief Create an instance of $type$ from a JSON string.
+ * @throws std::runtime_error on JSON error.
+ */
+eProsima_user_DllExport $type$ $type$FromJson(std::string const& jsonText);
+>>
+
+main(ctx, definitions) ::= <<
+$fileHeader(file=[ctx.filename, "JsonSupport.h"], description=["This header file contains JSON support for the described types in the IDL file."])$
+
+#ifndef _FAST_DDS_GENERATED_$ctx.headerGuardName$_JSON_SUPPORT_H_
+#define _FAST_DDS_GENERATED_$ctx.headerGuardName$_JSON_SUPPORT_H_
+
+$ctx.directIncludeDependencies : {include | #include "$include$JsonSupport.h"}; separator="\n"$
+
+#include <string>
+#include "$ctx.filename$.h"
+
+#if defined(_WIN32)
+#if defined(EPROSIMA_USER_DLL_EXPORT)
+#define eProsima_user_DllExport __declspec( dllexport )
+#else
+#define eProsima_user_DllExport
+#endif
+#else
+#define eProsima_user_DllExport
+#endif
+
+#if defined(_WIN32)
+#if defined(EPROSIMA_USER_DLL_EXPORT)
+#if defined($ctx.filename;format="toUpper"$_SOURCE)
+#define $ctx.filename;format="toUpper"$_DllAPI __declspec( dllexport )
+#else
+#define $ctx.filename;format="toUpper"$_DllAPI __declspec( dllimport )
+#endif // $ctx.filename;format="toUpper"$_SOURCE
+#else
+#define $ctx.filename;format="toUpper"$_DllAPI
+#endif
+#else
+#define $ctx.filename;format="toUpper"$_DllAPI
+#endif // _WIN32
+
+$definitions; separator="\n"$
+
+#endif // _FAST_DDS_GENERATED_$ctx.headerGuardName$_JSON_SUPPORT_H_
+
+>>
+
+module(ctx, parent, module, definition_list) ::= <<
+namespace $module.name$ {
+$definition_list$
+} // namespace $module.name$
+>>
+
+definition_list(definitions) ::= <<
+$definitions; separator="\n\n"$
+>>
+
+
+struct_type(ctx, parent, struct, extension) ::= <<
+$fromJsonDeclaration(struct.name)$
+>>
+
+bitset_type(ctx, parent, bitset) ::= <<
+$fromJsonDeclaration(bitset.name)$
+>>
+
+union_type(ctx, parent, union) ::= <<
+$fromJsonDeclaration(union.name)$
+>>
+
+enum_type(ctx, parent, enum) ::= <<
+$fromJsonDeclaration(enum.name)$
+>>
+
+interface(ctx, parent, interface, export_list) ::= <<>>
+
+export_list(exports) ::= <<>>
+
+exception(ctx, parent, exception) ::= <<>>
+
+operation(ctx, parent, operation, param_list) ::= <<>>
+
+param_list(parameters) ::= <<>>
+
+param(parameter) ::= <<>>
+
+const_decl(ctx, parent, const) ::= <<>>
+
+typedef_decl(ctx, parent, typedefs) ::= <<>>
+
+bitmask_type(ctx, parent, bitmask) ::= <<>>

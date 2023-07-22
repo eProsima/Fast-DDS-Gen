@@ -1,0 +1,252 @@
+
+group JsonSupportSource;
+
+main(ctx, definitions) ::= <<
+/*
+ * This automatically generated source file contains JSON support for the types 
+ * described in $ctx.filename$.idl 
+ */
+
+#ifdef _WIN32
+// Remove linker warning LNK4221 on Visual Studio
+namespace { char dummy; }
+#endif
+
+#include "$ctx.filename$.h"
+#include "$ctx.filename$JsonSupport.h"
+#include <utility>
+#include <stdexcept>
+#include <type_traits>
+#include "json.hpp"
+
+using json = nlohmann::json;
+
+namespace {
+template<class T>
+struct Assign {
+    T& target;
+    Assign(T& i_target) : target(i_target) { }
+    void operator()(T const& i_value) { target = i_value; }
+};
+
+template<class T>
+T fromString(std::string const& value);
+
+template<>
+bool fromString<bool>(std::string const& value)
+{
+    if (value.size() > 0 && std::tolower(value.front()) == 't') {
+        return true;
+    }
+    return false;
+}
+
+template<>
+float fromString<float>(std::string const& value)
+{
+    return std::stod(value);
+}
+
+template<>
+double fromString<double>(std::string const& value)
+{
+    return std::stod(value);
+}
+
+template<>
+std::string fromString<std::string>(std::string const& value)
+{
+    return value;
+}
+
+template<class T>
+typename std::enable_if<std::is_integral<T>::value && std::is_unsigned<T>::value,T>::type
+fromString(std::string const& value)
+{
+    return std::stoull(value);
+}
+
+template<class T>
+typename std::enable_if<std::is_integral<T>::value && std::is_signed<T>::value,T>::type
+fromString(std::string const& value)
+{
+    return std::stoll(value);
+}
+
+}
+
+$definitions; separator="\n"$
+
+>>
+
+name_access(it) ::= "sample.$it.name$"
+
+back_access(access) ::= "$access$().push_back"
+
+json_access(key) ::= <<data["$key$"]>>
+
+json_ref_name(name) ::= "ref_$name$"
+
+element_name(name) ::= "element_$name$"
+
+array_access(access, index) ::= "$access$()[$index$]"
+
+array_assign(name) ::= "$name$Access"
+
+member_deserialize(member, typecode, access, json) ::= <<
+$if(typecode.isEnumType)$
+if (!$json$.is_string()) {
+    throw std::runtime_error("$member.name$ expected to be a string type");
+}
+$access$($typecode.name$FromJson($json$.get<std::string>()));
+$elseif(typecode.primitive)$
+$access$($json$.get<$typecode.cppTypename$>());
+$elseif(typecode.isStringType)$
+if (!$json$.is_string()) {
+    throw std::runtime_error("$member.name$ expected to be a string type");
+}
+$access$($json$.get<std::string>());
+$elseif(typecode.isStructType)$
+if (!$json$.is_object()) {
+    throw std::runtime_error("$member.name$ expected to be an object type");
+}
+$access$($typecode.name$FromJson($json$));
+$elseif(typecode.isMapType)$
+if (!$json$.is_object()) {
+    throw std::runtime_error("$member.name$ expected to be an object type");
+}
+for (auto const& $element_name(member.name)$ : $json$) {
+    // DANGER does not work for enums
+    auto key_$member.name$ = fromString<$typecode.keyTypeCode.cppTypename$>($element_name(member.name)$.first);
+    auto value_$member.name$ = $element_name(member.name)$.second.get<$typecode.valueTypeCode.cppTypename$>();
+    $access$()[key_$member.name$] = value_$member.name$;
+}
+$elseif(typecode.isUnionType)$
+if (!$json$.is_object()) {
+    throw std::runtime_error("$member.name$ expected to be an object type");
+}
+$access$($typecode.name$FromJson($json$));
+$elseif(typecode.isSequenceType)$
+if (!$json$.is_array()) {
+    throw std::runtime_error("$member.name$ expected to be an array type");
+}
+for (auto const& $element_name(member.name)$ : $json$) {        
+    $member_deserialize( member=member, typecode=typecode.contentTypeCode, access=back_access(access), json=element_name(member.name))$
+}
+$elseif(typecode.isArrayType)$
+if (!$json$.is_array()) {
+    throw std::runtime_error("$member.name$ expected to be an array type");
+}
+if ($json$.size() != $typecode.size$) {
+    throw std::runtime_error("$member.name$ expected array of exactly $typecode.size$ values");
+}
+for (std::size_t $element_name(member.name)$=0; $element_name(member.name)$ < $json$.size(); $element_name(member.name)$++) {
+    Assign<$typecode.contentTypeCode.cppTypename$> $array_assign(member.name)$($array_access(access=access, index=element_name(member.name))$);
+    json const& $json_ref_name(member.name)$ = $json$[$element_name(member.name)$];    
+    $member_deserialize( member=member, typecode=typecode.contentTypeCode, access=array_assign(member.name), json=json_ref_name(member.name))$
+}
+$elseif(typecode.isBitsetType)$
+if (!$json$.is_object()) {
+    throw std::runtime_error("$member.name$ expected to be an object type");
+}
+$access$($typecode.name$FromJson($json$));
+$else$
+// Unhandled type $member.name$
+$endif$
+>>
+
+module(ctx, parent, module, definition_list) ::= <<
+namespace $module.name$ {
+$definition_list$
+} // namespace $module.name$
+>>
+
+definition_list(definitions) ::= <<
+$definitions; separator="\n\n"$
+>>
+
+
+struct_type(ctx, parent, struct, extension) ::= <<
+$struct.name$ $struct.name$FromJson(json const& data)
+{
+    $struct.name$ sample;
+    $struct.members:member_deserialize(member=it, typecode=it.typecode, access=name_access(it), json=json_access(it.name)); separator="\n"$
+    return sample;
+}
+$struct.name$ $struct.name$FromJson(std::string const& text)
+{
+    return $struct.name$FromJson(json::parse(text));
+}
+>>
+
+bitset_type(ctx, parent, bitset) ::= <<
+$bitset.name$ $bitset.name$FromJson(json const& data)
+{
+    $bitset.name$ sample;      
+    $bitset.bitfields:{$name_access(it)$($json_access(it.name)$.get<$it.spec.cppTypename$>());}; separator="\n"$
+    return sample;
+}
+$bitset.name$ $bitset.name$FromJson(std::string const& text)
+{
+    return $bitset.name$FromJson(json::parse(text));
+}
+>>
+
+union_type(ctx, parent, union) ::= <<
+$union.name$ $union.name$FromJson(json const& data)
+{
+    $union.name$ sample;
+    $first(union.members),first(union.discriminator.members):{it,dname|if (data.contains("$it.name$")) {
+    sample._d() = $dname.name$;
+    $member_deserialize(member=it, typecode=it.typecode, access=name_access(it), json=json_access(it.name))$ 
+}}; separator="\n"$
+    $rest(union.members),rest(union.discriminator.members):{it,dname|else if (data.contains("$it.name$")) { 
+    sample._d() = $dname.name$;
+    $member_deserialize(member=it, typecode=it.typecode, access=name_access(it), json=json_access(it.name))$ 
+}}; separator="\n"$
+    return sample;
+}
+$union.name$ $union.name$FromJson(std::string const& text)
+{
+    return $union.name$FromJson(json::parse(text));
+}
+>>
+
+enum_type(ctx, parent, enum) ::= <<
+$enum.name$ $enum.name$FromJson(json const& data)
+{
+    if (data.is_number()) {
+        int v = data.get<int>();
+        switch(v) {
+            $enum.members : {case $it.name$: return $it.name$;}; separator="\n"$
+        }
+        throw std::runtime_error("Value not recognized as type of enum $enum.name$");
+    } else if (data.is_string()) {
+        return $enum.name$FromJson(data.get<std::string>());
+    }
+    throw std::runtime_error("String not recognized as type of enum $enum.name$");
+}
+$enum.name$ $enum.name$FromJson(std::string const& text)
+{
+    $enum.members : {if (text == "$it.name$") return $it.name$;}; separator="\n"$    
+    throw std::runtime_error("String not recognized as type of enum $enum.name$");
+}
+>>
+
+interface(ctx, parent, interface, export_list) ::= <<>>
+
+export_list(exports) ::= <<>>
+
+exception(ctx, parent, exception) ::= <<>>
+
+operation(ctx, parent, operation, param_list) ::= <<>>
+
+param_list(parameters) ::= <<>>
+
+param(parameter) ::= <<>>
+
+const_decl(ctx, parent, const) ::= <<>>
+
+typedef_decl(ctx, parent, typedefs) ::= <<>>
+
+bitmask_type(ctx, parent, bitmask) ::= <<>>

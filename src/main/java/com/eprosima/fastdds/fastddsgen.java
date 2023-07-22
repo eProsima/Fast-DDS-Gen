@@ -117,6 +117,9 @@ public class fastddsgen
     // Generate python binding files
     private boolean m_python = false;
 
+    // Generate json support files
+    private boolean m_json_files = false;
+
     private boolean m_case_sensitive = false;
 
     // Testing
@@ -290,6 +293,10 @@ public class fastddsgen
             else if (arg.equals("-python"))
             {
                 m_python = true;
+            }
+            else if (arg.equals("-json"))
+            {
+                m_json_files = true;
             }
             else if (arg.equals("-test"))
             {
@@ -562,6 +569,7 @@ public class fastddsgen
         System.out.println("\t\t-cs: IDL grammar apply case sensitive matching.");
         System.out.println("\t\t-test: executes FastDDSGen tests.");
         System.out.println("\t\t-python: generates python bindings for the generated types.");
+        System.out.println("\t\t-json: generates json-to-type support for the generated types.");
         System.out.println("\tand the supported input files are:");
         System.out.println("\t* IDL files.");
 
@@ -726,6 +734,12 @@ public class fastddsgen
                 tmanager.addGroup("SerializationSource");
             }
 
+            if (m_json_files)
+            {
+                tmanager.addGroup("JsonSupportHeader");
+                tmanager.addGroup("JsonSupportSource");
+            }
+
             // Add JNI sources.
             if (m_languageOption == LANGUAGE.JAVA)
             {
@@ -766,7 +780,7 @@ public class fastddsgen
                 lexer.setContext(ctx);
                 CommonTokenStream tokens = new CommonTokenStream(lexer);
                 IDLParser parser = new IDLParser(tokens);
-                // Pass the finelame without the extension
+                // Pass the filename without the extension
 
                 Specification specification = parser.specification(ctx, tmanager, maintemplates).spec;
                 returnedValue = specification != null;
@@ -853,6 +867,19 @@ public class fastddsgen
 
                             }
                         }
+                        
+                        if (m_json_files)
+                        {
+                            System.out.println("Generating json support files...");
+                            if (returnedValue =
+                                    Utils.writeFile(output_dir + ctx.getFilename() + "JsonSupport.h",
+                                    maintemplates.getTemplate("JsonSupportHeader"), m_replace))
+                            {
+                                returnedValue = Utils.writeFile(output_dir + ctx.getFilename() + "JsonSupport.cxx",
+                                    maintemplates.getTemplate("JsonSupportSource"), m_replace);
+                            }
+                        }
+                        
                     }
                 }
 
