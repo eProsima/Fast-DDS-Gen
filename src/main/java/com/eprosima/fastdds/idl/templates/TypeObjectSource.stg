@@ -30,6 +30,7 @@ char dummy;
 
 #include "$ctx.filename$TypeObject.h"
 
+#include <cassert>
 #include <mutex>
 
 $if(ctx.cdr)$
@@ -44,7 +45,6 @@ $if(ctx.fastcdr)$
 $endif$
 #include <fastrtps/rtps/common/SerializedPayload.h>
 #include <fastrtps/types/AnnotationParameterValue.h>
-#include <fastrtps/types/TypeNamesGenerator.h>
 #include <fastrtps/types/TypeObjectFactory.h>
 #include <fastrtps/utils/md5.h>
 
@@ -164,6 +164,7 @@ const TypeObject* get_complete_$annotation.name$_object()
         "$if(ctx.GenerateTypesROS2)$$annotation.ROS2Scopedname$$else$$annotation.scopedname$$endif$");
 
     //    - CompleteAnnotationParameterSeq
+
     $annotation.members:{ member | $complete_annotation_member(ctx=ctx, object=member)$}; separator="\n"$
 
     TypeIdentifier identifier;
@@ -224,21 +225,36 @@ type_object->minimal().annotation_type().member_seq().emplace_back(mam_$object.n
 
 >>
 
-complete_annotation_member(ctx, object) ::= <<
+(ctx, object) ::= <<
+//    - CompleteAnnotationParameter
 CompleteAnnotationParameter cam_$object.name$;
-TypeIdentifier* cam_$object.name$_typeId = $get_type_identifier(ctx=ctx, type=object.typecode, ek="true")$;
-if (mam_$object.name$_typeId != nullptr)
+//        - CommonAnnotationParameter
+//            - AnnotationParameterFlag: Unused. No flags apply
+//            - TypeIdentifier
+TypeIdentifier* cam_$object.name$_type_id = $get_type_identifier(ctx=ctx, type=object.typecode, ek="false")$;
+if (mam_$object.name$_type_id != nullptr)
 {
-    cam_$object.name$.common().member_type_id(*cam_$object.name$_typeId);
+    cam_$object.name$.common().member_type_id(*cam_$object.name$_type_id);
 }
+//        - MemberName
 cam_$object.name$.name("$object.name$");
-
-$if(object.value)$
+//        - AnnotationParameterValue: default value
 AnnotationParameterValue def_value_$object.name$;
-def_value_$object.name$._d(cam_$object.name$.common().member_type_id()._d());
-def_value_$object.name$.from_string("$object.value$");
-cam_$object.name$.default_value(def_value_$object.name$);
+$if(object.typecode.primitive)$
+def_value_$object.name$._d($object.typecode.typeIdentifier$);
+$elseif(object.typecode.objectType)$
+const TypeObject* member_type_object = get_$object.typecode.name$_object(false);
+assert(nullptr != member_type_object);
+def_value_$object.name$._d(member_type_object->minimal()._d());
 $endif$
+$if(object.value)$
+// Default value
+$if(object.typecode.isBooleanType)$
+def_value_$object.name$.boolean_value($object.value$);
+$endif$
+$endif$
+
+cam_$object.name$.default_value(def_value_$object.name$);
 
 type_object->complete().annotation_type().member_seq().emplace_back(cam_$object.name$);
 
@@ -1459,9 +1475,10 @@ payload.length = static_cast<uint32_t>(ser.get_serialized_data_length()); //Get 
 MD5 objectHash;
 objectHash.update(static_cast<char*>(payload.data), payload.length);
 objectHash.finalize();
+// XTypes v1.3 Annex B: Little Endian encoding.
 for(int i = 0; i < 14; ++i)
 {
-    identifier.equivalence_hash()[i] = objectHash.digest[i];
+    identifier.equivalence_hash()[i] = objectHash.digest[13-i];
 }
 
 TypeObjectFactory::get_instance()->add_type_object(

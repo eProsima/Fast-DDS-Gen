@@ -26,6 +26,7 @@ $fileHeader(ctx=ctx, file=[ctx.filename, "TypeObject.h"], description=["Header f
 
 #include <fastrtps/types/TypeIdentifier.h>
 #include <fastrtps/types/TypeObject.h>
+#include <fastrtps/types/TypeObjectFactory.h>
 
 $ctx.directIncludeDependencies : {include | #include "$include$TypeObject.h"}; separator="\n"$
 
