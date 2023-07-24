@@ -70,18 +70,18 @@ $exports; separator="\n"$
 exception(ctx, parent, exception) ::= <<
 
 $if(ctx.anyCdr)$
-size_t calculate_serialized_size(
+eProsima_user_DllExport size_t calculate_serialized_size(
         eprosima::fastcdr::CdrSizeCalculator& calculator,
         const $exception.scopedname$& data,
         size_t current_alignment);
 $endif$
 
 $if(ctx.cdr)$
-void serialize(
+eProsima_user_DllExport void serialize(
         eprosima::fastcdr::Cdr& scdr,
         const $exception.scopedname$& data);
 
-void deserialize(
+eProsima_user_DllExport void deserialize(
         eprosima::fastcdr::Cdr& cdr,
         $exception.scopedname$& data);
 $endif$
@@ -99,22 +99,22 @@ typedef_decl(ctx, parent, typedefs) ::= <<>>
 
 struct_type(ctx, parent, struct, extensions) ::= <<
 $if(ctx.anyCdr)$
-size_t calculate_serialized_size(
+eProsima_user_DllExport size_t calculate_serialized_size(
         eprosima::fastcdr::CdrSizeCalculator& calculator,
         const $struct.scopedname$& data,
         size_t current_alignment);
 $endif$
 
 $if(ctx.cdr)$
-void serialize(
+eProsima_user_DllExport void serialize(
         eprosima::fastcdr::Cdr& scdr,
         const $struct.scopedname$& data);
 
-void deserialize(
+eProsima_user_DllExport void deserialize(
         eprosima::fastcdr::Cdr& cdr,
         $struct.scopedname$& data);
 
-void serialize_key(
+eProsima_user_DllExport void serialize_key(
         eprosima::fastcdr::Cdr& scdr,
         const $struct.scopedname$& data);
 
@@ -124,18 +124,18 @@ $endif$
 
 bitset_type(ctx, parent, bitset) ::= <<
 $if(ctx.anyCdr)$
-size_t calculate_serialized_size(
+eProsima_user_DllExport size_t calculate_serialized_size(
         eprosima::fastcdr::CdrSizeCalculator& calculator,
         const $bitset.scopedname$& $if(bitset.parents)$data$endif$,
         size_t current_alignment);
 $endif$
 
 $if(ctx.cdr)$
-void serialize(
+eProsima_user_DllExport void serialize(
         eprosima::fastcdr::Cdr& scdr,
         const $bitset.scopedname$& data);
 
-void deserialize(
+eProsima_user_DllExport void deserialize(
         eprosima::fastcdr::Cdr& dcdr,
         $bitset.scopedname$& data);
 $endif$
@@ -145,7 +145,7 @@ public_bitfield_definition(member) ::= <<>>
 
 union_type(ctx, parent, union) ::= <<
 $if(ctx.anyCdr)$
-size_t calculate_serialized_size(
+eProsima_user_DllExport size_t calculate_serialized_size(
         eprosima::fastcdr::CdrSizeCalculator& calculator,
         const $union.scopedname$& data,
         size_t current_alignment);
@@ -153,11 +153,11 @@ size_t calculate_serialized_size(
 $endif$
 
 $if(ctx.cdr)$
-void serialize(
+eProsima_user_DllExport void serialize(
         eprosima::fastcdr::Cdr& scdr,
         const $union.scopedname$& data);
 
-void deserialize(
+eProsima_user_DllExport void deserialize(
         eprosima::fastcdr::Cdr& cdr,
         $union.scopedname$& data);
 $endif$
