@@ -137,6 +137,7 @@ const TypeObject* get_minimal_$annotation.name$_object()
     //    - AnnotationTypeFlag: unused. No flags apply.
     //    - MinimalAnnotationHeader: empty. Available for future extension.
     //    - MinimalAnnotationParameterSeq
+
     $annotation.members:{ member | $minimal_annotation_member(ctx=ctx, object=member)$}; separator="\n"$
 
     TypeIdentifier identifier;
@@ -187,20 +188,37 @@ $annotation.bitmasks : {$bitmask_type(ctx=ctx, parent=annotation, bitmask=it)$};
 >>
 
 minimal_annotation_member(ctx, object) ::= <<
+//    - MinimalAnnotationParameter
 MinimalAnnotationParameter mam_$object.name$;
-TypeIdentifier* mam_$object.name$_typeId = $get_type_identifier(ctx=ctx, type=object.typecode, ek="false")$;
-if (mam_$object.name$_typeId != nullptr)
+//        - CommonAnnotationParameter
+//            - AnnotationParameterFlag: Unused. No flags apply
+//            - TypeIdentifier
+const TypeIdentifier* mam_$object.name$_type_id = $get_type_identifier(ctx=ctx, type=object.typecode, ek="false")$;
+assert(nullptr != mam_$object.name$_type_id);
+mam_$object.name$.common().member_type_id(*mam_$object.name$_type_id);
+//        - NameHash
+MD5 $object.name$_hash("$object.name$");
+for (int i = 0; i < 4; ++i)
 {
-    mam_$object.name$.common().member_type_id(*mam_$object.name$_typeId);
+    mam_$object.name$.name_hash()[i] = $object.name$_hash.digest[i];
 }
-mam_$object.name$.name("$object.name$");
-
-$if(object.value)$
+//        - AnnotationParameterValue: default_value
 AnnotationParameterValue def_value_$object.name$;
-def_value_$object.name$._d(mam_$object.name$.common().member_type_id()._d());
-def_value_$object.name$.from_string("$object.value$");
-mam_$object.name$.default_value(def_value_$object.name$);
+$if(object.typecode.primitive)$
+def_value_$object.name$._d($object.typecode.typeIdentifier$);
+$elseif(object.typecode.objectType)$
+const TypeObject* member_type_object = get_$object.typecode.name$_object(false);
+assert(nullptr != member_type_object);
+def_value_$object.name$._d(member_type_object->minimal()._d());
 $endif$
+$if(object.value)$
+// Default value
+$if(object.typecode.isBooleanType)$
+def_value_$object.name$.boolean_value($object.value$);
+$endif$
+$endif$
+
+mam_$object.name$.default_value(def_value_$object.name$);
 
 type_object->minimal().annotation_type().member_seq().emplace_back(mam_$object.name$);
 
