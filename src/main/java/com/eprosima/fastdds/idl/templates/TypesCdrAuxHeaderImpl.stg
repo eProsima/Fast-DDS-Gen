@@ -296,7 +296,7 @@ bitset_type(ctx, parent, bitset) ::= <<
 $if(ctx.anyCdr)$
 size_t calculate_serialized_size(
         eprosima::fastcdr::CdrSizeCalculator& calculator,
-        const $bitset.scopedname$& $if(bitset.parents)$data$endif$,
+        const $bitset.scopedname$& data,
         size_t current_alignment)
 {
     static_cast<void>(calculator);
