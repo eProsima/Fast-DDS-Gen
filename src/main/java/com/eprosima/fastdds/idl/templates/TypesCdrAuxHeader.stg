@@ -106,7 +106,7 @@ $endif$
 $if(ctx.cdr)$
 void serialize(
         eprosima::fastcdr::Cdr& scdr,
-        cons $bitmask.scopedname$& data);
+        const $bitmask.scopedname$& data);
 
 void deserialize(
         eprosima::fastcdr::Cdr& dcdr,

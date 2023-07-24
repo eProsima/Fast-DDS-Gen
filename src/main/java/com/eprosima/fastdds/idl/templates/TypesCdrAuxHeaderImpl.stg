@@ -324,7 +324,7 @@ enum_type(ctx, parent, enum) ::= <<>>
 bitmask_type(ctx, parent, bitmask) ::= <<
 $if(ctx.anyCdr)$
 size_t calculate_serialized_size(
-        eprosima::fastcdr::CdrSizeCalulator& calculator,
+        eprosima::fastcdr::CdrSizeCalculator& calculator,
         const $bitmask.scopedname$& data,
         size_t current_alignment)
 {
