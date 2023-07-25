@@ -452,9 +452,9 @@ public:
 
     $bitset.bitfields:{$public_bitfield_declaration(it)$}; separator="\n"$
 
-    eProsima_user_DllExport const std::bitset<$bitset.bitSize$>& bitset() const;
+    eProsima_user_DllExport std::bitset<$bitset.fullBitSize$> bitset() const;
 
-    eProsima_user_DllExport std::bitset<$bitset.bitSize$>& bitset();
+    eProsima_user_DllExport void bitset(const std::bitset<$bitset.fullBitSize$>&);
 
     $serialization_functions(bitset)$
 

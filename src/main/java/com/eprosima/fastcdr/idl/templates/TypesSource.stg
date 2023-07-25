@@ -346,14 +346,36 @@ $endif$
 
 $bitset.bitfields:{$public_bitfield_definition(it)$}; separator="\n"$
 
-const std::bitset<$bitset.bitSize$>& $bitset.scopedname$::bitset() const
+std::bitset<$bitset.fullBitSize$> $bitset.scopedname$::bitset() const
 {
-    return m_bitset;
+    std::string str_value;
+
+    $bitset.parents : {
+        str_value = static_cast<const $it.scopedname$*>(this)->bitset().to_string() + str_value;
+    }; separator="\n"$
+
+    str_value = m_bitset.to_string() + str_value;
+
+    return std::bitset<$bitset.fullBitSize$>(str_value);
 }
 
-std::bitset<$bitset.bitSize$>& $bitset.scopedname$::bitset()
+void $bitset.scopedname$::bitset(const std::bitset<$bitset.fullBitSize$>& bitset)
 {
-    return m_bitset;
+    std::string str_value {bitset.to_string()};
+    size_t base_diff {0};
+    size_t last_post {std::string::npos};
+
+    $bitset.parents : {
+        {
+            base_diff += $it.fullBitSize$;
+            std::bitset<$it.fullBitSize$> internal_bitset(str_value.substr(str_value.length() - base_diff, last_post));
+            static_cast<$it.scopedname$*>(this)->bitset(internal_bitset);
+            last_post = base_diff;
+        }
+    }; separator="\n"$
+
+    base_diff += $bitset.bitSize$;
+    m_bitset = std::bitset<$bitset.bitSize$>(str_value.substr(str_value.length() - base_diff, last_post));
 }
 
 >>
