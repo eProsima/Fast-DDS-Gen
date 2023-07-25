@@ -182,8 +182,9 @@ int $if(bitset.hasScope)$$bitset.scope$::$endif$compare$bitset.name$(
 //                                      ASSIGNMENT
 // ========================================================================================
 simply_member_assignment(ctx, typecode, name, optional) ::= <<
-// $typecode.cppTypename$ - $typecode.kind$
-$if(typecode.isType_7)$
+$if(typecode.isType_10)$
+$simply_member_assignment(ctx=ctx, typecode=typecode.typedefContentTypeCode, name=name)$
+$elseif(typecode.isType_7)$
 topic->$name$(static_cast<$typecode.cppTypename$>(idx%2==1));
 $elseif(typecode.primitive)$
 topic->$name$(static_cast<$typecode.cppTypename$>(idx));
@@ -195,8 +196,6 @@ topic->$name$() = std::to_string(idx).c_str();
 $else$
 topic->$name$() = std::to_string(idx);
 $endif$
-$elseif(typecode.isType_10)$
-$simply_member_assignment(ctx=ctx, typecode=typecode.typedefContentTypeCode, name=name)$
 $elseif(typecode.isSequenceType)$
 printf("For testing map's key structs sequences aren't allowed.\n");
 assert(false);
@@ -213,8 +212,9 @@ $endif$
 >>
 
 member_assignment(ctx, typecode, name, originName, optional) ::= <<
-// $typecode.cppTypename$ - $typecode.kind$
-$if(typecode.isType_7)$
+$if(typecode.isType_10)$
+$member_assignment(ctx=ctx, typecode=typecode.typedefContentTypeCode, name=name, originName=originName)$
+$elseif(typecode.isType_7)$
 topic->$name$(static_cast<$typecode.cppTypename$>(rand()%2==1));
 $elseif(typecode.isWCharType)$
 topic->$name$(L'W');
@@ -226,8 +226,6 @@ topic->$name$(std::wstring($typecode.maxsize$,'W'));
 $else$
 topic->$name$() = u8"AAAu8u8ñññöAA\u2602";
 $endif$
-$elseif(typecode.isType_10)$
-$member_assignment(ctx=ctx, typecode=typecode.typedefContentTypeCode, name=name, originName=originName)$
 $elseif(typecode.isSequenceType)$
 $if(optional)$topic->$name$().reset(true);$endif$
 $sequence_assigment(ctx=ctx, typecode=typecode, name=name, p=optional_suffix(p="()", optional=optional), loopvar=ctx.newLoopVarName)$
@@ -246,6 +244,8 @@ $endif$
 array_member_assignment(ctx, typecode, name, originName, loopvar) ::= <<
 $if(typecode.isType_7)$
 topic->$name$ = static_cast<$typecode.cppTypename$>(rand()%2==1);
+$elseif(typecode.isWCharType)$
+topic->$name$ = static_cast<$typecode.cppTypename$>(L'W');
 $elseif(typecode.primitive)$
 topic->$name$ = static_cast<$typecode.cppTypename$>(rand());
 $elseif(typecode.isType_d)$
@@ -278,6 +278,8 @@ topic->$name$$p$.value()[$currentvar$] = static_cast<$typecode.cppTypename$>(ran
 $else$
 topic->$name$$p$.push_back(static_cast<$typecode.cppTypename$>(rand()%2==1));
 $endif$
+$elseif(typecode.isWCharType)$
+topic->$name$$p$.push_back(static_cast<$typecode.cppTypename$>(L'W'));
 $elseif(typecode.primitive)$
 $if(ctx.generateTypesC)$
 topic->$name$$p$.value()[$currentvar$] = static_cast<$typecode.cppTypename$>(rand());
@@ -324,6 +326,9 @@ $if(keytypecode.isType_10)$
 $map_member_assignment(ctx=ctx, keytypecode=keytypecode.typedefContentTypeCode, valueTypeCode=valueTypeCode, name=name, originName=originName, p=p, loopvar=loopvar)$
 $elseif(keytypecode.isType_7)$
 $keytypecode.cppTypename$ var_map_Key$loopvar$ = static_cast<$keytypecode.cppTypename$>(rand()%2==1);
+$map_member_value_assignment(ctx=ctx, valueTypeCode=valueTypeCode, name=name, originName=originName, p=p, loopvar=loopvar)$
+$elseif(keytypecode.isWCharType)$
+$keytypecode.cppTypename$ var_map_Key$loopvar$ = static_cast<$keytypecode.cppTypename$>(L'W');
 $map_member_value_assignment(ctx=ctx, valueTypeCode=valueTypeCode, name=name, originName=originName, p=p, loopvar=loopvar)$
 $elseif(keytypecode.primitive)$
 $keytypecode.cppTypename$ var_map_Key$loopvar$ = static_cast<$keytypecode.cppTypename$>(rand());
@@ -373,6 +378,8 @@ map_member_value_assignment(ctx, valueTypeCode, name, originName, p, loopvar) ::
 // Value assignment
 $if(valueTypeCode.isType_7)$
 topic->$name$$p$[var_map_Key$loopvar$] = static_cast<$valueTypeCode.cppTypename$>(rand()%2==1);
+$elseif(valueTypeCode.isWCharType)$
+topic->$name$$p$[var_map_Key$loopvar$] = static_cast<$valueTypeCode.cppTypename$>(L'W');
 $elseif(valueTypeCode.primitive)$
 topic->$name$$p$[var_map_Key$loopvar$] = static_cast<$valueTypeCode.cppTypename$>(rand());
 $elseif(valueTypeCode.isType_d)$

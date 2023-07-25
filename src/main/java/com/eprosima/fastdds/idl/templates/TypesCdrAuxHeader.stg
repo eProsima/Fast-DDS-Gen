@@ -67,6 +67,8 @@ $exports; separator="\n"$
 
 >>
 
+fwd_decl(ctx, parent, type) ::= <<>>
+
 exception(ctx, parent, exception) ::= <<
 
 $if(ctx.anyCdr)$
