@@ -33,12 +33,23 @@ public class BitsetTypeCode extends com.eprosima.idl.parser.typecode.BitsetTypeC
     {
         long initial_alignment = current_alignment;
 
-        for (Bitfield member : getBitfields(true))
+        int full_bit_size = getFullBitSize();
+
+        if (9 > full_bit_size)
         {
-            if (!member.isAnnotationNonSerialized())
-            {
-                current_alignment += ((TypeCode)member.getSpec().getTypecode()).maxSerializedSize(current_alignment);
-            }
+            current_alignment += 1;
+        }
+        else if (17 > full_bit_size)
+        {
+            current_alignment += 2 + TypeCode.cdr_alignment(current_alignment, 2);
+        }
+        else if (33 > full_bit_size)
+        {
+            current_alignment += 4 + TypeCode.cdr_alignment(current_alignment, 4);
+        }
+        else
+        {
+            current_alignment += 8 + TypeCode.cdr_alignment(current_alignment, 8);
         }
 
         return current_alignment - initial_alignment;

@@ -495,6 +495,8 @@ $endif$
 
 $if(typecode.primitive)$
 printf("$name$: 0x%" PRIx64 "\n", (uint64_t)topic->$name$()$if(optional)$.value()$endif$);
+$elseif(typecode.isBitsetType)$
+printf("$name$: %s\n", topic->$name$()$if(optional)$.value()$endif$.bitset().to_string().c_str());
 $elseif(typecode.isType_d)$
 $if(typecode.isWStringType)$
 printf("$name$: %S\n", topic->$name$()$if(optional)$.value()$endif$.c_str());
@@ -523,6 +525,8 @@ $endif$
 array_member_print(ctx, typecode, name, originName, loopvar) ::= <<
 $if(typecode.primitive)$
 printf("$name$: 0x%" PRIx64 "\n", (uint64_t)topic->$name$);
+$elseif(typecode.isBitsetType)$
+printf("$name$: %s\n", topic->$name$.bitset().to_string().c_str());
 $elseif(typecode.isType_d)$
 $if(typecode.isWStringType)$
 printf("$name$: %S\n", topic->$name$.c_str());
@@ -548,6 +552,8 @@ map_member_print(ctx, typecode, name, originName, loopvar) ::= <<
 printf("[%" PRIx64 "]: ", (uint64_t)(it_$loopvar$.first));
 $if(typecode.valueTypeCode.primitive)$
 printf("$name$: 0x%" PRIx64 "\n", (uint64_t)topic->$name$);
+$elseif(typecode.isBitsetType)$
+printf("$name$: %s\n", topic->$name$.bitset().to_string().c_str());
 $elseif(typecode.valueTypeCode.isType_d)$
 $if(typecode.valueTypeCode.isWStringType)$
 printf("$name$: %S\n", topic->$name$.c_str());

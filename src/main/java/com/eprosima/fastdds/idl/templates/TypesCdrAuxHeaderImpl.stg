@@ -304,8 +304,6 @@ size_t calculate_serialized_size(
     static_cast<void>(calculator);
     size_t initial_alignment = current_alignment;
 
-    $if(bitset.parents)$    $bitset.parents : {current_alignment += calculator.calculate_serialized_size(data, current_alignment);}; separator="\n"$ $endif$
-
     current_alignment += calculator.calculate_serialized_size(data.bitset(), current_alignment);
 
     return current_alignment - initial_alignment;
@@ -317,8 +315,6 @@ void serialize(
         eprosima::fastcdr::Cdr& scdr,
         const $bitset.scopedname$& data)
 {
-    $if(bitset.parents)$    $bitset.parents : {scdr.serialize(data);}; separator="\n"$ $endif$
-
     scdr << data.bitset();
 }
 
@@ -326,9 +322,9 @@ void deserialize(
         eprosima::fastcdr::Cdr& dcdr,
         $bitset.scopedname$& data)
 {
-    $if(bitset.parents)$    $bitset.parents : {dcdr.deserialize(data);}; separator="\n"$ $endif$
-
-    dcdr \>> data.bitset();
+    std::bitset<$bitset.fullBitSize$> bitset;
+    dcdr \>> bitset;
+    data.bitset(bitset);
 }
 $endif$
 >>
