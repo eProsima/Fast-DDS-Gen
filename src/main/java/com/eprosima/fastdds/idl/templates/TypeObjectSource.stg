@@ -71,15 +71,17 @@ $definitions; separator="\n"$
 register_type(ctx, object) ::= <<
 $if(!object.isModule)$
 $if(!object.isConstDeclaration)$
-// TypeObject is registered internally if not previously registered into TypeObjectFactory
-$if(object.hasScope)$$object.scope$::$endif$get_$object.name$_identifier(true);
-$if(object.hasScope)$$object.scope$::$endif$get_$object.name$_identifier(false);
 $if(object.isAnnotation)$
 {
     using namespace $object.name$;
     $register_annotation_types(object)$
 }
 $endif$
+
+// TypeObject is registered internally if not previously registered into TypeObjectFactory
+$if(object.hasScope)$$object.scope$::$endif$get_$object.name$_identifier(true);
+$if(object.hasScope)$$object.scope$::$endif$get_$object.name$_identifier(false);
+
 $endif$
 $endif$
 >>
@@ -87,9 +89,7 @@ $endif$
 register_annotation_types(annotation) ::= <<
 
 $annotation.enums : { it | $register_annotation_enum(it)$}; separator="\n"$
-
 $annotation.typeDefs : { it | $register_annotation_typedef(it)$}; separator="\n"$
-
 >>
 
 register_annotation_enum(enum) ::= <<
@@ -229,7 +229,7 @@ CompleteAnnotationParameter cam_$object.name$;
 //            - AnnotationParameterFlag: Unused. No flags apply
 //            - TypeIdentifier
 TypeIdentifier* cam_$object.name$_type_id = $get_type_identifier(ctx=ctx, type=object.typecode, ek="false")$;
-if (mam_$object.name$_type_id != nullptr)
+if (cam_$object.name$_type_id != nullptr)
 {
     cam_$object.name$.common().member_type_id(*cam_$object.name$_type_id);
 }
