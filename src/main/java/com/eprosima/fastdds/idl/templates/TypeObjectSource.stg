@@ -183,8 +183,6 @@ $annotation.enums : { it |$enum_type(ctx=ctx, parent=annotation, enum=it)$}; sep
 
 $annotation.typeDefs : { it |$typedef_decl(ctx=ctx, parent=annotation, typedefs=it)$}; separator="\n"$
 
-$annotation.bitmasks : {$bitmask_type(ctx=ctx, parent=annotation, bitmask=it)$}; separator="\n"$
-
 } // $annotation.name$ namespace
 >>
 
