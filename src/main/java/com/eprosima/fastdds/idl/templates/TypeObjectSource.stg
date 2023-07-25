@@ -213,10 +213,7 @@ assert(nullptr != member_type_object);
 def_value_$object.name$._d(member_type_object->minimal()._d());
 $endif$
 $if(object.value)$
-// Default value
-$if(object.typecode.isBooleanType)$
-def_value_$object.name$.boolean_value($object.value$);
-$endif$
+$annotation_parameter_default_value(ctx=ctx, object=object)$
 $endif$
 
 mam_$object.name$.default_value(def_value_$object.name$);
@@ -225,7 +222,7 @@ type_object->minimal().annotation_type().member_seq().emplace_back(mam_$object.n
 
 >>
 
-(ctx, object) ::= <<
+complete_annotation_member(ctx, object) ::= <<
 //    - CompleteAnnotationParameter
 CompleteAnnotationParameter cam_$object.name$;
 //        - CommonAnnotationParameter
@@ -248,10 +245,7 @@ assert(nullptr != member_type_object);
 def_value_$object.name$._d(member_type_object->minimal()._d());
 $endif$
 $if(object.value)$
-// Default value
-$if(object.typecode.isBooleanType)$
-def_value_$object.name$.boolean_value($object.value$);
-$endif$
+$annotation_parameter_default_value(ctx=ctx, object=object)$
 $endif$
 
 cam_$object.name$.default_value(def_value_$object.name$);
@@ -1486,4 +1480,49 @@ TypeObjectFactory::get_instance()->add_type_object(
 delete type_object;
 return TypeObjectFactory::get_instance()->get_type_object(
     "$if(ctx.GenerateTypesROS2)$$param.ROS2Scopedname$$else$$param.scopedname$$endif$", $complete$);
+>>
+
+annotation_parameter_default_value(ctx, object) ::= <<
+// Default value
+$if(object.typecode.primitiveType)$
+$if(object.typecode.isBooleanType)$
+def_value_$object.name$.boolean_value($object.value$);
+$elseif(object.typecode.isByteType)$
+def_value_$object.name$.byte_value($object.value$);
+$elseif(object.typecode.isInt8Type)$
+def_value_$object.name$.int8_value($object.value$);
+$elseif(object.typecode.isUint8Type)$
+def_value_$object.name$.uint8_value($object.value$);
+$elseif(object.typecode.isInt16Type)$
+def_value_$object.name$.int16_value($object.value$);
+$elseif(object.typecode.isUint16Type)$
+def_value_$object.name$.uint16_value($object.value$);
+$elseif(object.typecode.isInt32Type)$
+def_value_$object.name$.int32_value($object.value$);
+$elseif(object.typecode.isUint32Type)$
+def_value_$object.name$.uint32_value($object.value$);
+$elseif(object.typecode.isInt64Type)$
+def_value_$object.name$.int64_value($object.value$);
+$elseif(object.typecode.isUint64Type)$
+def_value_$object.name$.uint64_value($object.value$);
+$elseif(object.typecode.isFloat32Type)$
+def_value_$object.name$.float32_value($object.value$);
+$elseif(object.typecode.isFloat64Type)$
+def_value_$object.name$.float64_value($object.value$);
+$elseif(object.typecode.isFloat128Type)$
+def_value_$object.name$.float128_value($object.value$);
+$elseif(object.typecode.isCharType)$
+def_value_$object.name$.char_value($object.value$);
+$elseif(object.typecode.isWCharType)$
+def_value_$object.name$.wchar_value($object.value$);
+$endif$
+$elseif(object.typecode.isEnumType)$
+def_value_$object.name$.enumerated_value($object.value$);
+$elseif(object.typecode.isStringType)$
+def_value_$object.name$.string8_value($object.value$);
+$elseif(object.typecode.isWStringType)$
+def_value_$object.name$.string16_value($object.value$);
+$else$
+def_value_$object.name$.extended_value();
+$endif$
 >>
