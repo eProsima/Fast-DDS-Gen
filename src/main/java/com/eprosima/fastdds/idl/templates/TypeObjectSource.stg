@@ -498,65 +498,43 @@ $endif$
 >>
 
 minimal_enumerated_literal(ctx, object) ::= <<
-MinimalEnumeratedLiteral mel_$object.name$;
-mel_$object.name$.common().flags().TRY_CONSTRUCT1(false); // Doesn't apply
-mel_$object.name$.common().flags().TRY_CONSTRUCT2(false); // Doesn't apply
-mel_$object.name$.common().flags().IS_EXTERNAL(false); // Doesn't apply
-mel_$object.name$.common().flags().IS_OPTIONAL(false); // Doesn't apply
-mel_$object.name$.common().flags().IS_MUST_UNDERSTAND(false); // Doesn't apply
-mel_$object.name$.common().flags().IS_KEY(false); // Doesn't apply
-mel_$object.name$.common().flags().IS_DEFAULT($object.annotationDefaultLiteral$);
-mel_$object.name$.common().value(value++);
-MD5 $object.name$_hash("$object.name$");
-for(int i = 0; i < 4; ++i)
-{
-    mel_$object.name$.detail().name_hash()[i] = $object.name$_hash.digest[i];
-}
-type_object->minimal().enumerated_type().literal_seq().emplace_back(mel_$object.name$);
+//    - MinimalEnumeratedLiteral
+MinimalEnumeratedLiteral $object.name$_minimal_enum_literal;
+$common_enumerated_literal(ctx=ctx, object=object, name=["_minimal_enum_literal"])$
+//        - MinimalMemberDetail
+//            - NameHash
+$md5_hash(ctx=ctx, object=object, name=["_minimal_enum_literal.detail().name_hash()"])$
+type_object->minimal().enumerated_type().literal_seq().emplace_back($object.name$_minimal_enum_literal);
 
 >>
 
 complete_enumerated_literal(ctx, object) ::= <<
-CompleteEnumeratedLiteral cel_$object.name$;
-cel_$object.name$.common().flags().TRY_CONSTRUCT1(false); // Doesn't apply
-cel_$object.name$.common().flags().TRY_CONSTRUCT2(false); // Doesn't apply
-cel_$object.name$.common().flags().IS_EXTERNAL(false); // Doesn't apply
-cel_$object.name$.common().flags().IS_OPTIONAL(false); // Doesn't apply
-cel_$object.name$.common().flags().IS_MUST_UNDERSTAND(false); // Doesn't apply
-cel_$object.name$.common().flags().IS_KEY(false); // Doesn't apply
-cel_$object.name$.common().flags().IS_DEFAULT($object.annotationDefaultLiteral$);
-cel_$object.name$.common().value(value++);
-cel_$object.name$.detail().name("$object.name$");
-
+//    - CompleteEnumeratedLiteral
+CompleteEnumeratedLiteral $object.name$_complete_enum_literal;
+$common_enumerated_literal(ctx=ctx, object=object, name=["_complete_enum_literal"])$
+//        - CompleteMemberDetail
+//            - MemberName
+$object.name$_complete_enum_literal.detail().name("$object.name$");
 $if(object.annotationList)$
-$object.annotationList:{ ann |
-{
-    AppliedAnnotation ann;
-    //ann.annotation_typeid(get_$ann.name$_identifier(true));
-    ann.annotation_typeid(*TypeObjectFactory::get_instance()->get_type_identifier_trying_complete("$ann.name$"));
-    $if(ann.valueList)$
-    $ann.valueList:{ annval |
-    {
-        AppliedAnnotationParameter annParam;
-        MD5 message_hash("$annval.name$");
-        for(int i = 0; i < 4; ++i)
-        {
-            annParam.paramname_hash()[i] = message_hash.digest[i];
-        \}
-        AnnotationParameterValue paramValue;
-        paramValue._d($annval.typecode.typeIdentifier$);
-        paramValue.from_string("$annval.value$");
-        annParam.value(paramValue);
-        ann.param_seq().push_back(annParam);
-    \}
-    };separator="\n"$
-    $endif$
-    cel_$object.name$.detail().ann_custom().push_back(ann);
-\}
+$object.annotationList: { annotation |
+$if(annotation.isUnit)$
+//            - @optional AppliedBuiltinMemberAnnotations: @unit
+$elseif(annotation.isMin)$
+//            - @optional AppliedBuiltinMemberAnnotations: @min
+$elseif(annotation.isMax)$
+//            - @optional AppliedBuiltinMemberAnnotations: @max
+$elseif(annotation.isRange)$
+//            - @optional AppliedBuiltinMemberAnnotations: @range
+$elseif(annotation.isHashId)$
+//            - @optional AppliedBuiltinMemberAnnotations: @hash_id
+$else$
+//            - @optional AppliedAnnotationSeq:
+$applied_annotation(ctx=ctx, object=annotation)$
+$endif$
 }; separator="\n"$
 $endif$
 
-type_object->complete().enumerated_type().literal_seq().emplace_back(cel_$object.name$);
+type_object->complete().enumerated_type().literal_seq().emplace_back($object.name$_complete_enum_literal);
 
 >>
 
@@ -1542,4 +1520,12 @@ for (int i = 0; i < 4; ++i)
 {
     $object.name$$name$[i] = $object.name$_hash.digest[i];
 }
+>>
+
+common_enumerated_literal(ctx, object, name) ::= <<
+//        - CommonEnumeratedLiteral
+//            - long: value
+$object.name$$name$.common().value(value++);
+//            - EnumeratedLiteralFlag: IS_DEFAULT (D) flag
+$object.name$$name$.common().flags().IS_DEFAULT($object.annotationDefaultLiteral$);
 >>
