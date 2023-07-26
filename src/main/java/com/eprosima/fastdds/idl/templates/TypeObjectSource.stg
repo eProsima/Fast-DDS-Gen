@@ -140,11 +140,7 @@ const TypeObject* get_minimal_$annotation.name$_object()
 
     $annotation.members:{ member | $minimal_annotation_member(ctx=ctx, object=member)$}; separator="\n"$
 
-    TypeIdentifier identifier;
-    identifier._d(EK_MINIMAL);
-
-    eprosima::fastcdr::CdrSizeCalculator calculator(eprosima::fastcdr::CdrVersion::XCDRv2);
-    size_t current_alignment {0};
+    $type_identifier_decl(ctx=ctx, complete=["EK_MINIMAL"])$
     SerializedPayload_t payload(static_cast<uint32_t>(
         calculator.calculate_serialized_size(type_object->minimal().annotation_type(), current_alignment) + 4));
     $type_identifier_impl(ctx=ctx, param=annotation, complete=["false"])$
@@ -167,11 +163,7 @@ const TypeObject* get_complete_$annotation.name$_object()
 
     $annotation.members:{ member | $complete_annotation_member(ctx=ctx, object=member)$}; separator="\n"$
 
-    TypeIdentifier identifier;
-    identifier._d(EK_COMPLETE);
-
-    eprosima::fastcdr::CdrSizeCalculator calculator(eprosima::fastcdr::CdrVersion::XCDRv2);
-    size_t current_alignment {0};
+    $type_identifier_decl(ctx=ctx, complete=["EK_COMPLETE"])$
     SerializedPayload_t payload(static_cast<uint32_t>(
         calculator.calculate_serialized_size(type_object->complete().annotation_type(), current_alignment) + 4));
     $type_identifier_impl(ctx=ctx, param=annotation, complete=["true"])$
@@ -188,35 +180,31 @@ $annotation.typeDefs : { it |$typedef_decl(ctx=ctx, parent=annotation, typedefs=
 
 minimal_annotation_member(ctx, object) ::= <<
 //    - MinimalAnnotationParameter
-MinimalAnnotationParameter mam_$object.name$;
+MinimalAnnotationParameter $object.name$_minimal_annotation_parameter;
 //        - CommonAnnotationParameter
 //            - AnnotationParameterFlag: Unused. No flags apply
 //            - TypeIdentifier
-const TypeIdentifier* mam_$object.name$_type_id = $get_type_identifier(ctx=ctx, type=object.typecode, ek="false")$;
-assert(nullptr != mam_$object.name$_type_id);
-mam_$object.name$.common().member_type_id(*mam_$object.name$_type_id);
+const TypeIdentifier* $object.name$_minimal_annotation_parameter_type_id = $get_type_identifier(ctx=ctx, type=object.typecode, ek="false")$;
+assert(nullptr != $object.name$_minimal_annotation_parameter_type_id);
+$object.name$_minimal_annotation_parameter.common().member_type_id(*$object.name$_minimal_annotation_parameter_type_id);
 //        - NameHash
-MD5 $object.name$_hash("$object.name$");
-for (int i = 0; i < 4; ++i)
-{
-    mam_$object.name$.name_hash()[i] = $object.name$_hash.digest[i];
-}
+$md5_hash(ctx=ctx, object=object, name=["_minimal_annotation_parameter.paramname_hash()"])$
 //        - AnnotationParameterValue: default_value
-AnnotationParameterValue def_value_$object.name$;
+AnnotationParameterValue value_$object.name$;
 $if(object.typecode.primitive)$
-def_value_$object.name$._d($object.typecode.typeIdentifier$);
+value_$object.name$._d($object.typecode.typeIdentifier$);
 $elseif(object.typecode.objectType)$
 const TypeObject* member_type_object = get_$object.typecode.name$_object(false);
 assert(nullptr != member_type_object);
-def_value_$object.name$._d(member_type_object->minimal()._d());
+value_$object.name$._d(member_type_object->minimal()._d());
 $endif$
 $if(object.value)$
-$annotation_parameter_default_value(ctx=ctx, object=object)$
+$annotation_parameter_value(ctx=ctx, object=object)$
 $endif$
 
-mam_$object.name$.default_value(def_value_$object.name$);
+$object.name$_minimal_annotation_parameter.default_value(value_$object.name$);
 
-type_object->minimal().annotation_type().member_seq().emplace_back(mam_$object.name$);
+type_object->minimal().annotation_type().member_seq().emplace_back($object.name$_minimal_annotation_parameter);
 
 >>
 
@@ -234,19 +222,19 @@ if (cam_$object.name$_type_id != nullptr)
 //        - MemberName
 cam_$object.name$.name("$object.name$");
 //        - AnnotationParameterValue: default value
-AnnotationParameterValue def_value_$object.name$;
+AnnotationParameterValue value_$object.name$;
 $if(object.typecode.primitive)$
-def_value_$object.name$._d($object.typecode.typeIdentifier$);
+value_$object.name$._d($object.typecode.typeIdentifier$);
 $elseif(object.typecode.objectType)$
 const TypeObject* member_type_object = get_$object.typecode.name$_object(false);
 assert(nullptr != member_type_object);
-def_value_$object.name$._d(member_type_object->minimal()._d());
+value_$object.name$._d(member_type_object->minimal()._d());
 $endif$
 $if(object.value)$
-$annotation_parameter_default_value(ctx=ctx, object=object)$
+$annotation_parameter_value(ctx=ctx, object=object)$
 $endif$
 
-cam_$object.name$.default_value(def_value_$object.name$);
+cam_$object.name$.default_value(value_$object.name$);
 
 type_object->complete().annotation_type().member_seq().emplace_back(cam_$object.name$);
 
@@ -440,23 +428,24 @@ const TypeObject* get_minimal_$enum.name$_object()
     $get_minimal_type_object_impl(ctx=ctx, param=enum)$
     type_object->minimal()._d(TK_ENUM);
 
-    // No flags apply
-    //type_object->minimal().enumerated_type().enum_flags().IS_FINAL(false);
-    //type_object->minimal().enumerated_type().enum_flags().IS_APPENDABLE(false);
-    //type_object->minimal().enumerated_type().enum_flags().IS_MUTABLE(false);
-    //type_object->minimal().enumerated_type().enum_flags().IS_NESTED(false);
-    //type_object->minimal().enumerated_type().enum_flags().IS_AUTOID_HASH(false);
+    // MinimalEnumeratedType
+    //    - EnumTypeFlag: Unused. No flags apply
+    //    - MinimalEnumeratedHeader
+    //        - CommonEnumeratedHeader
+    //            - BitBound
+    // TODO: XTypes v1.3 Clause 7.3.1.2.1.5 Prior to this specification, it was impossible to indicate that objects of
+    //       enumerated types could be stored using an integer size other than 32 bits. This specification uses the
+    //       @bit_bound annotation defined in Sub Clause 8.3.4.1 of [IDL] for this purpose.
+    //       It is important to note that the value member of the annotation may take any value from 1 to 32, inclusive,
+    //       when this annotation is applied to an enumerated type.
+    type_object->minimal().enumerated_type().header().common().bit_bound(32);
 
-    type_object->minimal().enumerated_type().header().common().bit_bound(32); // TODO fixed by IDL, isn't?
+    //    - MinimalEnumeratedLiteralSeq
 
     uint32_t value = 0;
     $enum.members:{ member | $minimal_enumerated_literal(ctx=ctx, object=member)$}; separator="\n"$
 
-    TypeIdentifier identifier;
-    identifier._d(EK_MINIMAL);
-
-    eprosima::fastcdr::CdrSizeCalculator calculator(eprosima::fastcdr::CdrVersion::XCDRv2);
-    size_t current_alignment {0};
+    $type_identifier_decl(ctx=ctx, complete=["EK_MINIMAL"])$
     SerializedPayload_t payload(static_cast<uint32_t>(
         calculator.calculate_serialized_size(type_object->minimal().enumerated_type(), current_alignment) + 4));
     $type_identifier_impl(ctx=ctx, param=enum, complete=["false"])$
@@ -467,52 +456,40 @@ const TypeObject* get_complete_$enum.name$_object()
     $get_complete_type_object_impl(ctx=ctx, param=enum)$
     type_object->complete()._d(TK_ENUM);
 
-    // No flags apply
-    //type_object->complete().enumerated_type().enum_flags().IS_FINAL(false);
-    //type_object->complete().enumerated_type().enum_flags().IS_APPENDABLE(false);
-    //type_object->complete().enumerated_type().enum_flags().IS_MUTABLE(false);
-    //type_object->complete().enumerated_type().enum_flags().IS_NESTED(false);
-    //type_object->complete().enumerated_type().enum_flags().IS_AUTOID_HASH(false);
-
-    type_object->complete().enumerated_type().header().common().bit_bound(32); // TODO fixed by IDL, isn't?
-    type_object->complete().enumerated_type().header().detail().type_name("$enum.name$");
-
+    // CompleteEnumeratedType
+    //    - EnumTypeFlag: Unused. No flags apply
+    //    - CompleteEnumeratedHeader
+    //        - CommonEnumeratedHeader
+    //            - BitBound
+    // TODO: XTypes v1.3 Clause 7.3.1.2.1.5 Prior to this specification, it was impossible to indicate that objects of
+    //       enumerated types could be stored using an integer size other than 32 bits. This specification uses the
+    //       @bit_bound annotation defined in Sub Clause 8.3.4.1 of [IDL] for this purpose.
+    //       It is important to note that the value member of the annotation may take any value from 1 to 32, inclusive,
+    //       when this annotation is applied to an enumerated type.
+    type_object->complete().enumerated_type().header().common().bit_bound(32);
+    //        - CompleteTypeDetail
     $if(enum.annotationList)$
-    $enum.annotationList:{ ann |
-{
-    AppliedAnnotation ann;
-    //ann.annotation_typeid(get_$ann.name$_identifier(true));
-    ann.annotation_typeid(*TypeObjectFactory::get_instance()->get_type_identifier_trying_complete("$ann.name$"));
-    $if(ann.valueList)$
-    $ann.valueList:{ annval |
-{
-    AppliedAnnotationParameter annParam;
-    MD5 message_hash("$annval.name$");
-    for(int i = 0; i < 4; ++i)
-    {
-        annParam.paramname_hash()[i] = message_hash.digest[i];
-    \}
-    AnnotationParameterValue paramValue;
-    paramValue._d($annval.typecode.typeIdentifier$);
-    paramValue.from_string("$annval.value$");
-    annParam.value(paramValue);
-    ann.param_seq().push_back(annParam);
-\}
-    };separator="\n"$
+$enum.annotationList: { annotation |
+$if(annotation.isVerbatim)$
+//            - @optional AppliedBuiltinTypeAnnotations: @verbatim annotation
+$applied_builtin_type_annotation(ctx=ctx, object=annotation)$
+$else$
+//            - @optional AppliedAnnotationSeq:
+$applied_annotation(ctx=ctx, object=annotation)$
+$endif$
+}; separator="\n"$
     $endif$
-    type_object->complete().enumerated_type().header().detail().ann_custom().push_back(ann);
-\}
-    }; separator="\n"$
-    $endif$
+
+    //            - QualifiedTypeName
+    type_object->complete().enumerated_type().header().detail().type_name("
+        $if(ctx.GenerateTypesROS2)$$enum.ROS2Scopedname$$else$$enum.scopedname$$endif$");
+
+    //        - CompleteEnumeratedLiteralSeq
 
     uint32_t value = 0;
     $enum.members:{ member | $complete_enumerated_literal(ctx=ctx, object=member)$}; separator="\n"$
 
-    TypeIdentifier identifier;
-    identifier._d(EK_COMPLETE);
-
-    eprosima::fastcdr::CdrSizeCalculator calculator(eprosima::fastcdr::CdrVersion::XCDRv2);
-    size_t current_alignment {0};
+    $type_identifier_decl(ctx=ctx, complete=["EK_COMPLETE"])$
     SerializedPayload_t payload(static_cast<uint32_t>(
         calculator.calculate_serialized_size(type_object->complete().enumerated_type(), current_alignment) + 4));
     $type_identifier_impl(ctx=ctx, param=enum, complete=["true"])$
@@ -616,11 +593,7 @@ const TypeObject* get_minimal_$struct.name$_object()
     //type_object->minimal().struct_type().header().base_type().equivalence_hash()[0..13];
     $struct.inheritances:{ it | $minimal_struct_inheritance(it)$}; separator="\n"$
 
-    TypeIdentifier identifier;
-    identifier._d(EK_MINIMAL);
-
-    eprosima::fastcdr::CdrSizeCalculator calculator(eprosima::fastcdr::CdrVersion::XCDRv2);
-    size_t current_alignment {0};
+    $type_identifier_decl(ctx=ctx, complete=["EK_MINIMAL"])$
     SerializedPayload_t payload(static_cast<uint32_t>(
         calculator.calculate_serialized_size(type_object->minimal().struct_type(), current_alignment) + 4));
     $type_identifier_impl(ctx=ctx, param=struct, complete=["false"])$
@@ -673,11 +646,7 @@ const TypeObject* get_complete_$struct.name$_object()
     }; separator="\n"$
     $endif$
 
-    TypeIdentifier identifier;
-    identifier._d(EK_COMPLETE);
-
-    eprosima::fastcdr::CdrSizeCalculator calculator(eprosima::fastcdr::CdrVersion::XCDRv2);
-    size_t current_alignment {0};
+    $type_identifier_decl(ctx=ctx, complete=["EK_COMPLETE"])$
     SerializedPayload_t payload(static_cast<uint32_t>(
         calculator.calculate_serialized_size(type_object->complete().struct_type(), current_alignment) + 4));
     $type_identifier_impl(ctx=ctx, param=struct, complete=["true"])$
@@ -818,11 +787,7 @@ const TypeObject* get_minimal_$union.name$_object()
     // Header
     //type_object->minimal().union_type().header().detail()... // Empty
 
-    TypeIdentifier identifier;
-    identifier._d(EK_MINIMAL);
-
-    eprosima::fastcdr::CdrSizeCalculator calculator(eprosima::fastcdr::CdrVersion::XCDRv2);
-    size_t current_alignment {0};
+    $type_identifier_decl(ctx=ctx, complete=["EK_MINIMAL"])$
     SerializedPayload_t payload(static_cast<uint32_t>(
         calculator.calculate_serialized_size(type_object->minimal().union_type(), current_alignment) + 4));
     $type_identifier_impl(ctx=ctx, param=union, complete=["false"])$
@@ -911,11 +876,7 @@ const TypeObject* get_complete_$union.name$_object()
     }; separator="\n"$
     $endif$
 
-    TypeIdentifier identifier;
-    identifier._d(EK_COMPLETE);
-
-    eprosima::fastcdr::CdrSizeCalculator calculator(eprosima::fastcdr::CdrVersion::XCDRv2);
-    size_t current_alignment {0};
+    $type_identifier_decl(ctx=ctx, complete=["EK_COMPLETE"])$
     SerializedPayload_t payload(static_cast<uint32_t>(
         calculator.calculate_serialized_size(type_object->complete().union_type(), current_alignment) + 4));
     $type_identifier_impl(ctx=ctx, param=union, complete=["true"])$
@@ -1034,11 +995,7 @@ const TypeObject* get_minimal_$bitmask.name$_object()
 
     $bitmask.bitmasks:{ member | $minimal_bitmask_flag(ctx=ctx, object=member)$}; separator="\n"$
 
-    TypeIdentifier identifier;
-    identifier._d(EK_MINIMAL);
-
-    eprosima::fastcdr::CdrSizeCalculator calculator(eprosima::fastcdr::CdrVersion::XCDRv2);
-    size_t current_alignment {0};
+    $type_identifier_decl(ctx=ctx, complete=["EK_MINIMAL"])$
     SerializedPayload_t payload(static_cast<uint32_t>(
         calculator.calculate_serialized_size(type_object->minimal().bitmask_type(), current_alignment) + 4));
     $type_identifier_impl(ctx=ctx, param=bitmask, complete=["false"])$
@@ -1090,11 +1047,7 @@ const TypeObject* get_complete_$bitmask.name$_object()
 
     $bitmask.members:{ member | $complete_bitmask_flag(ctx=ctx, object=member)$}; separator="\n"$
 
-    TypeIdentifier identifier;
-    identifier._d(EK_COMPLETE);
-
-    eprosima::fastcdr::CdrSizeCalculator calculator(eprosima::fastcdr::CdrVersion::XCDRv2);
-    size_t current_alignment {0};
+    $type_identifier_decl(ctx=ctx, complete=["EK_COMPLETE"])$
     SerializedPayload_t payload(static_cast<uint32_t>(
         calculator.calculate_serialized_size(type_object->complete().bitmask_type(), current_alignment) + 4));
     $type_identifier_impl(ctx=ctx, param=bitmask, complete=["true"])$
@@ -1209,11 +1162,7 @@ const TypeObject* get_minimal_$bitset.name$_object()
 
     $bitset.parents:{ it | $minimal_bitset_inheritance(it)$}; separator="\n"$
 
-    TypeIdentifier identifier;
-    identifier._d(EK_MINIMAL);
-
-    eprosima::fastcdr::CdrSizeCalculator calculator(eprosima::fastcdr::CdrVersion::XCDRv2);
-    size_t current_alignment {0};
+    $type_identifier_decl(ctx=ctx, complete=["EK_MINIMAL"])$
     SerializedPayload_t payload(static_cast<uint32_t>(
         calculator.calculate_serialized_size(type_object->minimal().bitset_type(), current_alignment) + 4));
     $type_identifier_impl(ctx=ctx, param=bitset, complete=["false"])$
@@ -1265,11 +1214,7 @@ const TypeObject* get_complete_$bitset.name$_object()
 
     $bitset.parents:{ it | $complete_bitset_inheritance(it)$}; separator="\n"$
 
-    TypeIdentifier identifier;
-    identifier._d(EK_COMPLETE);
-
-    eprosima::fastcdr::CdrSizeCalculator calculator(eprosima::fastcdr::CdrVersion::XCDRv2);
-    size_t current_alignment {0};
+    $type_identifier_decl(ctx=ctx, complete=["EK_COMPLETE"])$
     SerializedPayload_t payload(static_cast<uint32_t>(
         calculator.calculate_serialized_size(type_object->complete().bitset_type(), current_alignment) + 4));
     $type_identifier_impl(ctx=ctx, param=bitset, complete=["true"])$
@@ -1402,7 +1347,8 @@ type_object->complete().bitset_type().header().base_type(*get_$parent.name$_iden
 /***** Utils *****/
 get_type_identifier_impl(ctx, param) ::= <<
 const TypeIdentifier* c_identifier = TypeObjectFactory::get_instance()->get_type_identifier(
-    "$if(ctx.GenerateTypesROS2)$$param.ROS2Scopedname$$else$$param.scopedname$$endif$", complete);
+    "$if(ctx.GenerateTypesROS2)$$param.ROS2Scopedname$$else$$param.scopedname$$endif$",
+    complete);
 if (c_identifier != nullptr && (!complete || c_identifier->_d() == EK_COMPLETE))
 {
     return c_identifier;
@@ -1410,12 +1356,14 @@ if (c_identifier != nullptr && (!complete || c_identifier->_d() == EK_COMPLETE))
 
 get_$param.name$_object(complete); // Generated inside
 return TypeObjectFactory::get_instance()->get_type_identifier(
-    "$if(ctx.GenerateTypesROS2)$$param.ROS2Scopedname$$else$$param.scopedname$$endif$", complete);
+    "$if(ctx.GenerateTypesROS2)$$param.ROS2Scopedname$$else$$param.scopedname$$endif$",
+    complete);
 >>
 
 get_type_object_impl(ctx, param) ::= <<
 const TypeObject* c_type_object = TypeObjectFactory::get_instance()->get_type_object(
-    "$if(ctx.GenerateTypesROS2)$$param.ROS2Scopedname$$else$$param.scopedname$$endif$", complete);
+    "$if(ctx.GenerateTypesROS2)$$param.ROS2Scopedname$$else$$param.scopedname$$endif$",
+    complete);
 if (c_type_object != nullptr)
 {
     return c_type_object;
@@ -1430,7 +1378,8 @@ return get_minimal_$param.name$_object();
 
 get_minimal_type_object_impl(ctx, param) ::= <<
 const TypeObject* c_type_object = TypeObjectFactory::get_instance()->get_type_object(
-    "$if(ctx.GenerateTypesROS2)$$param.ROS2Scopedname$$else$$param.scopedname$$endif$", false);
+    "$if(ctx.GenerateTypesROS2)$$param.ROS2Scopedname$$else$$param.scopedname$$endif$",
+    false);
 if (c_type_object != nullptr)
 {
     return c_type_object;
@@ -1443,7 +1392,8 @@ type_object->_d(EK_MINIMAL);
 
 get_complete_type_object_impl(ctx, param) ::= <<
 const TypeObject* c_type_object = TypeObjectFactory::get_instance()->get_type_object(
-    "$if(ctx.GenerateTypesROS2)$$param.ROS2Scopedname$$else$$param.scopedname$$endif$", true);
+    "$if(ctx.GenerateTypesROS2)$$param.ROS2Scopedname$$else$$param.scopedname$$endif$",
+    true);
 if (c_type_object != nullptr && c_type_object->_d() == EK_COMPLETE)
 {
     return c_type_object;
@@ -1452,6 +1402,14 @@ if (c_type_object != nullptr && c_type_object->_d() == EK_COMPLETE)
 TypeObject* type_object = new TypeObject();
 type_object->_d(EK_COMPLETE);
 // CompleteTypeObject
+>>
+
+type_identifier_decl(ctx, complete) ::= <<
+TypeIdentifier identifier;
+identifier._d($complete$);
+
+eprosima::fastcdr::CdrSizeCalculator calculator(eprosima::fastcdr::CdrVersion::XCDRv2);
+size_t current_alignment {0};
 >>
 
 type_identifier_impl(ctx, param, complete) ::= <<
@@ -1474,53 +1432,114 @@ for(int i = 0; i < 14; ++i)
 }
 
 TypeObjectFactory::get_instance()->add_type_object(
-    "$if(ctx.GenerateTypesROS2)$$param.ROS2Scopedname$$else$$param.scopedname$$endif$", &identifier, type_object);
+    "$if(ctx.GenerateTypesROS2)$$param.ROS2Scopedname$$else$$param.scopedname$$endif$",
+    &identifier,
+    type_object);
 delete type_object;
 return TypeObjectFactory::get_instance()->get_type_object(
-    "$if(ctx.GenerateTypesROS2)$$param.ROS2Scopedname$$else$$param.scopedname$$endif$", $complete$);
+    "$if(ctx.GenerateTypesROS2)$$param.ROS2Scopedname$$else$$param.scopedname$$endif$",
+    $complete$);
 >>
 
-annotation_parameter_default_value(ctx, object) ::= <<
-// Default value
+annotation_parameter_value(ctx, object) ::= <<
 $if(object.typecode.primitiveType)$
 $if(object.typecode.isBooleanType)$
-def_value_$object.name$.boolean_value($object.value$);
+value_$object.name$.boolean_value($object.value$);
 $elseif(object.typecode.isByteType)$
-def_value_$object.name$.byte_value($object.value$);
+value_$object.name$.byte_value($object.value$);
 $elseif(object.typecode.isInt8Type)$
-def_value_$object.name$.int8_value($object.value$);
+value_$object.name$.int8_value($object.value$);
 $elseif(object.typecode.isUint8Type)$
-def_value_$object.name$.uint8_value($object.value$);
+value_$object.name$.uint8_value($object.value$);
 $elseif(object.typecode.isInt16Type)$
-def_value_$object.name$.int16_value($object.value$);
+value_$object.name$.int16_value($object.value$);
 $elseif(object.typecode.isUint16Type)$
-def_value_$object.name$.uint16_value($object.value$);
+value_$object.name$.uint16_value($object.value$);
 $elseif(object.typecode.isInt32Type)$
-def_value_$object.name$.int32_value($object.value$);
+value_$object.name$.int32_value($object.value$);
 $elseif(object.typecode.isUint32Type)$
-def_value_$object.name$.uint32_value($object.value$);
+value_$object.name$.uint32_value($object.value$);
 $elseif(object.typecode.isInt64Type)$
-def_value_$object.name$.int64_value($object.value$);
+value_$object.name$.int64_value($object.value$);
 $elseif(object.typecode.isUint64Type)$
-def_value_$object.name$.uint64_value($object.value$);
+value_$object.name$.uint64_value($object.value$);
 $elseif(object.typecode.isFloat32Type)$
-def_value_$object.name$.float32_value($object.value$);
+value_$object.name$.float32_value($object.value$);
 $elseif(object.typecode.isFloat64Type)$
-def_value_$object.name$.float64_value($object.value$);
+value_$object.name$.float64_value($object.value$);
 $elseif(object.typecode.isFloat128Type)$
-def_value_$object.name$.float128_value($object.value$);
+value_$object.name$.float128_value($object.value$);
 $elseif(object.typecode.isCharType)$
-def_value_$object.name$.char_value($object.value$);
+value_$object.name$.char_value($object.value$);
 $elseif(object.typecode.isWCharType)$
-def_value_$object.name$.wchar_value($object.value$);
+value_$object.name$.wchar_value($object.value$);
 $endif$
 $elseif(object.typecode.isEnumType)$
-def_value_$object.name$.enumerated_value($object.value$);
+value_$object.name$.enumerated_value($object.value$);
 $elseif(object.typecode.isStringType)$
-def_value_$object.name$.string8_value($object.value$);
+value_$object.name$.string8_value($object.value$);
 $elseif(object.typecode.isWStringType)$
-def_value_$object.name$.string16_value($object.value$);
+value_$object.name$.string16_value($object.value$);
 $else$
-def_value_$object.name$.extended_value();
+value_$object.name$.extended_value();
 $endif$
+>>
+
+applied_builtin_type_annotation(ctx, object) ::= <<
+//                - @optional AppliedVerbatimAnnotation
+$if(object.valueList)$
+$object.valueList : { annotation_parameter |
+$if(annotation_parameter.isVerbatimPlacement)$
+typeobject->complete().enumerated_type().header().detail().ann_builtin().verbatim().placement("$annotation_parameter.enumStringValue$");
+$elseif(annotation_parameter.isVerbatimLanguage)$
+typeobject->complete().enumerated_type().header().detail().ann_builtin().verbatim().language("$annotation_parameter.value$");
+$elseif(annotation_parameter.isVerbatimText)$
+typeobject->complete().enumerated_type().header().detail().ann_builtin().verbatim().text("$annotation_parameter.value$");
+$endif$
+}; separator=""$
+$endif$
+>>
+
+applied_annotation(ctx, object) ::= <<
+
+//            - AppliedAnnotation
+AppliedAnnotation $object.name$_applied_annotation;
+//                - TypeIdentifier
+TypeIdentifier* $object.name$_annotation_type_id = TypeObjectFactory::get_instace()::get_type_identifier(
+    "$object.name$",
+    true);
+assert(nullptr != $object.name$_annotation_type_id);
+$object.name$_applied_annotation.annotation_typeid(*$object.name$_annotation_type_id);
+//                - @optional AppliedAnnotationParameterSeq
+$if(object.valueList)$
+$object.valueList : { annotation_parameter | $applied_annotation_parameter(ctx=ctx, object=annotation_parameter, parent=object)$}; separator="\n"$
+$endif$
+
+type_object->complete().enumerated_type().header().detail().ann_custom().push_back($object.name$_applied_annotation);
+>>
+
+applied_annotation_parameter(ctx, object, parent) ::= <<
+
+//                - AppliedAnnotationParameter
+AppliedAnnotationParameter $object.name$_applied_annotation_parameter;
+//                    - NameHash
+$md5_hash(ctx=ctx, object=object, name=["_applied_annotation_parameter.paramname_hash()"])$
+//                    - AnnotationParameterValue
+AnnotationParameterValue value_$object.name$;
+TypeObject* $object.name$_annotation_type_object = TypeObjectFactory::get_instance()::get_type_object(
+    "$object.typecode.cppTypename$",
+    true);
+assert(nullptr != $object.name$_annotation_type_object);
+value_$object.name$._d($object.name$_annotation_type_object->complete()._d());
+$annotation_parameter_value(ctx=ctx, object=object)$
+$object.name$_applied_annotation_parameter.value(value_$object.name$);
+$parent.name$_applied_annotation.param_seq().push_back($object.name$_applied_annotation_parameter);
+>>
+
+md5_hash(ctx, object, name) ::= <<
+MD5 $object.name$_hash("$object.name$");
+for (int i = 0; i < 4; ++i)
+{
+    $object.name$$name$[i] = $object.name$_hash.digest[i];
+}
 >>
