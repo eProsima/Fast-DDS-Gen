@@ -101,9 +101,17 @@ public class FastDDSGenTest
             return;
         }
 
+        String list_tests_str = System.getProperty("list_tests");
+        java.util.List<String> list_tests = null;
+
+        if (null != list_tests_str)
+        {
+            list_tests = java.util.Arrays.asList(list_tests_str.split(",", -1));
+        }
+
         //Configure idl tests
         TestManager tests = new TestManager(TestLevel.RUN, "share/fastddsgen/java/fastddsgen", INPUT_PATH,
-                        OUTPUT_PATH, "CMake");
+                        OUTPUT_PATH, "CMake", list_tests);
         tests.addCMakeArguments("-DCMAKE_BUILD_TYPE=Debug");
         tests.removeTests("basic_inner_types");
 
