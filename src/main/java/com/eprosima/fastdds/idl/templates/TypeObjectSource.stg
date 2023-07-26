@@ -171,9 +171,9 @@ const TypeObject* get_complete_$annotation.name$_object()
 
 namespace $annotation.name$
 {
-$annotation.enums : { it |$enum_type(ctx=ctx, parent=annotation, enum=it)$}; separator="\n"$
+$annotation.enums : { it | $enum_type(ctx=ctx, parent=annotation, enum=it)$}; separator="\n"$
 
-$annotation.typeDefs : { it |$typedef_decl(ctx=ctx, parent=annotation, typedefs=it)$}; separator="\n"$
+$annotation.typeDefs : { it | $typedef_decl(ctx=ctx, parent=annotation, typedefs=it)$}; separator="\n"$
 
 } // $annotation.name$ namespace
 >>
@@ -517,7 +517,7 @@ $common_enumerated_literal(ctx=ctx, object=object, name=["_complete_enum_literal
 $object.name$_complete_enum_literal.detail().name("$object.name$");
 $if(object.annotationList)$
 $object.annotationList: { annotation |
-$if(annotation.isUnit)$
+$if(annotation.isUnit || annotation.isMin)$
 //            - @optional AppliedBuiltinMemberAnnotations: @unit
 $elseif(annotation.isMin)$
 //            - @optional AppliedBuiltinMemberAnnotations: @min
@@ -993,8 +993,8 @@ const TypeObject* get_complete_$bitmask.name$_object()
 
     type_object->complete().bitmask_type().header().common().bit_bound($bitmask.bitBound$);
 
-    $if(union.annotationList)$
-    $union.annotationList:{ ann |
+    $if(bitmask.annotationList)$
+    $bitmask.annotationList:{ ann |
 {
     AppliedAnnotation ann;
     //ann.annotation_typeid(get_$ann.name$_identifier(true));
