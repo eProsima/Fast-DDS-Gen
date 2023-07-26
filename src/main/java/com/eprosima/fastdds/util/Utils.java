@@ -14,7 +14,7 @@
 
 package com.eprosima.fastdds.util;
 
-import org.antlr.stringtemplate.StringTemplate;
+import org.stringtemplate.v4.ST;
 
 import java.io.*;
 
@@ -74,7 +74,7 @@ public class Utils
         return returnedValue;
     }
 
-    public static boolean writeFile(String file, StringTemplate template, boolean replace)
+    public static boolean writeFile(String file, ST template, boolean replace)
     {
         boolean returnedValue = false;
 
@@ -85,7 +85,7 @@ public class Utils
             if(!handle.exists() || replace)
             {
                 FileWriter fw = new FileWriter(file);
-                String data = template.toString();
+                String data = template.render();
                 fw.write(data, 0, data.length());
                 fw.close();
             }

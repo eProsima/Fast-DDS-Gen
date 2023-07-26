@@ -27,28 +27,28 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 find_package(fastcdr REQUIRED)
 find_package(fastrtps REQUIRED)
 
-$solution.projects : {$pub_sub_execs(project=it, libraries=solution.libraries, test=test)$}; separator="\n"$
+$solution.projects : { project | $pub_sub_execs(project=project, libraries=solution.libraries, test=test)$}; separator="\n"$
 
 >>
 
 pub_sub_execs(project, libraries, test) ::= <<
 
 message(STATUS "Configuring $project.name$...")
-add_library($project.name$_lib $project.commonSrcFiles : {$it$}; separator=" "$)
-target_link_libraries($project.name$_lib $solution.libraries : {$it$}; separator=" "$)
+add_library($project.name$_lib $project.commonSrcFiles : { file | $file$}; separator=" "$)
+target_link_libraries($project.name$_lib $solution.libraries : { library | $library$}; separator=" "$)
 
-add_executable($project.name$ $project.projectSrcFiles : {$it$}; separator=" "$)
-target_link_libraries($project.name$ $solution.libraries : {$it$}; separator=" "$
-        $project.name$_lib $project.dependencies : {$it$_lib}; separator=" "$)
+add_executable($project.name$ $project.projectSrcFiles : { file | $file$}; separator=" "$)
+target_link_libraries($project.name$ $solution.libraries : { library | $library$}; separator=" "$
+        $project.name$_lib $project.dependencies : { dep | $dep$_lib}; separator=" "$)
 
 
 $if(test)$
 # $project.name$ Serialization Test
 add_executable($project.name$SerializationTest
-        $project.commonTestingFiles : {$it$}; separator="\n"$
+        $project.commonTestingFiles : { file | $file$}; separator="\n"$
 )
-target_link_libraries($project.name$SerializationTest $solution.libraries : {$it$}; separator=" "$
-        $project.name$_lib $project.dependencies : {$it$_lib}; separator=" "$)
+target_link_libraries($project.name$SerializationTest $solution.libraries : { library | $library$}; separator=" "$
+        $project.name$_lib $project.dependencies : { dep | $dep$_lib}; separator=" "$)
 
 $endif$
 

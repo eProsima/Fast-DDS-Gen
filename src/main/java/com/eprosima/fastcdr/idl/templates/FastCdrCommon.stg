@@ -14,34 +14,6 @@
 
 group FastCdrCommon;
 
-paramRetType(typecode) ::= <<
-$if(typecode)$
-$typecode.cppTypename$
-$else$
-void
-$endif$
->>
-
-paramTypeByValue(typecode) ::= <<
-$if(typecode.primitive)$
-$typecode.cppTypename$
-$else$
-const $typecode.cppTypename$&
-$endif$
->>
-
-paramTypeByRef(typecode) ::= <<
-$typecode.cppTypename$&
->>
-
-paramDeclarations(params, separatorInicial) ::= <<
-$if(params)$$separatorInicial$$endif$$params : {param | /*$param.comment$*/ $if(param.output)$$paramTypeByRef(typecode=param.typecode)$$else$$paramTypeByValue(typecode=param.typecode)$$endif$ $param.name$}; separator=", "$
->>
-
-paramDeclarationsByValue(params, separatorInicial) ::= <<
-$if(params)$$separatorInicial$$endif$$params : {param | /*$param.comment$*/ $paramTypeByValue(typecode=param.typecode)$ $param.name$}; separator=", "$
->>
-
 object_serialization(ctx, object) ::= <<
 scdr << eprosima::fastcdr::MemberId($object.id$) << $object.name$();
 >>
@@ -74,9 +46,24 @@ $if(object.annotationOptional)$eprosima::fastcdr::optional<$endif$$object.typeco
 
 object_function_access(object) ::= <<$if(object.annotationOptional)$->$else$.$endif$>>
 
+member_type_declaration(member) ::= <<
+$if(member.annotationOptional)$eprosima::fastcdr::optional<$endif$$member.typecode.cppTypename$$if(member.annotationOptional)$>$endif$
+>>
+
+member_destructor(ctx, member) ::= <<$if(member.typecode.forwarded)$delete m_$member.name$;$elseif(ctx.generateTypesC)$$if(member.typecode.isStringType)$free(m_$member.name$);
+m_$member.name$ = nullptr;$elseif(member.typecode.isType_f)$$if(member.typecode.contentTypeCode.isStringType)$$member_array_cstring_destructor(ctx=ctx, name=memberName(member.name), loopvar=ctx.newLoopVarName, dims=member.typecode.dimensions)$$endif$$endif$$endif$>>
+
+member_array_cstring_destructor(ctx, name, loopvar, dims) ::= <<$if(rest(dims))$for (uint32_t $loopvar$ = 0; $loopvar$ < $name$.size(); ++$loopvar$)
+{
+    $member_array_cstring_destructor(ctx=ctx, name=indexName(name=name,loopvar=loopvar),  loopvar=ctx.nextLoopVarName, dims=rest(dims))$
+}$else$for (char* str : $name$)
+{
+    free(str);
+}$endif$>>
+
 sizeFunction ::= [
         "type_e":"size()",
         "type_d":"length()",
         "type_15":"length()",
-        default: // not basic type.
+        default: "" // not basic type.
 ]
