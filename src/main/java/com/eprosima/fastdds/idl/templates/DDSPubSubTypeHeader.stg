@@ -14,6 +14,8 @@
 
 group ProtocolHeader;
 
+import "eprosima.stg"
+
 main(ctx, definitions) ::= <<
 $fileHeader(ctx=ctx,  file=[ctx.filename, "PubSubTypes.h"], description=["This header file contains the declaration of the serialization functions."])$
 
@@ -70,8 +72,9 @@ param_list(parameters) ::= <<>>
 
 param(parameter) ::= <<>>
 
-const_decl(ctx, parent, const) ::= <<
->>
+const_decl(ctx, parent, const) ::= <<>>
+
+fwd_decl(ctx, parent, type) ::= <<>>
 
 typedef_decl(ctx, parent, typedefs) ::= <<
 $typedefs : { typedef |typedef $typedef.typedefContentTypeCode.cppTypename$ $typedef.name$;}; separator="\n"$

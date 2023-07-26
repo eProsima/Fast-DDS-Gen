@@ -14,8 +14,11 @@
 
 group TypesHeader;
 
+import "com/eprosima/fastdds/idl/templates/eprosima.stg"
+import "FastCdrCommon.stg"
+
 main(ctx, definitions) ::= <<
-$fileHeader(file=[ctx.filename, ".h"], description=["This header file contains the declaration of the described types in the IDL file."])$
+$fileHeader(ctx=ctx, file=[ctx.filename, ".h"], description=["This header file contains the declaration of the described types in the IDL file."])$
 
 #ifndef _FAST_DDS_GENERATED_$ctx.headerGuardName$_H_
 #define _FAST_DDS_GENERATED_$ctx.headerGuardName$_H_
@@ -82,8 +85,8 @@ class FastCdr;
 $endif$
 
 $if(ctx.generateTypesC)$
-$ctx.typeCodesToDefine : {
-$sequences_definition(it.value)$
+$ctx.typeCodesToDefine : { type |
+$sequences_definition(type.value)$
 }; separator="\n"$
 $endif$
 
@@ -107,11 +110,11 @@ $definitions; separator="\n"$
 
 annotation(ctx, annotation) ::= <<
 namespace $annotation.name$ {
-    $annotation.enums : {$enum_type(ctx=ctx, parent=annotation, enum=it)$}; separator="\n"$
+    $annotation.enums : { enum | $enum_type(ctx=ctx, parent=annotation, enum=enum)$}; separator="\n"$
 
-    $annotation.typeDefs : {$typedef_decl(ctx=ctx, parent=annotation, typedefs=it)$}; separator="\n"$
+    $annotation.typeDefs : { typdef | $typedef_decl(ctx=ctx, parent=annotation, typedefs=typedef)$}; separator="\n"$
 
-    $annotation.constDecls : {$const_decl(ctx=ctx, parent=annotation, const=it)$}; separator="\n"$
+    $annotation.constDecls : { const | $const_decl(ctx=ctx, parent=annotation, const=const)$}; separator="\n"$
 
 } // namespace $annotation.name$
 >>
@@ -225,7 +228,7 @@ struct_type(ctx, parent, struct, extensions) ::= <<
  * @brief This class represents the structure $struct.name$ defined by the user in the IDL file.
  * @ingroup $ctx.trimfilename$
  */
-class $struct.name$$if(struct.inheritances)$ : public $struct.inheritances : {$public_struct_inheritances(it)$}; separator=", "$ $endif$
+class $struct.name$$if(struct.inheritances)$ : public $struct.inheritances : { inheritance | $public_struct_inheritances(inheritance)$}; separator=", "$ $endif$
 {
 public:
 
@@ -281,15 +284,15 @@ public:
     eProsima_user_DllExport bool operator !=(
             const $struct.name$& x) const;
 
-    $struct.members:{$public_member_declaration(it)$}; separator="\n"$
+    $struct.members:{ member | $public_member_declaration(member)$}; separator="\n"$
 
     $serialization_functions(struct)$
 
-    $extensions : {$it$}; separator="\n"$
+    $extensions : { extension | $extension$}; separator="\n"$
 
 private:
 
-    $struct.members:{$private_member_declaration(member=it)$}; separator="\n"$
+    $struct.members:{ member | $private_member_declaration(member=member)$}; separator="\n"$
 
 };
 >>
@@ -375,17 +378,17 @@ public:
      */
     eProsima_user_DllExport $union.discriminator.cppTypename$& _d();
 
-    $union.members:{$public_unionmember_declaration(it)$}; separator="\n"$
+    $union.members:{ member | $public_unionmember_declaration(member)$}; separator="\n"$
 
     $serialization_functions(union)$
 
-    $extensions : {$it$}; separator="\n"$
+    $extensions : {extension | $extension$}; separator="\n"$
 
 private:
 
     $union.discriminator.cppTypename$ m__d;
 
-    $union.members:{$private_member_declaration(member=it)$}; separator="\n"$
+    $union.members:{ member | $private_member_declaration(member=member)$}; separator="\n"$
 };
 >>
 
@@ -394,7 +397,7 @@ bitset_type(ctx, parent, bitset, extensions) ::= <<
  * @brief This class represents the structure $bitset.name$ defined by the user in the IDL file.
  * @ingroup $ctx.trimfilename$
  */
-class $bitset.name$$if(bitset.parents)$ : public $bitset.parents : {$public_bitset_inheritances(it)$}; separator=", "$ $endif$
+class $bitset.name$$if(bitset.parents)$ : public $bitset.parents : { bitset | $public_bitset_inheritances(bitset)$}; separator=", "$ $endif$
 {
 public:
 
@@ -450,7 +453,7 @@ public:
     eProsima_user_DllExport bool operator !=(
             const $bitset.name$& x) const;
 
-    $bitset.bitfields:{$public_bitfield_declaration(it)$}; separator="\n"$
+    $bitset.bitfields:{ bitset | $public_bitfield_declaration(bitset)$}; separator="\n"$
 
     eProsima_user_DllExport std::bitset<$bitset.fullBitSize$> bitset() const;
 
@@ -458,7 +461,7 @@ public:
 
     $serialization_functions(bitset)$
 
-    $extensions : {$it$}; separator="\n"$
+    $extensions : { extension | $extension$}; separator="\n"$
 
 private:
 
@@ -473,7 +476,7 @@ enum_type(ctx, parent, enum) ::= <<
  */
 enum $enum.name$ : uint32_t
 {
-    $enum.members:{$it.name$}; separator=",\n"$
+    $enum.members:{ member | $member.name$}; separator=",\n"$
 };
 >>
 
@@ -484,8 +487,13 @@ bitmask_type(ctx, parent, bitmask) ::= <<
  */
 enum $bitmask.name$$bitmask.boundType$
 {
-    $bitmask.members:{$it.name$ = 0x01ull << $it.position$}; separator=",\n"$
+    $bitmask.members:{ member | $member.name$ = 0x01ull << $member.position$}; separator=",\n"$
 };
+>>
+
+fwd_decl(ctx, parent, type) ::= <<
+class $type.name$;
+
 >>
 
 /***** Utils *****/
@@ -711,14 +719,14 @@ $endif$
 
 sequences_definition(typecode) ::= <<
 $if(typecode.contentTypeCode.isStructType)$
-$typecode.contentTypeCode.namespaces : { namespace $it$ \{ }; separator="\n"$
+$typecode.contentTypeCode.namespaces : { ns | namespace $ns$ \{ }; separator="\n"$
 class $typecode.contentTypeCode.name$;
-$typecode.contentTypeCode.namespaces : { \} }; separator="\n"$
+$reverse(typecode.contentTypeCode.namespaces) : { ns | \} // ns}; separator="\n"$
 $endif$
 $if(typecode.contentTypeCode.isUnionType)$
-$typecode.contentTypeCode.namespaces : { namespace $it$ \{ }; separator="\n"$
+$typecode.contentTypeCode.namespaces : { ns | namespace $ns$ \{ }; separator="\n"$
 class $typecode.contentTypeCode.name$;
-$typecode.contentTypeCode.namespaces : { \} }; separator="\n"$
+$reverse(typecode.contentTypeCode.namespaces) : { ns | \} // ns}; separator="\n"$
 $endif$
 
 $sequences_definition_impl(typecode=typecode, typename=typecode.cppTypename)$

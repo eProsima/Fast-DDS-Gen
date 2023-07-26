@@ -14,6 +14,8 @@
 
 group ProtocolHeader;
 
+import "eprosima.stg"
+
 main(ctx, definitions) ::= <<
 $fileHeader(ctx=ctx,  file=[ctx.filename, "SerializationTest.cpp"], description=["This file contains serialization test code."])$
 
@@ -161,3 +163,5 @@ annotation(ctx, annotation) ::= <<>>
 module(ctx, parent, module, definition_list) ::= <<>>
 
 definition_list(definitions) ::= <<>>
+
+const_decl(ctx, parent, const) ::= <<>>

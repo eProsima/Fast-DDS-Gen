@@ -49,11 +49,9 @@ import java.util.List;
 import java.util.Vector;
 import java.util.Map;
 import java.util.HashMap;
-import org.antlr.stringtemplate.StringTemplate;
-import org.antlr.stringtemplate.StringTemplateErrorListener;
-import org.antlr.stringtemplate.StringTemplateGroup;
-import org.antlr.stringtemplate.language.DefaultTemplateLexer;
-import org.antlr.v4.runtime.ANTLRFileStream;
+import org.stringtemplate.v4.*;
+import org.antlr.v4.runtime.CharStream;
+import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 
 
@@ -332,30 +330,6 @@ public class fastddsgen
     /*
      * ----------------------------------------------------------------------------------------
      *
-     * Listener classes
-     */
-
-    class TemplateErrorListener implements StringTemplateErrorListener
-    {
-        public void error(
-                String arg0,
-                Throwable arg1)
-        {
-            System.out.println(ColorMessage.error() + arg0);
-            arg1.printStackTrace();
-        }
-
-        public void warning(
-                String arg0)
-        {
-            System.out.println(ColorMessage.warning() + arg0);
-        }
-
-    }
-
-    /*
-     * ----------------------------------------------------------------------------------------
-     *
      * Main methods
      */
 
@@ -397,10 +371,6 @@ public class fastddsgen
                     extraPaths += ":./";
                 }
             }
-
-            String templatePaths = "com/eprosima/fastdds/idl/templates:com/eprosima/fastcdr/idl/templates" + extraPaths;
-            System.out.println("Template resource folders: " + templatePaths);
-            TemplateManager.setGroupLoaderDirectories(templatePaths);
 
             // In local for all products
             if (m_os.contains("Windows"))
@@ -608,8 +578,7 @@ public class fastddsgen
 
         try
         {
-            // Protocol CDR
-            project = parseIDL(idlFilename, dependant_idl_dir, processCustomTemplates); // TODO: Quitar archivos copiados TypesHeader.stg, TypesSource.stg, PubSubTypeHeader.stg de la carpeta com.eprosima.fastdds.idl.templates
+            project = parseIDL(idlFilename, dependant_idl_dir, processCustomTemplates);
         }
         catch (Exception ioe)
         {
@@ -681,47 +650,47 @@ public class fastddsgen
             TemplateManager tmanager = new TemplateManager("FastCdrCommon:eprosima:Common", ctx, m_typesc);
 
             // Load common types template
-            tmanager.addGroup("TypesHeader");
+            tmanager.addGroup("com/eprosima/fastcdr/idl/templates/TypesHeader.stg");
             if (m_type_object_files)
             {
-                tmanager.addGroup("TypeObjectHeader");
+                tmanager.addGroup("com/eprosima/fastdds/idl/templates/TypeObjectHeader.stg");
             }
-            tmanager.addGroup("TypesSource");
+            tmanager.addGroup("com/eprosima/fastcdr/idl/templates/TypesSource.stg");
             if (m_type_object_files)
             {
-                tmanager.addGroup("TypeObjectSource");
+                tmanager.addGroup("com/eprosima/fastdds/idl/templates/TypeObjectSource.stg");
             }
             // Load Types common templates
-            tmanager.addGroup("TypesCdrAuxHeader");
-            tmanager.addGroup("TypesCdrAuxHeaderImpl");
-            tmanager.addGroup("DDSPubSubTypeHeader");
-            tmanager.addGroup("DDSPubSubTypeSource");
+            tmanager.addGroup("com/eprosima/fastdds/idl/templates/TypesCdrAuxHeader.stg");
+            tmanager.addGroup("com/eprosima/fastdds/idl/templates/TypesCdrAuxHeaderImpl.stg");
+            tmanager.addGroup("com/eprosima/fastdds/idl/templates/DDSPubSubTypeHeader.stg");
+            tmanager.addGroup("com/eprosima/fastdds/idl/templates/DDSPubSubTypeSource.stg");
 
             // Load Publisher templates
-            tmanager.addGroup("DDSPublisherHeader");
-            tmanager.addGroup("DDSPublisherSource");
+            tmanager.addGroup("com/eprosima/fastdds/idl/templates/DDSPublisherHeader.stg");
+            tmanager.addGroup("com/eprosima/fastdds/idl/templates/DDSPublisherSource.stg");
 
             // Load Subscriber templates
-            tmanager.addGroup("DDSSubscriberHeader");
-            tmanager.addGroup("DDSSubscriberSource");
+            tmanager.addGroup("com/eprosima/fastdds/idl/templates/DDSSubscriberHeader.stg");
+            tmanager.addGroup("com/eprosima/fastdds/idl/templates/DDSSubscriberSource.stg");
 
             // Load PubSubMain template
-            tmanager.addGroup("DDSPubSubMain");
+            tmanager.addGroup("com/eprosima/fastdds/idl/templates/DDSPubSubMain.stg");
 
             if (m_test)
             {
                 // Load test template
-                tmanager.addGroup("SerializationTestSource");
-                tmanager.addGroup("SerializationHeader");
-                tmanager.addGroup("SerializationSource");
+                tmanager.addGroup("com/eprosima/fastdds/idl/templates/SerializationTestSource.stg");
+                tmanager.addGroup("com/eprosima/fastdds/idl/templates/SerializationHeader.stg");
+                tmanager.addGroup("com/eprosima/fastdds/idl/templates/SerializationSource.stg");
             }
 
             // Add JNI sources.
             if (m_languageOption == LANGUAGE.JAVA)
             {
-                tmanager.addGroup("JNIHeader");
-                tmanager.addGroup("JNISource");
-                tmanager.addGroup("JavaSource");
+                tmanager.addGroup("com/eprosima/fastdds/idl/templates/JNIHeader.stg");
+                tmanager.addGroup("com/eprosima/fastdds/idl/templates/JNISource.stg");
+                tmanager.addGroup("com/eprosima/fastdds/idl/templates/JavaSource.stg");
 
                 // Set package in context.
                 ctx.setPackage(m_package);
@@ -729,8 +698,8 @@ public class fastddsgen
 
             if (m_python)
             {
-                tmanager.addGroup("TypesSwigInterface");
-                tmanager.addGroup("DDSPubSubTypeSwigInterface");
+                tmanager.addGroup("com/eprosima/fastdds/idl/templates/TypesSwigInterface.stg");
+                tmanager.addGroup("com/eprosima/fastdds/idl/templates/DDSPubSubTypeSwigInterface.stg");
             }
 
             // Load custom templates into manager
@@ -751,7 +720,7 @@ public class fastddsgen
 
             try
             {
-                ANTLRFileStream input = new ANTLRFileStream(idlParseFileName);
+                CharStream input = CharStreams.fromFileName(idlParseFileName);
                 IDLLexer lexer = new IDLLexer(input);
                 lexer.setContext(ctx);
                 CommonTokenStream tokens = new CommonTokenStream(lexer);
@@ -810,12 +779,12 @@ public class fastddsgen
                 System.out.println("Generating Type definition files...");
                 if ((returnedValue) && (returnedValue =
                         Utils.writeFile(output_dir + ctx.getFilename() + ".h",
-                        maintemplates.getTemplate("TypesHeader"),
+                        maintemplates.getTemplate("com/eprosima/fastcdr/idl/templates/TypesHeader.stg"),
                         m_replace)))
                 {
                     if (returnedValue =
                             Utils.writeFile(output_dir + ctx.getFilename() + ".cxx",
-                            maintemplates.getTemplate("TypesSource"), m_replace))
+                            maintemplates.getTemplate("com/eprosima/fastcdr/idl/templates/TypesSource.stg"), m_replace))
                     {
                         project.addCommonIncludeFile(relative_dir + ctx.getFilename() + ".h");
                         project.addCommonSrcFile(relative_dir + ctx.getFilename() + ".cxx");
@@ -823,10 +792,10 @@ public class fastddsgen
                         {
                             System.out.println("Generating TypeObject files...");
                             if (returnedValue = Utils.writeFile(output_dir + ctx.getFilename() + "TypeObject.h",
-                                    maintemplates.getTemplate("TypeObjectHeader"), m_replace))
+                                    maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/TypeObjectHeader.stg"), m_replace))
                             {
                                 if (returnedValue = Utils.writeFile(output_dir + ctx.getFilename() + "TypeObject.cxx",
-                                        maintemplates.getTemplate("TypeObjectSource"), m_replace))
+                                        maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/TypeObjectSource.stg"), m_replace))
                                 {
                                     project.addCommonIncludeFile(relative_dir + ctx.getFilename() + "TypeObject.h");
                                     project.addCommonSrcFile(relative_dir + ctx.getFilename() + "TypeObject.cxx");
@@ -838,7 +807,7 @@ public class fastddsgen
                             System.out.println("Generating Swig interface files...");
                             if (returnedValue =
                                     Utils.writeFile(output_dir + ctx.getFilename() + ".i",
-                                    maintemplates.getTemplate("TypesSwigInterface"), m_replace))
+                                    maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/TypesSwigInterface.stg"), m_replace))
                             {
 
                             }
@@ -851,19 +820,19 @@ public class fastddsgen
                     System.out.println("Generating Serialization Test file...");
                     String fileName = output_dir + ctx.getFilename() + "SerializationTest.cpp";
                     returnedValue =
-                            Utils.writeFile(fileName, maintemplates.getTemplate("SerializationTestSource"), m_replace);
+                            Utils.writeFile(fileName, maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/SerializationTestSource.stg"), m_replace);
                     project.addCommonTestingFile(relative_dir + ctx.getFilename() + "SerializationTest.cpp");
 
                     System.out.println("Generating Serialization Source file...");
                     String fileNameS = output_dir + ctx.getFilename() + "Serialization.cpp";
                     returnedValue =
-                            Utils.writeFile(fileNameS, maintemplates.getTemplate("SerializationSource"), m_replace);
+                            Utils.writeFile(fileNameS, maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/SerializationSource.stg"), m_replace);
                     project.addCommonTestingFile(relative_dir + ctx.getFilename() + "Serialization.cpp");
 
                     System.out.println("Generating Serialization Header file...");
                     String fileNameH = output_dir + ctx.getFilename() + "Serialization.h";
                     returnedValue =
-                            Utils.writeFile(fileNameH, maintemplates.getTemplate("SerializationHeader"), m_replace);
+                            Utils.writeFile(fileNameH, maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/SerializationHeader.stg"), m_replace);
                     project.addCommonTestingFile(relative_dir + ctx.getFilename() + "PubSubTypes.cxx");
 
                     for (String element : project.getFullDependencies())
@@ -877,7 +846,7 @@ public class fastddsgen
                 System.out.println("Generating TopicDataTypes files...");
                 returnedValue &=
                     Utils.writeFile(output_dir + ctx.getFilename() + "PubSubTypes.h",
-                            maintemplates.getTemplate("DDSPubSubTypeHeader"), m_replace);
+                            maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/DDSPubSubTypeHeader.stg"), m_replace);
                 project.addProjectIncludeFile(relative_dir + ctx.getFilename() + "PubSubTypes.h");
 
                 if (ctx.existsLastStructure())
@@ -887,24 +856,24 @@ public class fastddsgen
 
                     if (returnedValue =
                             Utils.writeFile(output_dir + ctx.getFilename() + "CdrAux.hpp",
-                            maintemplates.getTemplate("TypesCdrAuxHeader"), m_replace))
+                            maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/TypesCdrAuxHeader.stg"), m_replace))
                     {
                         if (returnedValue =
                                 Utils.writeFile(output_dir + ctx.getFilename() + "CdrAux.ipp",
-                                    maintemplates.getTemplate("TypesCdrAuxHeaderImpl"), m_replace))
+                                    maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/TypesCdrAuxHeaderImpl.stg"), m_replace))
                         {
                             if (returnedValue =
                                     Utils.writeFile(output_dir + ctx.getFilename() + "PubSubTypes.cxx",
-                                        maintemplates.getTemplate("DDSPubSubTypeSource"), m_replace))
+                                        maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/DDSPubSubTypeSource.stg"), m_replace))
                             {
-                            project.addProjectIncludeFile(relative_dir + ctx.getFilename() + "CdrAux.hpp");
-                            project.addProjectSrcFile(relative_dir + ctx.getFilename() + "PubSubTypes.cxx");
+                                project.addProjectIncludeFile(relative_dir + ctx.getFilename() + "CdrAux.hpp");
+                                project.addProjectSrcFile(relative_dir + ctx.getFilename() + "PubSubTypes.cxx");
                                 if (m_python)
                                 {
                                     System.out.println("Generating Swig interface files...");
                                     returnedValue = Utils.writeFile(
                                             output_dir + ctx.getFilename() + "PubSubTypes.i",
-                                            maintemplates.getTemplate("DDSPubSubTypeSwigInterface"), m_replace);
+                                            maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/DDSPubSubTypeSwigInterface.stg"), m_replace);
                                 }
                             }
                         }
@@ -915,11 +884,11 @@ public class fastddsgen
                         System.out.println("Generating Publisher files...");
                         if (returnedValue =
                                 Utils.writeFile(output_dir + ctx.getFilename() + "Publisher.h",
-                                maintemplates.getTemplate("DDSPublisherHeader"), m_replace))
+                                maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/DDSPublisherHeader.stg"), m_replace))
                         {
                             if (returnedValue =
                                     Utils.writeFile(output_dir + ctx.getFilename() + "Publisher.cxx",
-                                    maintemplates.getTemplate("DDSPublisherSource"), m_replace))
+                                    maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/DDSPublisherSource.stg"), m_replace))
                             {
                                 project.addProjectIncludeFile(relative_dir + ctx.getFilename() + "Publisher.h");
                                 project.addProjectSrcFile(relative_dir + ctx.getFilename() + "Publisher.cxx");
@@ -929,11 +898,11 @@ public class fastddsgen
                         System.out.println("Generating Subscriber files...");
                         if (returnedValue =
                                 Utils.writeFile(output_dir + ctx.getFilename() + "Subscriber.h",
-                                maintemplates.getTemplate("DDSSubscriberHeader"), m_replace))
+                                maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/DDSSubscriberHeader.stg"), m_replace))
                         {
                             if (returnedValue =
                                     Utils.writeFile(output_dir + ctx.getFilename() + "Subscriber.cxx",
-                                    maintemplates.getTemplate("DDSSubscriberSource"), m_replace))
+                                    maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/DDSSubscriberSource.stg"), m_replace))
                             {
                                 project.addProjectIncludeFile(relative_dir + ctx.getFilename() + "Subscriber.h");
                                 project.addProjectSrcFile(relative_dir + ctx.getFilename() + "Subscriber.cxx");
@@ -943,7 +912,7 @@ public class fastddsgen
                         System.out.println("Generating main file...");
                         if (returnedValue =
                                 Utils.writeFile(output_dir + ctx.getFilename() + "PubSubMain.cxx",
-                                maintemplates.getTemplate("DDSPubSubMain"), m_replace))
+                                maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/DDSPubSubMain.stg"), m_replace))
                         {
                             project.addProjectSrcFile(relative_dir + ctx.getFilename() + "PubSubMain.cxx");
                         }
@@ -1008,7 +977,7 @@ public class fastddsgen
                     return null;
                 }
 
-                StringTemplate jnisourceTemplate = maintemplates.getTemplate("JNISource");
+                ST jnisourceTemplate = maintemplates.getTemplate("JNISource");
                 if (Utils.writeFile(output_dir + ctx.getFilename() + "PubSubJNI.cxx", jnisourceTemplate, m_replace))
                 {
                     project.addJniSrcFile(relative_dir + ctx.getFilename() + "PubSubJNI.cxx");
@@ -1103,66 +1072,67 @@ public class fastddsgen
         final String METHOD_NAME = "genVS";
         boolean returnedValue = false;
 
-        StringTemplateGroup vsTemplates = StringTemplateGroup.loadGroup("VS", DefaultTemplateLexer.class, null);
+        STGroupFile vsTemplates = new STGroupFile("com/eprosima/fastdds/idl/templates/VS.stg", '$', '$');
 
         if (vsTemplates != null)
         {
-            StringTemplate tsolution = vsTemplates.getInstanceOf("solution");
-            StringTemplate tproject = vsTemplates.getInstanceOf("project");
-            StringTemplate tprojectFiles = vsTemplates.getInstanceOf("projectFiles");
-            StringTemplate tprojectPubSub = vsTemplates.getInstanceOf("projectPubSub");
-            StringTemplate tprojectFilesPubSub = vsTemplates.getInstanceOf("projectFilesPubSub");
-            StringTemplate tprojectJNI = null;
-            StringTemplate tprojectFilesJNI = null;
-            if (m_languageOption == LANGUAGE.JAVA)
-            {
-                tprojectJNI = vsTemplates.getInstanceOf("projectJNI");
-                tprojectFilesJNI = vsTemplates.getInstanceOf("projectFilesJNI");
-            }
+            ST tsolution = vsTemplates.getInstanceOf("solution");
 
             returnedValue = true;
 
             for (int count = 0; returnedValue && (count < solution.getProjects().size()); ++count)
             {
+                ST tproject = vsTemplates.getInstanceOf("project");
+                ST tprojectFiles = vsTemplates.getInstanceOf("projectFiles");
+                ST tprojectPubSub = vsTemplates.getInstanceOf("projectPubSub");
+                ST tprojectFilesPubSub = vsTemplates.getInstanceOf("projectFilesPubSub");
+                ST tprojectJNI = null;
+                ST tprojectFilesJNI = null;
+                if (m_languageOption == LANGUAGE.JAVA)
+                {
+                    tprojectJNI = vsTemplates.getInstanceOf("projectJNI");
+                    tprojectFilesJNI = vsTemplates.getInstanceOf("projectFilesJNI");
+                }
+
                 Project project = (Project) solution.getProjects().get(count);
 
-                tproject.setAttribute("solution", solution);
-                tproject.setAttribute("project", project);
-                tproject.setAttribute("example", m_exampleOption);
-                tproject.setAttribute("vsVersion", vsVersion);
-                tproject.setAttribute("toolset", toolset);
+                tproject.add("solution", solution);
+                tproject.add("project", project);
+                tproject.add("example", m_exampleOption);
+                tproject.add("vsVersion", vsVersion);
+                tproject.add("toolset", toolset);
 
-                tprojectFiles.setAttribute("project", project);
-                tprojectFiles.setAttribute("vsVersion", vsVersion);
+                tprojectFiles.add("project", project);
+                tprojectFiles.add("vsVersion", vsVersion);
 
-                tprojectPubSub.setAttribute("solution", solution);
-                tprojectPubSub.setAttribute("project", project);
-                tprojectPubSub.setAttribute("example", m_exampleOption);
-                tprojectPubSub.setAttribute("vsVersion", vsVersion);
-                tprojectPubSub.setAttribute("toolset", toolset);
+                tprojectPubSub.add("solution", solution);
+                tprojectPubSub.add("project", project);
+                tprojectPubSub.add("example", m_exampleOption);
+                tprojectPubSub.add("vsVersion", vsVersion);
+                tprojectPubSub.add("toolset", toolset);
 
-                tprojectFilesPubSub.setAttribute("project", project);
-                tprojectFilesPubSub.setAttribute("vsVersion", vsVersion);
+                tprojectFilesPubSub.add("project", project);
+                tprojectFilesPubSub.add("vsVersion", vsVersion);
 
                 if (m_languageOption == LANGUAGE.JAVA)
                 {
-                    tprojectJNI.setAttribute("solution", solution);
-                    tprojectJNI.setAttribute("project", project);
-                    tprojectJNI.setAttribute("example", m_exampleOption);
-                    tprojectJNI.setAttribute("vsVersion", vsVersion);
-                    tprojectJNI.setAttribute("toolset", toolset);
+                    tprojectJNI.add("solution", solution);
+                    tprojectJNI.add("project", project);
+                    tprojectJNI.add("example", m_exampleOption);
+                    tprojectJNI.add("vsVersion", vsVersion);
+                    tprojectJNI.add("toolset", toolset);
 
-                    tprojectFilesJNI.setAttribute("project", project);
-                    tprojectFilesJNI.setAttribute("vsVersion", vsVersion);
+                    tprojectFilesJNI.add("project", project);
+                    tprojectFilesJNI.add("vsVersion", vsVersion);
                 }
 
                 for (int index = 0; index < m_vsconfigurations.length; index++)
                 {
-                    tproject.setAttribute("configurations", m_vsconfigurations[index]);
-                    tprojectPubSub.setAttribute("configurations", m_vsconfigurations[index]);
+                    tproject.add("configurations", m_vsconfigurations[index]);
+                    tprojectPubSub.add("configurations", m_vsconfigurations[index]);
                     if (m_languageOption == LANGUAGE.JAVA)
                     {
-                        tprojectJNI.setAttribute("configurations", m_vsconfigurations[index]);
+                        tprojectJNI.add("configurations", m_vsconfigurations[index]);
                     }
                 }
 
@@ -1199,37 +1169,26 @@ public class fastddsgen
                             m_replace);
                     }
                 }
-
-                tproject.reset();
-                tprojectFiles.reset();
-                tprojectPubSub.reset();
-                tprojectFilesPubSub.reset();
-                if (m_languageOption == LANGUAGE.JAVA)
-                {
-                    tprojectJNI.reset();
-                    tprojectFilesJNI.reset();
-                }
-
             }
 
             if (returnedValue)
             {
-                tsolution.setAttribute("solution", solution);
-                tsolution.setAttribute("example", m_exampleOption);
+                tsolution.add("solution", solution);
+                tsolution.add("example", m_exampleOption);
 
                 // Project configurations
                 for (int index = 0; index < m_vsconfigurations.length; index++)
                 {
-                    tsolution.setAttribute("configurations", m_vsconfigurations[index]);
+                    tsolution.add("configurations", m_vsconfigurations[index]);
                 }
 
                 if (m_languageOption == LANGUAGE.JAVA)
                 {
-                    tsolution.setAttribute("generateJava", true);
+                    tsolution.add("generateJava", true);
                 }
 
                 String vsVersion_sol = "2019";
-                tsolution.setAttribute("vsVersion", vsVersion_sol);
+                tsolution.add("vsVersion", vsVersion_sol);
 
                 returnedValue = Utils.writeFile(m_outputDir + "solution-" + m_exampleOption + ".sln", tsolution,
                                 m_replace);
@@ -1250,17 +1209,17 @@ public class fastddsgen
     {
 
         boolean returnedValue = false;
-        StringTemplate makecxx = null;
+        ST makecxx = null;
 
-        StringTemplateGroup makeTemplates = StringTemplateGroup.loadGroup("makefile", DefaultTemplateLexer.class, null);
+        STGroupFile makeTemplates = new STGroupFile("com/eprosima/fastdds/idl/templates/makefile.stg", '$', '$');
 
         if (makeTemplates != null)
         {
             makecxx = makeTemplates.getInstanceOf("makecxx");
 
-            makecxx.setAttribute("solution", solution);
-            makecxx.setAttribute("example", m_exampleOption);
-            makecxx.setAttribute("arch", arch);
+            makecxx.add("solution", solution);
+            makecxx.add("example", m_exampleOption);
+            makecxx.add("arch", arch);
 
             returnedValue = Utils.writeFile(m_outputDir + "makefile_" + m_exampleOption, makecxx, m_replace);
 
@@ -1274,17 +1233,16 @@ public class fastddsgen
     {
 
         boolean returnedValue = false;
-        StringTemplate cmake = null;
+        ST cmake = null;
 
-        StringTemplateGroup cmakeTemplates = StringTemplateGroup.loadGroup("CMakeLists", DefaultTemplateLexer.class,
-                        null);
+        STGroupFile cmakeTemplates = new STGroupFile("com/eprosima/fastdds/idl/templates/CMakeLists.stg", '$', '$');
 
         if (cmakeTemplates != null)
         {
             cmake = cmakeTemplates.getInstanceOf("cmakelists");
 
-            cmake.setAttribute("solution", solution);
-            cmake.setAttribute("test", m_test);
+            cmake.add("solution", solution);
+            cmake.add("test", m_test);
 
             returnedValue = Utils.writeFile(m_outputDir + "CMakeLists.txt", cmake, m_replace);
         }
@@ -1296,15 +1254,14 @@ public class fastddsgen
     {
 
         boolean returnedValue = false;
-        StringTemplate swig = null;
+        ST swig = null;
 
-        StringTemplateGroup swigTemplates =
-                StringTemplateGroup.loadGroup("SwigCMake", DefaultTemplateLexer.class, null);
+        STGroupFile swigTemplates = new STGroupFile("com/eprosima/fastdds/idl/templates/SwigCMake.stg", '$', '$');
         if (swigTemplates != null)
         {
             swig = swigTemplates.getInstanceOf("swig_cmake");
 
-            swig.setAttribute("solution", solution);
+            swig.add("solution", solution);
 
             returnedValue = Utils.writeFile(m_outputDir + "CMakeLists.txt", swig, m_replace);
 

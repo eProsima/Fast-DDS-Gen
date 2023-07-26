@@ -14,8 +14,10 @@
 
 group TypeObjectSource;
 
+import "eprosima.stg"
+
 main(ctx, definitions) ::= <<
-$fileHeader(file=[ctx.filename, "TypeObject.cpp"], description=["This source file contains the definition of the described types in the IDL file."])$
+$fileHeader(ctx=ctx, file=[ctx.filename, "TypeObject.cpp"], description=["This source file contains the definition of the described types in the IDL file."])$
 
 #ifdef _WIN32
 // Remove linker warning LNK4221 on Visual Studio
@@ -299,6 +301,8 @@ interface(ctx, parent, interface, export_list) ::= <<>>
 export_list(exports) ::= <<>>
 
 const_decl(ctx, parent, const) ::= <<>>
+
+fwd_decl(ctx, parent, type) ::= <<>>
 
 typedef_decl(ctx, parent, typedefs) ::= <<
 const TypeIdentifier* Get$typedefs.name$Identifier(bool complete)
