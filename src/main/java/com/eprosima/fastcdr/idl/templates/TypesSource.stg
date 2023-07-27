@@ -585,7 +585,7 @@ void $bitmask.scopedname$::deserialize(
 $endif$
 
 
-$bitmask.members:{$public_bitmask_definition(it)$}; separator="\n"$
+$bitmask.members:{ it | $public_bitmask_definition(it)$}; separator="\n"$
 
 const std::bitset<$bitmask.bitBound$>& $bitmask.scopedname$::bitmask() const
 {
@@ -595,6 +595,11 @@ const std::bitset<$bitmask.bitBound$>& $bitmask.scopedname$::bitmask() const
 std::bitset<$bitmask.bitBound$>& $bitmask.scopedname$::bitmask()
 {
     return m_bitmask;
+}
+
+void $bitmask.scopedname$::bitmask(const std::bitset<$bitmask.bitBound$>& bitmask)
+{
+    m_bitmask = bitmask;
 }
 
 >>

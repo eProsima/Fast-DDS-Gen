@@ -70,7 +70,18 @@ enum_type(ctx, parent, enum) ::= <<>>
 
 typedef_decl(ctx, parent, typedefs) ::= <<>>
 
-bitmask_type(ctx, parent, bitmask) ::= <<>>
+bitmask_type(ctx, parent, bitmask) ::= <<
+void print$bitmask.name$(
+        $bitmask.name$* topic);
+
+void initialize$bitmask.name$(
+        $bitmask.name$* topic);
+
+int compare$bitmask.name$(
+        $bitmask.name$* a,
+        $bitmask.name$* b);
+
+>>
 
 bitset_type(ctx, parent, bitset) ::= <<
 void print$bitset.name$(

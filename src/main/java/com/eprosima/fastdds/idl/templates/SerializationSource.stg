@@ -153,20 +153,20 @@ void $if(bitmask.hasScope)$$bitmask.scope$::$endif$print$bitmask.name$(
         $bitmask.name$* topic)
 {
     printf("$bitmask.name$: { \n");
-    $bitmask.members:{printf("$it.name$: %s\n", topic->$it.name$() ? "true" : "false");}; separator="\n"$
+    $bitmask.members:{ it | printf("$it.name$: %s\n", topic->$it.name$() ? "true" : "false");}; separator="\n"$
 }
 
 void $if(bitmask.hasScope)$$bitmask.scope$::$endif$initialize$bitmask.name$(
         $bitmask.name$* topic)
 {
-    $bitmask.members:{topic->$it.name$(static_cast<bool>(rand()%2==1));}; separator="\n"$
+    $bitmask.members:{ it | topic->$it.name$(static_cast<bool>(rand()%2==1));}; separator="\n"$
 }
 
 int $if(bitmask.hasScope)$$bitmask.scope$::$endif$compare$bitmask.name$(
         $bitmask.name$* topic_a,
         $bitmask.name$* topic_b)
 {
-    $bitmask.members:{if(topic_a->$it.name$() != topic_b->$it.name$()) return 0;$endif$}; separator="\n"$
+    $bitmask.members:{ it | if(topic_a->$it.name$() != topic_b->$it.name$()) return 0;}; separator="\n"$
     return 1;
 }
 

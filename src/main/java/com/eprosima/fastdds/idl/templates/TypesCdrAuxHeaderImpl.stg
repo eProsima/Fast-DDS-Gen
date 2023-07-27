@@ -323,7 +323,8 @@ enum_type(ctx, parent, enum) ::= <<>>
 
 bitmask_type(ctx, parent, bitmask) ::= <<
 $if(ctx.anyCdr)$
-size_t calculate_serialized_size(
+template<>
+eProsima_user_DllExport size_t calculate_serialized_size(
         eprosima::fastcdr::CdrSizeCalculator& calculator,
         const $bitmask.scopedname$& data,
         size_t current_alignment)
@@ -337,18 +338,22 @@ size_t calculate_serialized_size(
 $endif$
 
 $if(ctx.cdr)$
-void serialize(
+template<>
+eProsima_user_DllExport void serialize(
         eprosima::fastcdr::Cdr& scdr,
         const $bitmask.scopedname$& data)
 {
     scdr << data.bitmask();
 }
 
-void deserialize(
+template<>
+eProsima_user_DllExport void deserialize(
         eprosima::fastcdr::Cdr& dcdr,
         $bitmask.scopedname$& data)
 {
-    dcdr \>> data.bitmask();
+    std::bitset<$bitmask.bitBound$> bitmask;
+    dcdr \>> bitmask;
+    data.bitmask(bitmask);
 }
 $endif$
 >>

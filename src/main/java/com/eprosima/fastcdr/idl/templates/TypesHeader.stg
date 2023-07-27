@@ -480,11 +480,13 @@ public:
     eProsima_user_DllExport bool operator !=(
             const $bitmask.name$& x) const;
 
-    $bitmask.members:{$public_bitflag_declaration(it)$}; separator="\n"$
+    $bitmask.members:{ it | $public_bitflag_declaration(it)$}; separator="\n"$
 
     eProsima_user_DllExport const std::bitset<$bitmask.bitBound$>& bitmask() const;
 
     eProsima_user_DllExport std::bitset<$bitmask.bitBound$>& bitmask();
+
+    eProsima_user_DllExport void bitmask(const std::bitset<$bitmask.bitBound$>&);
 
     $serialization_functions(bitmask)$
 
