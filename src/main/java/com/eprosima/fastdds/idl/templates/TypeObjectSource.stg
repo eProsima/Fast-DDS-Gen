@@ -490,9 +490,7 @@ minimal_enumerated_literal(ctx, object) ::= <<
 //    - MinimalEnumeratedLiteral
 MinimalEnumeratedLiteral $object.name$_minimal_enum_literal;
 $common_enumerated_literal(ctx=ctx, object=object, name=["_minimal_enum_literal"])$
-//        - MinimalMemberDetail
-//            - NameHash
-$md5_hash(ctx=ctx, object=object, name=["_minimal_enum_literal.detail().name_hash()"])$
+$minimal_member_detail(ctx=ctx, object=object, name=["_minimal_enum_literal.detail().name_hash()"])$
 type_object->minimal().enumerated_type().literal_seq().emplace_back($object.name$_minimal_enum_literal);
 
 >>
@@ -501,19 +499,7 @@ complete_enumerated_literal(ctx, object, parent) ::= <<
 //    - CompleteEnumeratedLiteral
 CompleteEnumeratedLiteral $object.name$_complete_enum_literal;
 $common_enumerated_literal(ctx=ctx, object=object, name=["_complete_enum_literal"])$
-//        - CompleteMemberDetail
-//            - MemberName
-$object.name$_complete_enum_literal.detail().name("$object.name$");
-$if(object.annotationList)$
-//            - @optional AppliedAnnotationSeq:
-$object.annotationList: { annotation |
-$if(annotation.isUnit || annotation.isMin || annotation.isMax || annotation.isRange || annotation.isHashId)$
-$applied_builtin_member_annotations(ctx=ctx, object=annotation, parent=annotation, member=object, root=parent)$
-$else$
-$applied_annotation(ctx=ctx, object=annotation)$
-$endif$
-}; separator=""$
-$endif$
+$complete_member_detail(ctx=ctx, object=object, parent=parent, name=["_complete_enum_literal"])$
 type_object->complete().enumerated_type().literal_seq().emplace_back($object.name$_complete_enum_literal);
 
 >>
@@ -986,7 +972,7 @@ const TypeObject* get_complete_$bitmask.name$_object()
 
     //    - CompleteBitflagSeq
 
-    $bitmask.members:{ member | $complete_bitmask_flag(ctx=ctx, object=member)$}; separator="\n"$
+    $bitmask.members:{ member | $complete_bitmask_flag(ctx=ctx, object=member, parent=bitmask)$}; separator="\n"$
 
     $type_identifier_decl(ctx=ctx, complete=["EK_COMPLETE"])$
     SerializedPayload_t payload(static_cast<uint32_t>(
@@ -997,87 +983,20 @@ const TypeObject* get_complete_$bitmask.name$_object()
 >>
 
 minimal_bitmask_flag(ctx, object) ::= <<
-MinimalBitflag mbf_$object.name$;
-mbf_$object.name$.common().flags().TRY_CONSTRUCT1(false);
-mbf_$object.name$.common().flags().TRY_CONSTRUCT2(false);
-mbf_$object.name$.common().flags().IS_EXTERNAL(false);
-mbf_$object.name$.common().flags().IS_OPTIONAL(false);
-mbf_$object.name$.common().flags().IS_MUST_UNDERSTAND(false);
-mbf_$object.name$.common().flags().IS_KEY(false);
-mbf_$object.name$.common().flags().IS_DEFAULT(false);
-mbf_$object.name$.common().position($object.position$);
-MD5 $object.name$_hash("$object.name$");
-for(int i = 0; i < 4; ++i)
-{
-    mbf_$object.name$.detail().name_hash()[i] = $object.name$_hash.digest[i];
-}
-type_object->minimal().bitmask_type().flag_seq().emplace_back(mbf_$object.name$);
+//    - MinimalBitflag
+MinimalBitflag $object.name$_minimal_bitflag;
+$common_bitflag(ctx=ctx, object=object, name=["minimal"])$
+$minimal_member_detail(ctx=ctx, object=object, name=["_minimal_bitflag.detail().name_hash()"])$
+type_object->minimal().bitmask_type().flag_seq().emplace_back($object.name$_minimal_bitflag);
 
 >>
 
-complete_bitmask_flag(ctx, object) ::= <<
-CompleteBitflag cbf_$object.name$;
-cbf_$object.name$.common().flags().TRY_CONSTRUCT1(false);
-cbf_$object.name$.common().flags().TRY_CONSTRUCT2(false);
-cbf_$object.name$.common().flags().IS_EXTERNAL(false);
-cbf_$object.name$.common().flags().IS_OPTIONAL(false);
-cbf_$object.name$.common().flags().IS_MUST_UNDERSTAND(false);
-cbf_$object.name$.common().flags().IS_KEY(false);
-cbf_$object.name$.common().flags().IS_DEFAULT(false);
-cbf_$object.name$.common().position($object.position$);
-cbf_$object.name$.detail().name("$object.name$");
-
-// Position annotation always present
-{
-    AppliedAnnotation ann;
-    ann.annotation_typeid(*TypeObjectFactory::get_instance()->get_type_identifier_trying_complete("position"));
-    AppliedAnnotationParameter annParam;
-    MD5 message_hash("value");
-    for(int i = 0; i < 4; ++i)
-    {
-        annParam.paramname_hash()[i] = message_hash.digest[i];
-    }
-    AnnotationParameterValue paramValue;
-    paramValue._d(TK_UINT16);
-    paramValue.uint_16_value($object.position$);
-    annParam.value(paramValue);
-    ann.param_seq().push_back(annParam);
-
-    cbf_$object.name$.detail().ann_custom().push_back(ann);
-}
-
-$if(object.annotationList)$
-$object.annotationList:{ ann |
-{
-    if (std::strcmp("position", "$ann.name$") != 0)
-    {
-        AppliedAnnotation ann;
-        //ann.annotation_typeid(get_$ann.name$_identifier(true));
-        ann.annotation_typeid(*TypeObjectFactory::get_instance()->get_type_identifier_trying_complete("$ann.name$"));
-        $if(ann.valueList)$
-        $ann.valueList:{ annval |
-        {
-            AppliedAnnotationParameter annParam;
-            MD5 message_hash("$annval.name$");
-            for(int i = 0; i < 4; ++i)
-            {
-                annParam.paramname_hash()[i] = message_hash.digest[i];
-            \}
-            AnnotationParameterValue paramValue;
-            paramValue._d($annval.typecode.typeIdentifier$);
-            paramValue.from_string("$annval.value$");
-            annParam.value(paramValue);
-            ann.param_seq().push_back(annParam);
-        \}
-        };separator="\n"$
-        $endif$
-        cbf_$object.name$.detail().ann_custom().push_back(ann);
-    \}
-\}
-}; separator="\n"$
-$endif$
-
-type_object->complete().bitmask_type().flag_seq().emplace_back(cbf_$object.name$);
+complete_bitmask_flag(ctx, object, parent) ::= <<
+//    - CompleteBitflag
+CompleteBitflag $object.name$_complete_bitflag;
+$common_bitflag(ctx=ctx, object=object, name=["complete"])$
+$complete_member_detail(ctx=ctx, object=object, parent=parent, name=["_complete_bitflag"])$
+type_object->complete().bitmask_type().flag_seq().emplace_back($object.name$_complete_bitflag);
 
 >>
 
@@ -1447,13 +1366,13 @@ $object.valueList : { annotation_parameter |
 $if(parent.isUnit)$
 //            - @optional AppliedBuiltinMemberAnnotations: @unit
 $member.name$_complete_enum_literal.detail().ann_builtin().unit("$annotation_parameter.value$");
-$elseif(!root.isEnumType && (parent.isMin || annotation_parameter.isMin))$
+$elseif(!(root.isEnumType || root.isBitmaskType) && (parent.isMin || annotation_parameter.isMin))$
 //            - @optional AppliedBuiltinMemberAnnotations: @min, @range
 AnnotationParameterValue value_min;
 value_min._d(TODO);
 $annotation_parameter_value(ctx=ctx, object=annotation_parameter)$
 $member.name$_complete_enum_literal.detail().ann_builtin().min(value_min);
-$elseif(!root.isEnumType && (parent.isMax || annotation_parameter.isMax))$
+$elseif(!(root.isEnumType || root.isBitmaskType) && (parent.isMax || annotation_parameter.isMax))$
 //            - @optional AppliedBuiltinMemberAnnotations: @max, @range
 AnnotationParameterValue value_max;
 value_max._d(TODO);
@@ -1526,6 +1445,35 @@ $object.annotationList: { annotation |
 $if(annotation.isVerbatim)$
 //            - @optional AppliedBuiltinTypeAnnotations: @verbatim annotation
 $applied_builtin_type_annotation(ctx=ctx, object=annotation)$
+$else$
+$applied_annotation(ctx=ctx, object=annotation)$
+$endif$
+}; separator=""$
+$endif$
+>>
+
+minimal_member_detail(ctx, object, name) ::= <<
+//        - MinimalMemberDetail
+//            - NameHash
+$md5_hash(ctx=ctx, object=object, name=name)$
+>>
+
+common_bitflag(ctx, object, name) ::= <<
+//        - CommonBitflag
+//            - unsigned short: position
+$object.name$_$name$_bitflag.common().position($object.position$);
+//            - BitflagFlag: unused. No flags apply
+>>
+
+complete_member_detail(ctx, object, parent, name) ::= <<
+//        - CompleteMemberDetail
+//            - MemberName
+$object.name$$name$.detail().name("$object.name$");
+$if(object.annotationList)$
+//            - @optional AppliedAnnotationSeq:
+$object.annotationList: { annotation |
+$if(annotation.isUnit || annotation.isMin || annotation.isMax || annotation.isRange || annotation.isHashId)$
+$applied_builtin_member_annotations(ctx=ctx, object=annotation, parent=annotation, member=object, root=parent)$
 $else$
 $applied_annotation(ctx=ctx, object=annotation)$
 $endif$
