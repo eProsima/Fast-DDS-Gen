@@ -468,18 +468,7 @@ const TypeObject* get_complete_$enum.name$_object()
     //       when this annotation is applied to an enumerated type.
     type_object->complete().enumerated_type().header().common().bit_bound(32);
     //        - CompleteTypeDetail
-    $if(enum.annotationList)$
-$enum.annotationList: { annotation |
-$if(annotation.isVerbatim)$
-//            - @optional AppliedBuiltinTypeAnnotations: @verbatim annotation
-$applied_builtin_type_annotation(ctx=ctx, object=annotation)$
-$else$
-//            - @optional AppliedAnnotationSeq:
-$applied_annotation(ctx=ctx, object=annotation)$
-$endif$
-}; separator="\n"$
-    $endif$
-
+    $complete_type_detail(ctx=ctx, object=enum)$
     //            - QualifiedTypeName
     type_object->complete().enumerated_type().header().detail().type_name("
         $if(ctx.GenerateTypesROS2)$$enum.ROS2Scopedname$$else$$enum.scopedname$$endif$");
@@ -516,11 +505,11 @@ $common_enumerated_literal(ctx=ctx, object=object, name=["_complete_enum_literal
 //            - MemberName
 $object.name$_complete_enum_literal.detail().name("$object.name$");
 $if(object.annotationList)$
+//            - @optional AppliedAnnotationSeq:
 $object.annotationList: { annotation |
 $if(annotation.isUnit || annotation.isMin || annotation.isMax || annotation.isRange || annotation.isHashId)$
 $applied_builtin_member_annotations(ctx=ctx, object=annotation, parent=annotation, member=object, root=parent)$
 $else$
-//            - @optional AppliedAnnotationSeq:
 $applied_annotation(ctx=ctx, object=annotation)$
 $endif$
 }; separator=""$
@@ -960,7 +949,15 @@ const TypeObject* get_minimal_$bitmask.name$_object()
     $get_minimal_type_object_impl(ctx=ctx, param=bitmask)$
     type_object->minimal()._d(TK_BITMASK);
 
+    // MinimalBitmaskType
+    //    - BitmaskTypeFlag: Unused. No flags apply
+    //    - MinimalBitmaskHeader: MinimalEnumeratedHeader
+    //        - CommonEnumeratedHeader
+    //            . BitBound
     type_object->minimal().bitmask_type().header().common().bit_bound($bitmask.bitBound$);
+
+
+    //    - MinimalBitflagSeq
 
     $bitmask.bitmasks:{ member | $minimal_bitmask_flag(ctx=ctx, object=member)$}; separator="\n"$
 
@@ -975,44 +972,19 @@ const TypeObject* get_complete_$bitmask.name$_object()
     $get_complete_type_object_impl(ctx=ctx, param=bitmask)$
     type_object->complete()._d(TK_BITMASK);
 
-    // No flags apply
-    //type_object->complete().bitmask_type().bitmask_flags().IS_FINAL(false);
-    //type_object->complete().bitmask_type().bitmask_flags().IS_APPENDABLE(false);
-    //type_object->complete().bitmask_type().bitmask_flags().IS_MUTABLE(false);
-    //type_object->complete().bitmask_type().bitmask_flags().IS_NESTED(false);
-    //type_object->complete().bitmask_type().bitmask_flags().IS_AUTOID_HASH(false);
-
+    // CompleteBitmaskType
+    //    - BitmaskTypeFlag: Unused. No flags apply
+    //    - CompleteBitmaskHeader: CompleteEnumeratedHeader
+    //        - CommonEnumeratedHeader
+    //            - BitBound
     type_object->complete().bitmask_type().header().common().bit_bound($bitmask.bitBound$);
+    //    - CompleteTypeDetail
+    $complete_type_detail(ctx=ctx, object=bitmask)$
+    //            - QualifiedTypeName
+    type_object->complete().bitmask_type().header().detail().type_name("
+        $if(ctx.GenerateTypesROS2)$$bitmask.ROS2Scopedname$$else$$bitmask.scopedname$$endif$");
 
-    $if(bitmask.annotationList)$
-    $bitmask.annotationList:{ ann |
-{
-    AppliedAnnotation ann;
-    //ann.annotation_typeid(get_$ann.name$_identifier(true));
-    ann.annotation_typeid(*TypeObjectFactory::get_instance()->get_type_identifier_trying_complete("$ann.name$"));
-    $if(ann.valueList)$
-    $ann.valueList:{ annval |
-{
-    AppliedAnnotationParameter annParam;
-    MD5 message_hash("$annval.name$");
-    for(int i = 0; i < 4; ++i)
-    {
-        annParam.paramname_hash()[i] = message_hash.digest[i];
-    \}
-    AnnotationParameterValue paramValue;
-    paramValue._d($annval.typecode.typeIdentifier$);
-    paramValue.from_string("$annval.value$");
-    annParam.value(paramValue);
-    ann.param_seq().push_back(annParam);
-\}
-    };separator="\n"$
-    $endif$
-    type_object->complete().bitmask_type().header().detail().ann_custom().push_back(ann);
-\}
-    }; separator="\n"$
-    $endif$
-
-    type_object->complete().bitmask_type().header().detail().type_name("$bitmask.name$");
+    //    - CompleteBitflagSeq
 
     $bitmask.members:{ member | $complete_bitmask_flag(ctx=ctx, object=member)$}; separator="\n"$
 
@@ -1505,8 +1477,8 @@ TypeIdentifier* $object.name$_annotation_type_id = TypeObjectFactory::get_instac
     true);
 assert(nullptr != $object.name$_annotation_type_id);
 $object.name$_applied_annotation.annotation_typeid(*$object.name$_annotation_type_id);
-//                - @optional AppliedAnnotationParameterSeq
 $if(object.valueList)$
+//                - @optional AppliedAnnotationParameterSeq
 $object.valueList : { annotation_parameter | $applied_annotation_parameter(ctx=ctx, object=annotation_parameter, parent=object)$}; separator="\n"$
 $endif$
 
@@ -1545,4 +1517,18 @@ common_enumerated_literal(ctx, object, name) ::= <<
 $object.name$$name$.common().value(value++);
 //            - EnumeratedLiteralFlag: IS_DEFAULT (D) flag
 $object.name$$name$.common().flags().IS_DEFAULT($object.annotationDefaultLiteral$);
+>>
+
+complete_type_detail(ctx, object) ::= <<
+$if(object.annotationList)$
+//            - @optional AppliedAnnotationSeq:
+$object.annotationList: { annotation |
+$if(annotation.isVerbatim)$
+//            - @optional AppliedBuiltinTypeAnnotations: @verbatim annotation
+$applied_builtin_type_annotation(ctx=ctx, object=annotation)$
+$else$
+$applied_annotation(ctx=ctx, object=annotation)$
+$endif$
+}; separator=""$
+$endif$
 >>
