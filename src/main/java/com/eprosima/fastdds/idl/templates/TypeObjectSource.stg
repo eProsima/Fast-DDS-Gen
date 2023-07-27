@@ -1392,7 +1392,7 @@ applied_annotation(ctx, object) ::= <<
 AppliedAnnotation $object.name$_applied_annotation;
 //                - TypeIdentifier
 TypeIdentifier* $object.name$_annotation_type_id = TypeObjectFactory::get_instace()::get_type_identifier(
-    "$object.name$",
+    "$if(ctx.GenerateTypesROS2)$$object.ROS2Scopedname$$else$$object.scopedname$$endif$",
     true);
 assert(nullptr != $object.name$_annotation_type_id);
 $object.name$_applied_annotation.annotation_typeid(*$object.name$_annotation_type_id);
