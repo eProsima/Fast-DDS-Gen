@@ -319,7 +319,7 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
 
     public String getProduct()
     {
-        return "fastcdr";
+        return "fastdds";
     }
 
     public String getNamespace()

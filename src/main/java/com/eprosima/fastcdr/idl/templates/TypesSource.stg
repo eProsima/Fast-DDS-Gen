@@ -176,8 +176,11 @@ $endif$
 >>
 
 struct_type(ctx, parent, struct, extensions) ::= <<
-$struct.scopedname$::$struct.name$()$if(struct.inheritances)$
-    : $struct.inheritances : { inheritance | $struct_inherit_default_init(inheritance)$ }; separator=",\n"$ $endif$
+$struct.scopedname$::$struct.name$()
+    $if(struct.inheritances)$
+        : $struct.inheritances : { inheritance | $struct_inherit_default_init(inheritance)$ }; separator=",\n"$
+    $endif$
+
 {
     $struct.members:{ member |$member_default_init(ctx=ctx, member=member, loopvar=ctx.newLoopVarName)$}; separator="\n"$
 
@@ -193,15 +196,21 @@ $struct.scopedname$::~$struct.name$()
 }
 
 $struct.scopedname$::$struct.name$(
-        const $struct.name$& x)$if(struct.inheritances)$
-    : $struct.inheritances : { inheritance | $struct_inherit_copy_init(inheritance)$ }; separator=",\n"$ $endif$
+        const $struct.name$& x)
+    $if(struct.inheritances)$
+        : $struct.inheritances : { inheritance | $struct_inherit_copy_init(inheritance)$ }; separator=",\n"$
+    $endif$
+
 {
     $struct.members:{ member | $member_copy(ctx=ctx, member=member)$}; separator="\n"$
 }
 
 $struct.scopedname$::$struct.name$(
-        $struct.name$&& x) noexcept $if(struct.inheritances)$
-    : $struct.inheritances : { inheritance | $struct_inherit_move_init(inheritance)$}; separator=",\n"$ $endif$
+        $struct.name$&& x) noexcept
+    $if(struct.inheritances)$
+        : $struct.inheritances : { inheritance | $struct_inherit_move_init(inheritance)$}; separator=",\n"$
+    $endif$
+
 {
     $struct.members:{ member | $member_move(member=member)$}; separator="\n"$
 }
@@ -209,7 +218,7 @@ $struct.scopedname$::$struct.name$(
 $struct.scopedname$& $struct.scopedname$::operator =(
         const $struct.name$& x)
 {
-    $if(struct.inheritances)$    $struct.inheritances : { inheritance | $inheritance.scopedname$::operator =(x);}; separator="\n"$ $endif$
+    $if(struct.inheritances)$ $struct.inheritances : { inheritance | $inheritance.scopedname$::operator =(x);}; separator="\n"$ $endif$
 
     $struct.members:{ member | $member_copy(ctx=ctx, member=member)$}; separator="\n"$
 
@@ -219,7 +228,7 @@ $struct.scopedname$& $struct.scopedname$::operator =(
 $struct.scopedname$& $struct.scopedname$::operator =(
         $struct.name$&& x) noexcept
 {
-    $if(struct.inheritances)$    $struct.inheritances : { inheritance | $inheritance.scopedname$::operator =(std::move(x));}; separator="\n"$ $endif$
+    $if(struct.inheritances)$ $struct.inheritances : { inheritance | $inheritance.scopedname$::operator =(std::move(x));}; separator="\n"$ $endif$
 
     $struct.members:{ member | $member_move(member=member)$}; separator="\n"$
 
@@ -229,7 +238,7 @@ $struct.scopedname$& $struct.scopedname$::operator =(
 bool $struct.scopedname$::operator ==(
         const $struct.name$& x) const
 {
-    $if(struct.inheritances)$    $struct.inheritances : { inheritance | if ($inheritance.scopedname$::operator !=(x)) return false;}; separator="\n"$ $endif$
+    $if(struct.inheritances)$ $struct.inheritances : { inheritance | if ($inheritance.scopedname$::operator !=(x)) return false;}; separator="\n"$ $endif$
 
     return $if(struct.members)$($struct.members:{ member | m_$member.name$ == x.m_$member.name$}; separator=" && "$)$else$true$endif$;
 }
@@ -244,7 +253,7 @@ $if(ctx.fastcdr)$
 void $struct.scopedname$::serialize(
         eprosima::fastcdr::FastCdr &scdr) const
 {
-    $if(struct.inheritances)$    $struct.inheritances : { inheritance | $inheritance.scopedname$::serialize(scdr);}; separator="\n"$ $endif$
+    $if(struct.inheritances)$ $struct.inheritances : { inheritance | $inheritance.scopedname$::serialize(scdr);}; separator="\n"$ $endif$
 
     $struct.members : { member |$if(!member.annotationNonSerialized)$$object_serialization(ctx=ctx, object=member)$$endif$}; separator=""$
 }
@@ -252,7 +261,7 @@ void $struct.scopedname$::serialize(
 void $struct.scopedname$::deserialize(
         eprosima::fastcdr::FastCdr& dcdr)
 {
-    $if(struct.inheritances)$    $struct.inheritances : { inheritance | $inheritance.scopedname$::deserialize(dcdr);}; separator="\n"$ $endif$
+    $if(struct.inheritances)$ $struct.inheritances : { inheritance | $inheritance.scopedname$::deserialize(dcdr);}; separator="\n"$ $endif$
 
     $struct.members : { member |$if(!member.annotationNonSerialized)$$object_deserialization(ctx=ctx, object=member)$$endif$}; separator="\n"$
 }

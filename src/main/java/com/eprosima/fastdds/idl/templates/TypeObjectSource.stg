@@ -92,26 +92,26 @@ $endif$
 
 register_annotation_types(annotation) ::= <<
 
-$annotation.enums : {$register_annotation_enum(it)$}; separator="\n"$
+$annotation.enums : { it | $register_annotation_enum(it)$}; separator="\n"$
 
-$annotation.typeDefs : {$register_annotation_typedef(it)$}; separator="\n"$
+$annotation.typeDefs : { it | $register_annotation_typedef(it)$}; separator="\n"$
 
 >>
 
 register_annotation_enum(enum) ::= <<
-factory->add_type_object("$enum.name$", $if(object.hasScope)$$object.scope$::$endif$Get$enum.name$Identifier(true),
-        $if(object.hasScope)$$object.scope$::$endif$Get$enum.name$Object(true));
-factory->add_type_object("$enum.name$", $if(object.hasScope)$$object.scope$::$endif$Get$enum.name$Identifier(false),
-        $if(object.hasScope)$$object.scope$::$endif$Get$enum.name$Object(false));
+factory->add_type_object("$enum.name$", $if(enum.hasScope)$$enum.scope$::$endif$Get$enum.name$Identifier(true),
+        $if(enum.hasScope)$$enum.scope$::$endif$Get$enum.name$Object(true));
+factory->add_type_object("$enum.name$", $if(enum.hasScope)$$enum.scope$::$endif$Get$enum.name$Identifier(false),
+        $if(enum.hasScope)$$enum.scope$::$endif$Get$enum.name$Object(false));
 >>
 
 register_annotation_typedef(typedef) ::= <<
 factory->add_type_object("$typedef.name$",
-        $if(object.hasScope)$$object.scope$::$endif$Get$typedef.name$Identifier(true),
-        $if(object.hasScope)$$object.scope$::$endif$Get$typedef.name$Object(true));
+        $if(typedef.hasScope)$$typedef.scope$::$endif$Get$typedef.name$Identifier(true),
+        $if(typedef.hasScope)$$typedef.scope$::$endif$Get$typedef.name$Object(true));
 factory->add_type_object("$typedef.name$",
-        $if(object.hasScope)$$object.scope$::$endif$Get$typedef.name$Identifier(false),
-        $if(object.hasScope)$$object.scope$::$endif$Get$typedef.name$Object(false));
+        $if(typedef.hasScope)$$typedef.scope$::$endif$Get$typedef.name$Identifier(false),
+        $if(typedef.hasScope)$$typedef.scope$::$endif$Get$typedef.name$Object(false));
 >>
 
 module(ctx, parent, module, definition_list) ::= <<
@@ -249,9 +249,9 @@ const TypeObject* GetComplete$annotation.name$Object()
 
 namespace $annotation.name$
 {
-$annotation.enums : {$enum_type(ctx=ctx, parent=annotation, enum=it)$}; separator="\n"$
+$annotation.enums : { it |$enum_type(ctx=ctx, parent=annotation, enum=it)$}; separator="\n"$
 
-$annotation.typeDefs : {$typedef_decl(ctx=ctx, parent=annotation, typedefs=it)$}; separator="\n"$
+$annotation.typeDefs : { it |$typedef_decl(ctx=ctx, parent=annotation, typedefs=it)$}; separator="\n"$
 
 } // $annotation.name$ namespace
 >>
@@ -611,17 +611,17 @@ const TypeObject* GetComplete$enum.name$Object()
     for(int i = 0; i < 4; ++i)
     {
         annParam.paramname_hash()[i] = message_hash.digest[i];
-    }
+    \}
     AnnotationParameterValue paramValue;
     paramValue._d($annval.typecode.typeIdentifier$);
     paramValue.from_string("$annval.value$");
     annParam.value(paramValue);
     ann.param_seq().push_back(annParam);
-}
+\}
     };separator="\n"$
     $endif$
     type_object->complete().enumerated_type().header().detail().ann_custom().push_back(ann);
-}
+\}
     }; separator="\n"$
     $endif$
 
@@ -703,17 +703,17 @@ $object.annotationList:{ ann |
         for(int i = 0; i < 4; ++i)
         {
             annParam.paramname_hash()[i] = message_hash.digest[i];
-        }
+        \}
         AnnotationParameterValue paramValue;
         paramValue._d($annval.typecode.typeIdentifier$);
         paramValue.from_string("$annval.value$");
         annParam.value(paramValue);
         ann.param_seq().push_back(annParam);
-    }
+    \}
     };separator="\n"$
     $endif$
     cel_$object.name$.detail().ann_custom().push_back(ann);
-}
+\}
 }; separator="\n"$
 $endif$
 
@@ -774,7 +774,7 @@ const TypeObject* GetMinimal$struct.name$Object()
     // TODO Inheritance
     //type_object->minimal().struct_type().header().base_type()._d(EK_MINIMAL);
     //type_object->minimal().struct_type().header().base_type().equivalence_hash()[0..13];
-    $struct.inheritances:{$minimal_struct_inheritance(it)$}; separator="\n"$
+    $struct.inheritances:{ it | $minimal_struct_inheritance(it)$}; separator="\n"$
 
     TypeIdentifier identifier;
     identifier._d(EK_MINIMAL);
@@ -828,7 +828,7 @@ const TypeObject* GetComplete$struct.name$Object()
     // Header
     type_object->complete().struct_type().header().detail().type_name("$struct.name$");
     // TODO inheritance
-    $struct.inheritances:{$complete_struct_inheritance(it)$}; separator="\n"$
+    $struct.inheritances:{ it | $complete_struct_inheritance(it)$}; separator="\n"$
 
     $if(struct.annotationList)$
     $struct.annotationList:{ ann |
@@ -844,17 +844,17 @@ const TypeObject* GetComplete$struct.name$Object()
     for(int i = 0; i < 4; ++i)
     {
         annParam.paramname_hash()[i] = message_hash.digest[i];
-    }
+    \}
     AnnotationParameterValue paramValue;
     paramValue._d($annval.typecode.typeIdentifier$);
     paramValue.from_string("$annval.value$");
     annParam.value(paramValue);
     ann.param_seq().push_back(annParam);
-}
+\}
     };separator="\n"$
     $endif$
     type_object->complete().struct_type().header().detail().ann_custom().push_back(ann);
-}
+\}
     }; separator="\n"$
     $endif$
 
@@ -959,17 +959,17 @@ $object.annotationList:{ ann |
         for(int i = 0; i < 4; ++i)
         {
             annParam.paramname_hash()[i] = message_hash.digest[i];
-        }
+        \}
         AnnotationParameterValue paramValue;
         paramValue._d($annval.typecode.typeIdentifier$);
         paramValue.from_string("$annval.value$");
         annParam.value(paramValue);
         ann.param_seq().push_back(annParam);
-    }
+    \}
     };separator="\n"$
     $endif$
     cst_$object.name$.detail().ann_custom().push_back(ann);
-}
+\}
 }; separator="\n"$
 $endif$
 
@@ -1114,17 +1114,17 @@ const TypeObject* GetComplete$union.name$Object()
     for(int i = 0; i < 4; ++i)
     {
         annParam.paramname_hash()[i] = message_hash.digest[i];
-    }
+    \}
     AnnotationParameterValue paramValue;
     paramValue._d($annval.typecode.typeIdentifier$);
     paramValue.from_string("$annval.value$");
     annParam.value(paramValue);
     ann.param_seq().push_back(annParam);
-}
+\}
     };separator="\n"$
     $endif$
     type_object->complete().union_type().discriminator().ann_custom().push_back(ann);
-}
+\}
     }; separator="\n"$
     $endif$
 
@@ -1148,17 +1148,17 @@ const TypeObject* GetComplete$union.name$Object()
     for(int i = 0; i < 4; ++i)
     {
         annParam.paramname_hash()[i] = message_hash.digest[i];
-    }
+    \}
     AnnotationParameterValue paramValue;
     paramValue._d($annval.typecode.typeIdentifier$);
     paramValue.from_string("$annval.value$");
     annParam.value(paramValue);
     ann.param_seq().push_back(annParam);
-}
+\}
     };separator="\n"$
     $endif$
     type_object->complete().union_type().header().detail().ann_custom().push_back(ann);
-}
+\}
     }; separator="\n"$
     $endif$
 
@@ -1264,17 +1264,17 @@ $object.annotationList:{ ann |
         for(int i = 0; i < 4; ++i)
         {
             annParam.paramname_hash()[i] = message_hash.digest[i];
-        }
+        \}
         AnnotationParameterValue paramValue;
         paramValue._d($annval.typecode.typeIdentifier$);
         paramValue.from_string("$annval.value$");
         annParam.value(paramValue);
         ann.param_seq().push_back(annParam);
-    }
+    \}
     };separator="\n"$
     $endif$
     cst_$object.name$.detail().ann_custom().push_back(ann);
-}
+\}
 }; separator="\n"$
 $endif$
 
@@ -1389,17 +1389,17 @@ const TypeObject* GetComplete$bitmask.name$Object()
     for(int i = 0; i < 4; ++i)
     {
         annParam.paramname_hash()[i] = message_hash.digest[i];
-    }
+    \}
     AnnotationParameterValue paramValue;
     paramValue._d($annval.typecode.typeIdentifier$);
     paramValue.from_string("$annval.value$");
     annParam.value(paramValue);
     ann.param_seq().push_back(annParam);
-}
+\}
     };separator="\n"$
     $endif$
     type_object->complete().bitmask_type().header().detail().ann_custom().push_back(ann);
-}
+\}
     }; separator="\n"$
     $endif$
 
@@ -1503,18 +1503,18 @@ $object.annotationList:{ ann |
             for(int i = 0; i < 4; ++i)
             {
                 annParam.paramname_hash()[i] = message_hash.digest[i];
-            }
+            \}
             AnnotationParameterValue paramValue;
             paramValue._d($annval.typecode.typeIdentifier$);
             paramValue.from_string("$annval.value$");
             annParam.value(paramValue);
             ann.param_seq().push_back(annParam);
-        }
+        \}
         };separator="\n"$
         $endif$
         cbf_$object.name$.detail().ann_custom().push_back(ann);
-    }
-}
+    \}
+\}
 }; separator="\n"$
 $endif$
 
@@ -1564,7 +1564,7 @@ const TypeObject* GetMinimal$bitset.name$Object()
 
     $bitset.bitfields:{ member | $minimal_bitfield(ctx=ctx, object=member)$}; separator="\n"$
 
-    $bitset.parents:{$minimal_bitset_inheritance(it)$}; separator="\n"$
+    $bitset.parents:{ it | $minimal_bitset_inheritance(it)$}; separator="\n"$
 
     TypeIdentifier identifier;
     identifier._d(EK_MINIMAL);
@@ -1627,17 +1627,17 @@ const TypeObject* GetComplete$bitset.name$Object()
     for(int i = 0; i < 4; ++i)
     {
         annParam.paramname_hash()[i] = message_hash.digest[i];
-    }
+    \}
     AnnotationParameterValue paramValue;
     paramValue._d($annval.typecode.typeIdentifier$);
     paramValue.from_string("$annval.value$");
     annParam.value(paramValue);
     ann.param_seq().push_back(annParam);
-}
+\}
     };separator="\n"$
     $endif$
     type_object->complete().bitset_type().header().detail().ann_custom().push_back(ann);
-}
+\}
     }; separator="\n"$
     $endif$
 
@@ -1645,7 +1645,7 @@ const TypeObject* GetComplete$bitset.name$Object()
 
     $bitset.bitfields:{ member | $complete_bitfield(ctx=ctx, object=member)$}; separator="\n"$
 
-    $bitset.parents:{$complete_bitset_inheritance(it)$}; separator="\n"$
+    $bitset.parents:{ it | $complete_bitset_inheritance(it)$}; separator="\n"$
 
     TypeIdentifier identifier;
     identifier._d(EK_COMPLETE);
@@ -1771,18 +1771,18 @@ $object.annotationList:{ ann |
             for(int i = 0; i < 4; ++i)
             {
                 annParam.paramname_hash()[i] = message_hash.digest[i];
-            }
+            \}
             AnnotationParameterValue paramValue;
             paramValue._d($annval.typecode.typeIdentifier$);
             paramValue.from_string("$annval.value$");
             annParam.value(paramValue);
             ann.param_seq().push_back(annParam);
-        }
+        \}
         };separator="\n"$
         $endif$
         cbf_$object.name$.detail().ann_custom().push_back(ann);
-    }
-}
+    \}
+\}
 }; separator="\n"$
 $endif$
 
