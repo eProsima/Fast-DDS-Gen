@@ -196,6 +196,8 @@ bitmask_type(ctx, parent, bitmask) ::= <<>>
 
 const_decl(ctx, parent, const) ::= <<>>
 
+annotation(ctx, parent, annotation) ::= <<>>
+
 typedef_decl(ctx, parent, typedefs) ::= <<>>
 
 fwd_decl(ctx, parent, type) ::= <<>>

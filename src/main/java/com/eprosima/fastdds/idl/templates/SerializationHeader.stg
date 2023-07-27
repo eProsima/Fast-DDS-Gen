@@ -96,7 +96,7 @@ int compare$bitset.name$(
 
 >>
 
-annotation(ctx, annotation) ::= <<>>
+annotation(ctx, parent, annotation) ::= <<>>
 
 module(ctx, parent, module, definition_list) ::= <<
 namespace $module.name$ {

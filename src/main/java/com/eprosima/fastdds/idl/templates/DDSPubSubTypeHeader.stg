@@ -56,7 +56,7 @@ definition_list(definitions) ::= <<
 $definitions; separator="\n"$
 >>
 
-annotation(ctx, annotation) ::= <<>>
+annotation(ctx, parent, annotation) ::= <<>>
 
 interface(ctx, parent, interface, export_list) ::= <<
 $export_list$

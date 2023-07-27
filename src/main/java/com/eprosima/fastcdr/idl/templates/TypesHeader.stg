@@ -109,7 +109,7 @@ definition_list(definitions) ::= <<
 $definitions; separator="\n"$
 >>
 
-annotation(ctx, annotation) ::= <<
+annotation(ctx, parent, annotation) ::= <<
 namespace $annotation.name$ {
     $annotation.enums : { enum | $enum_type(ctx=ctx, parent=annotation, enum=enum)$}; separator="\n"$
 

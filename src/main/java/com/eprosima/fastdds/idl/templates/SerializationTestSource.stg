@@ -161,7 +161,7 @@ bitmask_type(ctx, parent, bitmask) ::= <<>>
 
 bitset_type(ctx, parent, bitset) ::= <<>>
 
-annotation(ctx, annotation) ::= <<>>
+annotation(ctx, parent, annotation) ::= <<>>
 
 module(ctx, parent, module, definition_list) ::= <<>>
 

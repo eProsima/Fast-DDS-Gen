@@ -138,7 +138,7 @@ const TypeObject* get_complete_$bitset.name$_object();
 
 >>
 
-annotation(ctx, annotation) ::= <<
+annotation(ctx, parent, annotation) ::= <<
 $get_type_identifier_doxydoc(ctx=ctx, param=annotation)$
 const TypeIdentifier* get_$annotation.name$_identifier(
         bool complete = false);
