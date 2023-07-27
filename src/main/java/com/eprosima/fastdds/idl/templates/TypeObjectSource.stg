@@ -487,7 +487,7 @@ $endif$
     //        - CompleteEnumeratedLiteralSeq
 
     uint32_t value = 0;
-    $enum.members:{ member | $complete_enumerated_literal(ctx=ctx, object=member)$}; separator="\n"$
+    $enum.members:{ member | $complete_enumerated_literal(ctx=ctx, object=member, parent=enum)$}; separator="\n"$
 
     $type_identifier_decl(ctx=ctx, complete=["EK_COMPLETE"])$
     SerializedPayload_t payload(static_cast<uint32_t>(
@@ -508,7 +508,7 @@ type_object->minimal().enumerated_type().literal_seq().emplace_back($object.name
 
 >>
 
-complete_enumerated_literal(ctx, object) ::= <<
+complete_enumerated_literal(ctx, object, parent) ::= <<
 //    - CompleteEnumeratedLiteral
 CompleteEnumeratedLiteral $object.name$_complete_enum_literal;
 $common_enumerated_literal(ctx=ctx, object=object, name=["_complete_enum_literal"])$
@@ -517,23 +517,14 @@ $common_enumerated_literal(ctx=ctx, object=object, name=["_complete_enum_literal
 $object.name$_complete_enum_literal.detail().name("$object.name$");
 $if(object.annotationList)$
 $object.annotationList: { annotation |
-$if(annotation.isUnit || annotation.isMin)$
-//            - @optional AppliedBuiltinMemberAnnotations: @unit
-$elseif(annotation.isMin)$
-//            - @optional AppliedBuiltinMemberAnnotations: @min
-$elseif(annotation.isMax)$
-//            - @optional AppliedBuiltinMemberAnnotations: @max
-$elseif(annotation.isRange)$
-//            - @optional AppliedBuiltinMemberAnnotations: @range
-$elseif(annotation.isHashId)$
-//            - @optional AppliedBuiltinMemberAnnotations: @hash_id
+$if(annotation.isUnit || annotation.isMin || annotation.isMax || annotation.isRange || annotation.isHashId)$
+$applied_builtin_member_annotations(ctx=ctx, object=annotation, parent=annotation, member=object, root=parent)$
 $else$
 //            - @optional AppliedAnnotationSeq:
 $applied_annotation(ctx=ctx, object=annotation)$
 $endif$
-}; separator="\n"$
+}; separator=""$
 $endif$
-
 type_object->complete().enumerated_type().literal_seq().emplace_back($object.name$_complete_enum_literal);
 
 >>
@@ -1473,6 +1464,32 @@ $elseif(annotation_parameter.isVerbatimLanguage)$
 typeobject->complete().enumerated_type().header().detail().ann_builtin().verbatim().language("$annotation_parameter.value$");
 $elseif(annotation_parameter.isVerbatimText)$
 typeobject->complete().enumerated_type().header().detail().ann_builtin().verbatim().text("$annotation_parameter.value$");
+$endif$
+}; separator=""$
+$endif$
+>>
+
+applied_builtin_member_annotations(ctx, object, parent, member, root) ::= <<
+$if(object.valueList)$
+$object.valueList : { annotation_parameter |
+$if(parent.isUnit)$
+//            - @optional AppliedBuiltinMemberAnnotations: @unit
+$member.name$_complete_enum_literal.detail().ann_builtin().unit("$annotation_parameter.value$");
+$elseif(!root.isEnumType && (parent.isMin || annotation_parameter.isMin))$
+//            - @optional AppliedBuiltinMemberAnnotations: @min, @range
+AnnotationParameterValue value_min;
+value_min._d(TODO);
+$annotation_parameter_value(ctx=ctx, object=annotation_parameter)$
+$member.name$_complete_enum_literal.detail().ann_builtin().min(value_min);
+$elseif(!root.isEnumType && (parent.isMax || annotation_parameter.isMax))$
+//            - @optional AppliedBuiltinMemberAnnotations: @max, @range
+AnnotationParameterValue value_max;
+value_max._d(TODO);
+$annotation_parameter_value(ctx=ctx, object=annotation_parameter)$
+$parent.name$_complete_enum_literal.detail().ann_builtin().max(value_max);
+$elseif(parent.isHashId)$
+//            - @optional AppliedBuiltinMemberAnnotations: @hashid
+$member.name$_complete_enum_literal.detail().ann_builtin().hash_id("$annotation_parameter.value$");
 $endif$
 }; separator=""$
 $endif$
