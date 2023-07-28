@@ -186,17 +186,7 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
 
         if (typedecl.getTypeCode().getKind() == Kind.KIND_STRUCT && typedecl.isInScope())
         {
-            Annotation topicann = typedecl.getAnnotations().get("Topic");
-
-            if (topicann != null && topicann.getValue("value").equalsIgnoreCase("false"))
-            {
-                StructTypeCode structtypecode = (StructTypeCode)typedecl.getTypeCode();
-                structtypecode.setIsTopic(false);
-            }
-            else
-            {
-                m_lastStructure = typedecl;
-            }
+            m_lastStructure = typedecl;
         }
     }
 

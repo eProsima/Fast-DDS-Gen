@@ -655,10 +655,6 @@ public class fastddsgen
             AnnotationDeclaration keyann = ctx.createAnnotationDeclaration("Key", null);
             keyann.addMember(new AnnotationMember("value", new PrimitiveTypeCode(Kind.KIND_BOOLEAN), "true"));
 
-            // Create default @Topic annotation.
-            AnnotationDeclaration topicann = ctx.createAnnotationDeclaration("Topic", null);
-            topicann.addMember(new AnnotationMember("value", new PrimitiveTypeCode(Kind.KIND_BOOLEAN), "true"));
-
             // Create template manager
             TemplateManager tmanager = new TemplateManager("FastCdrCommon:eprosima:Common", ctx, m_typesc);
 
