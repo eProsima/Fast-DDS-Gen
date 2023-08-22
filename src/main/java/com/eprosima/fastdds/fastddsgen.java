@@ -875,7 +875,7 @@ public class fastddsgen
                     returnedValue =
                             Utils.writeFile(fileNameH, maintemplates.getTemplate("SerializationHeader"), m_replace);
                     project.addCommonTestingFile(relative_dir + ctx.getFilename() + "PubSubTypes.cxx");
-                    
+
                     for (String element : project.getFullDependencies())
                     {
                         String trimmedElement = element.substring(0, element.length() - 4);// Remove .idl
@@ -884,29 +884,28 @@ public class fastddsgen
                 }
 
                 // TODO: Uncomment following lines and create templates
+                System.out.println("Generating TopicDataTypes files...");
+                    returnedValue &=
+                            Utils.writeFile(output_dir + ctx.getFilename() + "PubSubTypes.h",
+                            maintemplates.getTemplate("DDSPubSubTypeHeader"), m_replace);
+
                 if (ctx.existsLastStructure())
                 {
                     m_atLeastOneStructure = true;
                     project.setHasStruct(true);
 
-                    System.out.println("Generating TopicDataTypes files...");
                     if (returnedValue =
-                            Utils.writeFile(output_dir + ctx.getFilename() + "PubSubTypes.h",
-                            maintemplates.getTemplate("DDSPubSubTypeHeader"), m_replace))
+                            Utils.writeFile(output_dir + ctx.getFilename() + "PubSubTypes.cxx",
+                            maintemplates.getTemplate("DDSPubSubTypeSource"), m_replace))
                     {
-                        if (returnedValue =
-                                Utils.writeFile(output_dir + ctx.getFilename() + "PubSubTypes.cxx",
-                                maintemplates.getTemplate("DDSPubSubTypeSource"), m_replace))
+                        project.addProjectIncludeFile(relative_dir + ctx.getFilename() + "PubSubTypes.h");
+                        project.addProjectSrcFile(relative_dir + ctx.getFilename() + "PubSubTypes.cxx");
+                        if (m_python)
                         {
-                            project.addProjectIncludeFile(relative_dir + ctx.getFilename() + "PubSubTypes.h");
-                            project.addProjectSrcFile(relative_dir + ctx.getFilename() + "PubSubTypes.cxx");
-                            if (m_python)
-                            {
-                                System.out.println("Generating Swig interface files...");
-                                returnedValue = Utils.writeFile(
-                                    output_dir + ctx.getFilename() + "PubSubTypes.i",
-                                    maintemplates.getTemplate("DDSPubSubTypeSwigInterface"), m_replace);
-                            }
+                            System.out.println("Generating Swig interface files...");
+                            returnedValue = Utils.writeFile(
+                                output_dir + ctx.getFilename() + "PubSubTypes.i",
+                                maintemplates.getTemplate("DDSPubSubTypeSwigInterface"), m_replace);
                         }
                     }
 
