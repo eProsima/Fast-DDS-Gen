@@ -43,7 +43,6 @@ target_link_libraries($project.name$ $solution.libraries : { library | $library$
         $project.name$_lib $project.dependencies : { dep | $dep$_lib}; separator=" "$)
 $endif$
 
-
 $if(test)$
 # $project.name$ Serialization Test
 add_executable($project.name$SerializationTest

@@ -842,40 +842,39 @@ public class fastddsgen
                     }
                 }
 
-                // TODO: Uncomment following lines and create templates
                 System.out.println("Generating TopicDataTypes files...");
+                if (ctx.isThereIsStructOrUnion())
+                {
+                    if (returnedValue &=
+                            Utils.writeFile(output_dir + ctx.getFilename() + "CdrAux.hpp",
+                            maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/TypesCdrAuxHeader.stg"), m_replace))
+                    {
+                        project.addProjectIncludeFile(relative_dir + ctx.getFilename() + "CdrAux.hpp");
+                        returnedValue &=
+                                Utils.writeFile(output_dir + ctx.getFilename() + "CdrAux.ipp",
+                                    maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/TypesCdrAuxHeaderImpl.stg"), m_replace);
+                    }
+                }
                 returnedValue &=
-                    Utils.writeFile(output_dir + ctx.getFilename() + "PubSubTypes.h",
+                        Utils.writeFile(output_dir + ctx.getFilename() + "PubSubTypes.h",
                             maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/DDSPubSubTypeHeader.stg"), m_replace);
                 project.addProjectIncludeFile(relative_dir + ctx.getFilename() + "PubSubTypes.h");
-
                 if (ctx.existsLastStructure())
                 {
                     m_atLeastOneStructure = true;
                     project.setHasStruct(true);
 
-                    if (returnedValue =
-                            Utils.writeFile(output_dir + ctx.getFilename() + "CdrAux.hpp",
-                            maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/TypesCdrAuxHeader.stg"), m_replace))
+                    if (returnedValue &=
+                            Utils.writeFile(output_dir + ctx.getFilename() + "PubSubTypes.cxx",
+                                maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/DDSPubSubTypeSource.stg"), m_replace))
                     {
-                        if (returnedValue =
-                                Utils.writeFile(output_dir + ctx.getFilename() + "CdrAux.ipp",
-                                    maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/TypesCdrAuxHeaderImpl.stg"), m_replace))
+                        project.addProjectSrcFile(relative_dir + ctx.getFilename() + "PubSubTypes.cxx");
+                        if (m_python)
                         {
-                            if (returnedValue =
-                                    Utils.writeFile(output_dir + ctx.getFilename() + "PubSubTypes.cxx",
-                                        maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/DDSPubSubTypeSource.stg"), m_replace))
-                            {
-                                project.addProjectIncludeFile(relative_dir + ctx.getFilename() + "CdrAux.hpp");
-                                project.addProjectSrcFile(relative_dir + ctx.getFilename() + "PubSubTypes.cxx");
-                                if (m_python)
-                                {
-                                    System.out.println("Generating Swig interface files...");
-                                    returnedValue = Utils.writeFile(
-                                            output_dir + ctx.getFilename() + "PubSubTypes.i",
-                                            maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/DDSPubSubTypeSwigInterface.stg"), m_replace);
-                                }
-                            }
+                            System.out.println("Generating Swig interface files...");
+                            returnedValue &= Utils.writeFile(
+                                    output_dir + ctx.getFilename() + "PubSubTypes.i",
+                                    maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/DDSPubSubTypeSwigInterface.stg"), m_replace);
                         }
                     }
 

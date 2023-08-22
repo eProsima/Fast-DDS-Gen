@@ -55,7 +55,9 @@ $endif$
 
 $definitions; separator="\n"$
 
+$if(ctx.thereIsStructOrUnion)$
 #include "$ctx.filename$CdrAux.ipp"
+$endif$
 >>
 
 module(ctx, parent, module, definition_list) ::= <<

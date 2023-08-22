@@ -303,6 +303,20 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
         typecodes.add(new SimpleEntry<String, TypeCode>(sequence.getCppTypename(), sequence));
     }
 
+    public boolean isThereIsStructOrUnion()
+    {
+        for (TypeDeclaration type : m_types.values())
+        {
+            if (type.getTypeCode() instanceof StructTypeCode ||
+                    type.getTypeCode() instanceof UnionTypeCode)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     /*** Functions inherited from FastCDR Context ***/
 
     @Override
