@@ -37,9 +37,11 @@ message(STATUS "Configuring $project.name$...")
 add_library($project.name$_lib $project.commonSrcFiles : {$it$}; separator=" "$)
 target_link_libraries($project.name$_lib $solution.libraries : {$it$}; separator=" "$)
 
+$if(!project.projectSrcFiles.empty)$
 add_executable($project.name$ $project.projectSrcFiles : {$it$}; separator=" "$)
 target_link_libraries($project.name$ $solution.libraries : {$it$}; separator=" "$
         $project.name$_lib $project.dependencies : {$it$_lib}; separator=" "$)
+$endif$
 
 
 $if(test)$
