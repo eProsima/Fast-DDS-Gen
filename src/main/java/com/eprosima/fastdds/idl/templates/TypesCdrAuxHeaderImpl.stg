@@ -73,14 +73,12 @@ template<>
 eProsima_user_DllExport size_t calculate_serialized_size(
         eprosima::fastcdr::CdrSizeCalculator& calculator,
         const $exception.scopedname$& data,
-        size_t current_alignment)
+        size_t& current_alignment)
 {
-    static_cast<void>(calculator);
     static_cast<void>(data);
-    size_t initial_alignment = current_alignment;
 
     eprosima::fastcdr::EncodingAlgorithmFlag previous_encoding = calculator.get_encoding();
-    current_alignment += calculator.begin_calculate_type_serialized_size(
+    size_t calculated_size {calculator.begin_calculate_type_serialized_size(
             eprosima::fastcdr::CdrVersion::XCDRv2 == calculator.get_cdr_version() ?
             $if(exception.annotationFinal)$eprosima::fastcdr::EncodingAlgorithmFlag::PLAIN_CDR2
             $elseif(exception.annotationAppendable)$eprosima::fastcdr::EncodingAlgorithmFlag::DELIMIT_CDR2
@@ -90,17 +88,17 @@ eProsima_user_DllExport size_t calculate_serialized_size(
             $elseif(exception.annotationAppendable)$eprosima::fastcdr::EncodingAlgorithmFlag::PLAIN_CDR
             $elseif(exception.annotationMutable)$eprosima::fastcdr::EncodingAlgorithmFlag::PL_CDR
             $endif$,
-            current_alignment);
+            current_alignment)};
 
     $exception.members : { member |
         $if(!member.annotationNonSerialized)$
-            current_alignment += calculator.calculate_member_serialized_size(eprosima::fastcdr::MemberId($member.id$),
+            calculated_size += calculator.calculate_member_serialized_size(eprosima::fastcdr::MemberId($member.id$),
                     data.$member.name$(), current_alignment);
         $endif$}; separator="\n"$
 
-    current_alignment += calculator.end_calculate_type_serialized_size(previous_encoding, current_alignment);
+    calculated_size += calculator.end_calculate_type_serialized_size(previous_encoding, current_alignment);
 
-    return current_alignment - initial_alignment;
+    return calculated_size;
 }
 
 $endif$
@@ -182,14 +180,12 @@ template<>
 eProsima_user_DllExport size_t calculate_serialized_size(
         eprosima::fastcdr::CdrSizeCalculator& calculator,
         const $struct.scopedname$& data,
-        size_t current_alignment)
+        size_t& current_alignment)
 {
-    static_cast<void>(calculator);
     static_cast<void>(data);
-    size_t initial_alignment = current_alignment;
 
     eprosima::fastcdr::EncodingAlgorithmFlag previous_encoding = calculator.get_encoding();
-    current_alignment += calculator.begin_calculate_type_serialized_size(
+    size_t calculated_size {calculator.begin_calculate_type_serialized_size(
             eprosima::fastcdr::CdrVersion::XCDRv2 == calculator.get_cdr_version() ?
             $if(struct.annotationFinal)$eprosima::fastcdr::EncodingAlgorithmFlag::PLAIN_CDR2
             $elseif(struct.annotationAppendable)$eprosima::fastcdr::EncodingAlgorithmFlag::DELIMIT_CDR2
@@ -199,17 +195,17 @@ eProsima_user_DllExport size_t calculate_serialized_size(
             $elseif(struct.annotationAppendable)$eprosima::fastcdr::EncodingAlgorithmFlag::PLAIN_CDR
             $elseif(struct.annotationMutable)$eprosima::fastcdr::EncodingAlgorithmFlag::PL_CDR
             $endif$,
-            current_alignment);
+            current_alignment)};
 
 
     $struct.allIdentifiedMembers : { member |
         $if(!member.value.annotationNonSerialized)$
-            current_alignment += calculator.calculate_member_serialized_size(eprosima::fastcdr::MemberId($member.key$), data.$member.value.name$(), current_alignment);
+            calculated_size += calculator.calculate_member_serialized_size(eprosima::fastcdr::MemberId($member.key$), data.$member.value.name$(), current_alignment);
     $endif$}; separator="\n"$
 
-    current_alignment += calculator.end_calculate_type_serialized_size(previous_encoding, current_alignment);
+    calculated_size += calculator.end_calculate_type_serialized_size(previous_encoding, current_alignment);
 
-    return current_alignment - initial_alignment;
+    return calculated_size;
 }
 $endif$
 
@@ -307,14 +303,9 @@ template<>
 eProsima_user_DllExport size_t calculate_serialized_size(
         eprosima::fastcdr::CdrSizeCalculator& calculator,
         const $bitset.scopedname$& data,
-        size_t current_alignment)
+        size_t& current_alignment)
 {
-    static_cast<void>(calculator);
-    size_t initial_alignment = current_alignment;
-
-    current_alignment += calculator.calculate_serialized_size(data.bitset(), current_alignment);
-
-    return current_alignment - initial_alignment;
+    return calculator.calculate_serialized_size(data.bitset(), current_alignment);
 }
 $endif$
 
@@ -347,14 +338,12 @@ template<>
 eProsima_user_DllExport size_t calculate_serialized_size(
         eprosima::fastcdr::CdrSizeCalculator& calculator,
         const $union.scopedname$& data,
-        size_t current_alignment)
+        size_t& current_alignment)
 {
-    static_cast<void>(calculator);
     static_cast<void>(data);
-    size_t initial_alignment = current_alignment;
 
     eprosima::fastcdr::EncodingAlgorithmFlag previous_encoding = calculator.get_encoding();
-    current_alignment += calculator.begin_calculate_type_serialized_size(
+    size_t calculated_size {calculator.begin_calculate_type_serialized_size(
             eprosima::fastcdr::CdrVersion::XCDRv2 == calculator.get_cdr_version() ?
             $if(union.annotationFinal)$eprosima::fastcdr::EncodingAlgorithmFlag::PLAIN_CDR2
             $elseif(union.annotationAppendable)$eprosima::fastcdr::EncodingAlgorithmFlag::DELIMIT_CDR2
@@ -364,10 +353,10 @@ eProsima_user_DllExport size_t calculate_serialized_size(
             $elseif(union.annotationAppendable)$eprosima::fastcdr::EncodingAlgorithmFlag::PLAIN_CDR
             $elseif(union.annotationMutable)$eprosima::fastcdr::EncodingAlgorithmFlag::PL_CDR
             $endif$,
-            current_alignment);
+            current_alignment)};
 
     // TODO Member id del discriminador
-    current_alignment += calculator.calculate_member_serialized_size(eprosima::fastcdr::MemberId(0), data._d(),
+    calculated_size += calculator.calculate_member_serialized_size(eprosima::fastcdr::MemberId(0), data._d(),
             current_alignment);
 
     switch(data._d())
@@ -376,16 +365,16 @@ eProsima_user_DllExport size_t calculate_serialized_size(
             $if(member.value.printable)$
                 $member.value.labels:{ label |case $label$:}; separator="\n"$
                 $if(member.value.default)$default:$endif$
-                current_alignment += calculator.calculate_member_serialized_size(eprosima::fastcdr::MemberId($member.key$),
+                calculated_size += calculator.calculate_member_serialized_size(eprosima::fastcdr::MemberId($member.key$),
                         data.$member.value.name$(), current_alignment);
                 break;
             $endif$
         }; separator="\n"$
     }
 
-    current_alignment += calculator.end_calculate_type_serialized_size(previous_encoding, current_alignment);
+    calculated_size += calculator.end_calculate_type_serialized_size(previous_encoding, current_alignment);
 
-    return current_alignment - initial_alignment;
+    return calculated_size;
 }
 
 $endif$

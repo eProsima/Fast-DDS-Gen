@@ -1293,22 +1293,18 @@ bool& $scopedtypename$::release()
 $if(ctx.anyCdr)$
 size_t $scopedtypename$::calculate_serialized_size(
         const $scopedtypename$& data,
-        size_t current_alignment)
+        size_t& current_alignment)
 {
     eprosima::fastcdr::CdrSizeCalculator calculator(eprosima::fastcdr::CdrVersion::XCDRv2);
     return calculate_serialized_size(calculator, data, current_alignment);
 }
+
 size_t $scopedtypename$::calculate_serialized_size(
         eprosima::fastcdr::CdrSizeCalculator& calculator,
         const $scopedtypename$& data,
-        size_t current_alignment)
+        size_t& current_alignment)
 {
-    (void)data;
-    size_t initial_alignment = current_alignment;
-
-    current_alignment += calculator.calculate_serialized_size(data, current_alignment);
-
-    return current_alignment - initial_alignment;
+    return calculator.calculate_serialized_size(data, current_alignment);
 }
 
 $endif$
