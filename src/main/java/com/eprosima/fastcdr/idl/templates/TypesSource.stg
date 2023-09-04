@@ -611,7 +611,7 @@ public_primitive_member_declaration(class, member) ::= <<
 void $class$::$member.name$(
         $member_type_declaration(member)$ _$member.name$)
 {
-   $\ $$if(member.typecode.forwarded)$*$else$$endif$m_$member.name$ = _$member.name$;
+   $\ $$if(member.typecode.forwarded)$*$endif$m_$member.name$ = _$member.name$;
 }
 
 /*!
@@ -664,7 +664,7 @@ public_object_member_declaration(class, member) ::= <<
 void $class$::$member.name$(
         const $member_type_declaration(member)$& _$member.name$)
 {
-   $\ $$if(member.typecode.forwarded)$*$else$$endif$m_$member.name$ = _$member.name$;
+   $\ $$if(member.typecode.forwarded)$*$endif$m_$member.name$ = _$member.name$;
 }
 
 /*!
@@ -674,7 +674,7 @@ void $class$::$member.name$(
 void $class$::$member.name$(
         $member_type_declaration(member)$&& _$member.name$)
 {
-   $\ $$if(member.typecode.forwarded)$*$else$$endif$m_$member.name$ = std::move(_$member.name$);
+   $\ $$if(member.typecode.forwarded)$*$endif$m_$member.name$ = std::move(_$member.name$);
 }
 
 /*!
