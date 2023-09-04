@@ -23,21 +23,22 @@ $fileHeader(ctx=ctx, file=[ctx.filename, ".h"], description=["This header file c
 #ifndef _FAST_DDS_GENERATED_$ctx.headerGuardName$_H_
 #define _FAST_DDS_GENERATED_$ctx.headerGuardName$_H_
 
+#include <array>
+#include <bitset>
+#include <cstdint>
+#include <map>
+#include <string>
+#include <vector>
+
+#include <fastcdr/cdr/fixed_size_string.hpp>
+#include <fastcdr/xcdr/optional.hpp>
+
 $if(ctx.printexception)$
 #include <$ctx.product$/exceptions/UserException.h>
 $endif$
 
 $ctx.directIncludeDependencies : {include | #include "$include$.h"}; separator="\n"$
 
-#include <fastcdr/cdr/fixed_size_string.hpp>
-#include <fastcdr/xcdr/optional.hpp>
-
-#include <stdint.h>
-#include <array>
-#include <string>
-#include <vector>
-#include <map>
-#include <bitset>
 
 #if defined(_WIN32)
 #if defined(EPROSIMA_USER_DLL_EXPORT)
@@ -112,7 +113,7 @@ annotation(ctx, annotation) ::= <<
 namespace $annotation.name$ {
     $annotation.enums : { enum | $enum_type(ctx=ctx, parent=annotation, enum=enum)$}; separator="\n"$
 
-    $annotation.typeDefs : { typdef | $typedef_decl(ctx=ctx, parent=annotation, typedefs=typedef)$}; separator="\n"$
+    $annotation.typeDefs : { typedef | $typedef_decl(ctx=ctx, parent=annotation, typedefs=typedef)$}; separator="\n"$
 
     $annotation.constDecls : { const | $const_decl(ctx=ctx, parent=annotation, const=const)$}; separator="\n"$
 
@@ -195,12 +196,7 @@ private:
 $endif$
 >>
 
-operation(ctx, parent, operation, param_list) ::= <<
-$if(ctx.printoperation)$
-virtual $paramRetType(operation.rettype)$ $operation.name$($paramDeclarations(params=operation.parameters)$) = 0;
-
-$endif$
->>
+operation(ctx, parent, operation, param_list) ::= <<>>
 
 param_list(parameters) ::= <<>>
 
@@ -285,11 +281,8 @@ public:
             const $struct.name$& x) const;
 
     $struct.members:{ member | $public_member_declaration(member)$}; separator="\n"$
-
     $serialization_functions(struct)$
-
     $extensions : { extension | $extension$}; separator="\n"$
-
 private:
 
     $struct.members:{ member | $private_member_declaration(member=member)$}; separator="\n"$
@@ -686,17 +679,17 @@ eProsima_user_DllExport const $member.typecode.cppTypename$& $member.name$() con
 eProsima_user_DllExport $member.typecode.cppTypename$& $member.name$();
 >>
 
-member_default_init(member) ::= <<
+member_default_init(member) ::= <%
 $if(!member.typecode.forwarded)$
 $if(member.annotationDefault)$
-{$member.annotationDefaultValue$}
+ {$member.annotationDefaultValue$}
 $elseif(!member.annotationOptional)$
 $if(member.typecode.initialValue)$
-{$member.typecode.initialValue$}
+ {$member.typecode.initialValue$}
 $endif$
 $endif$
 $endif$
->>
+%>
 
 serialization_functions(type) ::= <<
 $if(ctx.fastcdr)$
@@ -721,12 +714,12 @@ sequences_definition(typecode) ::= <<
 $if(typecode.contentTypeCode.isStructType)$
 $typecode.contentTypeCode.namespaces : { ns | namespace $ns$ \{ }; separator="\n"$
 class $typecode.contentTypeCode.name$;
-$reverse(typecode.contentTypeCode.namespaces) : { ns | \} // ns}; separator="\n"$
+$reverse(typecode.contentTypeCode.namespaces) : { ns | \} // $ns$}; separator="\n"$
 $endif$
 $if(typecode.contentTypeCode.isUnionType)$
 $typecode.contentTypeCode.namespaces : { ns | namespace $ns$ \{ }; separator="\n"$
 class $typecode.contentTypeCode.name$;
-$reverse(typecode.contentTypeCode.namespaces) : { ns | \} // ns}; separator="\n"$
+$reverse(typecode.contentTypeCode.namespaces) : { ns | \} // $ns$}; separator="\n"$
 $endif$
 
 $sequences_definition_impl(typecode=typecode, typename=typecode.cppTypename)$

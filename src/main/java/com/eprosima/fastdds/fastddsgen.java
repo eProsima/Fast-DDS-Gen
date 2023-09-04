@@ -21,7 +21,6 @@ import com.eprosima.fastdds.solution.Project;
 import com.eprosima.fastdds.solution.Solution;
 import com.eprosima.fastdds.util.Utils;
 import com.eprosima.fastdds.util.VSConfiguration;
-import com.eprosima.idl.generator.manager.TemplateExtension;
 import com.eprosima.idl.generator.manager.TemplateGroup;
 import com.eprosima.idl.generator.manager.TemplateManager;
 import com.eprosima.idl.parser.grammar.IDLLexer;
@@ -651,13 +650,10 @@ public class fastddsgen
 
             // Load common types template
             tmanager.addGroup("com/eprosima/fastcdr/idl/templates/TypesHeader.stg");
-            if (m_type_object_files)
-            {
-                tmanager.addGroup("com/eprosima/fastdds/idl/templates/TypeObjectHeader.stg");
-            }
             tmanager.addGroup("com/eprosima/fastcdr/idl/templates/TypesSource.stg");
             if (m_type_object_files)
             {
+                tmanager.addGroup("com/eprosima/fastdds/idl/templates/TypeObjectHeader.stg");
                 tmanager.addGroup("com/eprosima/fastdds/idl/templates/TypeObjectSource.stg");
             }
             // Load Types common templates

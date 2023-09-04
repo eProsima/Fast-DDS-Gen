@@ -23,6 +23,9 @@ public interface TypeCode
         return (data_size - (current_alignment % data_size)) & (data_size - 1);
     }
 
+    /*
+     * Returns the maximum serialized size between XCDRv1 and XCDRv2.
+     */
     public long maxSerializedSize(
             long current_alignment);
 }

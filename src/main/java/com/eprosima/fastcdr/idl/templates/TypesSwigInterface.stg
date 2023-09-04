@@ -14,7 +14,7 @@
 
 group TypesSwigInterface;
 
-import "eprosima.stg"
+import "com/eprosima/fastdds/idl/templates/eprosima.stg"
 
 main(ctx, definitions) ::= <<
 $fileHeader(file=[ctx.filename, ".i"], description=["This header file contains the SWIG interface of the described types in the IDL file."])$
@@ -23,10 +23,10 @@ $fileHeader(file=[ctx.filename, ".i"], description=["This header file contains t
 
 // SWIG helper modules
 %include "stdint.i"
-%include "std_string.i"
-%include "std_vector.i"
 %include "std_array.i"
 %include "std_map.i"
+%include "std_string.i"
+%include "std_vector.i"
 %include "typemaps.i"
 
 // Assignemt operators are ignored, as there is no such thing in Python.

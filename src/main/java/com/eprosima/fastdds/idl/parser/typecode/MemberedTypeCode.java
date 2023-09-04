@@ -1,4 +1,4 @@
-// Copyright 2022 Proyectos y Sistemas de Mantenimiento SL (eProsima).
+// Copyright 2023 Proyectos y Sistemas de Mantenimiento SL (eProsima).
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -39,7 +39,7 @@ public interface MemberedTypeCode extends TypeCode
 
         if (com.eprosima.idl.parser.typecode.TypeCode.ExtensibilityKind.MUTABLE.get_value() == memberedtypecode_ext_kind.get_value())
         {
-            // For MUTABLE, extra ligment for the PID_SENTINAL.
+            // For MUTABLE, extra alignment for the PID_SENTINAL.
             returned_alignment += TypeCode.cdr_alignment(returned_alignment, 4);
         }
 

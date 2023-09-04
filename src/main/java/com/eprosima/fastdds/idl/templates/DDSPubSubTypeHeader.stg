@@ -25,6 +25,8 @@ $fileHeader(ctx=ctx,  file=[ctx.filename, "PubSubTypes.h"], description=["This h
 
 #include <fastdds/dds/core/policy/QosPolicies.hpp>
 #include <fastdds/dds/topic/TopicDataType.hpp>
+#include <fastdds/rtps/common/InstanceHandle.h>
+#include <fastdds/rtps/common/SerializedPayload.h>
 #include <fastrtps/utils/md5.h>
 
 #include "$ctx.filename$.h"
@@ -87,31 +89,34 @@ $if(struct.members)$
 #ifndef SWIG
 namespace detail {
 
-    template<typename Tag, typename Tag::type M>
-    struct $struct.name$_rob
+template<typename Tag, typename Tag::type M>
+struct $struct.name$_rob
+{
+    friend constexpr typename Tag::type get(
+            Tag)
     {
-        friend constexpr typename Tag::type get(
-                Tag)
-        {
-            return M;
-        }
-    };
-
-    struct $struct.name$_f
-    {
-        typedef $last(struct.members).typecode.cppTypename$ $struct.name$::* type;
-        friend constexpr type get(
-                $struct.name$_f);
-    };
-
-    template struct $struct.name$_rob<$struct.name$_f, &$struct.name$::m_$last(struct.members).name$>;
-
-    template <typename T, typename Tag>
-    inline size_t constexpr $struct.name$_offset_of() {
-        return ((::size_t) &reinterpret_cast<char const volatile&>((((T*)0)->*get(Tag()))));
+        return M;
     }
+
+};
+
+struct $struct.name$_f
+{
+    typedef $last(struct.members).typecode.cppTypename$ $struct.name$::* type;
+    friend constexpr type get(
+            $struct.name$_f);
+};
+
+template struct $struct.name$_rob<$struct.name$_f, &$struct.name$::m_$last(struct.members).name$>;
+
+template <typename T, typename Tag>
+inline size_t constexpr $struct.name$_offset_of()
+{
+    return ((::size_t) &reinterpret_cast<char const volatile&>((((T*)0)->*get(Tag()))));
 }
-#endif
+
+} // namespace detail
+#endif // ifndef SWIG
 
 $endif$
 $endif$
@@ -128,7 +133,7 @@ public:
 
     eProsima_user_DllExport $if(parent.IsInterface)$$parent.name$_$endif$$struct.name$PubSubType();
 
-    eProsima_user_DllExport virtual ~$if(parent.IsInterface)$$parent.name$_$endif$$struct.name$PubSubType() override;
+    eProsima_user_DllExport ~$if(parent.IsInterface)$$parent.name$_$endif$$struct.name$PubSubType() override;
 
     eProsima_user_DllExport bool serialize(
             void* data,
@@ -149,8 +154,7 @@ public:
     eProsima_user_DllExport std::function<uint32_t()> getSerializedSizeProvider(
             void* data) override
     {
-        return getSerializedSizeProvider(data,
-                eprosima::fastdds::dds::DEFAULT_DATA_REPRESENTATION);
+        return getSerializedSizeProvider(data, eprosima::fastdds::dds::DEFAULT_DATA_REPRESENTATION);
     }
 
     eProsima_user_DllExport std::function<uint32_t()> getSerializedSizeProvider(
@@ -187,7 +191,7 @@ public:
     eProsima_user_DllExport inline bool construct_sample(
             void* memory) const override
     {
-        $if (struct.isPlain)$        new (memory) $if (parent.IsInterface)$$struct.scopedname$$else$$struct.name$$endif$()$else$        (void)memory$endif$;
+        $if (struct.isPlain)$new (memory) $if(parent.IsInterface)$$struct.scopedname$$else$$struct.name$$endif$()$else$static_cast<void>(memory)$endif$;
         return $if (struct.isPlain)$true$else$false$endif$;
     }
 
@@ -202,10 +206,14 @@ private:
     static constexpr bool is_plain_impl()
     {
         $if(struct.members)$
-        return $struct.maxSerializedSize$ULL == (detail::$struct.name$_offset_of<$struct.name$, detail::$struct.name$_f>() + sizeof($last(struct.members).typecode.cppTypename$));
+        return $struct.maxSerializedSize$ULL ==
+               (detail::$struct.name$_offset_of<$struct.name$, detail::$struct.name$_f>() +
+               sizeof($last(struct.members).typecode.cppTypename$));
         $elseif(struct.inheritances)$
         $if(last(struct.inheritances).isPlain)$
-        return $struct.maxSerializedSize$ULL == (detail::$last(struct.inheritances).name$_offset_of<$last(struct.inheritances).name$, detail::$last(struct.inheritances).name$_f>() + sizeof($last(last(struct.inheritances).members).typecode.cppTypename$));
+        return $struct.maxSerializedSize$ULL ==
+               (detail::$last(struct.inheritances).name$_offset_of<$last(struct.inheritances).name$, detail::$last(struct.inheritances).name$_f>() +
+               sizeof($last(last(struct.inheritances).members).typecode.cppTypename$));
         $else$
         return true;
         $endif$
@@ -213,6 +221,7 @@ private:
         return true;
         $endif$
     }
+
 $endif$
 };
 >>

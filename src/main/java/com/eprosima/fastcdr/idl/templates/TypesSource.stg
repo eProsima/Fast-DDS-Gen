@@ -18,7 +18,7 @@ import "com/eprosima/fastdds/idl/templates/eprosima.stg"
 import "FastCdrCommon.stg"
 
 main(ctx, definitions, extensions) ::= <<
-$fileHeader(ctx=ctx, file=[ctx.filename, ".cpp"], description=["This source file contains the definition of the described types in the IDL file."])$
+$fileHeader(ctx=ctx, file=[ctx.filename, ".cpp"], description=["This source file contains the implementation of the described types in the IDL file."])$
 
 #ifdef _WIN32
 // Remove linker warning LNK4221 on Visual Studio
@@ -54,8 +54,8 @@ $ctx.typeCodesToDefine : { type | $sequences_definition(type.value)$ }; separato
 $endif$
 
 $definitions; separator="\n"$
-
 $if(ctx.thereIsStructOrUnion)$
+// Include auxiliary functions like for serializing/deserializing.
 #include "$ctx.filename$CdrAux.ipp"
 $endif$
 >>
@@ -180,7 +180,7 @@ $endif$
 struct_type(ctx, parent, struct, extensions) ::= <<
 $struct.scopedname$::$struct.name$()
     $if(struct.inheritances)$
-        : $struct.inheritances : { inheritance | $struct_inherit_default_init(inheritance)$ }; separator=",\n"$
+    : $struct.inheritances : { inheritance | $struct_inherit_default_init(inheritance)$ }; separator=",\n"$
     $endif$
 
 {
@@ -200,7 +200,7 @@ $struct.scopedname$::~$struct.name$()
 $struct.scopedname$::$struct.name$(
         const $struct.name$& x)
     $if(struct.inheritances)$
-        : $struct.inheritances : { inheritance | $struct_inherit_copy_init(inheritance)$ }; separator=",\n"$
+    : $struct.inheritances : { inheritance | $struct_inherit_copy_init(inheritance)$ }; separator=",\n"$
     $endif$
 
 {
@@ -210,7 +210,7 @@ $struct.scopedname$::$struct.name$(
 $struct.scopedname$::$struct.name$(
         $struct.name$&& x) noexcept
     $if(struct.inheritances)$
-        : $struct.inheritances : { inheritance | $struct_inherit_move_init(inheritance)$}; separator=",\n"$
+    : $struct.inheritances : { inheritance | $struct_inherit_move_init(inheritance)$}; separator=",\n"$
     $endif$
 
 {
@@ -220,7 +220,7 @@ $struct.scopedname$::$struct.name$(
 $struct.scopedname$& $struct.scopedname$::operator =(
         const $struct.name$& x)
 {
-    $if(struct.inheritances)$ $struct.inheritances : { inheritance | $inheritance.scopedname$::operator =(x);}; separator="\n"$ $endif$
+    $if(struct.inheritances)$$struct.inheritances : { inheritance | $inheritance.scopedname$::operator =(x);}; separator="\n"$$endif$
 
     $struct.members:{ member | $member_copy(ctx=ctx, member=member)$}; separator="\n"$
 
@@ -230,7 +230,7 @@ $struct.scopedname$& $struct.scopedname$::operator =(
 $struct.scopedname$& $struct.scopedname$::operator =(
         $struct.name$&& x) noexcept
 {
-    $if(struct.inheritances)$ $struct.inheritances : { inheritance | $inheritance.scopedname$::operator =(std::move(x));}; separator="\n"$ $endif$
+    $if(struct.inheritances)$$struct.inheritances : { inheritance | $inheritance.scopedname$::operator =(std::move(x));}; separator="\n"$$endif$
 
     $struct.members:{ member | $member_move(member=member)$}; separator="\n"$
 
@@ -240,9 +240,13 @@ $struct.scopedname$& $struct.scopedname$::operator =(
 bool $struct.scopedname$::operator ==(
         const $struct.name$& x) const
 {
-    $if(struct.inheritances)$ $struct.inheritances : { inheritance | if ($inheritance.scopedname$::operator !=(x)) return false;}; separator="\n"$ $endif$
+    $if(struct.inheritances)$$struct.inheritances : { inheritance | if ($inheritance.scopedname$::operator !=(x))
+    {
+        return false;
+    \}
+    }; separator="\n"$$endif$
 
-    return $if(struct.members)$($struct.members:{ member | m_$member.name$ == x.m_$member.name$}; separator=" && "$)$else$true$endif$;
+    return $if(struct.members)$($struct.members:{ member | m_$member.name$ == x.m_$member.name$}; separator=" &&\n           "$)$else$true$endif$;
 }
 
 bool $struct.scopedname$::operator !=(
@@ -267,11 +271,8 @@ void $struct.scopedname$::deserialize(
 
     $struct.members : { member |$if(!member.annotationNonSerialized)$$object_deserialization(ctx=ctx, object=member)$$endif$}; separator="\n"$
 }
-
 $endif$
-
 $struct.members:{ member | $public_member_declaration(class=struct.scopedname, member=member)$}; separator="\n"$
-
 $extensions : { extension | $extension$}; separator="\n"$
 >>
 
@@ -452,7 +453,7 @@ $union.scopedname$::$union.name$(
 {
     m__d = x.m__d;
 
-    switch(m__d)
+    switch (m__d)
     {
         $union.members:{ member | $unionmember_copy(member)$}; separator="\n"$
         $unionmemberdefault_copy(union.defaultMember)$
@@ -526,12 +527,12 @@ void $union.scopedname$::_d(
 {
     bool b = false;
 
-    switch(m__d)
+    switch (m__d)
     {
         $union.members:{ member | $unionmember_discriminator_case(member=member, totallabels=union.totallabels)$}; separator="\n"$
     }
 
-    if(!b)
+    if (!b)
     {
         throw BadParamException("Discriminator doesn't correspond with the selected union member");
     }
@@ -610,7 +611,7 @@ public_primitive_member_declaration(class, member) ::= <<
 void $class$::$member.name$(
         $member_type_declaration(member)$ _$member.name$)
 {
-    $if(member.typecode.forwarded)$    *$else$    $endif$m_$member.name$ = _$member.name$;
+   $\ $$if(member.typecode.forwarded)$*$else$$endif$m_$member.name$ = _$member.name$;
 }
 
 /*!
@@ -663,7 +664,7 @@ public_object_member_declaration(class, member) ::= <<
 void $class$::$member.name$(
         const $member_type_declaration(member)$& _$member.name$)
 {
-    $if(member.typecode.forwarded)$    *$else$    $endif$m_$member.name$ = _$member.name$;
+   $\ $$if(member.typecode.forwarded)$*$else$$endif$m_$member.name$ = _$member.name$;
 }
 
 /*!
@@ -673,7 +674,7 @@ void $class$::$member.name$(
 void $class$::$member.name$(
         $member_type_declaration(member)$&& _$member.name$)
 {
-    $if(member.typecode.forwarded)$    *$else$    $endif$m_$member.name$ = std::move(_$member.name$);
+   $\ $$if(member.typecode.forwarded)$*$else$$endif$m_$member.name$ = std::move(_$member.name$);
 }
 
 /*!
@@ -770,7 +771,7 @@ $member.typecode.cppTypename$& $class$::$member.name$()
 $endif$
 >>
 
-member_copy(ctx, member) ::= <<
+member_copy(ctx, member) ::= <%
 $if(member.typecode.forwarded)$
 m_$member.name$ = new $member.typecode.cppTypename$();
 *m_$member.name$ = *x.m_$member.name$;
@@ -785,9 +786,9 @@ $endif$
 $else$
 m_$member.name$ = x.m_$member.name$;
 $endif$
->>
+%>
 
-member_move(member) ::= <<
+member_move(member) ::= <%
 $if(member.typecode.primitive)$
 m_$member.name$ = x.m_$member.name$;
 $else$
@@ -798,41 +799,40 @@ $else$
 m_$member.name$ = std::move(x.m_$member.name$);
 $endif$
 $endif$
->>
+%>
 
-// TODO Mirar si el default: esta delante de otros casos, el resto no se ejecuta.
 unionmember_discriminator_case(member, totallabels) ::= <<
 $if(member.default)$
 default:
-b = true;
-switch(__d)
-{
-    $totallabels:{ label | case $label$:}; separator="\n"$
-    b = false;
-    break;
-    default:
-    break;
-}
-break;
-$else$
-$member.labels:{ label | case $label$:}; separator="\n"$
-switch(__d)
-{
-    $member.labels:{ label | case $label$:}; separator="\n"$
     b = true;
+    switch (__d)
+    {
+        $totallabels:{ label | case $label$:}; separator="\n"$
+            b = false;
+            break;
+        default:
+            break;
+    }
     break;
-    default:
+$else$
+    $member.labels:{ label | case $label$:}; separator="\n"$
+    switch (__d)
+    {
+        $member.labels:{ label | case $label$:}; separator="\n"$
+            b = true;
+            break;
+        default:
+            break;
+    }
     break;
-}
-break;
 $endif$
 >>
 
 unionmember_copy(member) ::= <<
 $if(member.labels)$
 $member.labels:{ label | case $label$:}; separator="\n"$
-m_$member.name$ = x.m_$member.name$;
-break;
+    m_$member.name$ = x.m_$member.name$;
+    break;
 $endif$
 >>
 
@@ -840,20 +840,20 @@ unionmemberdefault_copy(member) ::= <<
 default:
 $if(member)$
 $if(member.default)$
-m_$member.name$ = x.m_$member.name$;
+    m_$member.name$ = x.m_$member.name$;
 $endif$
 $endif$
 
-break;
+    break;
 >>
 
 unionmember_move(member) ::= <<
 $if(member.labels)$
 $member.labels:{ label | case $label$:}; separator="\n"$
 $if(member.typecode.primitive)$
-m_$member.name$ = x.m_$member.name$;
+    m_$member.name$ = x.m_$member.name$;
 $else$
-m_$member.name$ = std::move(x.m_$member.name$);
+    m_$member.name$ = std::move(x.m_$member.name$);
 $endif$
 
 break;
@@ -865,21 +865,21 @@ default:
 $if(member)$
 $if(member.default)$
 $if(member.typecode.primitive)$
-m_$member.name$ = x.m_$member.name$;
+    m_$member.name$ = x.m_$member.name$;
 $else$
-m_$member.name$ = std::move(x.m_$member.name$);
+    m_$member.name$ = std::move(x.m_$member.name$);
 $endif$
 $endif$
 $endif$
 
-break;
+    break;
 >>
 
 unionmember_compare(member) ::= <<
 $if(member.labels)$
-$member.labels:{ label | case $label$: }; separator="\n"$
-        return (m_$member.name$ == x.m_$member.name$);
-        break;
+$member.labels:{ label | case $label$:}; separator="\n"$
+    return (m_$member.name$ == x.m_$member.name$);
+    break;
 $endif$
 >>
 
@@ -909,10 +909,10 @@ bool b = true;
 switch(m__d)
 {
     $totallabels:{ label | case $label$:}; separator="\n"$
-    b = false;
-    break;
+        b = false;
+        break;
     default:
-    break;
+        break;
 }
 $else$
 bool b = false;
@@ -920,14 +920,14 @@ bool b = false;
 switch(m__d)
 {
     $member.labels:{ label | case $label$:}; separator="\n"$
-    b = true;
-    break;
+        b = true;
+        break;
     default:
-    break;
+        break;
 }
 $endif$
 
-if(!b)
+if (!b)
 {
     throw BadParamException("This member has not been selected");
 }
