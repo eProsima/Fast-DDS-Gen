@@ -120,7 +120,7 @@ $struct.scopedname$::$struct.name$()
     $endif$
 
 {
-    $struct.members:{ member |$member_default_init(ctx=ctx, member=member, loopvar=ctx.newLoopVarName)$}; separator="\n"$
+    $struct.members:{ member |$member_default_init(member=member)$}; separator="\n"$
 
     $if(ctx.generateTypeObject)$
     // Just to register all known types
@@ -377,17 +377,33 @@ $union.scopedname$::$union.name$()
     $else$
     m__d = $first(first(union.members).labels)$;
     $endif$
-    $union.members:{ member |$member_default_init(ctx=ctx, member=member, loopvar=ctx.newLoopVarName)$}; separator="\n"$
+
+    switch (m__d)
+    {
+        $union.members:{ member | $union_member_default_init(member)$}; separator="\n"$
+        $union_default_member_default_init(union.defaultMember)$
+    }
 }
 
 $union.scopedname$::~$union.name$()
 {
+    switch (m__d)
+    {
+        $union.members:{ member | $union_member_destroy(member)$}; separator="\n"$
+        $union_default_member_destroy(union.defaultMember)$
+    }
 }
 
 $union.scopedname$::$union.name$(
         const $union.name$& x)
 {
     m__d = x.m__d;
+
+    switch (m__d)
+    {
+        $union.members:{ member | $union_member_default_init(member)$}; separator="\n"$
+        $union_default_member_default_init(union.defaultMember)$
+    }
 
     switch (m__d)
     {
@@ -403,6 +419,12 @@ $union.scopedname$::$union.name$(
 
     switch (m__d)
     {
+        $union.members:{ member | $union_member_default_init(member)$}; separator="\n"$
+        $union_default_member_default_init(union.defaultMember)$
+    }
+
+    switch (m__d)
+    {
         $union.members:{ member | $unionmember_move(member)$}; separator="\n"$
         $unionmemberdefault_move(union.defaultMember)$
     }
@@ -411,6 +433,8 @@ $union.scopedname$::$union.name$(
 $union.scopedname$& $union.scopedname$::operator =(
         const $union.name$& x)
 {
+    $code_for_change_member(union=union, var="x")$
+
     m__d = x.m__d;
 
     switch (m__d)
@@ -425,6 +449,8 @@ $union.scopedname$& $union.scopedname$::operator =(
 $union.scopedname$& $union.scopedname$::operator =(
         $union.name$&& x) noexcept
 {
+    $code_for_change_member(union=union, var="x")$
+
     m__d = x.m__d;
 
     switch (m__d)
@@ -465,7 +491,7 @@ void $union.scopedname$::_d(
 
     switch (m__d)
     {
-        $union.members:{ member | $unionmember_discriminator_case(member=member, totallabels=union.totallabels)$}; separator="\n"$
+        $union.members:{ member | $unionmember_discriminator_case(member=member, totallabels=union.totallabels, var="__d")$}; separator="\n"$
     }
 
     if (!b)
@@ -486,7 +512,7 @@ $union.discriminator.cppTypename$& $union.scopedname$::_d()
     return m__d;
 }
 
-$union.members:{ member | $public_unionmember_declaration(class=union.scopedname, member=member, defaultvalue=union.defaultvalue, totallabels=union.totallabels)$}; separator="\n"$
+$union.members:{ member | $public_unionmember_declaration(union=union, member=member, defaultvalue=union.defaultvalue, totallabels=union.totallabels)$}; separator="\n"$
 $if(ctx.fastcdr)$
 void $union.scopedname$::serialize(
         eprosima::fastcdr::FastCdr& scdr) const
@@ -629,12 +655,12 @@ $member_type_declaration(member)$& $class$::$member.name$()
 }
 >>
 
-public_unionmember_declaration(class, member, totallabels, defaultvalue) ::= <<
-$if(ctx.generateTypesC)$$if(member.typecode.isStringType)$$unionmember_cstring_declaration(class=class, member=member, totallabels=totallabels, defaultvalue=defaultvalue)$$else$$public_unionmember_cpp_declaration(class=class, member=member, totallabels=totallabels, defaultvalue=defaultvalue)$$endif$$else$$public_unionmember_cpp_declaration(class=class, member=member, totallabels=totallabels, defaultvalue=defaultvalue)$$endif$
+public_unionmember_declaration(union, member, totallabels, defaultvalue) ::= <<
+$if(ctx.generateTypesC && member.typecode.isStringType)$$unionmember_cstring_declaration(union=union, member=member, totallabels=totallabels, defaultvalue=defaultvalue)$$else$$public_unionmember_cpp_declaration(union=union, member=member, totallabels=totallabels, defaultvalue=defaultvalue)$$endif$
 >>
 
-unionmember_cstring_declaration(class, member, totallabels, defaultvalue) ::= <<
-void $class$::$member.name$(
+unionmember_cstring_declaration(union, member, totallabels, defaultvalue) ::= <<
+void $union.scopedname$::$member.name$(
         const char* _$member.name$)
 {
     free(m_$member.name$);
@@ -643,7 +669,7 @@ void $class$::$member.name$(
     $unionmember_set_discriminator(member=member, defaultvalue=defaultvalue)$
 }
 
-const char* $class$::$member.name$() const
+const char* $union.scopedname$::$member.name$() const
 {
     $unionmember_check_case_list(member=member, totallabels=totallabels)$
 
@@ -651,51 +677,57 @@ const char* $class$::$member.name$() const
 }
 >>
 
-public_unionmember_cpp_declaration(class, member, totallabels, defaultvalue) ::= <<
+public_unionmember_cpp_declaration(union, member, totallabels, defaultvalue) ::= <<
 $if(member.typecode.primitive)$
-void $class$::$member.name$(
+void $union.scopedname$::$member.name$(
         $member.typecode.cppTypename$ _$member.name$)
 {
+    $code_for_change_specific_member(union=union, member=member)$
+
     m_$member.name$ = _$member.name$;
     $unionmember_set_discriminator(member=member, defaultvalue=defaultvalue)$
 }
 
-$member.typecode.cppTypename$ $class$::$member.name$() const
+$member.typecode.cppTypename$ $union.scopedname$::$member.name$() const
 {
     $unionmember_check_case_list(member=member, totallabels=totallabels)$
 
     return m_$member.name$;
 }
 
-$member.typecode.cppTypename$& $class$::$member.name$()
+$member.typecode.cppTypename$& $union.scopedname$::$member.name$()
 {
     $unionmember_check_case_list(member=member, totallabels=totallabels)$
 
     return m_$member.name$;
 }
 $else$
-void $class$::$member.name$(
+void $union.scopedname$::$member.name$(
         const $member.typecode.cppTypename$& _$member.name$)
 {
+    $code_for_change_specific_member(union=union, member=member)$
+
     m_$member.name$ = _$member.name$;
     $unionmember_set_discriminator(member=member, defaultvalue=defaultvalue)$
 }
 
-void $class$::$member.name$(
+void $union.scopedname$::$member.name$(
         $member.typecode.cppTypename$&& _$member.name$)
 {
+    $code_for_change_specific_member(union=union, member=member)$
+
     m_$member.name$ = std::move(_$member.name$);
     $unionmember_set_discriminator(member=member, defaultvalue=defaultvalue)$
 }
 
-const $member.typecode.cppTypename$& $class$::$member.name$() const
+const $member.typecode.cppTypename$& $union.scopedname$::$member.name$() const
 {
     $unionmember_check_case_list(member=member, totallabels=totallabels)$
 
     return m_$member.name$;
 }
 
-$member.typecode.cppTypename$& $class$::$member.name$()
+$member.typecode.cppTypename$& $union.scopedname$::$member.name$()
 {
     $unionmember_check_case_list(member=member, totallabels=totallabels)$
 
@@ -734,11 +766,11 @@ $endif$
 $endif$
 %>
 
-unionmember_discriminator_case(member, totallabels) ::= <<
+unionmember_discriminator_case(member, totallabels, var) ::= <<
 $if(member.default)$
 default:
     b = true;
-    switch (__d)
+    switch ($var$)
     {
         $totallabels:{ label | case $label$:}; separator="\n"$
             b = false;
@@ -749,7 +781,7 @@ default:
     break;
 $else$
 $member.labels:{ label | case $label$:}; separator="\n"$
-    switch (__d)
+    switch ($var$)
     {
         $member.labels:{ label | case $label$:}; separator="\n"$
             b = true;
@@ -1325,8 +1357,124 @@ void $scopedtypename$::free_memory()
 $endif$
 >>
 
-member_default_init(ctx, member, loopvar) ::= <<
+member_default_init(member) ::= <<
 $if(member.typecode.forwarded)$
 m_$member.name$ = new $member.typecode.cppTypename$($if(member.annotationDefault)$$member.annotationDefaultValue$$endif$);
 $endif$
+>>
+
+union_member_default_init(member) ::= <<
+$if(member.labels)$
+$member.labels:{ label |case $label$:}; separator="\n"$
+    $union_member_default_init_set(member)$
+    break;
+$endif$
+>>
+
+union_default_member_default_init(member) ::= <<
+default:
+$if(member)$
+$if(member.default)$
+    $union_member_default_init_set(member)$
+$endif$
+$endif$
+    break;
+>>
+
+union_member_default_init_set(member) ::= <<
+$if(member.typecode.forwarded)$
+    m_$member.name$ = new $member.typecode.cppTypename$($if(member.annotationDefault)$$member.annotationDefaultValue$$endif$);
+$elseif(!member.typecode.primitive)$
+    new(&m_$member.name$) $member.typecode.cppTypename$();
+$endif$
+>>
+
+union_member_destroy(member) ::= <<
+$if(member.labels)$
+$member.labels:{ label |case $label$:}; separator="\n"$
+    $union_member_destroy_call(member)$
+    break;
+$endif$
+>>
+
+union_default_member_destroy(member) ::= <<
+default:
+$if(member)$
+$if(member.default)$
+    $union_member_destroy_call(member)$
+$endif$
+$endif$
+    break;
+>>
+
+union_member_destroy_call(member) ::= <<
+$if(member.typecode.forwarded)$
+    delete m_$member.name$;
+$elseif(!member.typecode.primitive)$
+$if(!member.typecode.isAliasType && (member.typecode.isStringType || member.typecode.isWStringType))$
+    m_$member.name$.~basic_string();
+$elseif(!member.typecode.isAliasType && member.typecode.isSequenceType)$
+    m_$member.name$.~vector();
+$elseif(!member.typecode.isAliasType && member.typecode.isArrayType)$
+    m_$member.name$.~array();
+$elseif(!member.typecode.isAliasType && member.typecode.isMapType)$
+    m_$member.name$.~map();
+$else$
+    m_$member.name$.~$member.typecode.noScopedCppTypename$();
+$endif$
+$endif$
+>>
+
+code_for_change_member(union, var) ::= <<
+bool b = false;
+
+switch (m__d)
+{
+    $union.members:{ member | $unionmember_discriminator_case(member=member, totallabels=union.totallabels, var=[var, ".m__d"])$}; separator="\n"$
+}
+
+if (!b)
+{
+    // Destroy previous member
+    switch (m__d)
+    {
+        $union.members:{ member | $union_member_destroy(member)$}; separator="\n"$
+        $union_default_member_destroy(union.defaultMember)$
+    }
+
+    // Construct new member
+    switch ($var$.m__d)
+    {
+        $union.members:{ member | $union_member_default_init(member)$}; separator="\n"$
+        $union_default_member_default_init(union.defaultMember)$
+    }
+}
+>>
+
+code_for_change_specific_member(union, member) ::= <<
+bool b = false;
+
+switch (m__d)
+{
+    $union.members:{ member |
+        $if(member.default)$
+        $unionmember_discriminator_case(member=member, totallabels=union.totallabels, var=defaultvalue)$
+        $else$
+        $unionmember_discriminator_case(member=member, totallabels=union.totallabels, var=first(member.labels))$
+        $endif$
+    }; separator="\n"$
+}
+
+if (!b)
+{
+    // Destroy previous member
+    switch (m__d)
+    {
+        $union.members:{ member | $union_member_destroy(member)$}; separator="\n"$
+        $union_default_member_destroy(union.defaultMember)$
+    }
+
+    // Construct new member
+    $union_member_default_init_set(member)$
+}
 >>

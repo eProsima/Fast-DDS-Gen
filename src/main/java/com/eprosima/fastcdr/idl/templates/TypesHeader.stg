@@ -321,7 +321,10 @@ private:
 
     $union.discriminator.cppTypename$ m__d;
 
-    $union.members:{ member | $private_member_declaration(member=member)$}; separator="\n"$
+    union
+    {
+        $union.members:{ member | $union_member_declaration(member=member)$}; separator="\n"$
+    };
 };
 >>
 
@@ -534,6 +537,10 @@ $endif$
 
 private_member_declaration(member) ::= <<
 $object_cpptypename(object=member)$ m_$member.name$$member_default_init(member)$;
+>>
+
+union_member_declaration(member) ::= <<
+$object_cpptypename(object=member)$ m_$member.name$;
 >>
 
 public_unionmember_declaration(member) ::= <<
