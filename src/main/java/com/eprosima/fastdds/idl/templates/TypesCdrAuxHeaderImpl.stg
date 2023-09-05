@@ -327,13 +327,9 @@ template<>
 eProsima_user_DllExport size_t calculate_serialized_size(
         eprosima::fastcdr::CdrSizeCalculator& calculator,
         const $bitmask.scopedname$& data,
-        size_t current_alignment)
+        size_t& current_alignment)
 {
-    size_t initial_alignment = current_alignment;
-
-    current_alignment += calculator.calculate_serialized_size(data.bitmask(), current_alignment);
-
-    return current_alignment - initial_alignment;
+    return calculator.calculate_serialized_size(data.bitmask(), current_alignment);
 }
 $endif$
 

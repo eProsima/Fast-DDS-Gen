@@ -708,7 +708,7 @@ eProsima_user_DllExport void $member.name$(
 eProsima_user_DllExport bool $member.name$() const;
 >>
 
-member_default_init(member) ::= <<%
+member_default_init(member) ::= <%
 $if(!member.typecode.forwarded)$
 $if(member.annotationDefault)$
  {$member.annotationDefaultValue$}
