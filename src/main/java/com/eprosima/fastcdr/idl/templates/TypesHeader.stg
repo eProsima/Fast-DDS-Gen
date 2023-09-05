@@ -137,64 +137,7 @@ export_list(exports) ::= <<
 $exports; separator="\n"$
 >>
 
-exception(ctx, parent, exception) ::= <<
-$if(ctx.printexception)$
-/*!
- * @brief This class implementes the user exception $exception.scopedname$
- * @ingroup $ctx.trimfilename$
- */
-class $exception.name$ : public eprosima::rpc::exception::UserException
-{
-public:
-
-    //! @brief Default constructor.
-    eProsima_user_DllExport $exception.name$();
-
-    /*!
-     * @brief Copy constructor.
-     * @param ex Exception to be copied.
-     */
-    eProsima_user_DllExport $exception.name$(
-            const $exception.name$& ex);
-
-    /*!
-     * @brief Move constructor.
-     * @param ex Exception to be moved.
-     */
-    eProsima_user_DllExport $exception.name$(
-            $exception.name$&& ex);
-
-    /*!
-     * @brief Copy assignment.
-     * @param ex Exception to be copied.
-     */
-    eProsima_user_DllExport $exception.name$& operator =(
-            const $exception.name$ &ex);
-
-    /*!
-     * @brief Move assignment.
-     * @param ex Exception to be moved.
-     */
-    eProsima_user_DllExport $exception.name$& operator =(
-            $exception.name$&& ex);
-
-    //! @brief Destructor.
-    eProsima_user_DllExport virtual ~$exception.name$() noexcept override;
-
-    //! @brief This function throws the object as exception.
-    eProsima_user_DllExport virtual void raise() const;
-
-    $exception.members:{ member |$public_member_declaration(member=member)$}; separator="\n"$
-
-    $serialization_functions(exception)$
-
-private:
-
-    // Exception members
-    $exception.members:{ member |$private_member_declaration(member=member)$}; separator="\n"$
-};
-$endif$
->>
+exception(ctx, parent, exception) ::= <<>>
 
 operation(ctx, parent, operation, param_list) ::= <<>>
 
@@ -372,11 +315,8 @@ public:
     eProsima_user_DllExport $union.discriminator.cppTypename$& _d();
 
     $union.members:{ member | $public_unionmember_declaration(member)$}; separator="\n"$
-
     $serialization_functions(union)$
-
     $extensions : {extension | $extension$}; separator="\n"$
-
 private:
 
     $union.discriminator.cppTypename$ m__d;

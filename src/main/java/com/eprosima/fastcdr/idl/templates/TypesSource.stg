@@ -80,71 +80,7 @@ $exports; separator="\n"$
 
 >>
 
-exception(ctx, parent, exception) ::= <<
-$if(ctx.printexception)$
-$exception.scopedname$::$exception.name$()
-    : UserException()
-{
-    $exception.members : { member |$member_default_init(ctx=ctx, member=member, loopvar=ctx.newLoopVarName)$}; separator="\n"$
-}
-
-$exception.scopedname$::$exception.name$(
-        const $exception.name$& x)
-    : UserException(x)
-{
-    $exception.members : { member |$member_copy(ctx=ctx, member=member)$}; separator="\n"$
-}
-
-$exception.scopedname$::$exception.name$(
-        $exception.name$&& x)
-    : UserException(std::move(x))
-{
-    $exception.members : { member |$member_move(member=member)$}; separator="\n"$
-}
-
-$exception.scopedname$& $exception.scopedname$::operator =(
-        const $exception.name$& x)
-{
-    UserException::operator =(x);
-    $exception.members : { member |$member_copy(ctx=ctx, member=member)$}; separator="\n"$
-    return *this;
-}
-
-$exception.scopedname$& $exception.scopedname$::operator =(
-        $exception.name$&& x)
-{
-    UserException::operator =(std::move(x));
-    $exception.members : { member |$member_move(member=member)$}; separator="\n"$
-    return *this;
-}
-
-$exception.scopedname$::~$exception.name$() throw()
-{
-    $exception.members : { member |$varDel(variable=member)$}; separator="\n"$
-}
-
-void $exception.scopedname$::raise() const
-{
-    throw *this;
-}
-
-$if(ctx.fastcdr)$
-void $exception.scopedname$::serialize(
-        eprosima::fastcdr::FastCdr& scdr) const
-{
-    $exception.members : { member |$object_serialization(ctx=ctx, object=member)$}; separator=""$
-}
-
-void $exception.scopedname$::deserialize(
-        eprosima::fastcdr::FastCdr& dcdr)
-{
-    $exception.members : { member |$object_deserialization(ctx=ctx, object=member)$}; separator="\n"$
-}
-
-$endif$
-
-$endif$
->>
+exception(ctx, parent, exception) ::= <<>>
 
 operation(ctx, parent, operation, param_list) ::= <<>>
 
@@ -465,7 +401,7 @@ $union.scopedname$::$union.name$(
 {
     m__d = x.m__d;
 
-    switch(m__d)
+    switch (m__d)
     {
         $union.members:{ member | $unionmember_move(member)$}; separator="\n"$
         $unionmemberdefault_move(union.defaultMember)$
@@ -477,7 +413,7 @@ $union.scopedname$& $union.scopedname$::operator =(
 {
     m__d = x.m__d;
 
-    switch(m__d)
+    switch (m__d)
     {
         $union.members:{ member | $unionmember_copy(member)$}; separator="\n"$
         $unionmemberdefault_copy(union.defaultMember)$
@@ -491,7 +427,7 @@ $union.scopedname$& $union.scopedname$::operator =(
 {
     m__d = x.m__d;
 
-    switch(m__d)
+    switch (m__d)
     {
         $union.members:{ member | $unionmember_move(member)$}; separator="\n"$
         $unionmemberdefault_move(union.defaultMember)$
@@ -508,7 +444,7 @@ bool $union.scopedname$::operator ==(
         return false;
     }
 
-    switch(m__d)
+    switch (m__d)
     {
         $union.members:{ member | $unionmember_compare(member)$}; separator="\n"$
         $unionmemberdefault_compare(union.defaultMember)$
@@ -551,14 +487,13 @@ $union.discriminator.cppTypename$& $union.scopedname$::_d()
 }
 
 $union.members:{ member | $public_unionmember_declaration(class=union.scopedname, member=member, defaultvalue=union.defaultvalue, totallabels=union.totallabels)$}; separator="\n"$
-
 $if(ctx.fastcdr)$
 void $union.scopedname$::serialize(
         eprosima::fastcdr::FastCdr& scdr) const
 {
     scdr << m__d;
 
-    switch(m__d)
+    switch (m__d)
     {
         $union.members:{ member |$unionmember_case_selection_se(ctx=ctx, member=member)$}; separator="\n"$
         $unionmemberdefault_case_selection_se(ctx=ctx, member=union.defaultMember)$
@@ -570,15 +505,13 @@ void $union.scopedname$::deserialize(
 {
     dcdr \>> m__d;
 
-    switch(m__d)
+    switch (m__d)
     {
         $union.members:{ member |$unionmember_case_selection_de(ctx=ctx, member=member)$}; separator="\n"$
         $unionmemberdefault_case_selection_de(ctx=ctx, member=union.defaultMember)$
     }
 }
-
 $endif$
-
 >>
 
 enum_type(ctx, parent, enum) ::= <<>>
@@ -815,7 +748,7 @@ default:
     }
     break;
 $else$
-    $member.labels:{ label | case $label$:}; separator="\n"$
+$member.labels:{ label | case $label$:}; separator="\n"$
     switch (__d)
     {
         $member.labels:{ label | case $label$:}; separator="\n"$
@@ -856,7 +789,7 @@ $else$
     m_$member.name$ = std::move(x.m_$member.name$);
 $endif$
 
-break;
+    break;
 $endif$
 >>
 
@@ -887,11 +820,11 @@ unionmemberdefault_compare(member) ::= <<
 default:
 $if(member)$
 $if(member.default)$
-return m_$member.name$ == x.m_$member.name$;
+    return m_$member.name$ == x.m_$member.name$;
 $endif$
 $endif$
 
-break;
+    break;
 >>
 
 unionmember_set_discriminator(member, defaultvalue) ::= <<
@@ -906,7 +839,7 @@ unionmember_check_case_list(member, totallabels) ::= <<
 $if(member.default)$
 bool b = true;
 
-switch(m__d)
+switch (m__d)
 {
     $totallabels:{ label | case $label$:}; separator="\n"$
         b = false;
@@ -917,7 +850,7 @@ switch(m__d)
 $else$
 bool b = false;
 
-switch(m__d)
+switch (m__d)
 {
     $member.labels:{ label | case $label$:}; separator="\n"$
         b = true;
@@ -945,18 +878,18 @@ unionmemberdefault_case_selection_se(ctx, member) ::= <<
 default:
 $if(member)$
 $if(member.default)$
-$object_serialization(ctx=ctx, object=member)$
+    $object_serialization(ctx=ctx, object=member)$
 $endif$
 $endif$
 
-break;
+    break;
 >>
 
 unionmember_case_selection_de(ctx, member) ::= <<
 $if(member.labels)$
 $member.labels:{ label |case $label$:}; separator="\n"$
-$object_deserialization(ctx=ctx, object=member)$
-break;
+    $object_deserialization(ctx=ctx, object=member)$
+    break;
 $endif$
 >>
 
@@ -964,11 +897,11 @@ unionmemberdefault_case_selection_de(ctx, member) ::= <<
 default:
 $if(member)$
 $if(member.default)$
-$object_deserialization(ctx=ctx, object=member)$
+    $object_deserialization(ctx=ctx, object=member)$
 $endif$
 $endif$
 
-break;
+    break;
 >>
 
 sequences_definition(typecode) ::= <<

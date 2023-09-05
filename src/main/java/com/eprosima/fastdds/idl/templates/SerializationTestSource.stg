@@ -53,7 +53,10 @@ int main(void)
 function_to_run(ctx, parent, struct, cdr_version, test_null_optional) ::= <<
 functions_to_run.emplace_back([]() -> bool
 {
-    printf("\n========================================Testing $struct.name$ ========================================\n");
+    std::cout << std::endl <<"======================================== Testing $struct.name$" <<
+            (true == $test_null_optional$ ? " with a null optional" : "") << " using encoding " <<
+            (eprosima::fastdds::dds::DataRepresentationId_t::XCDR_DATA_REPRESENTATION == $cdr_version$ ? "XCDRv1" : "XCDRv2") <<
+            " ========================================" << std::endl;
     using eprosima::fastrtps::rtps::SerializedPayload_t;
     $if(struct.hasScope)$    using namespace $struct.scope$;$endif$
 

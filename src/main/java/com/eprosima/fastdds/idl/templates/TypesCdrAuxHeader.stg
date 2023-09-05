@@ -25,13 +25,10 @@ $fileHeader(ctx=ctx, file=[ctx.filename, "CdrAux.hpp"], description=["This sourc
 #include "$ctx.filename$.h"
 
 $if(ctx.anyCdr)$
-$ctx.types:{ type |
-    $if(type.inScope)$
-        $if(type.typeCode.isStructType)$
-            constexpr uint32_t $type.typeCode.cScopedname$_max_cdr_typesize {$type.typeCode.maxSerializedSize$UL\};
-            constexpr uint32_t $type.typeCode.cScopedname$_max_key_cdr_typesize {$type.typeCode.maxKeySerializedSize$UL\};
-        $endif$
-    $endif$
+$ctx.types:{ type | $if(type.inScope)$$if(type.typeCode.isStructType)$
+constexpr uint32_t $type.typeCode.cScopedname$_max_cdr_typesize {$type.typeCode.maxSerializedSize$UL\};
+constexpr uint32_t $type.typeCode.cScopedname$_max_key_cdr_typesize {$type.typeCode.maxKeySerializedSize$UL\};
+$endif$ $endif$
 }; separator="\n"$
 $endif$
 
