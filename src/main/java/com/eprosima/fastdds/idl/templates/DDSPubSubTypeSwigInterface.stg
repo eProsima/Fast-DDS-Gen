@@ -25,38 +25,34 @@ $fileHeader(ctx=ctx,  file=[ctx.filename, "PubSubTypes.i"], description=["This h
 #include "$ctx.filename$PubSubTypes.h"
 %}
 
-#define GEN_API_VER 1
+#define GEN_API_VER 2
 
 %include "$ctx.filename$PubSubTypes.h"
 
 >>
 
-module(ctx, parent, module, definition_list) ::= <<
->>
+module(ctx, parent, module, definition_list) ::= <<>>
 
-definition_list(definitions) ::= <<
->>
+definition_list(definitions) ::= <<>>
 
-struct_type(ctx, parent, struct) ::= <<
->>
+struct_type(ctx, parent, struct) ::= <<>>
 
-union_type(ctx, parent, union, extensions) ::= <<
->>
+union_type(ctx, parent, union, extensions) ::= <<>>
 
-bitset_type(ctx, parent, bitset, extensions) ::= <<
->>
+bitset_type(ctx, parent, bitset, extensions) ::= <<>>
 
-enum_type(ctx, parent, enum) ::= <<
->>
+enum_type(ctx, parent, enum) ::= <<>>
 
-bitmask_type(ctx, parent, bitmask) ::= <<
->>
+bitmask_type(ctx, parent, bitmask) ::= <<>>
 
-annotation(ctx, annotation) ::= <<
->>
+const_decl(ctx, parent, const) ::= <<>>
 
-interface(ctx, parent, interface, export_list) ::= <<
->>
+typedef_decl(ctx, parent, typedefs) ::= <<>>
 
-exception(ctx, parent, exception) ::= <<
->>
+fwd_decl(ctx, parent, type) ::= <<>>
+
+annotation(ctx, annotation) ::= <<>>
+
+interface(ctx, parent, interface, export_list) ::= <<>>
+
+exception(ctx, parent, exception) ::= <<>>

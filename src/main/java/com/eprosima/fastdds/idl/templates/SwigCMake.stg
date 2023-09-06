@@ -28,29 +28,29 @@ if(POLICY CMP0086)
   cmake_policy(SET CMP0086 NEW)
 endif()
 
-$solution.projects : {$subproject_compiler(project=it)$}; separator="\n"$
+$solution.projects : { project | $subproject_compiler(project)$}; separator="\n"$
 
 >>
 
 subproject_compiler(project) ::= <<
 ###############################################################################
-# Library for types defined in $it.name$ IDL
+# Library for types defined in $project.name$ IDL
 ###############################################################################
 
-message(STATUS "Configuring python wrapper for types in $it.name$...")
+message(STATUS "Configuring python wrapper for types in $project.name$...")
 
 ###############################################################################
 # Type library on C++
 
-project($it.name$)
+project($project.name$)
 
 find_package(fastcdr REQUIRED)
 find_package(fastrtps REQUIRED)
 
 
 set(\${PROJECT_NAME}_FILES
-    $it.name$.cxx
-    $it.name$PubSubTypes.cxx
+    $project.name$.cxx
+    $project.name$PubSubTypes.cxx
     )
 
 include_directories()
@@ -79,7 +79,7 @@ set(PYTHON_LIBRARIES \${Python3_LIBRARIES})
 include_directories(\${PYTHON_INCLUDE_PATH})
 
 set(\${PROJECT_NAME}_MODULE
-    $it.name$Wrapper
+    $project.name$Wrapper
     )
 
 set(\${PROJECT_NAME}_MODULE_FILES
@@ -96,7 +96,7 @@ include_directories(
     \${PROJECT_SOURCE_DIR}
     )
 
-set_property(SOURCE \${PROJECT_NAME}.i PROPERTY OUTPUT_DIR "\${CMAKE_CURRENT_BINARY_DIR}/$project.context.lastStructure.typeCode.namespaces : {$it$}; separator="/"$")
+set_property(SOURCE \${PROJECT_NAME}.i PROPERTY OUTPUT_DIR "\${CMAKE_CURRENT_BINARY_DIR}/$project.context.lastStructure.typeCode.namespaces : { ns | $ns$}; separator="/"$")
 
 SWIG_ADD_LIBRARY(\${\${PROJECT_NAME}_MODULE}
     TYPE SHARED
@@ -111,11 +111,11 @@ target_link_libraries(\${\${PROJECT_NAME}_MODULE}
     Python3::Module
     fastrtps
     \${PROJECT_NAME}
-    $project.dependencies : {$it$}; separator=" "$
+    $project.dependencies : { dep | $dep$}; separator=" "$
     )
 
 set_target_properties(\${\${PROJECT_NAME}_MODULE}
-    PROPERTIES LIBRARY_OUTPUT_DIRECTORY "\${CMAKE_CURRENT_BINARY_DIR}/$project.context.lastStructure.typeCode.namespaces : {$it$}; separator="/"$"
+    PROPERTIES LIBRARY_OUTPUT_DIRECTORY "\${CMAKE_CURRENT_BINARY_DIR}/$project.context.lastStructure.typeCode.namespaces : { ns | $ns$}; separator="/"$"
     )
 
 
@@ -137,8 +137,8 @@ install(TARGETS \${PROJECT_NAME}
     LIBRARY DESTINATION lib/
     ARCHIVE DESTINATION lib/
     )
-install(TARGETS \${\${PROJECT_NAME}_MODULE} DESTINATION \${PYTHON_MODULE_PATH}/$project.context.lastStructure.typeCode.namespaces : {$it$}; separator="/"$)
+install(TARGETS \${\${PROJECT_NAME}_MODULE} DESTINATION \${PYTHON_MODULE_PATH}/$project.context.lastStructure.typeCode.namespaces : { ns | $ns$}; separator="/"$)
 get_property(support_files TARGET \${\${PROJECT_NAME}_MODULE} PROPERTY SWIG_SUPPORT_FILES)
-install(FILES \${support_files} DESTINATION \${PYTHON_MODULE_PATH}/$project.context.lastStructure.typeCode.namespaces : {$it$}; separator="/"$)
+install(FILES \${support_files} DESTINATION \${PYTHON_MODULE_PATH}/$project.context.lastStructure.typeCode.namespaces : { ns | $ns$}; separator="/"$)
 
 >>

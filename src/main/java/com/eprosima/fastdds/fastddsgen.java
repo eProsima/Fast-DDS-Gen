@@ -413,20 +413,20 @@ public class fastddsgen
                     {
                         solution.addProject(project);
                     }
+
+                    for (String include : project.getIDLIncludeFiles())
+                    {
+                        Project inner = process(include, Util.getIDLFileDirectoryOnly(m_idlFiles.get(count)), false);
+                        if (inner != null && !solution.existsProject(inner.getFile()))
+                        {
+                            System.out.println("Adding project: " + inner.getFile());
+                            solution.addProject(inner);
+                        }
+                    }
                 }
                 else
                 {
                     returnedValue = false;
-                }
-
-                for (String include : project.getIDLIncludeFiles())
-                {
-                    Project inner = process(include, Util.getIDLFileDirectoryOnly(m_idlFiles.get(count)), false);
-                    if (inner != null && !solution.existsProject(inner.getFile()))
-                    {
-                        System.out.println("Adding project: " + inner.getFile());
-                        solution.addProject(inner);
-                    }
                 }
             }
 
@@ -694,7 +694,7 @@ public class fastddsgen
 
             if (m_python)
             {
-                tmanager.addGroup("com/eprosima/fastdds/idl/templates/TypesSwigInterface.stg");
+                tmanager.addGroup("com/eprosima/fastcdr/idl/templates/TypesSwigInterface.stg");
                 tmanager.addGroup("com/eprosima/fastdds/idl/templates/DDSPubSubTypeSwigInterface.stg");
             }
 
@@ -803,7 +803,7 @@ public class fastddsgen
                             System.out.println("Generating Swig interface files...");
                             if (returnedValue =
                                     Utils.writeFile(output_dir + ctx.getFilename() + ".i",
-                                    maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/TypesSwigInterface.stg"), m_replace))
+                                    maintemplates.getTemplate("com/eprosima/fastcdr/idl/templates/TypesSwigInterface.stg"), m_replace))
                             {
 
                             }
