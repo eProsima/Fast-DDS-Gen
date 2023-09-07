@@ -28,7 +28,7 @@ $if(ctx.anyCdr)$
 $ctx.types:{ type | $if(type.inScope)$$if(type.typeCode.isStructType)$
 constexpr uint32_t $type.typeCode.cScopedname$_max_cdr_typesize {$type.typeCode.maxSerializedSize$UL\};
 constexpr uint32_t $type.typeCode.cScopedname$_max_key_cdr_typesize {$type.typeCode.maxKeySerializedSize$UL\};
-$endif$ $endif$
+$endif$$endif$
 }; separator="\n"$
 $endif$
 
