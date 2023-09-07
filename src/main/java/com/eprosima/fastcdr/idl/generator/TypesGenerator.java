@@ -178,7 +178,6 @@ public class TypesGenerator
                     // Create ST of the annotation
                     ST ifcst = stg_.getInstanceOf("annotation");
                     ifcst.add("ctx", context);
-                    //ifcst.add("parent", annotation.getParent());
                     ifcst.add("annotation", annotation);
 
                     ST extensionst = null;
@@ -187,7 +186,6 @@ public class TypesGenerator
                     {
                         extensionst = stg_.getInstanceOf(extensionname);
                         extensionst.add("ctx", context);
-                        //extensionst.add("parent", annotation.getParent());
                         extensionst.add("annotation", annotation);
                         ifcst.add("extension", extensionst.render());
                     }
