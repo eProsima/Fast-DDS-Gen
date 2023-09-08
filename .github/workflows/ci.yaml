@@ -42,9 +42,9 @@ jobs:
       - uses: ./src/fastddsgen/.github/actions/install-python-packages
       - uses: ./src/fastddsgen/.github/actions/fetch-fastddsgen-repos
         with:
-          foonathan_memory_vendor_branch: '${{ github.event.inputs.foonathan_memory_vendor_branch }}'
-          fastcdr_branch: '${{ github.event.inputs.fastcdr_branch }}'
-          fastdds_branch: '${{ github.event.inputs.fastdds_branch }}'
+          foonathan-memory-vendor-branch: '${{ github.event.inputs.foonathan_memory_vendor_branch }}'
+          fastcdr-branch: '${{ github.event.inputs.fastcdr_branch }}'
+          fastdds-branch: '${{ github.event.inputs.fastdds_branch }}'
 
       - name: Get minimum supported version of CMake
         uses: lukka/get-cmake@latest
