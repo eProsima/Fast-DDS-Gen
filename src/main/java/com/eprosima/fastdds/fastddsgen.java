@@ -41,6 +41,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -353,23 +354,6 @@ public class fastddsgen
         {
             Solution solution = new Solution(m_languageOption, m_exampleOption,
                             getVersion(), m_publishercode, m_subscribercode);
-
-            // Load string templates
-            System.out.println("Loading templates from " + System.getProperty("java.class.path"));
-            // Add path of custom templates to manager search path
-            String extraPaths = "";
-            for (Map.Entry<String, String> entry : m_customStgOutput.entrySet())
-            {
-                Path path = Paths.get(entry.getKey()).getParent();
-                if (path != null)
-                {
-                    extraPaths += ":" + path.toString().replace("\\", "/");
-                }
-                else
-                {
-                    extraPaths += ":./";
-                }
-            }
 
             // In local for all products
             if (m_os.contains("Windows"))
@@ -706,7 +690,13 @@ public class fastddsgen
                     System.out.println("Loading custom template " + entry.getKey() + "...");
                     Path path = Paths.get(entry.getKey());
                     String templateName = path.getFileName().toString().substring(0, path.getFileName().toString().lastIndexOf('.'));
-                    tmanager.addGroup(templateName);
+                    try {
+                        String content = new String(Files.readAllBytes(path));
+                        tmanager.addGroupFromString(templateName, content);
+                    } catch(IOException e){
+                        System.out.println(ColorMessage.error(
+                                "IOException") + "Cannot read content from " + path.toString());
+                    }
                 }
             }
 
@@ -947,7 +937,7 @@ public class fastddsgen
 
                 if (ctx.existsLastStructure())
                 {
-                    System.out.println("Generando fichero " + output_dir + ctx.getFilename() + "PubSub.java");
+                    System.out.println("Generating file " + output_dir + ctx.getFilename() + "PubSub.java");
                     if (!Utils.writeFile(outputDir + File.separator + ctx.getFilename() + "PubSub.java",
                             maintemplates.getTemplate("JavaSource"), m_replace))
                     {
