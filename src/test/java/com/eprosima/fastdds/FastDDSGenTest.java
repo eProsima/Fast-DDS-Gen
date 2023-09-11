@@ -28,6 +28,13 @@ public class FastDDSGenTest
     @Test
     public void Context_getRelativeDir_Test()
     {
+        String absolute_idl_dir = isUnix() ?
+            "/home/testing/Prueba.idl" : "C:/Users/testing/Prueba.idl";
+        String absolute_dir = isUnix() ?
+            "/home/testing/" : "C:/Users/testing/";
+        String absolute_root_dir = isUnix() ?
+            "/home/" : "C:/Users/";
+
         {
             com.eprosima.idl.context.Context ctx = new com.eprosima.idl.context.Context(
                     "Prueba.idl", new ArrayList<String>());
@@ -72,23 +79,23 @@ public class FastDDSGenTest
 
         {
             com.eprosima.idl.context.Context ctx = new com.eprosima.idl.context.Context(
-                    "/home/testing/Prueba.idl", new ArrayList<String>());
+                    absolute_idl_dir, new ArrayList<String>());
 
             assertEquals("", ctx.getRelativeDir(null));
         }
 
         {
             com.eprosima.idl.context.Context ctx = new com.eprosima.idl.context.Context(
-                    "/home/testing/Prueba.idl", new ArrayList<String>());
+                    absolute_idl_dir, new ArrayList<String>());
 
-            assertEquals("", ctx.getRelativeDir("/home/testing/"));
+            assertEquals("", ctx.getRelativeDir(absolute_dir));
         }
 
         {
             com.eprosima.idl.context.Context ctx = new com.eprosima.idl.context.Context(
-                    "/home/testing/Prueba.idl", new ArrayList<String>());
+                    absolute_idl_dir, new ArrayList<String>());
 
-            assertEquals("testing/", ctx.getRelativeDir("/home/"));
+            assertEquals("testing/", ctx.getRelativeDir(absolute_root_dir));
         }
     }
 
