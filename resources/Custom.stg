@@ -1,3 +1,5 @@
+// Copyright 2023 Proyectos y Sistemas de Mantenimiento SL (eProsima).
+
 main(ctx, definitions) ::= <<
 
 $definitions; separator="\n"$
