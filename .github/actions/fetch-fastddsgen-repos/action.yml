@@ -3,16 +3,13 @@ description: 'Fetch Fast DDS dependencies'
 inputs:
   foonathan-memory-vendor-branch:
     description: 'foonathan_memory_vendor branch to be used'
-    required: false
-    default: 'master'
+    required: true
   fastcdr-branch:
     description: 'Fast-CDR branch to be used'
-    required: false
-    default: 'master'
+    required: true
   fastdds-branch:
     description: 'Fast-DDS branch to be used'
-    required: false
-    default: 'master'
+    required: true
 runs:
   using: "composite"
   steps:
