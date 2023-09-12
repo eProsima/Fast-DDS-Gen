@@ -415,13 +415,14 @@ enum $enum.name$ : uint32_t
 
 bitmask_type(ctx, parent, bitmask) ::= <<
 /*!
- * @brief This class represents the bitmask $bitmask.name$ defined by the user in the IDL file.
+ * @brief This enumeration represents the $bitmask.name$ bitflags defined by the user in the IDL file.
  * @ingroup $ctx.trimfilename$
  */
-enum $bitmask.name$$bitmask.boundType$
+enum $bitmask.name$Bits$bitmask.boundType$
 {
     $bitmask.members:{ member | $member.name$ = 0x01ull << $member.position$}; separator=",\n"$
 };
+typedef $bitmask.castingType$ $bitmask.name$;
 >>
 
 fwd_decl(ctx, parent, type) ::= <<
