@@ -450,9 +450,6 @@ public class fastddsgen
 
         fastddsgen.m_platforms.add("i86Win32VS2019");
         fastddsgen.m_platforms.add("x64Win64VS2019");
-        fastddsgen.m_platforms.add("i86Linux2.6gcc");
-        fastddsgen.m_platforms.add("x64Linux2.6gcc");
-        fastddsgen.m_platforms.add("armLinux2.6gcc");
         fastddsgen.m_platforms.add("CMake");
 
         returnedValue = true;
@@ -1014,27 +1011,6 @@ public class fastddsgen
                         returnedValue = false;
                     }
                 }
-                else if (m_exampleOption.substring(3, 8).equals("Linux"))
-                {
-                    System.out.println("Generating makefile solution");
-
-                    if (m_exampleOption.startsWith("i86"))
-                    {
-                        returnedValue = genMakefile(solution, "-m32");
-                    }
-                    else if (m_exampleOption.startsWith("x64"))
-                    {
-                        returnedValue = genMakefile(solution, "-m64");
-                    }
-                    else if (m_exampleOption.startsWith("arm"))
-                    {
-                        returnedValue = genMakefile(solution, "");
-                    }
-                    else
-                    {
-                        returnedValue = false;
-                    }
-                }
             }
         }
         else
@@ -1183,31 +1159,6 @@ public class fastddsgen
         else
         {
             System.out.println("ERROR<" + METHOD_NAME + ">: Cannot load the template group VS");
-        }
-
-        return returnedValue;
-    }
-
-    private boolean genMakefile(
-            Solution solution,
-            String arch)
-    {
-
-        boolean returnedValue = false;
-        ST makecxx = null;
-
-        STGroupFile makeTemplates = new STGroupFile("com/eprosima/fastdds/idl/templates/makefile.stg", '$', '$');
-
-        if (makeTemplates != null)
-        {
-            makecxx = makeTemplates.getInstanceOf("makecxx");
-
-            makecxx.add("solution", solution);
-            makecxx.add("example", m_exampleOption);
-            makecxx.add("arch", arch);
-
-            returnedValue = Utils.writeFile(m_outputDir + "makefile_" + m_exampleOption, makecxx, m_replace);
-
         }
 
         return returnedValue;
