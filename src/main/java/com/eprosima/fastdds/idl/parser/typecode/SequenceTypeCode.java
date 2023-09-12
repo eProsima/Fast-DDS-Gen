@@ -23,6 +23,7 @@ public class SequenceTypeCode extends com.eprosima.idl.parser.typecode.SequenceT
         super(maxsize);
     }
 
+    @Override
     public long maxSerializedSize(
             long current_alignment)
     {
@@ -36,6 +37,13 @@ public class SequenceTypeCode extends com.eprosima.idl.parser.typecode.SequenceT
         if (should_set_and_unset)
         {
             detect_recursive_ = true;
+        }
+
+        if (!getContentTypeCode().isPrimitive() &&
+            !getContentTypeCode().isIsType_c() /*enum*/)
+        {
+            // DHEADER if XCDRv2
+            current_alignment += 4 + TypeCode.cdr_alignment(current_alignment, 4);
         }
 
         current_alignment += 4 + TypeCode.cdr_alignment(current_alignment, 4);

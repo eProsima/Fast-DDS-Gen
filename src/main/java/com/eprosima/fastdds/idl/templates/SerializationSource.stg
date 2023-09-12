@@ -14,6 +14,8 @@
 
 group ProtocolHeader;
 
+import "eprosima.stg"
+
 main(ctx, definitions) ::= <<
 $fileHeader(ctx=ctx,  file=[ctx.filename, "SerializationSource.cpp"], description=["This file contains serialization code."])$
 
@@ -26,7 +28,9 @@ $fileHeader(ctx=ctx,  file=[ctx.filename, "SerializationSource.cpp"], descriptio
 #include <string.h>
 #include <cassert>
 
-$ctx.directIncludeDependencies:{#include "$it$Serialization.h"}; separator="\n"$
+bool g_$ctx.filename$_test_null_opt = false;
+
+$ctx.directIncludeDependencies:{ header | #include "$header$Serialization.h"}; separator="\n"$
 
 $definitions; separator="\n"$
 
@@ -37,7 +41,9 @@ $if((ctx.generateTypesC))$
 void $if(struct.hasScope)$$struct.scope$::$endif$free_string$struct.name$(
         $struct.name$* topic)
 {
-    $struct.allMembers:{$free_member_string(ctx=ctx, typecode=it.typecode, name=it.name)$}; separator=""$
+    $struct.allMembers:{ member |
+        $free_member_string(ctx=ctx, typecode=member.typecode, name=member.name)$
+    }; separator=""$
 }
 
 $endif$
@@ -45,7 +51,9 @@ void $if(struct.hasScope)$$struct.scope$::$endif$print$struct.name$(
         $struct.name$* topic)
 {
     printf("$struct.name$: { \n");
-    $struct.allMembers:{$member_print(ctx=ctx, typecode=it.typecode, name=it.name)$}; separator="\n"$
+    $struct.allMembers:{ member |
+        $member_print(ctx=ctx, typecode=member.typecode, name=member.name, originName=member.name, optional=member.annotationOptional)$
+    }; separator="\n"$
     printf("}\n");
 }
 
@@ -55,11 +63,29 @@ void $if(struct.hasScope)$$struct.scope$::$endif$initialize$struct.name$(
 {
     if (idx == 0)
     {
-        $struct.allMembers:{$member_assignment(ctx=ctx, typecode=it.typecode, name=it.name, originName=it.name)$}; separator="\n"$
+        $struct.allMembers:{ member |
+            $if(member.annotationOptional)$
+            if(!g_$ctx.filename$_test_null_opt)
+            {
+            $endif$
+            $member_assignment(ctx=ctx, typecode=member.typecode, name=member.name, originName=member.name, optional=member.annotationOptional)$
+            $if(member.annotationOptional)$
+            \}
+            $endif$
+        }; separator="\n"$
     }
     else
     {
-        $struct.allMembers:{$simply_member_assignment(ctx=ctx, typecode=it.typecode, name=it.name)$}; separator="\n"$
+        $struct.allMembers:{ member |
+            $if(member.annotationOptional)$
+            if(!g_$ctx.filename$_test_null_opt)
+            {
+            $endif$
+            $simply_member_assignment(ctx=ctx, typecode=member.typecode, name=member.name, optional=member.annotationOptional)$
+            $if(member.annotationOptional)$
+            \}
+            $endif$
+        }; separator="\n"$
     }
 }
 
@@ -67,7 +93,9 @@ int $if(struct.hasScope)$$struct.scope$::$endif$compare$struct.name$(
         $struct.name$* topic_a,
         $struct.name$* topic_b)
 {
-    $struct.allMembers:{$member_comparision(ctx=ctx, typecode=it.typecode, name=it.name, name=it.name)$}; separator="\n"$
+    $struct.allMembers:{ member |
+        $member_comparision(ctx=ctx, typecode=member.typecode, name=member.name, originName=member.name, optional=member.annotationOptional)$
+    }; separator="\n"$
     return 1;
 }
 
@@ -88,7 +116,8 @@ void $if(union.hasScope)$$union.scope$::$endif$print$union.name$(
     topic->_d(static_cast<$union.discriminator.cppTypename$>($first(first(union.members).labels)$));
     printf("$union.name$: { \n");
     $if(union.members)$
-    $member_print(ctx=ctx, typecode=first(union.members).typecode, name=first(union.members).name, originName=first(union.members).name)$
+    $member_print(ctx=ctx, typecode=first(union.members).typecode, name=first(union.members).name,
+            originName=first(union.members).name, optional=first(union.members).annotationOptional)$
     $endif$
     printf("}\n");
 }
@@ -97,7 +126,8 @@ void $if(union.hasScope)$$union.scope$::$endif$initialize$union.name$(
         $union.name$* topic)
 {
     $if(union.members)$
-    $member_assignment(ctx=ctx, typecode=first(union.members).typecode, name=first(union.members).name, originName=first(union.members).name)$
+    $member_assignment(ctx=ctx, typecode=first(union.members).typecode, name=first(union.members).name,
+            originName=first(union.members).name, optional=first(union.members).annotationOptional)$
     $endif$
 }
 
@@ -108,7 +138,8 @@ int $if(union.hasScope)$$union.scope$::$endif$compare$union.name$(
     topic_a->_d(static_cast<$union.discriminator.cppTypename$>($first(first(union.members).labels)$));
     topic_b->_d(static_cast<$union.discriminator.cppTypename$>($first(first(union.members).labels)$));
     $if(union.members)$
-    $member_comparision(ctx=ctx, typecode=first(union.members).typecode, name=first(union.members).name, originName=first(union.members).name)$
+    $member_comparision(ctx=ctx, typecode=first(union.members).typecode, name=first(union.members).name,
+            originName=first(union.members).name, optional=first(union.members).annotationOptional)$
     $endif$
     return 1;
 }
@@ -134,25 +165,33 @@ $definitions; separator="\n"$
 
 fwd_decl(ctx, parent, type) ::= <<>>
 
+const_decl(ctx, parent, const) ::= <<>>
+
 bitset_type(ctx, parent, bitset) ::= <<
 void $if(bitset.hasScope)$$bitset.scope$::$endif$print$bitset.name$(
         $bitset.name$* topic)
 {
     printf("$bitset.name$: { \n");
-    $bitset.allBitfields:{$if(it.name)$printf("$it.name$: 0x%" PRIx64 "\n", (uint64_t)topic->$it.name$());$endif$}; separator="\n"$
+    $bitset.allBitfields:{ bitfield |
+        $if(bitfield.name)$printf("$bitfield.name$: 0x%" PRIx64 "\n", (uint64_t)topic->$bitfield.name$());$endif$
+    }; separator="\n"$
 }
 
 void $if(bitset.hasScope)$$bitset.scope$::$endif$initialize$bitset.name$(
         $bitset.name$* topic)
 {
-    $bitset.allBitfields:{$if(it.name)$$if(it.spec.typecode.isType_7)$topic->$it.name$(static_cast<$it.spec.typecode.cppTypename$>(rand()%2==1));$elseif(it.spec.typecode.primitive)$topic->$it.name$(static_cast<$it.spec.typecode.cppTypename$>(rand()));$endif$$endif$}; separator="\n"$
+    $bitset.allBitfields:{ bitfield |
+        $if(bitfield.name)$$if(bitfield.spec.typecode.isType_7)$topic->$bitfield.name$(static_cast<$bitfield.spec.typecode.cppTypename$>(rand()%2==1));$elseif(bitfield.spec.typecode.primitive)$topic->$bitfield.name$(static_cast<$bitfield.spec.typecode.cppTypename$>(rand()));$endif$$endif$
+    }; separator="\n"$
 }
 
 int $if(bitset.hasScope)$$bitset.scope$::$endif$compare$bitset.name$(
         $bitset.name$* topic_a,
         $bitset.name$* topic_b)
 {
-    $bitset.allBitfields:{$if(it.name)$if(topic_a->$it.name$() != topic_b->$it.name$()) return 0;$endif$}; separator="\n"$
+    $bitset.allBitfields:{ bitfield |
+        $if(bitfield.name)$if(topic_a->$bitfield.name$() != topic_b->$bitfield.name$()) return 0;$endif$
+    }; separator="\n"$
     return 1;
 }
 
@@ -161,9 +200,10 @@ int $if(bitset.hasScope)$$bitset.scope$::$endif$compare$bitset.name$(
 // ========================================================================================
 //                                      ASSIGNMENT
 // ========================================================================================
-simply_member_assignment(ctx, typecode, name) ::= <<
-// $typecode.cppTypename$ - $typecode.kind$
-$if(typecode.isType_7)$
+simply_member_assignment(ctx, typecode, name, optional) ::= <<
+$if(typecode.isType_10)$
+$simply_member_assignment(ctx=ctx, typecode=typecode.typedefContentTypeCode, name=name, optional=optional)$
+$elseif(typecode.isType_7)$
 topic->$name$(static_cast<$typecode.cppTypename$>(idx%2==1));
 $elseif(typecode.primitive)$
 topic->$name$(static_cast<$typecode.cppTypename$>(idx));
@@ -171,12 +211,10 @@ $elseif(typecode.isType_d)$
 $if(typecode.isWStringType)$
 topic->$name$(std::to_wstring(idx));
 $elseif(ctx.generateTypesC)$
-topic->$name$(std::to_string(idx).c_str());
+topic->$name$() = std::to_string(idx).c_str();
 $else$
-topic->$name$(std::to_string(idx));
+topic->$name$() = std::to_string(idx);
 $endif$
-$elseif(typecode.isType_10)$
-$simply_member_assignment(ctx=ctx, typecode=typecode.typedefContentTypeCode, name=name)$
 $elseif(typecode.isSequenceType)$
 printf("For testing map's key structs sequences aren't allowed.\n");
 assert(false);
@@ -192,34 +230,41 @@ assert(false);
 $endif$
 >>
 
-member_assignment(ctx, typecode, name, originName) ::= <<
-// $typecode.cppTypename$ - $typecode.kind$
-$if(typecode.isType_7)$
+member_assignment(ctx, typecode, name, originName, optional) ::= <<
+$if(typecode.isType_10)$
+$member_assignment(ctx=ctx, typecode=typecode.typedefContentTypeCode, name=name, originName=originName, optional=optional)$
+$elseif(typecode.isType_7)$
 topic->$name$(static_cast<$typecode.cppTypename$>(rand()%2==1));
+$elseif(typecode.isWCharType)$
+topic->$name$(L'W');
 $elseif(typecode.primitive)$
 topic->$name$(static_cast<$typecode.cppTypename$>(rand()));
 $elseif(typecode.isType_d)$
 $if(typecode.isWStringType)$
 topic->$name$(std::wstring($typecode.maxsize$,'W'));
 $else$
-topic->$name$(u8"AAAu8u8ñññöAA\u2602");
+topic->$name$() = u8"AAAu8u8ñññöAA\u2602";
 $endif$
-$elseif(typecode.isType_10)$
-$member_assignment(ctx=ctx, typecode=typecode.typedefContentTypeCode, name=name, originName=originName)$
 $elseif(typecode.isSequenceType)$
-$sequence_assigment(ctx=ctx, typecode=typecode, name=name, p="()", loopvar=ctx.newLoopVarName)$
+$if(optional)$topic->$name$().reset(true);$endif$
+$sequence_assigment(ctx=ctx, typecode=typecode, name=name, p=optional_suffix(p="()", optional=optional), loopvar=ctx.newLoopVarName)$
 $elseif(typecode.isType_f)$
-$array_assigment(ctx=ctx, typecode=typecode, name=name, originName=originName, dimensions=typecode.dimensions, p="()", loopvar=ctx.newLoopVarName)$
+$if(optional)$topic->$name$().reset(true);$endif$
+$array_assigment(ctx=ctx, typecode=typecode, name=name, originName=originName, dimensions=typecode.dimensions, p=optional_suffix(p="()", optional=optional), loopvar=ctx.newLoopVarName)$
 $elseif(typecode.isMapType)$
-$map_assigment(ctx=ctx, typecode=typecode, name=name, originName=originName, p="()", loopvar=ctx.newLoopVarName)$
+$if(optional)$topic->$name$().reset(true);$endif$
+$map_assigment(ctx=ctx, typecode=typecode, name=name, originName=originName, p=optional_suffix(p="()", optional=optional), loopvar=ctx.newLoopVarName)$
 $else$
-$typecode.scope$::initialize$typecode.name$(&topic->$name$());
+$if(optional)$topic->$name$().reset(true);$endif$
+$typecode.scope$::initialize$typecode.name$(&topic->$name$()$if(optional)$.value()$endif$);
 $endif$
 >>
 
 array_member_assignment(ctx, typecode, name, originName, loopvar) ::= <<
 $if(typecode.isType_7)$
 topic->$name$ = static_cast<$typecode.cppTypename$>(rand()%2==1);
+$elseif(typecode.isWCharType)$
+topic->$name$ = static_cast<$typecode.cppTypename$>(L'W');
 $elseif(typecode.primitive)$
 topic->$name$ = static_cast<$typecode.cppTypename$>(rand());
 $elseif(typecode.isType_d)$
@@ -252,6 +297,8 @@ topic->$name$$p$.value()[$currentvar$] = static_cast<$typecode.cppTypename$>(ran
 $else$
 topic->$name$$p$.push_back(static_cast<$typecode.cppTypename$>(rand()%2==1));
 $endif$
+$elseif(typecode.isWCharType)$
+topic->$name$$p$.push_back(static_cast<$typecode.cppTypename$>(L'W'));
 $elseif(typecode.primitive)$
 $if(ctx.generateTypesC)$
 topic->$name$$p$.value()[$currentvar$] = static_cast<$typecode.cppTypename$>(rand());
@@ -298,6 +345,9 @@ $if(keytypecode.isType_10)$
 $map_member_assignment(ctx=ctx, keytypecode=keytypecode.typedefContentTypeCode, valueTypeCode=valueTypeCode, name=name, originName=originName, p=p, loopvar=loopvar)$
 $elseif(keytypecode.isType_7)$
 $keytypecode.cppTypename$ var_map_Key$loopvar$ = static_cast<$keytypecode.cppTypename$>(rand()%2==1);
+$map_member_value_assignment(ctx=ctx, valueTypeCode=valueTypeCode, name=name, originName=originName, p=p, loopvar=loopvar)$
+$elseif(keytypecode.isWCharType)$
+$keytypecode.cppTypename$ var_map_Key$loopvar$ = static_cast<$keytypecode.cppTypename$>(L'W');
 $map_member_value_assignment(ctx=ctx, valueTypeCode=valueTypeCode, name=name, originName=originName, p=p, loopvar=loopvar)$
 $elseif(keytypecode.primitive)$
 $keytypecode.cppTypename$ var_map_Key$loopvar$ = static_cast<$keytypecode.cppTypename$>(rand());
@@ -347,6 +397,8 @@ map_member_value_assignment(ctx, valueTypeCode, name, originName, p, loopvar) ::
 // Value assignment
 $if(valueTypeCode.isType_7)$
 topic->$name$$p$[var_map_Key$loopvar$] = static_cast<$valueTypeCode.cppTypename$>(rand()%2==1);
+$elseif(valueTypeCode.isWCharType)$
+topic->$name$$p$[var_map_Key$loopvar$] = static_cast<$valueTypeCode.cppTypename$>(L'W');
 $elseif(valueTypeCode.primitive)$
 topic->$name$$p$[var_map_Key$loopvar$] = static_cast<$valueTypeCode.cppTypename$>(rand());
 $elseif(valueTypeCode.isType_d)$
@@ -455,33 +507,45 @@ $endif$
 // ========================================================================================
 //                                         PRINT
 // ========================================================================================
-member_print(ctx, typecode, name, originName) ::= <<
+member_print(ctx, typecode, name, originName, optional) ::= <<
+$if(optional)$
+if (topic->$name$().has_value()) {
+$endif$
+
 $if(typecode.primitive)$
-printf("$name$: 0x%" PRIx64 "\n", (uint64_t)topic->$name$());
+printf("$name$: 0x%" PRIx64 "\n", (uint64_t)topic->$name$()$if(optional)$.value()$endif$);
+$elseif(typecode.isBitsetType)$
+printf("$name$: %s\n", topic->$name$()$if(optional)$.value()$endif$.bitset().to_string().c_str());
 $elseif(typecode.isType_d)$
 $if(typecode.isWStringType)$
-printf("$name$: %S\n", topic->$name$().c_str());
+printf("$name$: %S\n", topic->$name$()$if(optional)$.value()$endif$.c_str());
 $elseif(ctx.generateTypesC)$
-printf("$name$: %s\n", topic->$name$());
+printf("$name$: %s\n", topic->$name$()$if(optional)$.value()$endif$);
 $else$
-printf("$name$: %s\n", topic->$name$().c_str());
+printf("$name$: %s\n", topic->$name$()$if(optional)$.value()$endif$.c_str());
 $endif$
 $elseif(typecode.isType_10)$
-$member_print(ctx=ctx, typecode=typecode.typedefContentTypeCode, name=name, originName=originName)$
+$member_print(ctx=ctx, typecode=typecode.typedefContentTypeCode, name=name, originName=originName, optional=optional)$
 $elseif(typecode.isSequenceType)$
-$sequence_print(ctx=ctx, typecode=typecode, name=name, originName=originName, p="()", loopvar=ctx.newLoopVarName)$
+$sequence_print(ctx=ctx, typecode=typecode, name=name, originName=originName, p=optional_suffix(p="()", optional=optional), loopvar=ctx.newLoopVarName)$
 $elseif(typecode.isMapType)$
-$map_print(ctx=ctx, typecode=typecode, name=name, originName=originName, p="()", loopvar=ctx.newLoopVarName)$
+$map_print(ctx=ctx, typecode=typecode, name=name, originName=originName, p=optional_suffix(p="()", optional=optional), loopvar=ctx.newLoopVarName)$
 $elseif(typecode.isType_f)$
-$array_print(ctx=ctx, typecode=typecode, name=name, originName=originName, dimensions=typecode.dimensions, p="()", loopvar=ctx.newLoopVarName)$
+$array_print(ctx=ctx, typecode=typecode, name=name, originName=originName, dimensions=typecode.dimensions, p=optional_suffix(p="()", optional=optional), loopvar=ctx.newLoopVarName)$
 $else$
-$typecode.scope$::print$typecode.name$(&topic->$name$());
+$typecode.scope$::print$typecode.name$(&topic->$name$()$if(optional)$.value()$endif$);
+$endif$
+
+$if(optional)$
+}
 $endif$
 >>
 
 array_member_print(ctx, typecode, name, originName, loopvar) ::= <<
 $if(typecode.primitive)$
 printf("$name$: 0x%" PRIx64 "\n", (uint64_t)topic->$name$);
+$elseif(typecode.isBitsetType)$
+printf("$name$: %s\n", topic->$name$.bitset().to_string().c_str());
 $elseif(typecode.isType_d)$
 $if(typecode.isWStringType)$
 printf("$name$: %S\n", topic->$name$.c_str());
@@ -507,6 +571,8 @@ map_member_print(ctx, typecode, name, originName, loopvar) ::= <<
 printf("[%" PRIx64 "]: ", (uint64_t)(it_$loopvar$.first));
 $if(typecode.valueTypeCode.primitive)$
 printf("$name$: 0x%" PRIx64 "\n", (uint64_t)topic->$name$);
+$elseif(typecode.isBitsetType)$
+printf("$name$: %s\n", topic->$name$.bitset().to_string().c_str());
 $elseif(typecode.valueTypeCode.isType_d)$
 $if(typecode.valueTypeCode.isWStringType)$
 printf("$name$: %S\n", topic->$name$.c_str());
@@ -666,7 +732,7 @@ printf("\n");
 // ========================================================================================
 //                                      COMPARISION
 // ========================================================================================
-member_comparision(ctx, typecode, name, originName) ::= <<
+member_comparision(ctx, typecode, name, originName, optional) ::= <<
 $if(typecode.primitive)$
 if (topic_a->$name$() != topic_b->$name$()) return 0;
 $elseif(typecode.isType_d)$
@@ -680,15 +746,59 @@ $else$
 if (topic_a->$name$() != topic_b->$name$()) return 0;
 $endif$
 $elseif(typecode.isType_10)$
-$member_comparision(ctx=ctx, typecode=typecode.typedefContentTypeCode, name=name, originName=originName)$
+$member_comparision(ctx=ctx, typecode=typecode.typedefContentTypeCode, name=name, originName=originName, optional=optional)$
 $elseif(typecode.isSequenceType)$
-$sequence_comparision(ctx=ctx, typecode=typecode, name=name, p="()", loopvar=ctx.newLoopVarName)$
+$if(optional)$
+if(topic_a->$name$().has_value())
+{
+$endif$
+$sequence_comparision(ctx=ctx, typecode=typecode, name=name, p=optional_suffix(p="()", optional=optional), loopvar=ctx.newLoopVarName)$
+$if(optional)$
+}
+else
+{
+    if (topic_a->$name$().has_value() != topic_b->$name$().has_value()) return 0;
+}
+$endif$
 $elseif(typecode.isMapType)$
-$map_comparision(ctx=ctx, typecode=typecode, name=name, p="()", loopvar=ctx.newLoopVarName)$
+$if(optional)$
+if(topic_a->$name$().has_value())
+{
+$endif$
+$map_comparision(ctx=ctx, typecode=typecode, name=name, originName=originName, p=optional_suffix(p="()", optional=optional), loopvar=ctx.newLoopVarName)$
+$if(optional)$
+}
+else
+{
+    if (topic_a->$name$().has_value() != topic_b->$name$().has_value()) return 0;
+}
+$endif$
 $elseif(typecode.isType_f)$
-$array_comparision(ctx=ctx, typecode=typecode, name=name, originName=originName, dimensions=typecode.dimensions, p="()", loopvar=ctx.newLoopVarName)$
+$if(optional)$
+if(topic_a->$name$().has_value())
+{
+$endif$
+$array_comparision(ctx=ctx, typecode=typecode, name=name, originName=originName, dimensions=typecode.dimensions, p=optional_suffix(p="()", optional=optional), loopvar=ctx.newLoopVarName)$
+$if(optional)$
+}
+else
+{
+    if (topic_a->$name$().has_value() != topic_b->$name$().has_value()) return 0;
+}
+$endif$
 $else$
-if (!$typecode.scope$::compare$typecode.name$(&topic_a->$name$(), &topic_b->$name$())) return 0;
+$if(optional)$
+if(topic_a->$name$().has_value())
+{
+$endif$
+if (!$typecode.scope$::compare$typecode.name$(&topic_a->$name$()$if(optional)$.value()$endif$, &topic_b->$name$()$if(optional)$.value()$endif$)) return 0;
+$if(optional)$
+}
+else
+{
+    if (topic_a->$name$().has_value() != topic_b->$name$().has_value()) return 0;
+}
+$endif$
 $endif$
 >>
 
@@ -801,4 +911,7 @@ free_string$typecode.name$(&topic->$name$());
 $elseif(typecode.isSequenceType)$$if(typecode.contentTypeCode.isType_d)$
 char** $name$_buffer = topic->$name$().value(true);
 delete[] $name$_buffer;
-$endif$$endif$$endif$>>
+$endif$$endif$$endif$
+>>
+
+optional_suffix(p, optional) ::= <<$if(optional)$$p$.value()$else$$p$$endif$>>

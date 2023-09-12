@@ -32,6 +32,7 @@ public class BitmaskTypeCode extends com.eprosima.idl.parser.typecode.BitmaskTyp
         super(scope, name, bit_bound);
     }
 
+    @Override
     public long maxSerializedSize(
             long current_alignment)
     {

@@ -28,6 +28,13 @@ public class FastDDSGenTest
     @Test
     public void Context_getRelativeDir_Test()
     {
+        String absolute_idl_dir = isUnix() ?
+            "/home/testing/Prueba.idl" : "C:/Users/testing/Prueba.idl";
+        String absolute_dir = isUnix() ?
+            "/home/testing/" : "C:/Users/testing/";
+        String absolute_root_dir = isUnix() ?
+            "/home/" : "C:/Users/";
+
         {
             com.eprosima.idl.context.Context ctx = new com.eprosima.idl.context.Context(
                     "Prueba.idl", new ArrayList<String>());
@@ -72,23 +79,23 @@ public class FastDDSGenTest
 
         {
             com.eprosima.idl.context.Context ctx = new com.eprosima.idl.context.Context(
-                    "/home/testing/Prueba.idl", new ArrayList<String>());
+                    absolute_idl_dir, new ArrayList<String>());
 
             assertEquals("", ctx.getRelativeDir(null));
         }
 
         {
             com.eprosima.idl.context.Context ctx = new com.eprosima.idl.context.Context(
-                    "/home/testing/Prueba.idl", new ArrayList<String>());
+                    absolute_idl_dir, new ArrayList<String>());
 
-            assertEquals("", ctx.getRelativeDir("/home/testing/"));
+            assertEquals("", ctx.getRelativeDir(absolute_dir));
         }
 
         {
             com.eprosima.idl.context.Context ctx = new com.eprosima.idl.context.Context(
-                    "/home/testing/Prueba.idl", new ArrayList<String>());
+                    absolute_idl_dir, new ArrayList<String>());
 
-            assertEquals("testing/", ctx.getRelativeDir("/home/"));
+            assertEquals("testing/", ctx.getRelativeDir(absolute_root_dir));
         }
     }
 
@@ -101,13 +108,19 @@ public class FastDDSGenTest
             return;
         }
 
+        String list_tests_str = System.getProperty("list_tests");
+        java.util.List<String> list_tests = null;
+
+        if (null != list_tests_str)
+        {
+            list_tests = java.util.Arrays.asList(list_tests_str.split(",", -1));
+        }
+
         //Configure idl tests
         TestManager tests = new TestManager(TestLevel.RUN, "share/fastddsgen/java/fastddsgen", INPUT_PATH,
-                        OUTPUT_PATH, "CMake");
+                        OUTPUT_PATH, "CMake", list_tests);
         tests.addCMakeArguments("-DCMAKE_BUILD_TYPE=Debug");
         tests.removeTests("basic_inner_types");
-
-
 
         boolean testResult = tests.runTests();
         System.exit(testResult ? 0 : -1);

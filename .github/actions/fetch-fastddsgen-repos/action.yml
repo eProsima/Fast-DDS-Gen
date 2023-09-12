@@ -1,13 +1,26 @@
 name: 'fetch-fastddsgen-repos'
 description: 'Fetch Fast DDS dependencies'
+inputs:
+  foonathan-memory-vendor-branch:
+    description: 'foonathan_memory_vendor branch to be used'
+    required: false
+    default: 'master'
+  fastcdr-branch:
+    description: 'Fast-CDR branch to be used'
+    required: false
+    default: 'master'
+  fastdds-branch:
+    description: 'Fast-DDS branch to be used'
+    required: false
+    default: 'master'
 runs:
   using: "composite"
   steps:
     - id: fetch-fastddsgen-repos
       run: |
         cd src
-        git clone https://github.com/eProsima/foonathan_memory_vendor.git
-        git clone https://github.com/eProsima/Fast-CDR.git
-        git clone https://github.com/eProsima/Fast-DDS.git
+        git clone https://github.com/eProsima/foonathan_memory_vendor.git --branch ${{ inputs.foonathan-memory-vendor-branch }}
+        git clone https://github.com/eProsima/Fast-CDR.git --branch ${{ inputs.fastcdr-branch }}
+        git clone https://github.com/eProsima/Fast-DDS.git --branch ${{ inputs.fastdds-branch }}
         cd ..
       shell: bash

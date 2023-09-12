@@ -2,6 +2,19 @@ name: Continuous Integration
 
 on:
   workflow_dispatch:
+    inputs:
+      foonathan_memory_vendor_branch:
+        description: 'foonathan_memory_vendor branch to be used'
+        required: false
+        default: 'master'
+      fastcdr_branch:
+        description: 'Fast-CDR branch to be used'
+        required: false
+        default: 'master'
+      fastdds_branch:
+        description: 'Fast-DDS branch to be used'
+        required: false
+        default: 'master'
 
   push:
     branches:
@@ -19,7 +32,7 @@ jobs:
         java_version: ['openjdk-11-jdk', 'openjdk-17-jdk', 'openjdk-18-jdk', 'openjdk-19-jdk']
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           path: src/fastddsgen
 
@@ -28,11 +41,15 @@ jobs:
           java-version: ${{ matrix.java_version }}
       - uses: ./src/fastddsgen/.github/actions/install-python-packages
       - uses: ./src/fastddsgen/.github/actions/fetch-fastddsgen-repos
+        with:
+          foonathan-memory-vendor-branch: '${{ github.event.inputs.foonathan_memory_vendor_branch }}'
+          fastcdr-branch: '${{ github.event.inputs.fastcdr_branch }}'
+          fastdds-branch: '${{ github.event.inputs.fastdds_branch }}'
 
       - name: Get minimum supported version of CMake
         uses: lukka/get-cmake@latest
         with:
-          cmakeVersion: 3.16.3
+          cmakeVersion: 3.22.6
       - name: Use cmake
         run: cmake --version
 

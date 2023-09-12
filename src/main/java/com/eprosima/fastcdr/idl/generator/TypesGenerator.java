@@ -26,8 +26,8 @@ import com.eprosima.log.ColorMessage;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Map;
-import org.antlr.stringtemplate.StringTemplate;
-import org.antlr.stringtemplate.StringTemplateGroup;
+import org.stringtemplate.v4.ST;
+import org.stringtemplate.v4.STGroup;
 
 
 
@@ -54,9 +54,9 @@ public class TypesGenerator
         if(returnedValue)
         {
             // Create gradle build script.
-            StringTemplateGroup gradlestg = tmanager_.createStringTemplateGroup("gradle");
-            StringTemplate gradlest = gradlestg.getInstanceOf("main");
-            gradlest.setAttribute("name", libraryName);
+            STGroup gradlestg = tmanager_.createStringTemplateGroup("gradle");
+            ST gradlest = gradlestg.getInstanceOf("main");
+            gradlest.add("name", libraryName);
 
             if(!writeFile(outputDir_ + "build.gradle", gradlest))
             {
@@ -99,36 +99,36 @@ public class TypesGenerator
                 {
                     Interface ifc = (Interface)definition;
 
-                    // Create StringTemplate of the interface
-                    StringTemplate ifcst = stg_.getInstanceOf("interface");
-                    ifcst.setAttribute("ctx", context);
-                    ifcst.setAttribute("parent", ifc.getParent());
-                    ifcst.setAttribute("interface", ifc);
+                    // Create ST of the interface
+                    ST ifcst = stg_.getInstanceOf("interface");
+                    ifcst.add("ctx", context);
+                    ifcst.add("parent", ifc.getParent());
+                    ifcst.add("interface", ifc);
 
-                    StringTemplate extensionst = null;
+                    ST extensionst = null;
                     String extensionname = null;
                     if(extensions != null && (extensionname = extensions.get("interface")) != null)
                     {
                         extensionst = stg_.getInstanceOf(extensionname);
-                        extensionst.setAttribute("ctx", context);
-                        extensionst.setAttribute("parent", ifc.getParent());
-                        extensionst.setAttribute("interface", ifc);
-                        ifcst.setAttribute("extension", extensionst.toString());
+                        extensionst.add("ctx", context);
+                        extensionst.add("parent", ifc.getParent());
+                        extensionst.add("interface", ifc);
+                        ifcst.add("extension", extensionst.render());
                     }
 
                     if(processExports(context, ifc.getExports(), ifcst, extensions))
                     {
                         // Save file.
-                        StringTemplate st = stg_.getInstanceOf("main");
-                        st.setAttribute("ctx", context);
-                        st.setAttribute("definitions", ifcst.toString());
-                        st.setAttribute("package", (!packag.isEmpty() ? packag : null));
+                        ST st = stg_.getInstanceOf("main");
+                        st.add("ctx", context);
+                        st.add("definitions", ifcst.render());
+                        st.add("package", (!packag.isEmpty() ? packag : null));
 
                         if(extensions != null && (extensionname = extensions.get("main")) != null)
                         {
                             extensionst = stg_.getInstanceOf(extensionname);
-                            extensionst.setAttribute("ctx", context);
-                            st.setAttribute("extension", extensionst.toString());
+                            extensionst.add("ctx", context);
+                            st.add("extension", extensionst.render());
                         }
 
                         if(!writeFile(packagDir + ifc.getName() + ".java", st))
@@ -144,24 +144,24 @@ public class TypesGenerator
                 {
                     TypeDeclaration typedecl = (TypeDeclaration)definition;
 
-                    // get StringTemplate of the structure
-                    StringTemplate typest = processTypeDeclaration(context, typedecl, extensions);
+                    // get ST of the structure
+                    ST typest = processTypeDeclaration(context, typedecl, extensions);
 
                     if(typest != null)
                     {
                         // Save file.
-                        StringTemplate st = stg_.getInstanceOf("main");
-                        st.setAttribute("ctx", context);
-                        st.setAttribute("definitions", typest.toString());
-                        st.setAttribute("package", (!packag.isEmpty() ? packag : null));
+                        ST st = stg_.getInstanceOf("main");
+                        st.add("ctx", context);
+                        st.add("definitions", typest.render());
+                        st.add("package", (!packag.isEmpty() ? packag : null));
 
-                        StringTemplate extensionst = null;
+                        ST extensionst = null;
                         String extensionname = null;
                         if(extensions != null && (extensionname = extensions.get("main")) != null)
                         {
                             extensionst = stg_.getInstanceOf(extensionname);
-                            extensionst.setAttribute("ctx", context);
-                            st.setAttribute("extension", extensionst.toString());
+                            extensionst.add("ctx", context);
+                            st.add("extension", extensionst.render());
                         }
 
                         if(!writeFile(packagDir + typedecl.getName() + ".java", st))
@@ -175,21 +175,19 @@ public class TypesGenerator
                 {
                     AnnotationDeclaration annotation = (AnnotationDeclaration)definition;
 
-                    // Create StringTemplate of the annotation
-                    StringTemplate ifcst = stg_.getInstanceOf("annotation");
-                    ifcst.setAttribute("ctx", context);
-                    //ifcst.setAttribute("parent", annotation.getParent());
-                    ifcst.setAttribute("annotation", annotation);
+                    // Create ST of the annotation
+                    ST ifcst = stg_.getInstanceOf("annotation");
+                    ifcst.add("ctx", context);
+                    ifcst.add("annotation", annotation);
 
-                    StringTemplate extensionst = null;
+                    ST extensionst = null;
                     String extensionname = null;
                     if(extensions != null && (extensionname = extensions.get("annotation")) != null)
                     {
                         extensionst = stg_.getInstanceOf(extensionname);
-                        extensionst.setAttribute("ctx", context);
-                        //extensionst.setAttribute("parent", annotation.getParent());
-                        extensionst.setAttribute("annotation", annotation);
-                        ifcst.setAttribute("extension", extensionst.toString());
+                        extensionst.add("ctx", context);
+                        extensionst.add("annotation", annotation);
+                        ifcst.add("extension", extensionst.render());
                     }
                 }
             }
@@ -198,7 +196,7 @@ public class TypesGenerator
         return true;
     }
 
-    public boolean processExports(Context context, ArrayList<Export> exports, StringTemplate ifcst, Map<String, String> extensions)
+    public boolean processExports(Context context, ArrayList<Export> exports, ST ifcst, Map<String, String> extensions)
     {
         for(Export export : exports)
         {
@@ -206,13 +204,13 @@ public class TypesGenerator
             {
                 TypeDeclaration typedecl = (TypeDeclaration)export;
 
-                // get StringTemplate of the structure
-                StringTemplate typest = processTypeDeclaration(context, typedecl, extensions);
+                // get ST of the structure
+                ST typest = processTypeDeclaration(context, typedecl, extensions);
 
                 if(typest != null)
                 {
                     // Add type stringtemplate to interface stringtemplate.
-                    ifcst.setAttribute("exports", typest.toString());
+                    ifcst.add("exports", typest.render());
                 }
             }
         }
@@ -220,70 +218,70 @@ public class TypesGenerator
         return true;
     }
 
-    public StringTemplate processTypeDeclaration(Context context, TypeDeclaration typedecl, Map<String, String> extensions)
+    public ST processTypeDeclaration(Context context, TypeDeclaration typedecl, Map<String, String> extensions)
     {
-        StringTemplate typest = null, extensionst = null;
+        ST typest = null, extensionst = null;
         String extensionname = null;
         System.out.println("processTypesDeclaration " + typedecl.getName());
 
         if(typedecl.getTypeCode().getKind() == Kind.KIND_STRUCT)
         {
             typest = stg_.getInstanceOf("struct_type");
-            typest.setAttribute("struct", typedecl.getTypeCode());
+            typest.add("struct", typedecl.getTypeCode());
 
             // Get extension
             if(extensions != null && (extensionname =  extensions.get("struct_type")) != null)
             {
                 extensionst = stg_.getInstanceOf(extensionname);
-                extensionst.setAttribute("struct", typedecl.getTypeCode());
+                extensionst.add("struct", typedecl.getTypeCode());
             }
         }
         else if(typedecl.getTypeCode().getKind() == Kind.KIND_UNION)
         {
             typest = stg_.getInstanceOf("union_type");
-            typest.setAttribute("union", typedecl.getTypeCode());
+            typest.add("union", typedecl.getTypeCode());
 
             // Get extension
             if(extensions != null && (extensionname =  extensions.get("union_type")) != null)
             {
                 extensionst = stg_.getInstanceOf(extensionname);
-                extensionst.setAttribute("union", typedecl.getTypeCode());
+                extensionst.add("union", typedecl.getTypeCode());
             }
         }
         else if(typedecl.getTypeCode().getKind() == Kind.KIND_ENUM)
         {
             typest = stg_.getInstanceOf("enum_type");
-            typest.setAttribute("enum", typedecl.getTypeCode());
+            typest.add("enum", typedecl.getTypeCode());
 
             // Get extension
             if(extensions != null && (extensionname =  extensions.get("enum_type")) != null)
             {
                 extensionst = stg_.getInstanceOf(extensionname);
-                extensionst.setAttribute("enum", typedecl.getTypeCode());
+                extensionst.add("enum", typedecl.getTypeCode());
             }
         }
         else if(typedecl.getTypeCode().getKind() == Kind.KIND_BITSET)
         {
             typest = stg_.getInstanceOf("bitset_type");
-            typest.setAttribute("bitset", typedecl.getTypeCode());
+            typest.add("bitset", typedecl.getTypeCode());
 
             // Get extension
             if(extensions != null && (extensionname =  extensions.get("bitset_type")) != null)
             {
                 extensionst = stg_.getInstanceOf(extensionname);
-                extensionst.setAttribute("bitset", typedecl.getTypeCode());
+                extensionst.add("bitset", typedecl.getTypeCode());
             }
         }
         else if(typedecl.getTypeCode().getKind() == Kind.KIND_BITMASK)
         {
             typest = stg_.getInstanceOf("bitmask_type");
-            typest.setAttribute("bitmask", typedecl.getTypeCode());
+            typest.add("bitmask", typedecl.getTypeCode());
 
             // Get extension
             if(extensions != null && (extensionname =  extensions.get("bitmask_type")) != null)
             {
                 extensionst = stg_.getInstanceOf(extensionname);
-                extensionst.setAttribute("bitmask", typedecl.getTypeCode());
+                extensionst.add("bitmask", typedecl.getTypeCode());
             }
         }
 
@@ -292,20 +290,20 @@ public class TypesGenerator
             // Generate extension
             if(extensionst != null)
             {
-                extensionst.setAttribute("ctx", context);
-                extensionst.setAttribute("parent", typedecl.getParent());
-                typest.setAttribute("extension", extensionst.toString());
+                extensionst.add("ctx", context);
+                extensionst.add("parent", typedecl.getParent());
+                typest.add("extension", extensionst.render());
             }
 
             // Main stringtemplate
-            typest.setAttribute("ctx", context);
-            typest.setAttribute("parent", typedecl.getParent());
+            typest.add("ctx", context);
+            typest.add("parent", typedecl.getParent());
         }
 
         return typest;
     }
 
-    private boolean writeFile(String file, StringTemplate template)
+    private boolean writeFile(String file, ST template)
     {
         boolean returnedValue = false;
 
@@ -316,7 +314,7 @@ public class TypesGenerator
             if(!handle.exists() || replace_)
             {
                 FileWriter fw = new FileWriter(file);
-                String data = template.toString();
+                String data = template.render();
                 fw.write(data, 0, data.length());
                 fw.close();
             }
@@ -336,7 +334,7 @@ public class TypesGenerator
     }
 
     private TemplateManager tmanager_ = null;
-    private StringTemplateGroup stg_ = null;
+    private STGroup stg_ = null;
     private String outputDir_ = null;
     private boolean replace_ = false;
 }

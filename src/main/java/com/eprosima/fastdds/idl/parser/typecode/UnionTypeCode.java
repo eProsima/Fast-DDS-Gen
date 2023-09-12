@@ -34,12 +34,16 @@ public class UnionTypeCode extends com.eprosima.idl.parser.typecode.UnionTypeCod
         super(scope, name, discriminatorTypeCode);
     }
 
+    @Override
     public long maxSerializedSize(
             long current_alignment)
     {
         long initial_alignment = current_alignment;
         long reset_alignment = 0;
         long union_max_size_serialized = 0;
+        com.eprosima.idl.parser.typecode.TypeCode.ExtensibilityKind union_ext_kind = get_extensibility();
+
+        current_alignment = MemberedTypeCode.xcdr_extra_header_serialized_size(current_alignment, union_ext_kind);
 
         current_alignment += ((TypeCode)getDiscriminator()).maxSerializedSize(current_alignment);
 
@@ -53,7 +57,8 @@ public class UnionTypeCode extends com.eprosima.idl.parser.typecode.UnionTypeCod
             }
         }
 
-        return union_max_size_serialized - initial_alignment;
-    }
+        current_alignment = MemberedTypeCode.xcdr_extra_endheader_serialized_size(union_max_size_serialized, union_ext_kind);
 
+        return current_alignment - initial_alignment;
+    }
 }

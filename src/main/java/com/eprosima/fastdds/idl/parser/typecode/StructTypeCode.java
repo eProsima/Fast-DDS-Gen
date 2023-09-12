@@ -20,7 +20,7 @@ import com.eprosima.idl.parser.tree.Annotation;
 import java.util.ArrayList;
 
 public class StructTypeCode extends com.eprosima.idl.parser.typecode.StructTypeCode
-    implements TypeCode
+    implements MemberedTypeCode
 {
     public StructTypeCode(
             String scope,
@@ -33,6 +33,11 @@ public class StructTypeCode extends com.eprosima.idl.parser.typecode.StructTypeC
     {
         boolean returnedValue = false;
 
+        for (com.eprosima.idl.parser.typecode.TypeCode parent : getInheritances())
+        {
+            returnedValue |= ((StructTypeCode)parent).isHasKey();
+        }
+
         for (int count = 0; count < getMembers().size() && !returnedValue; ++count)
         {
             Member member = getMembers().get(count);
@@ -44,26 +49,33 @@ public class StructTypeCode extends com.eprosima.idl.parser.typecode.StructTypeC
 
     public String getMaxSerializedSize()
     {
-        return Long.toString(maxSerializedSize(0));
+        return Long.toString(maxSerializedSize(0, false, get_extensibility()));
     }
 
+    @Override
     public long maxSerializedSize(
             long current_alignment)
     {
-        return maxSerializedSize(current_alignment, false);
+        return maxSerializedSize(current_alignment, false, get_extensibility());
     }
+
 
     private long maxSerializedSize(
             long current_alignment,
-            boolean only_keys)
+            boolean only_keys,
+            com.eprosima.idl.parser.typecode.TypeCode.ExtensibilityKind struct_ext_kind)
     {
         long initial_alignment = current_alignment;
+        current_alignment = MemberedTypeCode.xcdr_extra_header_serialized_size(current_alignment, struct_ext_kind);
 
         for (com.eprosima.idl.parser.typecode.TypeCode parent : getInheritances())
         {
-            current_alignment += ((StructTypeCode)parent).maxSerializedSize(current_alignment, only_keys);
+            current_alignment += ((StructTypeCode)parent).maxSerializedSize(current_alignment, only_keys,
+                    com.eprosima.idl.parser.typecode.TypeCode.ExtensibilityKind.FINAL); // FINAL to avoid calculation
+                                                                                        // of any XCDR header.
         }
 
+        // TODO if only_key, get members sorted.
         for (Member member : getMembers())
         {
             if (member.isAnnotationNonSerialized())
@@ -77,7 +89,9 @@ public class StructTypeCode extends com.eprosima.idl.parser.typecode.StructTypeC
                     if (member.getTypecode() instanceof StructTypeCode && ((StructTypeCode)member.getTypecode()).isHasKey())
                     {
                         current_alignment +=
-                            ((StructTypeCode)member.getTypecode()).maxSerializedSize(current_alignment, true);
+                            ((StructTypeCode)member.getTypecode()).maxSerializedSize(current_alignment, true,
+                            com.eprosima.idl.parser.typecode.TypeCode.ExtensibilityKind.FINAL); // FINAL to avoid calculation
+                                                                                                // of any XCDR header.
                     }
                     else
                     {
@@ -87,16 +101,21 @@ public class StructTypeCode extends com.eprosima.idl.parser.typecode.StructTypeC
             }
             else if (!only_keys)
             {
+                current_alignment = MemberedTypeCode.xcdr_extra_member_serialized_size(current_alignment, struct_ext_kind, member.isAnnotationOptional(),
+                        member.getTypecode() instanceof PrimitiveTypeCode ? Integer.parseInt(((PrimitiveTypeCode)member.getTypecode()).getSize()) : 8);
                 current_alignment += ((TypeCode)member.getTypecode()).maxSerializedSize(current_alignment);
             }
         }
+
+        current_alignment = MemberedTypeCode.xcdr_extra_endheader_serialized_size(current_alignment, struct_ext_kind);
 
         return current_alignment - initial_alignment;
     }
 
     public String getMaxKeySerializedSize()
     {
-        return Long.toString(maxSerializedSize(0, true));
+        return Long.toString(maxSerializedSize(0, true,
+                    com.eprosima.idl.parser.typecode.TypeCode.ExtensibilityKind.FINAL));
     }
 
     public void setIsTopic(

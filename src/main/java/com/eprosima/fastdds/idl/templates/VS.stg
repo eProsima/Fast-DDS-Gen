@@ -17,13 +17,13 @@ group VS;
 solution(solution, example, configurations, generateJava, vsVersion) ::= <<
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio $vsVersion$
-$solution.projects : {$projectReferences(solution=solution, project=it, example=example)$$if(it.containsInterfaces)$$projectReferencesExtra(solution=solution, project=it, example=example)$$endif$$if(generateJava)$$projectReferencesJava(solution=solution, project=it, example=example)$$endif$};separator="\n"$
+$solution.projects : { project | $projectReferences(solution=solution, project=project, example=example)$$if(project.containsInterfaces)$$projectReferencesExtra(solution=solution, project=project, example=example)$$endif$$if(generateJava)$$projectReferencesJava(solution=solution, project=project, example=example)$$endif$};separator="\n"$
 Global
 $\t$GlobalSection(SolutionConfigurationPlatforms) = preSolution
 $configurations:{conf |$\t$$\t$$conf.name$|$conf.platform$ = $conf.name$|$conf.platform$};separator="\n"$
 $\t$EndGlobalSection
 $\t$GlobalSection(ProjectConfigurationPlatforms) = postSolution
-$solution.projects : {$projectConfigurationPlatforms(solution=solution, project=it, configurations=configurations)$}; separator="\n"$
+$solution.projects : { project | $projectConfigurationPlatforms(solution=solution, project=project, configurations=configurations, generateJava=generateJava)$}; separator="\n"$
 $\t$EndGlobalSection
 $\t$GlobalSection(SolutionProperties) = preSolution
 $\t$$\t$HideSolutionNode = FALSE
@@ -36,9 +36,9 @@ project(solution, project, example, configurations, vsVersion, toolset) ::= <<
 <?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="$vsVersion$.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
-    $configurations:{<ProjectConfiguration Include="$it.name$|$it.platform$">
-      <Configuration>$it.name$</Configuration>
-      <Platform>$it.platform$</Platform>
+    $configurations:{ conf | <ProjectConfiguration Include="$conf.name$|$conf.platform$">
+      <Configuration>$conf.name$</Configuration>
+      <Platform>$conf.platform$</Platform>
     </ProjectConfiguration>};separator="\n"$
   </ItemGroup>
   <PropertyGroup Label="Globals">
@@ -47,9 +47,9 @@ project(solution, project, example, configurations, vsVersion, toolset) ::= <<
     <RootNamespace>$project.name$Types</RootNamespace>
   </PropertyGroup>
   <Import Project="\$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
-  $configurations:{<PropertyGroup Condition="'\$(Configuration)|\$(Platform)'=='$it.name$|$it.platform$'" Label="Configuration">
-    <ConfigurationType>$if(it.dll)$DynamicLibrary$else$StaticLibrary$endif$</ConfigurationType>
-    <UseDebugLibraries>$if(it.debug)$true$else$false$endif$</UseDebugLibraries>
+  $configurations : { conf | <PropertyGroup Condition="'\$(Configuration)|\$(Platform)'=='$conf.name$|$conf.platform$'" Label="Configuration">
+    <ConfigurationType>$if(conf.dll)$DynamicLibrary$else$StaticLibrary$endif$</ConfigurationType>
+    <UseDebugLibraries>$if(conf.debug)$true$else$false$endif$</UseDebugLibraries>
     <UseOfMfc>false</UseOfMfc>
     <CharacterSet>MultiByte</CharacterSet>
 	<PlatformToolset>v$toolset$</PlatformToolset>
@@ -57,21 +57,21 @@ project(solution, project, example, configurations, vsVersion, toolset) ::= <<
   <Import Project="\$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
   </ImportGroup>
-  $configurations:{<ImportGroup Label="PropertySheets" Condition="'\$(Configuration)|\$(Platform)'=='$it.name$|$it.platform$'">
+  $configurations : { conf | <ImportGroup Label="PropertySheets" Condition="'\$(Configuration)|\$(Platform)'=='$conf.name$|$conf.platform$'">
     <Import Project="\$(UserRootDir)\Microsoft.Cpp.\$(Platform).user.props" Condition="exists('\$(UserRootDir)\Microsoft.Cpp.\$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>};separator="\n"$
   <PropertyGroup Label="UserMacros" />
-  $configurations:{<PropertyGroup Condition="'\$(Configuration)|\$(Platform)'=='$it.name$|$it.platform$'">
+  $configurations : { conf | <PropertyGroup Condition="'\$(Configuration)|\$(Platform)'=='$conf.name$|$conf.platform$'">
     <IntDir>\$(Platform)\\\$(Configuration)\\\$(ProjectName)\</IntDir>
-    <OutDir>.\\$if(!it.dll)$lib$else$bin$endif$\\$example$\</OutDir>
-    <TargetName>$if(!it.dll)$lib$endif$\$(ProjectName)$if(it.debug)$d$endif$</TargetName>
+    <OutDir>.\\$if(!conf.dll)$lib$else$bin$endif$\\$example$\</OutDir>
+    <TargetName>$if(!conf.dll)$lib$endif$\$(ProjectName)$if(conf.debug)$d$endif$</TargetName>
   </PropertyGroup>};separator="\n"$
-  $configurations:{<ItemDefinitionGroup Condition="'\$(Configuration)|\$(Platform)'=='$it.name$|$it.platform$'">
+  $configurations : { conf | <ItemDefinitionGroup Condition="'\$(Configuration)|\$(Platform)'=='$conf.name$|$conf.platform$'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
-      <Optimization>$if(it.debug)$Disabled$else$MaxSpeed$endif$</Optimization>
-      <AdditionalIncludeDirectories>$solution.includes : {include |$include$;}$%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>$preprocessorDefs(conf=it)$;$if(it.dll)$;EPROSIMA_USER_DLL_EXPORT$endif$;$solution.defines : {define |$define$;}$%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Optimization>$if(conf.debug)$Disabled$else$MaxSpeed$endif$</Optimization>
+      <AdditionalIncludeDirectories>$solution.includes : { include | $include$;}$%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>$preprocessorDefs(conf=conf)$;$if(conf.dll)$EPROSIMA_ALL_DYN_LINK;EPROSIMA_USER_DLL_EXPORT$endif$;$solution.defines : {define |$define$;}$%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>
       </PrecompiledHeaderFile>
@@ -80,14 +80,14 @@ project(solution, project, example, configurations, vsVersion, toolset) ::= <<
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>$project.dependencies : {dep |$if(!it.dll)$lib$endif$$dep$Types$if(it.debug)$d$endif$.lib}; separator=";"$;%(AdditionalDependencies)</AdditionalDependencies>
-      $if(it.dll)$
+      <AdditionalDependencies>$project.dependencies : { dep |$if(!conf.dll)$lib$endif$$dep$Types$if(conf.debug)$d$endif$.lib}; separator=";"$;%(AdditionalDependencies)</AdditionalDependencies>
+      $if(conf.dll)$
       <OutputFile>\$(TargetDir)\$(TargetName)\$(TargetExt)</OutputFile>
       <AdditionalLibraryDirectories>$solution.libraryPaths : {path |$path$;}$.\lib\\$example$;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <ImportLibrary>.\lib\\$example$\\\$(TargetName).lib</ImportLibrary>
       $endif$
     </Link>
-    $if(!it.dll)$
+    $if(!conf.dll)$
     <Lib>
       <OutputFile>\$(TargetDir)\$(TargetName)\$(TargetExt)</OutputFile>
     </Lib>
@@ -109,9 +109,9 @@ projectPubSub(solution, project, example, configurations, vsVersion, toolset) ::
 <?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="$vsVersion$.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
-    $configurations:{<ProjectConfiguration Include="$it.name$|$it.platform$">
-      <Configuration>$it.name$</Configuration>
-      <Platform>$it.platform$</Platform>
+    $configurations : { conf | <ProjectConfiguration Include="$conf.name$|$conf.platform$">
+      <Configuration>$conf.name$</Configuration>
+      <Platform>$conf.platform$</Platform>
     </ProjectConfiguration>};separator="\n"$
   </ItemGroup>
   <PropertyGroup Label="Globals">
@@ -120,9 +120,9 @@ projectPubSub(solution, project, example, configurations, vsVersion, toolset) ::
     <RootNamespace>$project.name$PublisherSubscriber</RootNamespace>
   </PropertyGroup>
   <Import Project="\$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
-  $configurations:{<PropertyGroup Condition="'\$(Configuration)|\$(Platform)'=='$it.name$|$it.platform$'" Label="Configuration">
+  $configurations : { conf | <PropertyGroup Condition="'\$(Configuration)|\$(Platform)'=='$conf.name$|$conf.platform$'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
-    <UseDebugLibraries>$if(it.debug)$true$else$false$endif$</UseDebugLibraries>
+    <UseDebugLibraries>$if(conf.debug)$true$else$false$endif$</UseDebugLibraries>
     <UseOfMfc>false</UseOfMfc>
     <CharacterSet>MultiByte</CharacterSet>
 	<PlatformToolset>v$toolset$</PlatformToolset>
@@ -130,29 +130,29 @@ projectPubSub(solution, project, example, configurations, vsVersion, toolset) ::
   <Import Project="\$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
   </ImportGroup>
-  $configurations:{<ImportGroup Label="PropertySheets" Condition="'\$(Configuration)|\$(Platform)'=='$it.name$|$it.platform$'">
+  $configurations : { conf | <ImportGroup Label="PropertySheets" Condition="'\$(Configuration)|\$(Platform)'=='$conf.name$|$conf.platform$'">
     <Import Project="\$(UserRootDir)\Microsoft.Cpp.\$(Platform).user.props" Condition="exists('\$(UserRootDir)\Microsoft.Cpp.\$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>};separator="\n"$
   <PropertyGroup Label="UserMacros" />
-  $configurations:{<PropertyGroup Condition="'\$(Configuration)|\$(Platform)'=='$it.name$|$it.platform$'">
+  $configurations : { conf | <PropertyGroup Condition="'\$(Configuration)|\$(Platform)'=='$conf.name$|$conf.platform$'">
     <IntDir>\$(Platform)\\\$(Configuration)\\\$(ProjectName)\</IntDir>
     <OutDir>.\bin\\$example$\</OutDir>
-    <TargetName>\$(ProjectName)$if(it.debug)$d$endif$</TargetName>
+    <TargetName>\$(ProjectName)$if(conf.debug)$d$endif$</TargetName>
   </PropertyGroup>};separator="\n"$
-  $configurations:{<ItemDefinitionGroup Condition="'\$(Configuration)|\$(Platform)'=='$it.name$|$it.platform$'">
+  $configurations : { conf | <ItemDefinitionGroup Condition="'\$(Configuration)|\$(Platform)'=='$conf.name$|$conf.platform$'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
-      <Optimization>$if(it.debug)$Disabled$else$MaxSpeed$endif$</Optimization>
+      <Optimization>$if(conf.debug)$Disabled$else$MaxSpeed$endif$</Optimization>
       <AdditionalIncludeDirectories>$solution.includes : {include |$include$;}$%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>_WIN32_WINDOWS;WIN32;EPROSIMA_WIN32;$if(it.dll)$EPROSIMA_ALL_DYN_LINK;$endif$BOOST_ALL_DYN_LINK;$if(it.debug)$_DEBUG;$else$NDEBUG;$endif$</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_WIN32_WINDOWS;WIN32;EPROSIMA_WIN32;$if(conf.dll)$EPROSIMA_ALL_DYN_LINK;$endif$BOOST_ALL_DYN_LINK;$if(conf.debug)$_DEBUG;$else$NDEBUG;$endif$</PreprocessorDefinitions>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>
       </PrecompiledHeaderFile>
       <ProgramDataBaseFileName>\$(TargetDir)\$(TargetName).pdb</ProgramDataBaseFileName>
     </ClCompile>
     <Link>
-      <GenerateDebugInformation>$if(it.debug)$true$else$false$endif$</GenerateDebugInformation>
-      <AdditionalDependencies>$if(!it.dll)$lib$endif$$project.name$Types$if(it.debug)$d$endif$.lib;$if(!it.dll)$$it.staticLibraries : {sl|$sl$}; separator=";"$;Shlwapi.lib;Iphlpapi.lib;$endif$$project.dependencies : {dep |$if(!it.dll)$lib$endif$$dep$Types$if(it.debug)$d$endif$.lib}; separator=";"$;%(AdditionalDependencies)</AdditionalDependencies>
+      <GenerateDebugInformation>$if(conf.debug)$true$else$false$endif$</GenerateDebugInformation>
+      <AdditionalDependencies>$if(!conf.dll)$lib$endif$$project.name$Types$if(conf.debug)$d$endif$.lib;$if(!conf.dll)$$conf.staticLibraries : {sl|$sl$}; separator=";"$;Shlwapi.lib;Iphlpapi.lib;$endif$$project.dependencies : {dep |$if(!conf.dll)$lib$endif$$dep$Types$if(conf.debug)$d$endif$.lib}; separator=";"$;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>\$(TargetDir)\$(TargetName)\$(TargetExt)</OutputFile>
       <AdditionalLibraryDirectories>$solution.libraryPaths : {path |$path$;}$.\lib\\$example$;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
@@ -173,9 +173,9 @@ projectJNI(solution, project, example, configurations, vsVersion, toolset) ::= <
 <?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="$vsVersion$.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
-    $configurations:{<ProjectConfiguration Include="$it.name$|$it.platform$">
-      <Configuration>$it.name$</Configuration>
-      <Platform>$it.platform$</Platform>
+    $configurations : { conf | <ProjectConfiguration Include="$conf.name$|$conf.platform$">
+      <Configuration>$conf.name$</Configuration>
+      <Platform>$conf.platform$</Platform>
     </ProjectConfiguration>};separator="\n"$
   </ItemGroup>
   <PropertyGroup Label="Globals">
@@ -184,9 +184,9 @@ projectJNI(solution, project, example, configurations, vsVersion, toolset) ::= <
     <RootNamespace>$project.name$PubSubJNI</RootNamespace>
   </PropertyGroup>
   <Import Project="\$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
-  $configurations:{<PropertyGroup Condition="'\$(Configuration)|\$(Platform)'=='$it.name$|$it.platform$'" Label="Configuration">
-    <ConfigurationType>$if(it.dll)$DynamicLibrary$else$StaticLibrary$endif$</ConfigurationType>
-    <UseDebugLibraries>$if(it.debug)$true$else$false$endif$</UseDebugLibraries>
+  $configurations : { conf | <PropertyGroup Condition="'\$(Configuration)|\$(Platform)'=='$conf.name$|$conf.platform$'" Label="Configuration">
+    <ConfigurationType>$if(conf.dll)$DynamicLibrary$else$StaticLibrary$endif$</ConfigurationType>
+    <UseDebugLibraries>$if(conf.debug)$true$else$false$endif$</UseDebugLibraries>
     <UseOfMfc>false</UseOfMfc>
     <CharacterSet>MultiByte</CharacterSet>
 	<PlatformToolset>v$toolset$</PlatformToolset>
@@ -194,22 +194,22 @@ projectJNI(solution, project, example, configurations, vsVersion, toolset) ::= <
   <Import Project="\$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
   </ImportGroup>
-  $configurations:{<ImportGroup Label="PropertySheets" Condition="'\$(Configuration)|\$(Platform)'=='$it.name$|$it.platform$'">
+  $configurations : { conf | <ImportGroup Label="PropertySheets" Condition="'\$(Configuration)|\$(Platform)'=='$conf.name$|$conf.platform$'">
     <Import Project="\$(UserRootDir)\Microsoft.Cpp.\$(Platform).user.props" Condition="exists('\$(UserRootDir)\Microsoft.Cpp.\$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>};separator="\n"$
   <PropertyGroup Label="UserMacros" />
-  $configurations:{<PropertyGroup Condition="'\$(Configuration)|\$(Platform)'=='$it.name$|$it.platform$'">
+  $configurations : { conf | <PropertyGroup Condition="'\$(Configuration)|\$(Platform)'=='$conf.name$|$conf.platform$'">
     <IntDir>\$(Platform)\\\$(Configuration)\\\$(ProjectName)\</IntDir>
-    <OutDir>.\\$if(!it.dll)$lib$else$bin$endif$\\$example$\</OutDir>
-    <TargetName>$if(!it.dll)$lib$endif$\$(ProjectName)$if(it.debug)$d$endif$</TargetName>
+    <OutDir>.\\$if(!conf.dll)$lib$else$bin$endif$\\$example$\</OutDir>
+    <TargetName>$if(!conf.dll)$lib$endif$\$(ProjectName)$if(conf.debug)$d$endif$</TargetName>
   </PropertyGroup>};separator="\n"$
-  $configurations:{<ItemDefinitionGroup Condition="'\$(Configuration)|\$(Platform)'=='$it.name$|$it.platform$'">
+  $configurations : { conf | <ItemDefinitionGroup Condition="'\$(Configuration)|\$(Platform)'=='$conf.name$|$conf.platform$'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
-      <Optimization>$if(it.debug)$Disabled$else$MaxSpeed$endif$</Optimization>
+      <Optimization>$if(conf.debug)$Disabled$else$MaxSpeed$endif$</Optimization>
       <AdditionalIncludeDirectories>\$(JAVA_HOME)\include;\$(JAVA_HOME)\include\win32;
       $solution.includes : {include |$include$;}$%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>$preprocessorDefs(conf=it)$$if(it.dll)$;EPROSIMA_ALL_DYN_LINK;EPROSIMA_USER_DLL_EXPORT$endif$;BOOST_ALL_DYN_LINK;$solution.defines : {define |$define$;}$%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>$preprocessorDefs(conf=conf)$$if(conf.dll)$;EPROSIMA_ALL_DYN_LINK;EPROSIMA_USER_DLL_EXPORT$endif$;BOOST_ALL_DYN_LINK;$solution.defines : {define |$define$;}$%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>
       </PrecompiledHeaderFile>
@@ -217,24 +217,24 @@ projectJNI(solution, project, example, configurations, vsVersion, toolset) ::= <
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>$if(it.dll)$
-                              $if(it.debug)$$solution.librariesDebug : {library |$library$.lib;}$
+      <AdditionalDependencies>$if(conf.dll)$
+                              $if(conf.debug)$$solution.librariesDebug : {library |$library$.lib;}$
                               $else$$solution.libraries : {library |$library$.lib;}$
                               $endif$
                               $else$
-                              $if(it.debug)$$solution.librariesStaticDebug : {library |$library$.lib;}$
+                              $if(conf.debug)$$solution.librariesStaticDebug : {library |$library$.lib;}$
                               $else$$solution.librariesStatic : {library |$library$.lib;}$
                               $endif$
                               $endif$
-                              $project.dependencies : {dep |$if(!it.dll)$lib$endif$$dep$$if(it.debug)$d$endif$.lib;$if(!it.dll)$lib$endif$$dep$JNI$if(it.debug)$d$endif$.lib}; separator=";"$;
-                              $if(!it.dll)$lib$endif$$project.name$$if(it.debug)$d$endif$.lib;$if(project.containsInterfaces)$$if(!it.dll)$lib$endif$$project.name$Client$if(it.debug)$d$endif$.lib;$endif$%(AdditionalDependencies)</AdditionalDependencies>
-      $if(it.dll)$
+                              $project.dependencies : {dep |$if(!conf.dll)$lib$endif$$dep$$if(conf.debug)$d$endif$.lib;$if(!conf.dll)$lib$endif$$dep$JNI$if(conf.debug)$d$endif$.lib}; separator=";"$;
+                              $if(!conf.dll)$lib$endif$$project.name$$if(conf.debug)$d$endif$.lib;$if(project.containsInterfaces)$$if(!conf.dll)$lib$endif$$project.name$Client$if(conf.debug)$d$endif$.lib;$endif$%(AdditionalDependencies)</AdditionalDependencies>
+      $if(conf.dll)$
       <OutputFile>\$(TargetDir)\$(TargetName)\$(TargetExt)</OutputFile>
       <AdditionalLibraryDirectories>$solution.libraryPaths : {path |$path$;}$.\lib\\$example$;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <ImportLibrary>.\lib\\$example$\\\$(TargetName).lib</ImportLibrary>
       $endif$
     </Link>
-    $if(!it.dll)$
+    $if(!conf.dll)$
     <Lib>
       <OutputFile>\$(TargetDir)\$(TargetName)\$(TargetExt)</OutputFile>
     </Lib>
@@ -353,9 +353,6 @@ preprocessorDefs(conf) ::= <<
 WIN32;_CRT_SECURE_NO_WARNINGS;$if(conf.dll)$WIN32_LEAN_AND_MEAN;$endif$$if(conf.debug)$_DEBUG$else$NDEBUG$endif$
 >>
 
-preprocessorTypesLibDefs(conf) ::= <<
->>
-
 bigObjOption() ::= <<
 <AdditionalOptions>/bigobj %(AdditionalOptions)</AdditionalOptions>
 >>
@@ -372,22 +369,20 @@ bigObjOption() ::= <<
 projectReferences(solution, project, example) ::= <<
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "$project.name$Types", "$project.name$Types-$example$.vcxproj", "{$project.guid$}"
 $\t$ProjectSection(ProjectDependencies) = postProject
-$project.dependenciesGuids : {$\t$$\t${$it$} = {$it$}}; separator="\n"$
+$project.dependenciesGuids : { dep | $\t$$\t${$dep$\} = {$dep$\}}; separator="\n"$
 $\t$EndProjectSection$\n$
 EndProject
 $if(project.hasStruct)$
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "$project.name$PublisherSubscriber", "$project.name$PublisherSubscriber-$example$.vcxproj", "{$project.exampleGuid$}"
 $\t$ProjectSection(ProjectDependencies) = postProject
 $\t$$\t${$project.guid$} = {$project.guid$}
-$project.dependenciesGuids : {$\t$$\t${$it$} = {$it$}}; separator="\n"$
+$project.dependenciesGuids : { dep | $\t$$\t${$dep$\} = {$dep$\}}; separator="\n"$
 $\t$EndProjectSection$\n$
 EndProject
 $endif$
 >>
 
-projectReferencesExtra(solution, project, example) ::= <<
-
->>
+projectReferencesExtra(solution, project, example) ::= <<>>
 
 projectReferencesJava(solution, project, example) ::= <<
 
@@ -401,7 +396,7 @@ $\t$$\t${$project.guid$} = {$project.guid$}
 
 $endif$
 $if(project.dependenciesJNIGuids)$
-$project.dependenciesJNIGuids : {$\t$$\t${$it$} = {$it$}}; separator="\n"$
+$project.dependenciesJNIGuids : { dep | $\t$$\t${$dep$\} = {$dep$\}}; separator="\n"$
 
 $endif$
 $\t$EndProjectSection
@@ -492,5 +487,5 @@ $if(conf.debug)$true$else$false$endif$
  * Uses:
  */
 runtimeLibrary(conf) ::= <<
-$if(it.dll)$$if(it.debug)$MultiThreadedDebugDLL$else$MultiThreadedDLL$endif$$else$$if(it.debug)$MultiThreadedDebug$else$MultiThreaded$endif$$endif$
+$if(conf.dll)$$if(conf.debug)$MultiThreadedDebugDLL$else$MultiThreadedDLL$endif$$else$$if(conf.debug)$MultiThreadedDebug$else$MultiThreaded$endif$$endif$
 >>

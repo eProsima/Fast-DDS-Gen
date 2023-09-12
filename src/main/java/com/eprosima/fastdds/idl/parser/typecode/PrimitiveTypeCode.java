@@ -24,6 +24,7 @@ public class PrimitiveTypeCode extends com.eprosima.idl.parser.typecode.Primitiv
         super(kind);
     }
 
+    @Override
     public long maxSerializedSize(
             long current_alignment)
     {
@@ -42,11 +43,11 @@ public class PrimitiveTypeCode extends com.eprosima.idl.parser.typecode.Primitiv
             case com.eprosima.idl.parser.typecode.Kind.KIND_LONG:
             case com.eprosima.idl.parser.typecode.Kind.KIND_ULONG:
             case com.eprosima.idl.parser.typecode.Kind.KIND_FLOAT:
-            case com.eprosima.idl.parser.typecode.Kind.KIND_WCHAR:
                 current_alignment += 4 + TypeCode.cdr_alignment(current_alignment, 4);
                 break;
             case com.eprosima.idl.parser.typecode.Kind.KIND_SHORT:
             case com.eprosima.idl.parser.typecode.Kind.KIND_USHORT:
+            case com.eprosima.idl.parser.typecode.Kind.KIND_WCHAR:
                 current_alignment += 2 + TypeCode.cdr_alignment(current_alignment, 2);
                 break;
             case com.eprosima.idl.parser.typecode.Kind.KIND_BOOLEAN:
