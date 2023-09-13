@@ -153,7 +153,7 @@ void $if(bitmask.hasScope)$$bitmask.scope$::$endif$print$bitmask.name$(
         $bitmask.name$* topic)
 {
     printf("$bitmask.scopedname$: { \n");
-    $bitmask.members:{ member | printf("$member.name$: %s\n", *topic & $bitmask.name$Bits::$member.name$ == $bitmask.name$Bits::$member.name$ ? "true" : "false");}; separator="\n"$
+    $bitmask.members:{ member | printf("$member.name$: %s\n", ((*topic & $bitmask.name$Bits::$member.name$) == $bitmask.name$Bits::$member.name$) ? "true" : "false");}; separator="\n"$
 }
 
 void $if(bitmask.hasScope)$$bitmask.scope$::$endif$initialize$bitmask.name$(
