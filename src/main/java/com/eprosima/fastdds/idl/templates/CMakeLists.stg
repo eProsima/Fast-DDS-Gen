@@ -16,7 +16,7 @@ group CMakeLists;
 
 cmakelists(solution, test) ::= <<
 
-cmake_minimum_required(VERSION 3.16.3)
+cmake_minimum_required(VERSION 3.22)
 
 project("generated_code")
 
@@ -24,8 +24,8 @@ set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 # Find requirements
-find_package(fastcdr REQUIRED)
-find_package(fastrtps REQUIRED)
+find_package(fastcdr 2 REQUIRED)
+find_package(fastrtps 2.12 REQUIRED)
 
 $solution.projects : { project | $pub_sub_execs(project=project, libraries=solution.libraries, test=test)$}; separator="\n"$
 
