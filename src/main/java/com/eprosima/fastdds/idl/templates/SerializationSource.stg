@@ -148,7 +148,33 @@ int $if(union.hasScope)$$union.scope$::$endif$compare$union.name$(
 
 enum_type(ctx, parent, enum) ::= <<>>
 
-bitmask_type(ctx, parent, bitmask) ::= <<>>
+bitmask_type(ctx, parent, bitmask) ::= <<
+void $if(bitmask.hasScope)$$bitmask.scope$::$endif$print$bitmask.name$(
+        $bitmask.name$* topic)
+{
+    printf("$bitmask.scopedname$: { \n");
+    $bitmask.members:{ member | printf("$member.name$: %s\n", ((*topic & $bitmask.name$Bits::$member.name$) == $bitmask.name$Bits::$member.name$) ? "true" : "false");}; separator="\n"$
+}
+
+void $if(bitmask.hasScope)$$bitmask.scope$::$endif$initialize$bitmask.name$(
+        $bitmask.name$* topic)
+{
+    $bitmask.members:{ member |
+    if (rand() % 2 == 1)
+    {
+        *topic |= $bitmask.name$Bits::$member.name$;
+    \}
+    }; separator="\n"$
+}
+
+int $if(bitmask.hasScope)$$bitmask.scope$::$endif$compare$bitmask.name$(
+        $bitmask.name$* topic_a,
+        $bitmask.name$* topic_b)
+{
+    return *topic_a == *topic_b;
+}
+
+>>
 
 typedef_decl(ctx, parent, typedefs) ::= <<>>
 
