@@ -627,6 +627,8 @@ $if(member.annotationDefault)$
 $elseif(!member.annotationOptional)$
 $if(member.typecode.initialValue)$
  {$member.typecode.initialValue$}
+$elseif(member.typecode.isBitmaskType)$
+ {0}
 $endif$
 $endif$
 $endif$
