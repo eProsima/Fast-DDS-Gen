@@ -152,17 +152,17 @@ bitmask_type(ctx, parent, bitmask) ::= <<
 void $if(bitmask.hasScope)$$bitmask.scope$::$endif$print$bitmask.name$(
         $bitmask.name$* topic)
 {
-    printf("$bitmask.name$: { \n");
-    $bitmask.members:{ it | printf("$it.name$: %s\n", *topic & $bitmask.name$Bits::$it.name$ == $bitmask.name$Bits::$it.name$ ? "true" : "false");}; separator="\n"$
+    printf("$bitmask.scopedname$: { \n");
+    $bitmask.members:{ member | printf("$member.name$: %s\n", *topic & $bitmask.name$Bits::$member.name$ == $bitmask.name$Bits::$member.name$ ? "true" : "false");}; separator="\n"$
 }
 
 void $if(bitmask.hasScope)$$bitmask.scope$::$endif$initialize$bitmask.name$(
         $bitmask.name$* topic)
 {
-    $bitmask.members:{ it |
+    $bitmask.members:{ member |
     if (rand() % 2 == 1)
     {
-        *topic |= $bitmask.name$Bits::$it.name$;
+        *topic |= $bitmask.name$Bits::$member.name$;
     \}
     }; separator="\n"$
 }
