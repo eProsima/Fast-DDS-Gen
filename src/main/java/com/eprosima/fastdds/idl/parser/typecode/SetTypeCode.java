@@ -14,6 +14,8 @@
 
 package com.eprosima.fastdds.idl.parser.typecode;
 
+import com.eprosima.idl.parser.exception.RuntimeGenerationException;
+
 public class SetTypeCode extends com.eprosima.idl.parser.typecode.SetTypeCode
     implements TypeCode
 {
@@ -38,6 +40,14 @@ public class SetTypeCode extends com.eprosima.idl.parser.typecode.SetTypeCode
         }
 
         return current_alignment - initial_alignment;
+    }
+
+    @Override
+    public long maxPlainTypeSerializedSize(
+            long current_alignment,
+            long align64) throws RuntimeGenerationException
+    {
+        throw new RuntimeGenerationException("MapTypeCode::maxPlainTypeSerializedSize(): Sets are not plain types.");
     }
 
 }

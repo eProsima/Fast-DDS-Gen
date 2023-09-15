@@ -14,6 +14,8 @@
 
 package com.eprosima.fastdds.idl.parser.typecode;
 
+import com.eprosima.idl.parser.exception.RuntimeGenerationException;
+
 public class SequenceTypeCode extends com.eprosima.idl.parser.typecode.SequenceTypeCode
     implements TypeCode
 {
@@ -59,6 +61,14 @@ public class SequenceTypeCode extends com.eprosima.idl.parser.typecode.SequenceT
         }
 
         return current_alignment - initial_alignment;
+    }
+
+    @Override
+    public long maxPlainTypeSerializedSize(
+            long current_alignment,
+            long align64) throws RuntimeGenerationException
+    {
+        throw new RuntimeGenerationException("MapTypeCode::maxPlainTypeSerializedSize(): Sequences are not plain types.");
     }
 
 }

@@ -14,6 +14,7 @@
 
 package com.eprosima.fastdds.idl.parser.typecode;
 
+import com.eprosima.idl.parser.exception.RuntimeGenerationException;
 import com.eprosima.idl.parser.typecode.Member;
 import com.eprosima.idl.parser.tree.Annotation;
 
@@ -116,6 +117,53 @@ public class StructTypeCode extends com.eprosima.idl.parser.typecode.StructTypeC
     {
         return Long.toString(maxSerializedSize(0, true,
                     com.eprosima.idl.parser.typecode.TypeCode.ExtensibilityKind.FINAL));
+    }
+
+    public String getMaxXCDRv1PlainTypeSerializedSize() throws RuntimeGenerationException
+    {
+        return Long.toString(maxPlainTypeSerializedSize(0, 8));
+    }
+
+    public String getMaxXCDRv2PlainTypeSerializedSize() throws RuntimeGenerationException
+    {
+        return Long.toString(maxPlainTypeSerializedSize(0, 4));
+    }
+
+    @Override
+    public long maxPlainTypeSerializedSize(
+            long current_alignment,
+            long align64) throws RuntimeGenerationException
+    {
+        if (ExtensibilityKind.FINAL != get_extensibility())
+        {
+            throw new RuntimeGenerationException("StructTypeCode::maxPlainTypeSerializedSize(): Not FINAL structures can be plain.");
+        }
+
+        long initial_alignment = current_alignment;
+
+        for (com.eprosima.idl.parser.typecode.TypeCode parent : getInheritances())
+        {
+            current_alignment += ((StructTypeCode)parent).maxPlainTypeSerializedSize(current_alignment, align64);
+        }
+
+        for (Member member : getMembers())
+        {
+            if (member.isAnnotationNonSerialized())
+            {
+                continue;
+            }
+
+            if (member.isIsPlain())
+            {
+                current_alignment += ((TypeCode)member.getTypecode()).maxPlainTypeSerializedSize(current_alignment, align64);
+            }
+            else
+            {
+                throw new RuntimeGenerationException("StructTypeCode::maxPlainTypeSerializedSize(): A member returned is not plain.");
+            }
+        }
+
+        return current_alignment - initial_alignment;
     }
 
     public void setIsTopic(

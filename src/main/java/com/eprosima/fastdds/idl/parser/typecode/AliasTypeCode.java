@@ -14,6 +14,8 @@
 
 package com.eprosima.fastdds.idl.parser.typecode;
 
+import com.eprosima.idl.parser.exception.RuntimeGenerationException;
+
 public class AliasTypeCode extends com.eprosima.idl.parser.typecode.AliasTypeCode
     implements TypeCode
 {
@@ -29,6 +31,14 @@ public class AliasTypeCode extends com.eprosima.idl.parser.typecode.AliasTypeCod
             long current_alignment)
     {
         return ((TypeCode) getTypedefContentTypeCode()).maxSerializedSize(current_alignment);
+    }
+
+    @Override
+    public long maxPlainTypeSerializedSize(
+            long current_alignment,
+            long align64) throws RuntimeGenerationException
+    {
+        return ((TypeCode) getTypedefContentTypeCode()).maxPlainTypeSerializedSize(current_alignment, align64);
     }
 
     public boolean isNotZeroArray()

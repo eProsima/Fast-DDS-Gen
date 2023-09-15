@@ -14,6 +14,8 @@
 
 package com.eprosima.fastdds.idl.parser.typecode;
 
+import com.eprosima.idl.parser.exception.RuntimeGenerationException;
+
 public class ArrayTypeCode extends com.eprosima.idl.parser.typecode.ArrayTypeCode
     implements TypeCode
 {
@@ -40,6 +42,27 @@ public class ArrayTypeCode extends com.eprosima.idl.parser.typecode.ArrayTypeCod
         for (long count = 0; count < size; ++count)
         {
             current_alignment += ((TypeCode)getContentTypeCode()).maxSerializedSize(current_alignment);
+        }
+
+        return current_alignment - initial_alignment;
+    }
+
+    @Override
+    public long maxPlainTypeSerializedSize(
+            long current_alignment,
+            long align64) throws RuntimeGenerationException
+    {
+        long initial_alignment = current_alignment;
+
+        long size = 1;
+        for (int count = 0; count < getDimensions().size(); ++count)
+        {
+            size *= Long.parseLong(getDimensions().get(count), 10);
+        }
+
+        for (long count = 0; count < size; ++count)
+        {
+            current_alignment += ((TypeCode)getContentTypeCode()).maxPlainTypeSerializedSize(current_alignment, align64);
         }
 
         return current_alignment - initial_alignment;

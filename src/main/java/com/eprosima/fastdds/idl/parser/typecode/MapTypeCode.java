@@ -14,6 +14,8 @@
 
 package com.eprosima.fastdds.idl.parser.typecode;
 
+import com.eprosima.idl.parser.exception.RuntimeGenerationException;
+
 public class MapTypeCode extends com.eprosima.idl.parser.typecode.MapTypeCode
     implements TypeCode
 {
@@ -49,4 +51,11 @@ public class MapTypeCode extends com.eprosima.idl.parser.typecode.MapTypeCode
         return current_alignment - initial_alignment;
     }
 
+    @Override
+    public long maxPlainTypeSerializedSize(
+            long current_alignment,
+            long align64) throws RuntimeGenerationException
+    {
+        throw new RuntimeGenerationException("MapTypeCode::maxPlainTypeSerializedSize(): Maps are not plain types.");
+    }
 }
