@@ -39,9 +39,15 @@ public class ArrayTypeCode extends com.eprosima.idl.parser.typecode.ArrayTypeCod
             size *= Long.parseLong(getDimensions().get(count), 10);
         }
 
-        for (long count = 0; count < size; ++count)
+        if (0 < size)
         {
             current_alignment += ((TypeCode)getContentTypeCode()).maxSerializedSize(current_alignment);
+
+            if (1 < size)
+            {
+                long element_size_after_first = ((TypeCode)getContentTypeCode()).maxSerializedSize(current_alignment);
+                current_alignment += element_size_after_first * (size - 1);
+            }
         }
 
         return current_alignment - initial_alignment;
@@ -60,9 +66,17 @@ public class ArrayTypeCode extends com.eprosima.idl.parser.typecode.ArrayTypeCod
             size *= Long.parseLong(getDimensions().get(count), 10);
         }
 
-        for (long count = 0; count < size; ++count)
+        if (0 < size)
         {
-            current_alignment += ((TypeCode)getContentTypeCode()).maxPlainTypeSerializedSize(current_alignment, align64);
+            current_alignment += ((TypeCode)getContentTypeCode()).maxPlainTypeSerializedSize(
+                    current_alignment, align64);
+
+            if (1 < size)
+            {
+                long element_size_after_first = ((TypeCode)getContentTypeCode()).maxPlainTypeSerializedSize(
+                        current_alignment, align64);
+                current_alignment += element_size_after_first * (size - 1);
+            }
         }
 
         return current_alignment - initial_alignment;

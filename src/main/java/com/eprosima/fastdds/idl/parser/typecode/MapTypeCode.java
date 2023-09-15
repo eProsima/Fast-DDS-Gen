@@ -42,10 +42,18 @@ public class MapTypeCode extends com.eprosima.idl.parser.typecode.MapTypeCode
 
         current_alignment += 4 + TypeCode.cdr_alignment(current_alignment, 4);
 
-        for (long count = 0; count < maxsize; ++count)
+        if (0 < maxsize)
         {
             current_alignment += ((TypeCode)getKeyTypeCode()).maxSerializedSize(current_alignment);
             current_alignment += ((TypeCode)getValueTypeCode()).maxSerializedSize(current_alignment);
+
+            if (1 < maxsize)
+            {
+                long element_size_after_first = ((TypeCode)getKeyTypeCode()).maxSerializedSize(current_alignment);
+                element_size_after_first += ((TypeCode)getValueTypeCode()).maxSerializedSize(
+                        current_alignment + element_size_after_first);
+                current_alignment += element_size_after_first * (maxsize - 1);
+            }
         }
 
         return current_alignment - initial_alignment;
