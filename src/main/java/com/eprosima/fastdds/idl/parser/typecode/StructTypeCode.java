@@ -136,7 +136,7 @@ public class StructTypeCode extends com.eprosima.idl.parser.typecode.StructTypeC
     {
         if (ExtensibilityKind.FINAL != get_extensibility())
         {
-            throw new RuntimeGenerationException("StructTypeCode::maxPlainTypeSerializedSize(): Not FINAL structures can be plain.");
+            throw new RuntimeGenerationException("StructTypeCode::maxPlainTypeSerializedSize(): only FINAL structures can be plain.");
         }
 
         long initial_alignment = current_alignment;
@@ -159,7 +159,7 @@ public class StructTypeCode extends com.eprosima.idl.parser.typecode.StructTypeC
             }
             else
             {
-                throw new RuntimeGenerationException("StructTypeCode::maxPlainTypeSerializedSize(): A member returned is not plain.");
+                throw new RuntimeGenerationException("StructTypeCode::maxPlainTypeSerializedSize(): A member returned being non-plain.");
             }
         }
 

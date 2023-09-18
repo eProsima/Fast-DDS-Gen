@@ -543,8 +543,8 @@ public class fastddsgen
         System.out.print("\t\t-default_extensibility | -de <ext>: sets the default extensibility for types without");
         System.out.println(" the @extensibility annotation.");
         System.out.println("\t\t Values:");
-        System.out.println("\t\t\t* " + Annotation.final_str + " (default)");
-        System.out.println("\t\t\t* " + Annotation.appendable_str);
+        System.out.println("\t\t\t* " + Annotation.final_str);
+        System.out.println("\t\t\t* " + Annotation.appendable_str + " (default)");
         System.out.println("\t\t\t* " + Annotation.mutable_str);
         System.out.println("\tand the supported input files are:");
         System.out.println("\t* IDL files.");
