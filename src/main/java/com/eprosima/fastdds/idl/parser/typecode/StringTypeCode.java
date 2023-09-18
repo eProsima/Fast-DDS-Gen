@@ -14,6 +14,7 @@
 
 package com.eprosima.fastdds.idl.parser.typecode;
 
+import com.eprosima.idl.parser.exception.RuntimeGenerationException;
 import com.eprosima.idl.parser.typecode.Kind;
 
 public class StringTypeCode extends com.eprosima.idl.parser.typecode.StringTypeCode
@@ -44,6 +45,14 @@ public class StringTypeCode extends com.eprosima.idl.parser.typecode.StringTypeC
         }
 
         return current_alignment - initial_alignment;
+    }
+
+    @Override
+    public long maxPlainTypeSerializedSize(
+            long current_alignment,
+            long align64) throws RuntimeGenerationException
+    {
+        throw new RuntimeGenerationException("StringTypeCode::maxPlainTypeSerializedSize(): Strings are not plain types.");
     }
 
 }

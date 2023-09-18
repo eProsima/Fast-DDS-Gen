@@ -25,6 +25,7 @@ import com.eprosima.idl.generator.manager.TemplateGroup;
 import com.eprosima.idl.generator.manager.TemplateManager;
 import com.eprosima.idl.parser.grammar.IDLLexer;
 import com.eprosima.idl.parser.grammar.IDLParser;
+import com.eprosima.idl.parser.tree.Annotation;
 import com.eprosima.idl.parser.tree.AnnotationDeclaration;
 import com.eprosima.idl.parser.tree.AnnotationMember;
 import com.eprosima.idl.parser.tree.Specification;
@@ -308,6 +309,33 @@ public class fastddsgen
             {
                 m_case_sensitive = true;
             }
+            else if (arg.equals("-de") || arg.equals("-default_extensibility"))
+            {
+                if (count < args.length)
+                {
+                    String extensibility = args[count++];
+                    if (extensibility.equals(Annotation.final_str))
+                    {
+                        TypeCode.default_extensibility = TypeCode.ExtensibilityKind.FINAL;
+                    }
+                    else if (extensibility.equals(Annotation.appendable_str))
+                    {
+                        TypeCode.default_extensibility = TypeCode.ExtensibilityKind.APPENDABLE;
+                    }
+                    else if (extensibility.equals(Annotation.mutable_str))
+                    {
+                        TypeCode.default_extensibility = TypeCode.ExtensibilityKind.MUTABLE;
+                    }
+                    else
+                    {
+                        throw new BadArgumentException("Extensibility value " + extensibility + " is not valid");
+                    }
+                }
+                else
+                {
+                    throw new BadArgumentException("No extensibility value after -default_extensibility argument");
+                }
+            }
             else   // TODO: More options: -rpm, -debug
             {
                 throw new BadArgumentException("Unknown argument " + arg);
@@ -512,6 +540,12 @@ public class fastddsgen
         System.out.println("\t\t-cs: IDL grammar apply case sensitive matching.");
         System.out.println("\t\t-test: executes FastDDSGen tests.");
         System.out.println("\t\t-python: generates python bindings for the generated types.");
+        System.out.print("\t\t-default_extensibility | -de <ext>: sets the default extensibility for types without");
+        System.out.println(" the @extensibility annotation.");
+        System.out.println("\t\t Values:");
+        System.out.println("\t\t\t* " + Annotation.final_str);
+        System.out.println("\t\t\t* " + Annotation.appendable_str + " (default)");
+        System.out.println("\t\t\t* " + Annotation.mutable_str);
         System.out.println("\tand the supported input files are:");
         System.out.println("\t* IDL files.");
 

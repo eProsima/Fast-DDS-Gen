@@ -28,11 +28,18 @@ public class EnumTypeCode extends com.eprosima.idl.parser.typecode.EnumTypeCode
     public long maxSerializedSize(
             long current_alignment)
     {
+        return maxPlainTypeSerializedSize(current_alignment, 8);
+    }
+
+    @Override
+    public long maxPlainTypeSerializedSize(
+            long current_alignment,
+            long align64)
+    {
         long initial_alignment = current_alignment;
 
         current_alignment += 4 + TypeCode.cdr_alignment(current_alignment, 4);
 
         return current_alignment - initial_alignment;
     }
-
 }

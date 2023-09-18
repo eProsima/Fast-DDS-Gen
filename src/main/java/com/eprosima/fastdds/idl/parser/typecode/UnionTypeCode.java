@@ -14,6 +14,7 @@
 
 package com.eprosima.fastdds.idl.parser.typecode;
 
+import com.eprosima.idl.parser.exception.RuntimeGenerationException;
 import com.eprosima.idl.parser.typecode.Member;
 
 public class UnionTypeCode extends com.eprosima.idl.parser.typecode.UnionTypeCode
@@ -60,5 +61,13 @@ public class UnionTypeCode extends com.eprosima.idl.parser.typecode.UnionTypeCod
         current_alignment = MemberedTypeCode.xcdr_extra_endheader_serialized_size(union_max_size_serialized, union_ext_kind);
 
         return current_alignment - initial_alignment;
+    }
+
+    @Override
+    public long maxPlainTypeSerializedSize(
+            long current_alignment,
+            long align64) throws RuntimeGenerationException
+    {
+        throw new RuntimeGenerationException("UnionTypeCode::maxPlainTypeSerializedSize(): Unions are not plain types.");
     }
 }

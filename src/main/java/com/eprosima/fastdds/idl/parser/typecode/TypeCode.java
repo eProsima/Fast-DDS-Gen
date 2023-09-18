@@ -14,6 +14,8 @@
 
 package com.eprosima.fastdds.idl.parser.typecode;
 
+import com.eprosima.idl.parser.exception.RuntimeGenerationException;
+
 public interface TypeCode
 {
     static long cdr_alignment(
@@ -28,4 +30,11 @@ public interface TypeCode
      */
     public long maxSerializedSize(
             long current_alignment);
+
+    /*
+     * Returns the maximum serialized size for a plain Type
+     */
+    public long maxPlainTypeSerializedSize(
+            long current_alignment,
+            long align64) throws RuntimeGenerationException;
 }

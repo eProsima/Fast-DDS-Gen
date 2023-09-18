@@ -31,6 +31,14 @@ public class BitsetTypeCode extends com.eprosima.idl.parser.typecode.BitsetTypeC
     public long maxSerializedSize(
             long current_alignment)
     {
+        return maxPlainTypeSerializedSize(current_alignment, 8);
+    }
+
+    @Override
+    public long maxPlainTypeSerializedSize(
+            long current_alignment,
+            long align64)
+    {
         long initial_alignment = current_alignment;
 
         int full_bit_size = getFullBitSize();
@@ -49,7 +57,7 @@ public class BitsetTypeCode extends com.eprosima.idl.parser.typecode.BitsetTypeC
         }
         else
         {
-            current_alignment += 8 + TypeCode.cdr_alignment(current_alignment, 8);
+            current_alignment += 8 + TypeCode.cdr_alignment(current_alignment, align64);
         }
 
         return current_alignment - initial_alignment;

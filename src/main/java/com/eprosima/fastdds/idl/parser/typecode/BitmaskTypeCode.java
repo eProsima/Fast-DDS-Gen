@@ -36,12 +36,19 @@ public class BitmaskTypeCode extends com.eprosima.idl.parser.typecode.BitmaskTyp
     public long maxSerializedSize(
             long current_alignment)
     {
+        return maxPlainTypeSerializedSize(current_alignment, 8);
+    }
+
+    @Override
+    public long maxPlainTypeSerializedSize(
+            long current_alignment,
+            long align64)
+    {
         long initial_alignment = current_alignment;
         long size = Long.parseLong(getSize(), 10);
 
-        current_alignment += size + TypeCode.cdr_alignment(current_alignment, size);
+        current_alignment += size + TypeCode.cdr_alignment(current_alignment, 4 < size ? align64 : size);
 
         return current_alignment - initial_alignment;
     }
-
 }
