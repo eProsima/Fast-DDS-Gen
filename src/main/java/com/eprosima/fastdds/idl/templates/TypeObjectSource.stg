@@ -181,28 +181,10 @@ $annotation.typeDefs : { it | $typedef_decl(ctx=ctx, parent=annotation, typedefs
 minimal_annotation_member(ctx, object) ::= <<
 //    - MinimalAnnotationParameter
 MinimalAnnotationParameter $object.name$_minimal_annotation_parameter;
-//        - CommonAnnotationParameter
-//            - AnnotationParameterFlag: Unused. No flags apply
-//            - TypeIdentifier
-const TypeIdentifier* $object.name$_minimal_annotation_parameter_type_id = $get_type_identifier(ctx=ctx, type=object.typecode, ek="false")$;
-assert(nullptr != $object.name$_minimal_annotation_parameter_type_id);
-$object.name$_minimal_annotation_parameter.common().member_type_id(*$object.name$_minimal_annotation_parameter_type_id);
+$common_annotation_parameter(ctx=ctx, object=object, name=["minimal"])$
 //        - NameHash
-$md5_hash(ctx=ctx, object=object, name=["_minimal_annotation_parameter.paramname_hash()"])$
-//        - AnnotationParameterValue: default_value
-AnnotationParameterValue value_$object.name$;
-$if(object.typecode.primitive)$
-value_$object.name$._d($object.typecode.typeIdentifier$);
-$elseif(object.typecode.objectType)$
-const TypeObject* member_type_object = get_$object.typecode.name$_object(false);
-assert(nullptr != member_type_object);
-value_$object.name$._d(member_type_object->minimal()._d());
-$endif$
-$if(object.value)$
-$annotation_parameter_value(ctx=ctx, object=object)$
-$endif$
-
-$object.name$_minimal_annotation_parameter.default_value(value_$object.name$);
+$md5_hash(ctx=ctx, object=object, name=["_minimal_annotation_parameter.name_hash()"])$
+$annotation_parameter_value(ctx=ctx, object=object, name=["minimal"], ek=["false"])$
 
 type_object->minimal().annotation_type().member_seq().emplace_back($object.name$_minimal_annotation_parameter);
 
@@ -210,33 +192,13 @@ type_object->minimal().annotation_type().member_seq().emplace_back($object.name$
 
 complete_annotation_member(ctx, object) ::= <<
 //    - CompleteAnnotationParameter
-CompleteAnnotationParameter cam_$object.name$;
-//        - CommonAnnotationParameter
-//            - AnnotationParameterFlag: Unused. No flags apply
-//            - TypeIdentifier
-TypeIdentifier* cam_$object.name$_type_id = $get_type_identifier(ctx=ctx, type=object.typecode, ek="false")$;
-if (cam_$object.name$_type_id != nullptr)
-{
-    cam_$object.name$.common().member_type_id(*cam_$object.name$_type_id);
-}
+CompleteAnnotationParameter $object.name$_complete_annotation_parameter;
+$common_annotation_parameter(ctx=ctx, object=object, name=["complete"])$
 //        - MemberName
-cam_$object.name$.name("$object.name$");
-//        - AnnotationParameterValue: default value
-AnnotationParameterValue value_$object.name$;
-$if(object.typecode.primitive)$
-value_$object.name$._d($object.typecode.typeIdentifier$);
-$elseif(object.typecode.objectType)$
-const TypeObject* member_type_object = get_$object.typecode.name$_object(false);
-assert(nullptr != member_type_object);
-value_$object.name$._d(member_type_object->minimal()._d());
-$endif$
-$if(object.value)$
-$annotation_parameter_value(ctx=ctx, object=object)$
-$endif$
+$object.name$_complete_annotation_parameter.name("$object.name$");
+$annotation_parameter_value(ctx=ctx, object=object, name=["complete"], ek=["true"])$
 
-cam_$object.name$.default_value(value_$object.name$);
-
-type_object->complete().annotation_type().member_seq().emplace_back(cam_$object.name$);
+type_object->complete().annotation_type().member_seq().emplace_back($object.name$_complete_annotation_parameter);
 
 >>
 
@@ -1301,7 +1263,7 @@ return TypeObjectFactory::get_instance()->get_type_object(
     $complete$);
 >>
 
-annotation_parameter_value(ctx, object) ::= <<
+annotation_parameter_value_value(ctx, object) ::= <<
 $if(object.typecode.primitiveType)$
 $if(object.typecode.isBooleanType)$
 value_$object.name$.boolean_value($object.value$);
@@ -1370,13 +1332,13 @@ $elseif(!(root.isEnumType || root.isBitmaskType) && (parent.isMin || annotation_
 //            - @optional AppliedBuiltinMemberAnnotations: @min, @range
 AnnotationParameterValue value_min;
 value_min._d(TODO);
-$annotation_parameter_value(ctx=ctx, object=annotation_parameter)$
+$annotation_parameter_value_value(ctx=ctx, object=annotation_parameter)$
 $member.name$_complete_enum_literal.detail().ann_builtin().min(value_min);
 $elseif(!(root.isEnumType || root.isBitmaskType) && (parent.isMax || annotation_parameter.isMax))$
 //            - @optional AppliedBuiltinMemberAnnotations: @max, @range
 AnnotationParameterValue value_max;
 value_max._d(TODO);
-$annotation_parameter_value(ctx=ctx, object=annotation_parameter)$
+$annotation_parameter_value_value(ctx=ctx, object=annotation_parameter)$
 $parent.name$_complete_enum_literal.detail().ann_builtin().max(value_max);
 $elseif(parent.isHashId)$
 //            - @optional AppliedBuiltinMemberAnnotations: @hashid
@@ -1417,7 +1379,7 @@ TypeObject* $object.name$_annotation_type_object = TypeObjectFactory::get_instan
     true);
 assert(nullptr != $object.name$_annotation_type_object);
 value_$object.name$._d($object.name$_annotation_type_object->complete()._d());
-$annotation_parameter_value(ctx=ctx, object=object)$
+$annotation_parameter_value_value(ctx=ctx, object=object)$
 $object.name$_applied_annotation_parameter.value(value_$object.name$);
 $parent.name$_applied_annotation.param_seq().push_back($object.name$_applied_annotation_parameter);
 >>
@@ -1479,4 +1441,32 @@ $applied_annotation(ctx=ctx, object=annotation)$
 $endif$
 }; separator=""$
 $endif$
+>>
+
+common_annotation_parameter(ctx, object, name) ::= <<
+//        - CommonAnnotationParameter
+//            - AnnotationParameterFlag: Unused. No flags apply
+//            - TypeIdentifier
+const TypeIdentifier* $object.name$_$name$_annotation_parameter_type_id =
+    TypeObjectFactory::get_instance()->get_type_identifier(
+        "$object.typecode.cppTypename$",
+        false);
+assert(nullptr != $object.name$_$name$_annotation_parameter_type_id);
+$object.name$_$name$_annotation_parameter.common().member_type_id(*$object.name$_$name$_annotation_parameter_type_id);
+>>
+
+annotation_parameter_value(ctx, object, name, ek) ::= <<
+//        - AnnotationParameterValue: default_value
+AnnotationParameterValue value_$object.name$;
+const TypeObject* $object.name$_$name$_annotation_parameter_value_type_object =
+    TypeObjectFactory::get_instance()->get_type_object(
+        "$object.typecode.cppTypename$",
+        $ek$);
+assert(nullptr != $object.name$_$name$_annotation_parameter_value_type_object);
+value_$object.name$._d($object.name$_$name$_annotation_parameter_value_type_object->$name$()._d());
+$if(object.value)$
+$annotation_parameter_value_value(ctx=ctx, object=object)$
+$endif$
+
+$object.name$_$name$_annotation_parameter.default_value(value_$object.name$);
 >>
