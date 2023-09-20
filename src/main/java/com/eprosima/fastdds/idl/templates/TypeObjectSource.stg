@@ -36,13 +36,12 @@ char dummy;
 $if(ctx.cdr)$
 #include <fastcdr/Cdr.h>
 #include <fastcdr/CdrSizeCalculator.hpp>
-
 $endif$
 #include <fastcdr/FastBuffer.h>
 $if(ctx.fastcdr)$
 #include <fastcdr/FastCdr.h>
-
 $endif$
+
 #include <fastrtps/rtps/common/SerializedPayload.h>
 #include <fastrtps/types/AnnotationParameterValue.h>
 #include <fastrtps/types/TypeObjectFactory.h>
@@ -57,7 +56,8 @@ void register$ctx.filename$Types()
     static std::once_flag once_flag;
     std::call_once(once_flag, []()
             {
-                TypeObjectFactory* factory = TypeObjectFactory::get_instance();
+                // TypeObject is registered internally when calling get_<type>_identifier if not previously registered
+                // into TypeObjectFactory
                 $ctx.definitions: { def | $register_type(ctx=ctx, object=def)$}; separator="\n"$
             });
 }
@@ -68,28 +68,29 @@ $definitions; separator="\n"$
 
 >>
 
-register_type(ctx, object) ::= <<
+register_type(ctx, object) ::= <%
 $if(!object.isModule)$
 $if(!object.isConstDeclaration)$
-$if(object.isAnnotation)$
+$if(object.isAnnotation && (object.enums || object.typeDefs))$
 {
-    using namespace $object.name$;
     $register_annotation_types(object)$
 }
 $endif$
-
-// TypeObject is registered internally if not previously registered into TypeObjectFactory
-$if(object.hasScope)$$object.scope$::$endif$get_$object.name$_identifier(true);
-$if(object.hasScope)$$object.scope$::$endif$get_$object.name$_identifier(false);
-
+$register_type_object(object)$
 $endif$
 $endif$
->>
+%>
 
 register_annotation_types(annotation) ::= <<
 
-$annotation.enums : { it | $register_annotation_enum(it)$}; separator="\n"$
-$annotation.typeDefs : { it | $register_annotation_typedef(it)$}; separator="\n"$
+    $annotation.enums : { it | $register_annotation_enum(it)$}; separator="\n"$
+    $annotation.typeDefs : { it | $register_annotation_typedef(it)$}; separator="\n"$
+>>
+
+register_type_object(object) ::= <<
+
+$if(object.hasScope)$$object.scope$::$endif$get_$object.name$_identifier(true);
+$if(object.hasScope)$$object.scope$::$endif$get_$object.name$_identifier(false);
 >>
 
 register_annotation_enum(enum) ::= <<
