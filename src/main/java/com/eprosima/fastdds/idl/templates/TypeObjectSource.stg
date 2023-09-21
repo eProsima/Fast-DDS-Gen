@@ -43,7 +43,10 @@ $if(ctx.fastcdr)$
 $endif$
 
 #include <fastrtps/rtps/common/SerializedPayload.h>
+// TODO(jlbueno) Update headers <fastdds/dds/xtypes/...>
 #include <fastrtps/types/AnnotationParameterValue.h>
+#include <fastrtps/types/TypeIdentifier.h>
+#include <fastrtps/types/TypeObject.h>
 #include <fastrtps/types/TypeObjectFactory.h>
 #include <fastrtps/utils/md5.h>
 
@@ -116,22 +119,11 @@ $definitions; separator="\n"$
 >>
 
 annotation(ctx, parent, annotation) ::= <<
-const TypeIdentifier* get_$annotation.name$_identifier(
-        bool complete)
-{
-    $get_type_identifier_impl(ctx=ctx, param=annotation)$
-}
+$get_type_identifier_impl(ctx=ctx, param=annotation)$
 
-const TypeObject* get_$annotation.name$_object(
-        bool complete)
-{
-    $get_type_object_impl(ctx=ctx, param=annotation)$
-}
+$get_type_object_impl(ctx=ctx, param=annotation)$
 
-const TypeObject* get_minimal_$annotation.name$_object()
-{
-    using namespace $annotation.name$;
-    $get_minimal_type_object_impl(ctx=ctx, param=annotation)$
+$get_minimal_type_object_impl(ctx=ctx, param=annotation)$
     type_object->minimal()._d(TK_ANNOTATION);
 
     // MinimalAnnotationType
@@ -141,16 +133,10 @@ const TypeObject* get_minimal_$annotation.name$_object()
 
     $annotation.members:{ member | $minimal_annotation_member(ctx=ctx, object=member)$}; separator="\n"$
 
-    $type_identifier_decl(ctx=ctx, complete=["EK_MINIMAL"])$
-    SerializedPayload_t payload(static_cast<uint32_t>(
-        calculator.calculate_serialized_size(type_object->minimal().annotation_type(), current_alignment) + 4));
-    $type_identifier_impl(ctx=ctx, param=annotation, complete=["false"])$
+    $type_identifier_impl(ctx=ctx, param=annotation, complete_discr=["EK_MINIMAL"], member=["minimal().annotation_type()"], complete_flag=["false"])$
 }
 
-const TypeObject* get_complete_$annotation.name$_object()
-{
-    using namespace $annotation.name$;
-    $get_complete_type_object_impl(ctx=ctx, param=annotation)$
+$get_complete_type_object_impl(ctx=ctx, param=annotation)$
     type_object->complete()._d(TK_ANNOTATION);
 
     // CompleteAnnotationType
@@ -164,10 +150,7 @@ const TypeObject* get_complete_$annotation.name$_object()
 
     $annotation.members:{ member | $complete_annotation_member(ctx=ctx, object=member)$}; separator="\n"$
 
-    $type_identifier_decl(ctx=ctx, complete=["EK_COMPLETE"])$
-    SerializedPayload_t payload(static_cast<uint32_t>(
-        calculator.calculate_serialized_size(type_object->complete().annotation_type(), current_alignment) + 4));
-    $type_identifier_impl(ctx=ctx, param=annotation, complete=["true"])$
+    $type_identifier_impl(ctx=ctx, param= annotation, complete_discr=["EK_COMPLETE"], member=["complete().annotation_type()"], complete_flag=["true"])$
 }
 
 namespace $annotation.name$
@@ -212,21 +195,11 @@ const_decl(ctx, parent, const) ::= <<>>
 fwd_decl(ctx, parent, type) ::= <<>>
 
 typedef_decl(ctx, parent, typedefs) ::= <<
-const TypeIdentifier* get_$typedefs.name$_identifier(
-        bool complete)
-{
-    $get_type_identifier_impl(ctx=ctx, param=typedefs)$
-}
+$get_type_identifier_impl(ctx=ctx, param=typedefs)$
 
-const TypeObject* get_$typedefs.name$_object(
-        bool complete)
-{
-    $get_type_object_impl(ctx=ctx, param=typedefs)$
-}
+$get_type_object_impl(ctx=ctx, param=typedefs)$
 
-const TypeObject* get_minimal_$typedefs.name$_object()
-{
-    $get_minimal_type_object_impl(ctx=ctx, param=typedefs)$
+$get_minimal_type_object_impl(ctx=ctx, param=typedefs)$
     type_object->minimal()._d(TK_ALIAS);
 
     // No flags apply
@@ -294,9 +267,7 @@ const TypeObject* get_minimal_$typedefs.name$_object()
     return TypeObjectFactory::get_instance()->get_type_object("$typedefs.name$", false);
 }
 
-const TypeObject* get_complete_$typedefs.name$_object()
-{
-    $get_complete_type_object_impl(ctx=ctx, param=typedefs)$
+$get_complete_type_object_impl(ctx=ctx, param=typedefs)$
     type_object->complete()._d(TK_ALIAS);
 
     // No flags apply
@@ -374,21 +345,11 @@ const TypeObject* get_complete_$typedefs.name$_object()
 >>
 
 enum_type(ctx, parent, enum) ::= <<
-const TypeIdentifier* get_$enum.name$_identifier(
-        bool complete)
-{
-    $get_type_identifier_impl(ctx=ctx, param=enum)$
-}
+$get_type_identifier_impl(ctx=ctx, param=enum)$
 
-const TypeObject* get_$enum.name$_object(
-        bool complete)
-{
-    $get_type_object_impl(ctx=ctx, param=enum)$
-}
+$get_type_object_impl(ctx=ctx, param=enum)$
 
-const TypeObject* get_minimal_$enum.name$_object()
-{
-    $get_minimal_type_object_impl(ctx=ctx, param=enum)$
+$get_minimal_type_object_impl(ctx=ctx, param=enum)$
     type_object->minimal()._d(TK_ENUM);
 
     // MinimalEnumeratedType
@@ -408,15 +369,10 @@ const TypeObject* get_minimal_$enum.name$_object()
     uint32_t value = 0;
     $enum.members:{ member | $minimal_enumerated_literal(ctx=ctx, object=member)$}; separator="\n"$
 
-    $type_identifier_decl(ctx=ctx, complete=["EK_MINIMAL"])$
-    SerializedPayload_t payload(static_cast<uint32_t>(
-        calculator.calculate_serialized_size(type_object->minimal().enumerated_type(), current_alignment) + 4));
-    $type_identifier_impl(ctx=ctx, param=enum, complete=["false"])$
+    $type_identifier_impl(ctx=ctx, param=enum, complete_discr=["EK_MINIMAL"], member=["minimal().enumerated_type()"], complete_flag=["false"])$
 }
 
-const TypeObject* get_complete_$enum.name$_object()
-{
-    $get_complete_type_object_impl(ctx=ctx, param=enum)$
+$get_complete_type_object_impl(ctx=ctx, param=enum)$
     type_object->complete()._d(TK_ENUM);
 
     // CompleteEnumeratedType
@@ -441,10 +397,7 @@ const TypeObject* get_complete_$enum.name$_object()
     uint32_t value = 0;
     $enum.members:{ member | $complete_enumerated_literal(ctx=ctx, object=member, parent=enum)$}; separator="\n"$
 
-    $type_identifier_decl(ctx=ctx, complete=["EK_COMPLETE"])$
-    SerializedPayload_t payload(static_cast<uint32_t>(
-        calculator.calculate_serialized_size(type_object->complete().enumerated_type(), current_alignment) + 4));
-    $type_identifier_impl(ctx=ctx, param=enum, complete=["true"])$
+    $type_identifier_impl(ctx=ctx, param=enum, complete_discr=["EK_COMPLETE"], member=["complete().enumerated_type()"], complete_flag=["true"])$
 }
 
 >>
@@ -468,21 +421,11 @@ type_object->complete().enumerated_type().literal_seq().emplace_back($object.nam
 >>
 
 struct_type(ctx, parent, struct, extensions) ::= <<
-const TypeIdentifier* get_$struct.name$_identifier(
-        bool complete)
-{
-    $get_type_identifier_impl(ctx=ctx, param=struct)$
-}
+$get_type_identifier_impl(ctx=ctx, param=struct)$
 
-const TypeObject* get_$struct.name$_object(
-        bool complete)
-{
-    $get_type_object_impl(ctx=ctx, param=struct)$
-}
+$get_type_object_impl(ctx=ctx, param=struct)$
 
-const TypeObject* get_minimal_$struct.name$_object()
-{
-    $get_minimal_type_object_impl(ctx=ctx, param=struct)$
+$get_minimal_type_object_impl(ctx=ctx, param=struct)$
     type_object->minimal()._d(TK_STRUCTURE);
 
     type_object->minimal().struct_type().struct_flags().IS_FINAL($struct.annotationFinal$);
@@ -500,15 +443,10 @@ const TypeObject* get_minimal_$struct.name$_object()
     //type_object->minimal().struct_type().header().base_type().equivalence_hash()[0..13];
     $struct.inheritances:{ it | $minimal_struct_inheritance(it)$}; separator="\n"$
 
-    $type_identifier_decl(ctx=ctx, complete=["EK_MINIMAL"])$
-    SerializedPayload_t payload(static_cast<uint32_t>(
-        calculator.calculate_serialized_size(type_object->minimal().struct_type(), current_alignment) + 4));
-    $type_identifier_impl(ctx=ctx, param=struct, complete=["false"])$
+    $type_identifier_impl(ctx=ctx, param=struct, complete_discr=["EK_MINIMAL"], member=["minimal().struct_type()"], complete=["false"])$
 }
 
-const TypeObject* get_complete_$struct.name$_object()
-{
-    $get_complete_type_object_impl(ctx=ctx, param=struct)$
+$get_complete_type_object_impl(ctx=ctx, param=struct)$
     type_object->complete()._d(TK_STRUCTURE);
 
     type_object->complete().struct_type().struct_flags().IS_FINAL($struct.annotationFinal$);
@@ -553,10 +491,7 @@ const TypeObject* get_complete_$struct.name$_object()
     }; separator="\n"$
     $endif$
 
-    $type_identifier_decl(ctx=ctx, complete=["EK_COMPLETE"])$
-    SerializedPayload_t payload(static_cast<uint32_t>(
-        calculator.calculate_serialized_size(type_object->complete().struct_type(), current_alignment) + 4));
-    $type_identifier_impl(ctx=ctx, param=struct, complete=["true"])$
+    $type_identifier_impl(ctx=ctx, param=struct, complete_discr=["EK_COMPLETE"], member=["complete().struct_type()"], complete_flag=["true"])$
 }
 
 >>
@@ -655,21 +590,11 @@ get_type_identifier(ctx, type, ek) ::= <<$if(type.isSequenceType)$TypeObjectFact
 get_content_type(ctx, type) ::= <<$if(type.plainType)$$if(type.isSequenceType)$TypeNamesGenerator::get_sequence_type_name($get_content_type(ctx=ctx, type=type.contentTypeCode)$, $type.maxsize$)$elseif(type.isArrayType)$TypeNamesGenerator::get_array_type_name($get_content_type(ctx=ctx, type=type.contentTypeCode)$, {$type.dimensions:{ dim |$dim$}; separator=", "$})$elseif(type.isSetType)$TypeNamesGenerator::get_sequence_type_name($get_content_type(ctx=ctx, type=type.contentTypeCode)$, $type.maxsize$)$elseif(type.isMapType)$TypeNamesGenerator::get_map_type_name($get_content_type(ctx=ctx, type=type.keyTypeCode)$, $get_content_type(ctx=ctx, type=type.valueTypeCode)$, $type.maxsize$)$elseif(type.isStringType)$TypeNamesGenerator::get_string_type_name($type.maxsize$, false)$elseif(type.isWStringType)$TypeNamesGenerator::get_string_type_name($type.maxsize$, true)$else$"$type.cppTypenameForTypeId$"$endif$$else$"$type.cppTypenameForTypeId$"$endif$>>
 
 union_type(ctx, parent, union) ::= <<
-const TypeIdentifier* get_$union.name$_identifier(
-        bool complete)
-{
-    $get_type_identifier_impl(ctx=ctx, param=union)$
-}
+$get_type_identifier_impl(ctx=ctx, param=union)$
 
-const TypeObject* get_$union.name$_object(
-        bool complete)
-{
-    $get_type_object_impl(ctx=ctx, param=union)$
-}
+$get_type_object_impl(ctx=ctx, param=union)$
 
-const TypeObject* get_minimal_$union.name$_object()
-{
-    $get_minimal_type_object_impl(ctx=ctx, param=union)$
+$get_minimal_type_object_impl(ctx=ctx, param=union)$
     type_object->minimal()._d(TK_UNION);
 
     type_object->minimal().union_type().union_flags().IS_FINAL($union.annotationFinal$);
@@ -694,15 +619,10 @@ const TypeObject* get_minimal_$union.name$_object()
     // Header
     //type_object->minimal().union_type().header().detail()... // Empty
 
-    $type_identifier_decl(ctx=ctx, complete=["EK_MINIMAL"])$
-    SerializedPayload_t payload(static_cast<uint32_t>(
-        calculator.calculate_serialized_size(type_object->minimal().union_type(), current_alignment) + 4));
-    $type_identifier_impl(ctx=ctx, param=union, complete=["false"])$
+    $type_identifier_impl(ctx=ctx, param=union, complete_discr=["EK_MINIMAL"], member=["minimal().union_type()"], complete_flag=["false"])$
 }
 
-const TypeObject* get_complete_$union.name$_object()
-{
-    $get_complete_type_object_impl(ctx=ctx, param=union)$
+$get_complete_type_object_impl(ctx=ctx, param=union)$
     type_object->complete()._d(TK_UNION);
 
     type_object->complete().union_type().union_flags().IS_FINAL($union.annotationFinal$);
@@ -783,10 +703,7 @@ const TypeObject* get_complete_$union.name$_object()
     }; separator="\n"$
     $endif$
 
-    $type_identifier_decl(ctx=ctx, complete=["EK_COMPLETE"])$
-    SerializedPayload_t payload(static_cast<uint32_t>(
-        calculator.calculate_serialized_size(type_object->complete().union_type(), current_alignment) + 4));
-    $type_identifier_impl(ctx=ctx, param=union, complete=["true"])$
+    $type_identifier_impl(ctx=ctx, param=union, complete_discr=["EK_COMPLETE"], member=["complete().union_type()"], complete_flag=["true"])$
 }
 
 >>
@@ -881,21 +798,11 @@ type_object->complete().union_type().member_seq().emplace_back(cst_$object.name$
 >>
 
 bitmask_type(ctx, parent, bitmask) ::= <<
-const TypeIdentifier* get_$bitmask.name$_identifier(
-        bool complete)
-{
-    $get_type_identifier_impl(ctx=ctx, param=bitmask)$
-}
+$get_type_identifier_impl(ctx=ctx, param=bitmask)$
 
-const TypeObject* get_$bitmask.name$_object(
-        bool complete)
-{
-    $get_type_object_impl(ctx=ctx, param=bitmask)$
-}
+$get_type_object_impl(ctx=ctx, param=bitmask)$
 
-const TypeObject* get_minimal_$bitmask.name$_object()
-{
-    $get_minimal_type_object_impl(ctx=ctx, param=bitmask)$
+$get_minimal_type_object_impl(ctx=ctx, param=bitmask)$
     type_object->minimal()._d(TK_BITMASK);
 
     // MinimalBitmaskType
@@ -910,15 +817,10 @@ const TypeObject* get_minimal_$bitmask.name$_object()
 
     $bitmask.bitmasks:{ member | $minimal_bitmask_flag(ctx=ctx, object=member)$}; separator="\n"$
 
-    $type_identifier_decl(ctx=ctx, complete=["EK_MINIMAL"])$
-    SerializedPayload_t payload(static_cast<uint32_t>(
-        calculator.calculate_serialized_size(type_object->minimal().bitmask_type(), current_alignment) + 4));
-    $type_identifier_impl(ctx=ctx, param=bitmask, complete=["false"])$
+    $type_identifier_impl(ctx=ctx, param=bitmask, complete_discr=["EK_MINIMAL"], member=["minimal().bitmask_type()"], complete_flag=["false"])$
 }
 
-const TypeObject* get_complete_$bitmask.name$_object()
-{
-    $get_complete_type_object_impl(ctx=ctx, param=bitmask)$
+$get_complete_type_object_impl(ctx=ctx, param=bitmask)$
     type_object->complete()._d(TK_BITMASK);
 
     // CompleteBitmaskType
@@ -937,10 +839,7 @@ const TypeObject* get_complete_$bitmask.name$_object()
 
     $bitmask.members:{ member | $complete_bitmask_flag(ctx=ctx, object=member, parent=bitmask)$}; separator="\n"$
 
-    $type_identifier_decl(ctx=ctx, complete=["EK_COMPLETE"])$
-    SerializedPayload_t payload(static_cast<uint32_t>(
-        calculator.calculate_serialized_size(type_object->complete().bitmask_type(), current_alignment) + 4));
-    $type_identifier_impl(ctx=ctx, param=bitmask, complete=["true"])$
+    $type_identifier_impl(ctx=ctx, param=bitmask, complete_discr=["EK_COMPLETE"], member=["complete().bitmask_type()"], complete_flag=["true"])$
 }
 
 >>
@@ -964,36 +863,21 @@ type_object->complete().bitmask_type().flag_seq().emplace_back($object.name$_com
 >>
 
 bitset_type(ctx, parent, bitset, extensions) ::= <<
-const TypeIdentifier* get_$bitset.name$_identifier(
-        bool complete)
-{
-    $get_type_identifier_impl(ctx=ctx, param=bitset)$
-}
+$get_type_identifier_impl(ctx=ctx, param=bitset)$
 
-const TypeObject* get_$bitset.name$_object(
-        bool complete)
-{
-    $get_type_object_impl(ctx=ctx, param=bitset)$
-}
+$get_type_object_impl(ctx=ctx, param=bitset)$
 
-const TypeObject* get_minimal_$bitset.name$_object()
-{
-    $get_minimal_type_object_impl(ctx=ctx, param=bitset)$
+$get_minimal_type_object_impl(ctx=ctx, param=bitset)$
     type_object->minimal()._d(TK_BITSET);
 
     $bitset.bitfields:{ member | $minimal_bitfield(ctx=ctx, object=member)$}; separator="\n"$
 
     $bitset.parents:{ it | $minimal_bitset_inheritance(it)$}; separator="\n"$
 
-    $type_identifier_decl(ctx=ctx, complete=["EK_MINIMAL"])$
-    SerializedPayload_t payload(static_cast<uint32_t>(
-        calculator.calculate_serialized_size(type_object->minimal().bitset_type(), current_alignment) + 4));
-    $type_identifier_impl(ctx=ctx, param=bitset, complete=["false"])$
+    $type_identifier_impl(ctx=ctx, param=bitset, complete_discr=["EK_MINIMAL"], member=["minimal().bitset_type()"], complete_flag=["false"])$
 }
 
-const TypeObject* get_complete_$bitset.name$_object()
-{
-    $get_complete_type_object_impl(ctx=ctx, param=bitset)$
+$get_complete_type_object_impl(ctx=ctx, param=bitset)$
     type_object->complete()._d(TK_BITSET);
 
     // No flags apply
@@ -1037,10 +921,7 @@ const TypeObject* get_complete_$bitset.name$_object()
 
     $bitset.parents:{ it | $complete_bitset_inheritance(it)$}; separator="\n"$
 
-    $type_identifier_decl(ctx=ctx, complete=["EK_COMPLETE"])$
-    SerializedPayload_t payload(static_cast<uint32_t>(
-        calculator.calculate_serialized_size(type_object->complete().bitset_type(), current_alignment) + 4));
-    $type_identifier_impl(ctx=ctx, param=bitset, complete=["true"])$
+    $type_identifier_impl(ctx=ctx, param=bitset, complete_discr=["EK_COMPLETE"], member=["complete().bitset_type()"], complete_flag=["true"])$
 }
 
 >>
@@ -1169,73 +1050,84 @@ type_object->complete().bitset_type().header().base_type(*get_$parent.name$_iden
 
 /***** Utils *****/
 get_type_identifier_impl(ctx, param) ::= <<
-const TypeIdentifier* c_identifier = TypeObjectFactory::get_instance()->get_type_identifier(
-    "$if(ctx.GenerateTypesROS2)$$param.ROS2Scopedname$$else$$param.scopedname$$endif$",
-    complete);
-if (c_identifier != nullptr && (!complete || c_identifier->_d() == EK_COMPLETE))
+const TypeIdentifier* get_$param.name$_identifier(
+        bool complete)
 {
-    return c_identifier;
-}
+    const TypeIdentifier* c_identifier = TypeObjectFactory::get_instance()->get_type_identifier(
+        "$if(ctx.GenerateTypesROS2)$$param.ROS2Scopedname$$else$$param.scopedname$$endif$",
+        complete);
+    if (c_identifier != nullptr && (!complete || c_identifier->_d() == EK_COMPLETE))
+    {
+        return c_identifier;
+    }
 
-get_$param.name$_object(complete); // Generated inside
-return TypeObjectFactory::get_instance()->get_type_identifier(
-    "$if(ctx.GenerateTypesROS2)$$param.ROS2Scopedname$$else$$param.scopedname$$endif$",
-    complete);
+    get_$param.name$_object(complete); // Generated inside
+    return TypeObjectFactory::get_instance()->get_type_identifier(
+        "$if(ctx.GenerateTypesROS2)$$param.ROS2Scopedname$$else$$param.scopedname$$endif$",
+        complete);
+}
 >>
 
 get_type_object_impl(ctx, param) ::= <<
-const TypeObject* c_type_object = TypeObjectFactory::get_instance()->get_type_object(
-    "$if(ctx.GenerateTypesROS2)$$param.ROS2Scopedname$$else$$param.scopedname$$endif$",
-    complete);
-if (c_type_object != nullptr)
+const TypeObject* get_$param.name$_object(
+        bool complete)
 {
-    return c_type_object;
+    const TypeObject* c_type_object = TypeObjectFactory::get_instance()->get_type_object(
+        "$if(ctx.GenerateTypesROS2)$$param.ROS2Scopedname$$else$$param.scopedname$$endif$",
+        complete);
+    if (c_type_object != nullptr)
+    {
+        return c_type_object;
+    }
+    else if (complete)
+    {
+        return get_complete_$param.name$_object();
+    }
+    // else
+    return get_minimal_$param.name$_object();
 }
-else if (complete)
-{
-    return get_complete_$param.name$_object();
-}
-// else
-return get_minimal_$param.name$_object();
 >>
 
 get_minimal_type_object_impl(ctx, param) ::= <<
-const TypeObject* c_type_object = TypeObjectFactory::get_instance()->get_type_object(
-    "$if(ctx.GenerateTypesROS2)$$param.ROS2Scopedname$$else$$param.scopedname$$endif$",
-    false);
-if (c_type_object != nullptr)
+const TypeObject* get_minimal_$param.name$_object()
 {
-    return c_type_object;
-}
+    const TypeObject* c_type_object = TypeObjectFactory::get_instance()->get_type_object(
+        "$if(ctx.GenerateTypesROS2)$$param.ROS2Scopedname$$else$$param.scopedname$$endif$",
+        false);
+    if (c_type_object != nullptr)
+    {
+        return c_type_object;
+    }
 
-TypeObject* type_object = new TypeObject();
-type_object->_d(EK_MINIMAL);
-// MinimalTypeObject
+    TypeObject* type_object = new TypeObject();
+    type_object->_d(EK_MINIMAL);
+    // MinimalTypeObject
 >>
 
 get_complete_type_object_impl(ctx, param) ::= <<
-const TypeObject* c_type_object = TypeObjectFactory::get_instance()->get_type_object(
-    "$if(ctx.GenerateTypesROS2)$$param.ROS2Scopedname$$else$$param.scopedname$$endif$",
-    true);
-if (c_type_object != nullptr && c_type_object->_d() == EK_COMPLETE)
+const TypeObject* get_complete_$param.name$_object()
 {
-    return c_type_object;
-}
+    const TypeObject* c_type_object = TypeObjectFactory::get_instance()->get_type_object(
+        "$if(ctx.GenerateTypesROS2)$$param.ROS2Scopedname$$else$$param.scopedname$$endif$",
+        true);
+    if (c_type_object != nullptr && c_type_object->_d() == EK_COMPLETE)
+    {
+        return c_type_object;
+    }
 
-TypeObject* type_object = new TypeObject();
-type_object->_d(EK_COMPLETE);
-// CompleteTypeObject
+    TypeObject* type_object = new TypeObject();
+    type_object->_d(EK_COMPLETE);
+    // CompleteTypeObject
 >>
 
-type_identifier_decl(ctx, complete) ::= <<
+type_identifier_impl(ctx, param, complete_discr, member, complete_flag) ::= <<
 TypeIdentifier identifier;
-identifier._d($complete$);
+identifier._d($complete_discr$);
 
 eprosima::fastcdr::CdrSizeCalculator calculator(eprosima::fastcdr::CdrVersion::XCDRv2);
 size_t current_alignment {0};
->>
-
-type_identifier_impl(ctx, param, complete) ::= <<
+SerializedPayload_t payload(static_cast<uint32_t>(
+    calculator.calculate_serialized_size(type_object->$member$, current_alignment) + 4));
 eprosima::fastcdr::FastBuffer fastbuffer(static_cast<char*>(payload.data), payload.max_size);
 // XTypes v1.3 Annex B: EquivalenceHash, first 14 bytes of MD5 of the serialized TypeObject using XCDR version 2.
 eprosima::fastcdr::Cdr ser(
@@ -1261,7 +1153,7 @@ TypeObjectFactory::get_instance()->add_type_object(
 delete type_object;
 return TypeObjectFactory::get_instance()->get_type_object(
     "$if(ctx.GenerateTypesROS2)$$param.ROS2Scopedname$$else$$param.scopedname$$endif$",
-    $complete$);
+    $complete_flag$);
 >>
 
 annotation_parameter_value_value(ctx, object) ::= <<
@@ -1457,17 +1349,12 @@ $object.name$_$name$_annotation_parameter.common().member_type_id(*$object.name$
 >>
 
 annotation_parameter_value(ctx, object, name, ek) ::= <<
-//        - AnnotationParameterValue: default_value
-AnnotationParameterValue value_$object.name$;
-const TypeObject* $object.name$_$name$_annotation_parameter_value_type_object =
-    TypeObjectFactory::get_instance()->get_type_object(
-        "$object.typecode.cppTypename$",
-        $ek$);
-assert(nullptr != $object.name$_$name$_annotation_parameter_value_type_object);
-value_$object.name$._d($object.name$_$name$_annotation_parameter_value_type_object->$name$()._d());
+//        - AnnotationParameterValue
+AnnotationParameterValue $object.name$_annotation_parameter_value;
+$object.name$_annotation_parameter_value._d($object.name$_$name$_annotation_parameter_type_id->_d());
 $if(object.value)$
 $annotation_parameter_value_value(ctx=ctx, object=object)$
 $endif$
 
-$object.name$_$name$_annotation_parameter.default_value(value_$object.name$);
+$object.name$_$name$_annotation_parameter.default_value($object.name$_annotation_parameter_value);
 >>
