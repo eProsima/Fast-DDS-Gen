@@ -153,6 +153,7 @@ $get_complete_type_object_impl(ctx=ctx, param=annotation)$
     $type_identifier_impl(ctx=ctx, param= annotation, complete_discr=["EK_COMPLETE"], member=["complete().annotation_type()"], complete_flag=["true"])$
 }
 
+$if(annotation.enums || annotation.typeDefs)$
 namespace $annotation.name$
 {
 $annotation.enums : { it | $enum_type(ctx=ctx, parent=annotation, enum=it)$}; separator="\n"$
@@ -160,12 +161,13 @@ $annotation.enums : { it | $enum_type(ctx=ctx, parent=annotation, enum=it)$}; se
 $annotation.typeDefs : { it | $typedef_decl(ctx=ctx, parent=annotation, typedefs=it)$}; separator="\n"$
 
 } // $annotation.name$ namespace
+$endif$
 >>
 
 minimal_annotation_member(ctx, object) ::= <<
 //    - MinimalAnnotationParameter
 MinimalAnnotationParameter $object.name$_minimal_annotation_parameter;
-$common_annotation_parameter(ctx=ctx, object=object, name=["minimal"])$
+$common_annotation_parameter(ctx=ctx, object=object, name=["minimal"], complete=["false"])$
 //        - NameHash
 $md5_hash(ctx=ctx, object=object, name=["_minimal_annotation_parameter.name_hash()"])$
 $annotation_parameter_value(ctx=ctx, object=object, name=["minimal"], ek=["false"])$
@@ -177,7 +179,7 @@ type_object->minimal().annotation_type().member_seq().emplace_back($object.name$
 complete_annotation_member(ctx, object) ::= <<
 //    - CompleteAnnotationParameter
 CompleteAnnotationParameter $object.name$_complete_annotation_parameter;
-$common_annotation_parameter(ctx=ctx, object=object, name=["complete"])$
+$common_annotation_parameter(ctx=ctx, object=object, name=["complete"], complete=["true"])$
 //        - MemberName
 $object.name$_complete_annotation_parameter.name("$object.name$");
 $annotation_parameter_value(ctx=ctx, object=object, name=["complete"], ek=["true"])$
@@ -1159,44 +1161,44 @@ return TypeObjectFactory::get_instance()->get_type_object(
 annotation_parameter_value_value(ctx, object) ::= <<
 $if(object.typecode.primitiveType)$
 $if(object.typecode.isBooleanType)$
-value_$object.name$.boolean_value($object.value$);
+$object.name$_annotation_parameter_value.boolean_value($object.value$);
 $elseif(object.typecode.isByteType)$
-value_$object.name$.byte_value($object.value$);
+$object.name$_annotation_parameter_value.byte_value($object.value$);
 $elseif(object.typecode.isInt8Type)$
-value_$object.name$.int8_value($object.value$);
+$object.name$_annotation_parameter_value.int8_value($object.value$);
 $elseif(object.typecode.isUint8Type)$
-value_$object.name$.uint8_value($object.value$);
+$object.name$_annotation_parameter_value.uint8_value($object.value$);
 $elseif(object.typecode.isInt16Type)$
-value_$object.name$.int16_value($object.value$);
+$object.name$_annotation_parameter_value.int16_value($object.value$);
 $elseif(object.typecode.isUint16Type)$
-value_$object.name$.uint16_value($object.value$);
+$object.name$_annotation_parameter_value.uint16_value($object.value$);
 $elseif(object.typecode.isInt32Type)$
-value_$object.name$.int32_value($object.value$);
+$object.name$_annotation_parameter_value.int32_value($object.value$);
 $elseif(object.typecode.isUint32Type)$
-value_$object.name$.uint32_value($object.value$);
+$object.name$_annotation_parameter_value.uint32_value($object.value$);
 $elseif(object.typecode.isInt64Type)$
-value_$object.name$.int64_value($object.value$);
+$object.name$_annotation_parameter_value.int64_value($object.value$);
 $elseif(object.typecode.isUint64Type)$
-value_$object.name$.uint64_value($object.value$);
+$object.name$_annotation_parameter_value.uint64_value($object.value$);
 $elseif(object.typecode.isFloat32Type)$
-value_$object.name$.float32_value($object.value$);
+$object.name$_annotation_parameter_value.float32_value($object.value$);
 $elseif(object.typecode.isFloat64Type)$
-value_$object.name$.float64_value($object.value$);
+$object.name$_annotation_parameter_value.float64_value($object.value$);
 $elseif(object.typecode.isFloat128Type)$
-value_$object.name$.float128_value($object.value$);
+$object.name$_annotation_parameter_value.float128_value($object.value$);
 $elseif(object.typecode.isCharType)$
-value_$object.name$.char_value($object.value$);
+$object.name$_annotation_parameter_value.char_value($object.value$);
 $elseif(object.typecode.isWCharType)$
-value_$object.name$.wchar_value($object.value$);
+$object.name$_annotation_parameter_value.wchar_value($object.value$);
 $endif$
 $elseif(object.typecode.isEnumType)$
-value_$object.name$.enumerated_value($object.value$);
+$object.name$_annotation_parameter_value.enumerated_value($object.value$);
 $elseif(object.typecode.isStringType)$
-value_$object.name$.string8_value($object.value$);
+$object.name$_annotation_parameter_value.string8_value($object.value$);
 $elseif(object.typecode.isWStringType)$
-value_$object.name$.string16_value($object.value$);
+$object.name$_annotation_parameter_value.string16_value($object.value$);
 $else$
-value_$object.name$.extended_value();
+$object.name$_annotation_parameter_value.extended_value();
 $endif$
 >>
 
@@ -1223,16 +1225,16 @@ $if(parent.isUnit)$
 $member.name$_complete_enum_literal.detail().ann_builtin().unit("$annotation_parameter.value$");
 $elseif(!(root.isEnumType || root.isBitmaskType) && (parent.isMin || annotation_parameter.isMin))$
 //            - @optional AppliedBuiltinMemberAnnotations: @min, @range
-AnnotationParameterValue value_min;
+AnnotationParameterValue $annotation_parameter.name$_annotation_parameter_value;
 value_min._d(TODO);
 $annotation_parameter_value_value(ctx=ctx, object=annotation_parameter)$
-$member.name$_complete_enum_literal.detail().ann_builtin().min(value_min);
+$member.name$_complete_enum_literal.detail().ann_builtin().min($annotation_parameter.name$_annotation_parameter_value);
 $elseif(!(root.isEnumType || root.isBitmaskType) && (parent.isMax || annotation_parameter.isMax))$
 //            - @optional AppliedBuiltinMemberAnnotations: @max, @range
-AnnotationParameterValue value_max;
+AnnotationParameterValue $annotation_parameter.name$_annotation_parameter_value;
 value_max._d(TODO);
 $annotation_parameter_value_value(ctx=ctx, object=annotation_parameter)$
-$parent.name$_complete_enum_literal.detail().ann_builtin().max(value_max);
+$parent.name$_complete_enum_literal.detail().ann_builtin().max($annotation_parameter.name$_annotation_parameter_value);
 $elseif(parent.isHashId)$
 //            - @optional AppliedBuiltinMemberAnnotations: @hashid
 $member.name$_complete_enum_literal.detail().ann_builtin().hash_id("$annotation_parameter.value$");
@@ -1266,14 +1268,14 @@ AppliedAnnotationParameter $object.name$_applied_annotation_parameter;
 //                    - NameHash
 $md5_hash(ctx=ctx, object=object, name=["_applied_annotation_parameter.paramname_hash()"])$
 //                    - AnnotationParameterValue
-AnnotationParameterValue value_$object.name$;
+AnnotationParameterValue $object.name$_annotation_parameter_value;
 TypeObject* $object.name$_annotation_type_object = TypeObjectFactory::get_instance()::get_type_object(
     "$object.typecode.cppTypename$",
     true);
 assert(nullptr != $object.name$_annotation_type_object);
-value_$object.name$._d($object.name$_annotation_type_object->complete()._d());
+$object.name$_annotation_parameter_value._d($object.name$_annotation_type_object->complete()._d());
 $annotation_parameter_value_value(ctx=ctx, object=object)$
-$object.name$_applied_annotation_parameter.value(value_$object.name$);
+$object.name$_applied_annotation_parameter.value($object.name$_annotation_parameter_value);
 $parent.name$_applied_annotation.param_seq().push_back($object.name$_applied_annotation_parameter);
 >>
 
@@ -1336,14 +1338,14 @@ $endif$
 $endif$
 >>
 
-common_annotation_parameter(ctx, object, name) ::= <<
+common_annotation_parameter(ctx, object, name, complete) ::= <<
 //        - CommonAnnotationParameter
 //            - AnnotationParameterFlag: Unused. No flags apply
 //            - TypeIdentifier
 const TypeIdentifier* $object.name$_$name$_annotation_parameter_type_id =
     TypeObjectFactory::get_instance()->get_type_identifier(
         "$object.typecode.cppTypename$",
-        false);
+        $if(object.typecode.isEnumType || !object.typecode.primitive)$$complete$$else$false$endif$);
 assert(nullptr != $object.name$_$name$_annotation_parameter_type_id);
 $object.name$_$name$_annotation_parameter.common().member_type_id(*$object.name$_$name$_annotation_parameter_type_id);
 >>
@@ -1351,7 +1353,16 @@ $object.name$_$name$_annotation_parameter.common().member_type_id(*$object.name$
 annotation_parameter_value(ctx, object, name, ek) ::= <<
 //        - AnnotationParameterValue
 AnnotationParameterValue $object.name$_annotation_parameter_value;
+$if(object.typecode.isEnumType || !object.typecode.primitive)$
+const TypeObject* $object.name$_annotation_parameter_type_ob =
+    TypeObjectFactory::get_instance()->get_type_object(
+        "$object.typecode.cppTypename$",
+        $ek$);
+assert(nullptr != $object.name$_annotation_parameter_type_ob);
+$object.name$_annotation_parameter_value._d($object.name$_annotation_parameter_type_ob->$name$()._d())
+$else$
 $object.name$_annotation_parameter_value._d($object.name$_$name$_annotation_parameter_type_id->_d());
+$endif$
 $if(object.value)$
 $annotation_parameter_value_value(ctx=ctx, object=object)$
 $endif$
