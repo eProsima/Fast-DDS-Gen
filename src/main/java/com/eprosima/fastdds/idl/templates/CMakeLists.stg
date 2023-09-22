@@ -14,7 +14,7 @@
 
 group CMakeLists;
 
-cmakelists(solution, test) ::= <<
+cmakelists(solution, test, type_object_files) ::= <<
 
 cmake_minimum_required(VERSION 3.22)
 
@@ -82,6 +82,17 @@ target_link_libraries($project.name$SerializationTest
         )
 gtest_discover_tests($project.name$SerializationTest)
 
+$if(type_object_files)$
+
+# $project.name$ TypeObject Test
+add_executable($project.name$TypeObjectTestingTest
+        $project.typeObjectTestingFiles : { file | $file$}; separator="\n"$
+)
+target_link_libraries($project.name$TypeObjectTestingTest $solution.libraries : { library | $library$}; separator=" "$
+        $project.name$_lib $project.dependencies : { dep | $dep$_lib}; separator=" "$)
 $endif$
+
+$endif$
+
 
 >>

@@ -1,0 +1,379 @@
+// Copyright 2016 Proyectos y Sistemas de Mantenimiento SL (eProsima).
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+group ProtocolHeader;
+
+import "eprosima.stg"
+
+main(ctx, definitions) ::= <<
+$fileHeader(ctx=ctx,  file=[ctx.filename, "TypeObjectTestingTest.cpp"], description=["This file contains TypeObject test code."])$
+
+
+#include "iostream"
+#include "$ctx.filename$TypeObject.h"
+#include <fastrtps/types/TypeObjectFactory.h>
+
+#include <stdint.h>
+#include <inttypes.h>
+#include <string.h>
+#include <functional>
+#include <vector>
+
+using TestLambda = std::function<bool()>;
+
+std::vector<TestLambda> functions_to_run;
+
+std::string get_primitive_struct_type_name(std::string struct_name)
+{
+    // Convert struct_name to lowercase
+    std::transform(struct_name.begin(), struct_name.end(), struct_name.begin(), ::tolower);
+
+    // Remove "struct" from struct_name
+    if (struct_name.size() >= 6 && struct_name.substr(struct_name.size() - 6) == "struct") {
+        struct_name = struct_name.substr(0, struct_name.size() - 6);
+    }
+
+    if (struct_name == "int8") {
+        return TKNAME_INT8;
+    } else if (struct_name == "uint8") {
+        return TKNAME_UINT8;
+    } else if (struct_name == "short" || struct_name == "int16") {
+        return TKNAME_INT16;
+    } else if (struct_name == "ushort" || struct_name == "uint16") {
+        return TKNAME_UINT16;
+    } else if (struct_name == "long" || struct_name == "int32") {
+        return TKNAME_INT32;
+    } else if (struct_name == "ulong" || struct_name == "uint32") {
+        return TKNAME_UINT32;
+    } else if (struct_name == "longlong" || struct_name == "int64") {
+        return TKNAME_INT64;
+    } else if (struct_name == "ulonglong" || struct_name == "uint64") {
+        return TKNAME_UINT64;
+    } else if (struct_name == "float32" || struct_name == "float") {
+        return TKNAME_FLOAT32;
+    } else if (struct_name == "float64" || struct_name == "double") {
+        return TKNAME_FLOAT64;
+    } else if (struct_name == "float128" || struct_name == "longdouble") {
+        return TKNAME_FLOAT128;
+    } else if (struct_name == "bool" || struct_name == "boolean") {
+        return TKNAME_BOOLEAN;
+    } else if (struct_name == "byte" || struct_name == "octet") {
+        return TKNAME_BYTE;
+    } else if (struct_name == "char" || struct_name == "char8") {
+        return TKNAME_CHAR8;
+    } else if (struct_name == "wchar" || struct_name == "char16") {
+        return TKNAME_CHAR16;
+    } else {
+        // Handle the case where the struct_name is not recognized.
+        return "UnknownType";
+    }
+}
+
+int main(void)
+{
+    srand((unsigned) time(NULL));
+    bool ret_value = true;
+    
+    register$ctx.filename$Types();  
+
+    $definitions; separator="\n"$
+
+    for (auto& fc : functions_to_run)
+    {
+        ret_value &= fc();
+    }
+    return ret_value ? 0 : 1;
+}
+
+>>
+
+
+check_primitives_structures(ctx, parent, struct) ::= <<
+functions_to_run.emplace_back([]() -> bool
+{        
+        std::cout << std::endl << "======================================== Testing $struct.name$ ========================================" << std::endl;
+        bool result = true;
+
+        // Minimal
+
+        const TypeIdentifier* $struct.name$_minimal_type_identifier = Get$struct.name$Identifier(false);
+        result &= $struct.name$_minimal_type_identifier != nullptr;
+        result &= $struct.name$_minimal_type_identifier->_d() == EK_MINIMAL;
+
+        const TypeObject* $struct.name$_minimal_typeobject = Get$struct.name$Object(false);
+        result &= $struct.name$_minimal_typeobject != nullptr;
+        result &= $struct.name$_minimal_typeobject->_d() == EK_MINIMAL;
+
+        MinimalTypeObject $struct.name$_minimal_object = $struct.name$_minimal_typeobject->minimal();
+        result &= $struct.name$_minimal_object._d() == TK_STRUCTURE;
+
+        MinimalStructType $struct.name$_minimal_struct = $struct.name$_minimal_object.struct_type();
+        result &= $struct.name$_minimal_struct.struct_flags().IS_FINAL() == false;
+        result &= $struct.name$_minimal_struct.struct_flags().IS_APPENDABLE() == true;
+        result &= $struct.name$_minimal_struct.struct_flags().IS_MUTABLE() == false;
+        result &= $struct.name$_minimal_struct.struct_flags().IS_NESTED() == false;
+        result &= $struct.name$_minimal_struct.struct_flags().IS_AUTOID_HASH() == false; // Unsupported
+
+        MinimalStructHeader $struct.name$_minimal_header = $struct.name$_minimal_struct.header();
+        //result &= $struct.name$_minimal_header.detail().type_name() == "$struct.name$"; // Empty. Available for future extension
+
+        MinimalStructMemberSeq $struct.name$_minimal_memberseq = $struct.name$_minimal_struct.member_seq();
+        result &= $struct.name$_minimal_memberseq.size() == 1;
+
+        MinimalStructMember $struct.name$_minimal_member0 = $struct.name$_minimal_memberseq.at(0);
+        CommonStructMember $struct.name$_minimal_common_member0 = $struct.name$_minimal_member0.common();
+        result &= $struct.name$_minimal_common_member0.member_id() == 0;
+        result &= $struct.name$_minimal_common_member0.member_flags().TRY_CONSTRUCT1() == false; // Unsupported
+        result &= $struct.name$_minimal_common_member0.member_flags().TRY_CONSTRUCT2() == false; // Unsupported
+        result &= $struct.name$_minimal_common_member0.member_flags().IS_EXTERNAL() == false; // Unsupported
+        result &= $struct.name$_minimal_common_member0.member_flags().IS_OPTIONAL() == false;
+        result &= $struct.name$_minimal_common_member0.member_flags().IS_MUST_UNDERSTAND() == false;
+        result &= $struct.name$_minimal_common_member0.member_flags().IS_KEY() == false;
+        result &= $struct.name$_minimal_common_member0.member_flags().IS_DEFAULT() == false; // Doesn't apply
+
+        const TypeIdentifier $struct.name$_minimal_content_type = *TypeObjectFactory::get_instance()->get_type_identifier(get_primitive_struct_type_name("$struct.name$"), false);        
+        result &= $struct.name$_minimal_common_member0.member_type_id()._d() == $struct.name$_minimal_content_type._d();
+
+
+
+        //Complete
+
+        const TypeIdentifier* $struct.name$_complete_type_identifier = Get$struct.name$Identifier(true);
+        result &= $struct.name$_complete_type_identifier != nullptr;
+        result &= $struct.name$_complete_type_identifier->_d() == EK_COMPLETE;
+
+        const TypeObject* $struct.name$_complete_typeobject = Get$struct.name$Object(true);
+        result &= $struct.name$_complete_typeobject != nullptr;
+        result &= $struct.name$_complete_typeobject->_d() == EK_COMPLETE;
+
+        CompleteTypeObject $struct.name$_complete_object = $struct.name$_complete_typeobject->complete();
+        result &= $struct.name$_complete_object._d() == TK_STRUCTURE;
+
+        CompleteStructType $struct.name$_complete_struct = $struct.name$_complete_object.struct_type();
+        result &= $struct.name$_complete_struct.struct_flags().IS_FINAL() == false;
+        result &= $struct.name$_complete_struct.struct_flags().IS_APPENDABLE() == true;
+        result &= $struct.name$_complete_struct.struct_flags().IS_MUTABLE() == false;
+        result &= $struct.name$_complete_struct.struct_flags().IS_NESTED() == false;
+        result &= $struct.name$_complete_struct.struct_flags().IS_AUTOID_HASH() == false; // Unsupported
+
+        CompleteStructHeader $struct.name$_complete_header = $struct.name$_complete_struct.header();
+        result &= $struct.name$_complete_header.detail().type_name() == "$struct.name$";
+
+        CompleteStructMemberSeq $struct.name$_complete_memberseq = $struct.name$_complete_struct.member_seq();
+        result &= $struct.name$_complete_memberseq.size() == 1;
+
+        CompleteStructMember $struct.name$_complete_member0 = $struct.name$_complete_memberseq.at(0);
+        CommonStructMember $struct.name$_complete_common_member0 = $struct.name$_complete_member0.common();
+        result &= $struct.name$_complete_common_member0.member_id() == 0;
+        result &= $struct.name$_complete_common_member0.member_flags().TRY_CONSTRUCT1() == false; // Unsupported
+        result &= $struct.name$_complete_common_member0.member_flags().TRY_CONSTRUCT2() == false; // Unsupported
+        result &= $struct.name$_complete_common_member0.member_flags().IS_EXTERNAL() == false; // Unsupported
+        result &= $struct.name$_complete_common_member0.member_flags().IS_OPTIONAL() == false;
+        result &= $struct.name$_complete_common_member0.member_flags().IS_MUST_UNDERSTAND() == false;
+        result &= $struct.name$_complete_common_member0.member_flags().IS_KEY() == false;
+        result &= $struct.name$_complete_common_member0.member_flags().IS_DEFAULT() == false; // Doesn't apply
+
+        const TypeIdentifier $struct.name$_complete_content_type = *TypeObjectFactory::get_instance()->get_type_identifier(get_primitive_struct_type_name("$struct.name$"), false); //???? Should this be minimal or complete????       
+        result &= $struct.name$_complete_common_member0.member_type_id()._d() == $struct.name$_complete_content_type._d();
+
+        return result;
+});
+>>
+
+
+check_strings_structures(ctx, parent, struct) ::= <<
+functions_to_run.emplace_back([]() -> bool
+{        
+        std::cout << std::endl << "======================================== Testing $struct.name$ ========================================" << std::endl;
+        bool result = true;
+        
+        std::string $struct.name$_name = "$struct.name$";
+
+        int $struct.name$_bound;
+        if($struct.name$_name.find("Small") != std::string::npos) {
+                $struct.name$_bound = 1;
+        }else if ($struct.name$_name.find("Large") != std::string::npos) {
+                $struct.name$_bound = 41925;
+        }else {
+                $struct.name$_bound = 255;
+        }
+
+        bool $struct.name$_is_wide;
+        if($struct.name$_name.find("WString") != std::string::npos) {
+                $struct.name$_is_wide = true;
+        }else {
+                $struct.name$_is_wide = false;
+        }
+
+
+        // Minimal
+
+        const TypeIdentifier* $struct.name$_minimal_type_identifier = Get$struct.name$Identifier(false);
+        result &= $struct.name$_minimal_type_identifier != nullptr;
+        result &= $struct.name$_minimal_type_identifier->_d() == EK_MINIMAL;
+
+        const TypeObject* $struct.name$_minimal_typeobject = Get$struct.name$Object(false);
+        result &= $struct.name$_minimal_typeobject != nullptr;
+        result &= $struct.name$_minimal_typeobject->_d() == EK_MINIMAL;
+
+        MinimalTypeObject $struct.name$_minimal_object = $struct.name$_minimal_typeobject->minimal();
+        result &= $struct.name$_minimal_object._d() == TK_STRUCTURE;
+
+        MinimalStructType $struct.name$_minimal_struct = $struct.name$_minimal_object.struct_type();
+        result &= $struct.name$_minimal_struct.struct_flags().IS_FINAL() == false;
+        result &= $struct.name$_minimal_struct.struct_flags().IS_APPENDABLE() == true;
+        result &= $struct.name$_minimal_struct.struct_flags().IS_MUTABLE() == false;
+        result &= $struct.name$_minimal_struct.struct_flags().IS_NESTED() == false;
+        result &= $struct.name$_minimal_struct.struct_flags().IS_AUTOID_HASH() == false; // Unsupported
+
+        MinimalStructHeader $struct.name$_minimal_header = $struct.name$_minimal_struct.header();
+        //result &= $struct.name$_minimal_header.detail().type_name() == "$struct.name$"; // Empty. Available for future extension
+
+        MinimalStructMemberSeq $struct.name$_minimal_memberseq = $struct.name$_minimal_struct.member_seq();
+        result &= $struct.name$_minimal_memberseq.size() == 1;
+
+        MinimalStructMember $struct.name$_minimal_member0 = $struct.name$_minimal_memberseq.at(0);
+        CommonStructMember $struct.name$_minimal_common_member0 = $struct.name$_minimal_member0.common();
+        result &= $struct.name$_minimal_common_member0.member_id() == 0;
+        result &= $struct.name$_minimal_common_member0.member_flags().TRY_CONSTRUCT1() == false; // Unsupported
+        result &= $struct.name$_minimal_common_member0.member_flags().TRY_CONSTRUCT2() == false; // Unsupported
+        result &= $struct.name$_minimal_common_member0.member_flags().IS_EXTERNAL() == false; // Unsupported
+        result &= $struct.name$_minimal_common_member0.member_flags().IS_OPTIONAL() == false;
+        result &= $struct.name$_minimal_common_member0.member_flags().IS_MUST_UNDERSTAND() == false;
+        result &= $struct.name$_minimal_common_member0.member_flags().IS_KEY() == false;
+        result &= $struct.name$_minimal_common_member0.member_flags().IS_DEFAULT() == false; // Doesn't apply
+
+        const TypeIdentifier $struct.name$_minimal_content_type = *TypeObjectFactory::get_instance()->get_string_identifier($struct.name$_bound, $struct.name$_is_wide);        
+        result &= $struct.name$_minimal_common_member0.member_type_id()._d() == $struct.name$_minimal_content_type._d();
+
+        if($struct.name$_bound <= 255){
+                result &= $struct.name$_minimal_content_type.string_sdefn().bound() == $struct.name$_bound;
+        }else{
+                result &= $struct.name$_minimal_content_type.string_ldefn().bound() == $struct.name$_bound;
+         }
+
+
+
+        //Complete
+
+        const TypeIdentifier* $struct.name$_complete_type_identifier = Get$struct.name$Identifier(true);
+        result &= $struct.name$_complete_type_identifier != nullptr;
+        result &= $struct.name$_complete_type_identifier->_d() == EK_COMPLETE;
+
+        const TypeObject* $struct.name$_complete_typeobject = Get$struct.name$Object(true);
+        result &= $struct.name$_complete_typeobject != nullptr;
+        result &= $struct.name$_complete_typeobject->_d() == EK_COMPLETE;
+
+        CompleteTypeObject $struct.name$_complete_object = $struct.name$_complete_typeobject->complete();
+        result &= $struct.name$_complete_object._d() == TK_STRUCTURE;
+
+        CompleteStructType $struct.name$_complete_struct = $struct.name$_complete_object.struct_type();
+        result &= $struct.name$_complete_struct.struct_flags().IS_FINAL() == false;
+        result &= $struct.name$_complete_struct.struct_flags().IS_APPENDABLE() == true;
+        result &= $struct.name$_complete_struct.struct_flags().IS_MUTABLE() == false;
+        result &= $struct.name$_complete_struct.struct_flags().IS_NESTED() == false;
+        result &= $struct.name$_complete_struct.struct_flags().IS_AUTOID_HASH() == false; // Unsupported
+
+        CompleteStructHeader $struct.name$_complete_header = $struct.name$_complete_struct.header();
+        result &= $struct.name$_complete_header.detail().type_name() == "$struct.name$";
+
+        CompleteStructMemberSeq $struct.name$_complete_memberseq = $struct.name$_complete_struct.member_seq();
+        result &= $struct.name$_complete_memberseq.size() == 1;
+
+        CompleteStructMember $struct.name$_complete_member0 = $struct.name$_complete_memberseq.at(0);
+        CommonStructMember $struct.name$_complete_common_member0 = $struct.name$_complete_member0.common();
+        result &= $struct.name$_complete_common_member0.member_id() == 0;
+        result &= $struct.name$_complete_common_member0.member_flags().TRY_CONSTRUCT1() == false; // Unsupported
+        result &= $struct.name$_complete_common_member0.member_flags().TRY_CONSTRUCT2() == false; // Unsupported
+        result &= $struct.name$_complete_common_member0.member_flags().IS_EXTERNAL() == false; // Unsupported
+        result &= $struct.name$_complete_common_member0.member_flags().IS_OPTIONAL() == false;
+        result &= $struct.name$_complete_common_member0.member_flags().IS_MUST_UNDERSTAND() == false;
+        result &= $struct.name$_complete_common_member0.member_flags().IS_KEY() == false;
+        result &= $struct.name$_complete_common_member0.member_flags().IS_DEFAULT() == false; // Doesn't apply
+
+        const TypeIdentifier $struct.name$_complete_content_type = *TypeObjectFactory::get_instance()->get_string_identifier($struct.name$_bound, $struct.name$_is_wide);
+        result &= $struct.name$_complete_common_member0.member_type_id()._d() == $struct.name$_complete_content_type._d();
+
+        if($struct.name$_bound <= 255){
+                result &= $struct.name$_complete_content_type.string_sdefn().bound() == $struct.name$_bound;
+        }else{
+                result &= $struct.name$_complete_content_type.string_ldefn().bound() == $struct.name$_bound;
+         }
+        return result;
+});
+>>
+
+check_aliases_structures(ctx, parent, struct) ::= <<
+functions_to_run.emplace_back([]() -> bool
+{        
+        std::cout << std::endl << "======================================== Testing $struct.name$ ========================================" << std::endl;
+        bool result = true;
+        
+        return result;
+});
+>>
+
+
+
+
+
+
+
+
+
+
+
+
+
+check_typedef(ctx, parent, typedefs) ::= <<
+functions_to_run.emplace_back([]() -> bool
+{        
+        std::cout << std::endl << "======================================== Testing $typedefs.name$ ========================================" << std::endl;
+        bool result = true;
+        
+        return result;
+});
+>>
+
+
+
+
+fwd_decl(ctx, parent, type) ::= <<>>
+
+
+typedef_decl(ctx, parent, typedefs) ::= <<
+        $check_typedef(ctx=ctx, parent=parent, typedefs=typedefs)$
+>>
+
+
+struct_type(ctx, parent, struct) ::= <<
+$if (false)$
+        $check_primitives_structures(ctx=ctx, parent=parent, struct=struct)$
+$endif$
+
+$if (false)$
+        $check_strings_structures(ctx=ctx, parent=parent, struct=struct)$
+$endif$
+
+$if (true)$
+        $check_aliases_structures(ctx=ctx, parent=parent, struct=struct)$
+$endif$
+
+$if (struct.containsOptional)$
+
+$endif$
+
+
+>>
+

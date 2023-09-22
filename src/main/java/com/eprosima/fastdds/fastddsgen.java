@@ -713,10 +713,16 @@ public class fastddsgen
 
             if (m_test)
             {
-                // Load test template
+                // Load Serialization test template
                 tmanager.addGroup("com/eprosima/fastdds/idl/templates/SerializationTestSource.stg");
                 tmanager.addGroup("com/eprosima/fastdds/idl/templates/SerializationHeader.stg");
                 tmanager.addGroup("com/eprosima/fastdds/idl/templates/SerializationSource.stg");
+
+                if(m_type_object_files)
+                {
+                    // Load TypeObject test template
+                    tmanager.addGroup("com/eprosima/fastdds/idl/templates/TypeObjectTestingTestSource.stg");
+                }
             }
 
             // Add JNI sources.
@@ -766,7 +772,6 @@ public class fastddsgen
                 CommonTokenStream tokens = new CommonTokenStream(lexer);
                 IDLParser parser = new IDLParser(tokens);
                 // Pass the finelame without the extension
-
                 Specification specification = parser.specification(ctx, tmanager, maintemplates).spec;
                 returnedValue = specification != null && !tmanager.get_st_error();;
 
@@ -873,6 +878,15 @@ public class fastddsgen
                     {
                         String trimmedElement = element.substring(0, element.length() - 4);// Remove .idl
                         project.addCommonTestingFile(trimmedElement + "Serialization.cpp");
+                    }
+
+                    if(m_type_object_files)
+                    {
+                        System.out.println("Generating TypeObjects Test file...");
+                        String fileNameTO = output_dir + ctx.getFilename() + "TypeObjectTestingTest.cpp";
+                        returnedValue = Utils.writeFile(fileNameTO, maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/TypeObjectTestingTestSource.stg"), m_replace);
+                        project.addTypeObjectTestingFile(relative_dir + ctx.getFilename() + "TypeObjectTestingTest.cpp");
+                        project.addTypeObjectTestingFile(relative_dir + ctx.getFilename() + "TypeObject.cxx");
                     }
                 }
 
@@ -1233,6 +1247,7 @@ public class fastddsgen
 
             cmake.add("solution", solution);
             cmake.add("test", m_test);
+            cmake.add("type_object_files", m_type_object_files);
 
             returnedValue = Utils.writeFile(m_outputDir + "CMakeLists.txt", cmake, m_replace);
         }
