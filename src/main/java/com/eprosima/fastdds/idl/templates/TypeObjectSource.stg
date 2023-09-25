@@ -1037,14 +1037,14 @@ AnnotationParameterValue $object.name$_annotation_parameter_value;
 $if(object.typecode.isEnumType || !object.typecode.primitive)$
 const TypeObject* $object.name$_annotation_parameter_type_ob =
     TypeObjectFactory::get_instance()->get_type_object(
-        "$object.typecode.cppTypename$",
+        $if(object.typecode.isStringType)$"DDS::String"$else$"$object.typecode.cppTypename$"$endif$,
         $ek$);
 assert(nullptr != $object.name$_annotation_parameter_type_ob);
 $object.name$_annotation_parameter_value._d($object.name$_annotation_parameter_type_ob->$name$()._d())
 $else$
     const TypeIdentifier* $object.name$_annotation_parameter_type_id =
         TypeObjectFactory::get_instance()->get_type_identifier(
-            "$object.typecode.cppTypename$",
+            $if(object.typecode.isStringType)$"DDS::String"$else$"$object.typecode.cppTypename$"$endif$,
             false);
     assert(nullptr != $object.name$_annotation_parameter_type_id);
 $object.name$_annotation_parameter_value._d($object.name$_annotation_parameter_type_id->_d());
@@ -1288,7 +1288,7 @@ CommonAnnotationParameter $object.name$_common_annotation_parameter;
 // - TypeIdentifier
 const TypeIdentifier* $object.name$_common_annotation_parameter_type_id =
     TypeObjectFactory::get_instance()->get_type_identifier(
-        "$object.typecode.cppTypename$",
+        $if(object.typecode.isStringType)$"DDS::String"$else$"$object.typecode.cppTypename$"$endif$,
         $if(object.typecode.isEnumType || !object.typecode.primitive)$$complete$$else$false$endif$);
 assert(nullptr != $object.name$_common_annotation_parameter_type_id);
 $object.name$_common_annotation_parameter.member_type_id(*$object.name$_common_annotation_parameter_type_id);
