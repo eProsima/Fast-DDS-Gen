@@ -53,6 +53,8 @@ $endif$
 #include "$ctx.filename$.h"
 
 using namespace eprosima::fastrtps::rtps;
+// TODO(jlbueno) Update to new namespace
+using namespace eprosima::fastrtps::types;
 
 void register$ctx.filename$Types()
 {
@@ -125,30 +127,16 @@ $get_type_object_impl(ctx=ctx, param=annotation)$
 
 $get_minimal_type_object_impl(ctx=ctx, param=annotation)$
     type_object->minimal()._d(TK_ANNOTATION);
-
-    // MinimalAnnotationType
-    //    - AnnotationTypeFlag: unused. No flags apply.
-    //    - MinimalAnnotationHeader: empty. Available for future extension.
-    //    - MinimalAnnotationParameterSeq
-
-    $annotation.members:{ member | $minimal_annotation_member(ctx=ctx, object=member)$}; separator="\n"$
+    $minimal_annotation_type_impl(ctx=ctx, object=annotation)$
+    type_object->minimal().annotation_type($annotation.name$_minimal_annotation_type);
 
     $type_identifier_impl(ctx=ctx, param=annotation, complete_discr=["EK_MINIMAL"], member=["minimal().annotation_type()"], complete_flag=["false"])$
 }
 
 $get_complete_type_object_impl(ctx=ctx, param=annotation)$
     type_object->complete()._d(TK_ANNOTATION);
-
-    // CompleteAnnotationType
-    //    - AnnotationTypeFlag: unused. No flags apply.
-    //    - CompleteAnnotationHeader
-    //        - QualifiedTypeName
-    type_object->complete().annotation_type().header().annotation_name(
-        "$if(ctx.GenerateTypesROS2)$$annotation.ROS2Scopedname$$else$$annotation.scopedname$$endif$");
-
-    //    - CompleteAnnotationParameterSeq
-
-    $annotation.members:{ member | $complete_annotation_member(ctx=ctx, object=member)$}; separator="\n"$
+    $complete_annotation_type_impl(ctx=ctx, object=annotation)$
+    type_object->complete().annotation_type($annotation.name$_complete_annotation_type);
 
     $type_identifier_impl(ctx=ctx, param= annotation, complete_discr=["EK_COMPLETE"], member=["complete().annotation_type()"], complete_flag=["true"])$
 }
@@ -162,30 +150,6 @@ $annotation.typeDefs : { it | $typedef_decl(ctx=ctx, parent=annotation, typedefs
 
 } // $annotation.name$ namespace
 $endif$
->>
-
-minimal_annotation_member(ctx, object) ::= <<
-//    - MinimalAnnotationParameter
-MinimalAnnotationParameter $object.name$_minimal_annotation_parameter;
-$common_annotation_parameter(ctx=ctx, object=object, name=["minimal"], complete=["false"])$
-//        - NameHash
-$md5_hash(ctx=ctx, object=object, name=["_minimal_annotation_parameter.name_hash()"])$
-$annotation_parameter_value(ctx=ctx, object=object, name=["minimal"], ek=["false"])$
-
-type_object->minimal().annotation_type().member_seq().emplace_back($object.name$_minimal_annotation_parameter);
-
->>
-
-complete_annotation_member(ctx, object) ::= <<
-//    - CompleteAnnotationParameter
-CompleteAnnotationParameter $object.name$_complete_annotation_parameter;
-$common_annotation_parameter(ctx=ctx, object=object, name=["complete"], complete=["true"])$
-//        - MemberName
-$object.name$_complete_annotation_parameter.name("$object.name$");
-$annotation_parameter_value(ctx=ctx, object=object, name=["complete"], ek=["true"])$
-
-type_object->complete().annotation_type().member_seq().emplace_back($object.name$_complete_annotation_parameter);
-
 >>
 
 interface(ctx, parent, interface, export_list) ::= <<>>
@@ -353,72 +317,19 @@ $get_type_object_impl(ctx=ctx, param=enum)$
 
 $get_minimal_type_object_impl(ctx=ctx, param=enum)$
     type_object->minimal()._d(TK_ENUM);
-
-    // MinimalEnumeratedType
-    //    - EnumTypeFlag: Unused. No flags apply
-    //    - MinimalEnumeratedHeader
-    //        - CommonEnumeratedHeader
-    //            - BitBound
-    // TODO: XTypes v1.3 Clause 7.3.1.2.1.5 Prior to this specification, it was impossible to indicate that objects of
-    //       enumerated types could be stored using an integer size other than 32 bits. This specification uses the
-    //       @bit_bound annotation defined in Sub Clause 8.3.4.1 of [IDL] for this purpose.
-    //       It is important to note that the value member of the annotation may take any value from 1 to 32, inclusive,
-    //       when this annotation is applied to an enumerated type.
-    type_object->minimal().enumerated_type().header().common().bit_bound(32);
-
-    //    - MinimalEnumeratedLiteralSeq
-
-    uint32_t value = 0;
-    $enum.members:{ member | $minimal_enumerated_literal(ctx=ctx, object=member)$}; separator="\n"$
+    $minimal_enumerated_type_impl(ctx=ctx, object=enum)$
+    type_object->minimal().enumerated_type($enum.name$_minimal_enumerated_type);
 
     $type_identifier_impl(ctx=ctx, param=enum, complete_discr=["EK_MINIMAL"], member=["minimal().enumerated_type()"], complete_flag=["false"])$
 }
 
 $get_complete_type_object_impl(ctx=ctx, param=enum)$
     type_object->complete()._d(TK_ENUM);
-
-    // CompleteEnumeratedType
-    //    - EnumTypeFlag: Unused. No flags apply
-    //    - CompleteEnumeratedHeader
-    //        - CommonEnumeratedHeader
-    //            - BitBound
-    // TODO: XTypes v1.3 Clause 7.3.1.2.1.5 Prior to this specification, it was impossible to indicate that objects of
-    //       enumerated types could be stored using an integer size other than 32 bits. This specification uses the
-    //       @bit_bound annotation defined in Sub Clause 8.3.4.1 of [IDL] for this purpose.
-    //       It is important to note that the value member of the annotation may take any value from 1 to 32, inclusive,
-    //       when this annotation is applied to an enumerated type.
-    type_object->complete().enumerated_type().header().common().bit_bound(32);
-    //        - CompleteTypeDetail
-    $complete_type_detail(ctx=ctx, object=enum)$
-    //            - QualifiedTypeName
-    type_object->complete().enumerated_type().header().detail().type_name("
-        $if(ctx.GenerateTypesROS2)$$enum.ROS2Scopedname$$else$$enum.scopedname$$endif$");
-
-    //        - CompleteEnumeratedLiteralSeq
-
-    uint32_t value = 0;
-    $enum.members:{ member | $complete_enumerated_literal(ctx=ctx, object=member, parent=enum)$}; separator="\n"$
+    $complete_enumerated_type_impl(ctx=ctx, object=enum)$
+    type_object->complete().enumerated_type($enum.name$_complete_enumerated_type);
 
     $type_identifier_impl(ctx=ctx, param=enum, complete_discr=["EK_COMPLETE"], member=["complete().enumerated_type()"], complete_flag=["true"])$
 }
-
->>
-
-minimal_enumerated_literal(ctx, object) ::= <<
-//    - MinimalEnumeratedLiteral
-MinimalEnumeratedLiteral $object.name$_minimal_enum_literal;
-$common_enumerated_literal(ctx=ctx, object=object, name=["_minimal_enum_literal"])$
-$minimal_member_detail(ctx=ctx, object=object, name=["_minimal_enum_literal.detail().name_hash()"])$
-type_object->minimal().enumerated_type().literal_seq().emplace_back($object.name$_minimal_enum_literal);
-
->>
-
-complete_enumerated_literal(ctx, object, parent) ::= <<
-//    - CompleteEnumeratedLiteral
-CompleteEnumeratedLiteral $object.name$_complete_enum_literal;
-$common_enumerated_literal(ctx=ctx, object=object, name=["_complete_enum_literal"])$
-$complete_member_detail(ctx=ctx, object=object, parent=parent, name=["_complete_enum_literal"])$
-type_object->complete().enumerated_type().literal_seq().emplace_back($object.name$_complete_enum_literal);
 
 >>
 
@@ -806,61 +717,19 @@ $get_type_object_impl(ctx=ctx, param=bitmask)$
 
 $get_minimal_type_object_impl(ctx=ctx, param=bitmask)$
     type_object->minimal()._d(TK_BITMASK);
-
-    // MinimalBitmaskType
-    //    - BitmaskTypeFlag: Unused. No flags apply
-    //    - MinimalBitmaskHeader: MinimalEnumeratedHeader
-    //        - CommonEnumeratedHeader
-    //            . BitBound
-    type_object->minimal().bitmask_type().header().common().bit_bound($bitmask.bitBound$);
-
-
-    //    - MinimalBitflagSeq
-
-    $bitmask.bitmasks:{ member | $minimal_bitmask_flag(ctx=ctx, object=member)$}; separator="\n"$
+    $minimal_bitmask_type_impl(ctx=ctx, object=bitmask)$
+    type_object->minimal().bitmask_type($bitmask.name$_minimal_bitmask_type);
 
     $type_identifier_impl(ctx=ctx, param=bitmask, complete_discr=["EK_MINIMAL"], member=["minimal().bitmask_type()"], complete_flag=["false"])$
 }
 
 $get_complete_type_object_impl(ctx=ctx, param=bitmask)$
     type_object->complete()._d(TK_BITMASK);
-
-    // CompleteBitmaskType
-    //    - BitmaskTypeFlag: Unused. No flags apply
-    //    - CompleteBitmaskHeader: CompleteEnumeratedHeader
-    //        - CommonEnumeratedHeader
-    //            - BitBound
-    type_object->complete().bitmask_type().header().common().bit_bound($bitmask.bitBound$);
-    //    - CompleteTypeDetail
-    $complete_type_detail(ctx=ctx, object=bitmask)$
-    //            - QualifiedTypeName
-    type_object->complete().bitmask_type().header().detail().type_name("
-        $if(ctx.GenerateTypesROS2)$$bitmask.ROS2Scopedname$$else$$bitmask.scopedname$$endif$");
-
-    //    - CompleteBitflagSeq
-
-    $bitmask.members:{ member | $complete_bitmask_flag(ctx=ctx, object=member, parent=bitmask)$}; separator="\n"$
+    $complete_bitmask_type_impl(ctx=ctx, object=bitmask)$
+    type_object->complete().bitmask_type($bitmask.name$_complete_bitmask_type);
 
     $type_identifier_impl(ctx=ctx, param=bitmask, complete_discr=["EK_COMPLETE"], member=["complete().bitmask_type()"], complete_flag=["true"])$
 }
-
->>
-
-minimal_bitmask_flag(ctx, object) ::= <<
-//    - MinimalBitflag
-MinimalBitflag $object.name$_minimal_bitflag;
-$common_bitflag(ctx=ctx, object=object, name=["minimal"])$
-$minimal_member_detail(ctx=ctx, object=object, name=["_minimal_bitflag.detail().name_hash()"])$
-type_object->minimal().bitmask_type().flag_seq().emplace_back($object.name$_minimal_bitflag);
-
->>
-
-complete_bitmask_flag(ctx, object, parent) ::= <<
-//    - CompleteBitflag
-CompleteBitflag $object.name$_complete_bitflag;
-$common_bitflag(ctx=ctx, object=object, name=["complete"])$
-$complete_member_detail(ctx=ctx, object=object, parent=parent, name=["_complete_bitflag"])$
-type_object->complete().bitmask_type().flag_seq().emplace_back($object.name$_complete_bitflag);
 
 >>
 
@@ -1158,7 +1027,34 @@ return TypeObjectFactory::get_instance()->get_type_object(
     $complete_flag$);
 >>
 
-annotation_parameter_value_value(ctx, object) ::= <<
+extended_annotation_parameter_value_impl(ctx, object) ::= <<
+// ExtendedAnnotationParameterValue: Empty. Available for future extension.
+ExtendedAnnotationParameterValue $object.name$_extended_annotation_parameter_value;
+>>
+
+annotation_parameter_value_impl(ctx, object, name, ek) ::= <<
+AnnotationParameterValue $object.name$_annotation_parameter_value;
+$if(object.typecode.isEnumType || !object.typecode.primitive)$
+const TypeObject* $object.name$_annotation_parameter_type_ob =
+    TypeObjectFactory::get_instance()->get_type_object(
+        "$object.typecode.cppTypename$",
+        $ek$);
+assert(nullptr != $object.name$_annotation_parameter_type_ob);
+$object.name$_annotation_parameter_value._d($object.name$_annotation_parameter_type_ob->$name$()._d())
+$else$
+    const TypeIdentifier* $object.name$_annotation_parameter_type_id =
+        TypeObjectFactory::get_instance()->get_type_identifier(
+            "$object.typecode.cppTypename$",
+            false);
+    assert(nullptr != $object.name$_annotation_parameter_type_id);
+$object.name$_annotation_parameter_value._d($object.name$_annotation_parameter_type_id->_d());
+$endif$
+$if(object.value)$
+$annotation_parameter_value_value_impl(ctx=ctx, object=object)$
+$endif$
+>>
+
+annotation_parameter_value_value_impl(ctx, object) ::= <<
 $if(object.typecode.primitiveType)$
 $if(object.typecode.isBooleanType)$
 $object.name$_annotation_parameter_value.boolean_value($object.value$);
@@ -1194,89 +1090,23 @@ $endif$
 $elseif(object.typecode.isEnumType)$
 $object.name$_annotation_parameter_value.enumerated_value($object.value$);
 $elseif(object.typecode.isStringType)$
-$object.name$_annotation_parameter_value.string8_value($object.value$);
+$object.name$_annotation_parameter_value.string8_value("$object.value$");
 $elseif(object.typecode.isWStringType)$
-$object.name$_annotation_parameter_value.string16_value($object.value$);
+$object.name$_annotation_parameter_value.string16_value("$object.value$");
 $else$
-$object.name$_annotation_parameter_value.extended_value();
+$extended_annotation_parameter_value_impl(ctx=ctx, object=object)$
+$object.name$_annotation_parameter_value.extended_value($object.name$_extended_annotation_parameter_value);
 $endif$
 >>
 
-applied_builtin_type_annotation(ctx, object) ::= <<
-//                - @optional AppliedVerbatimAnnotation
-$if(object.valueList)$
-$object.valueList : { annotation_parameter |
-$if(annotation_parameter.isVerbatimPlacement)$
-typeobject->complete().enumerated_type().header().detail().ann_builtin().verbatim().placement("$annotation_parameter.enumStringValue$");
-$elseif(annotation_parameter.isVerbatimLanguage)$
-typeobject->complete().enumerated_type().header().detail().ann_builtin().verbatim().language("$annotation_parameter.value$");
-$elseif(annotation_parameter.isVerbatimText)$
-typeobject->complete().enumerated_type().header().detail().ann_builtin().verbatim().text("$annotation_parameter.value$");
-$endif$
-}; separator=""$
-$endif$
->>
-
-applied_builtin_member_annotations(ctx, object, parent, member, root) ::= <<
-$if(object.valueList)$
-$object.valueList : { annotation_parameter |
-$if(parent.isUnit)$
-//            - @optional AppliedBuiltinMemberAnnotations: @unit
-$member.name$_complete_enum_literal.detail().ann_builtin().unit("$annotation_parameter.value$");
-$elseif(!(root.isEnumType || root.isBitmaskType) && (parent.isMin || annotation_parameter.isMin))$
-//            - @optional AppliedBuiltinMemberAnnotations: @min, @range
-AnnotationParameterValue $annotation_parameter.name$_annotation_parameter_value;
-value_min._d(TODO);
-$annotation_parameter_value_value(ctx=ctx, object=annotation_parameter)$
-$member.name$_complete_enum_literal.detail().ann_builtin().min($annotation_parameter.name$_annotation_parameter_value);
-$elseif(!(root.isEnumType || root.isBitmaskType) && (parent.isMax || annotation_parameter.isMax))$
-//            - @optional AppliedBuiltinMemberAnnotations: @max, @range
-AnnotationParameterValue $annotation_parameter.name$_annotation_parameter_value;
-value_max._d(TODO);
-$annotation_parameter_value_value(ctx=ctx, object=annotation_parameter)$
-$parent.name$_complete_enum_literal.detail().ann_builtin().max($annotation_parameter.name$_annotation_parameter_value);
-$elseif(parent.isHashId)$
-//            - @optional AppliedBuiltinMemberAnnotations: @hashid
-$member.name$_complete_enum_literal.detail().ann_builtin().hash_id("$annotation_parameter.value$");
-$endif$
-}; separator=""$
-$endif$
->>
-
-applied_annotation(ctx, object) ::= <<
-
-//            - AppliedAnnotation
-AppliedAnnotation $object.name$_applied_annotation;
-//                - TypeIdentifier
-TypeIdentifier* $object.name$_annotation_type_id = TypeObjectFactory::get_instace()::get_type_identifier(
-    "$if(ctx.GenerateTypesROS2)$$object.ROS2Scopedname$$else$$object.scopedname$$endif$",
-    true);
-assert(nullptr != $object.name$_annotation_type_id);
-$object.name$_applied_annotation.annotation_typeid(*$object.name$_annotation_type_id);
-$if(object.valueList)$
-//                - @optional AppliedAnnotationParameterSeq
-$object.valueList : { annotation_parameter | $applied_annotation_parameter(ctx=ctx, object=annotation_parameter, parent=object)$}; separator="\n"$
-$endif$
-
-type_object->complete().enumerated_type().header().detail().ann_custom().push_back($object.name$_applied_annotation);
->>
-
-applied_annotation_parameter(ctx, object, parent) ::= <<
-
-//                - AppliedAnnotationParameter
+applied_annotation_parameter_impl(ctx, object) ::= <<
+// AppliedAnnotationParameter
 AppliedAnnotationParameter $object.name$_applied_annotation_parameter;
-//                    - NameHash
+// - NameHash
 $md5_hash(ctx=ctx, object=object, name=["_applied_annotation_parameter.paramname_hash()"])$
-//                    - AnnotationParameterValue
-AnnotationParameterValue $object.name$_annotation_parameter_value;
-TypeObject* $object.name$_annotation_type_object = TypeObjectFactory::get_instance()::get_type_object(
-    "$object.typecode.cppTypename$",
-    true);
-assert(nullptr != $object.name$_annotation_type_object);
-$object.name$_annotation_parameter_value._d($object.name$_annotation_type_object->complete()._d());
-$annotation_parameter_value_value(ctx=ctx, object=object)$
+// - AnnotationParameterValue
+$annotation_parameter_value_impl(ctx=ctx, object=object, name=["complete"], ek=["true"])$
 $object.name$_applied_annotation_parameter.value($object.name$_annotation_parameter_value);
-$parent.name$_applied_annotation.param_seq().push_back($object.name$_applied_annotation_parameter);
 >>
 
 md5_hash(ctx, object, name) ::= <<
@@ -1287,85 +1117,454 @@ for (int i = 0; i < 4; ++i)
 }
 >>
 
-common_enumerated_literal(ctx, object, name) ::= <<
-//        - CommonEnumeratedLiteral
-//            - long: value
-$object.name$$name$.common().value(value++);
-//            - EnumeratedLiteralFlag: IS_DEFAULT (D) flag
-$object.name$$name$.common().flags().IS_DEFAULT($object.annotationDefaultLiteral$);
+applied_annotation_impl(ctx, object) ::= <<
+// AppliedAnnotation
+AppliedAnnotation $object.name$_applied_annotation;
+// - TypeIdentifier
+TypeIdentifier* $object.name$_annotation_type_id = TypeObjectFactory::get_instace()::get_type_identifier(
+    "$if(ctx.GenerateTypesROS2)$$object.ROS2Scopedname$$else$$object.scopedname$$endif$",
+    true);
+assert(nullptr != $object.name$_annotation_type_id);
+$object.name$_applied_annotation.annotation_typeid(*$object.name$_annotation_type_id);
+$if(object.valueList)$
+// - @optional AppliedAnnotationParameterSeq
+$object.valueList : { annotation_parameter |
+$applied_annotation_parameter_impl(ctx=ctx, object=annotation_parameter)$
+$object.name$_applied_annotation.param_seq().push_back($annotation_parameter.name$_applied_annotation_parameter);
+}; separator="\n"$
+$endif$
 >>
 
-complete_type_detail(ctx, object) ::= <<
-$if(object.annotationList)$
-//            - @optional AppliedAnnotationSeq:
-$object.annotationList: { annotation |
-$if(annotation.isVerbatim)$
-//            - @optional AppliedBuiltinTypeAnnotations: @verbatim annotation
-$applied_builtin_type_annotation(ctx=ctx, object=annotation)$
-$else$
-$applied_annotation(ctx=ctx, object=annotation)$
+applied_verbatim_annotation_impl(ctx, object) ::= <<
+$if(object.valueList)$
+// @optional AppliedVerbatimAnnotation
+AppliedVerbatimAnnotation $object.name$_applied_verbatim_annotation;
+$object.valueList : { annotation_parameter |
+$if(annotation_parameter.isVerbatimPlacement)$
+// string<32>
+$object.name$_applied_verbatim_annotation.placement("$annotation_parameter.enumStringValue$");
+$elseif(annotation_parameter.isVerbatimLanguage)$
+// string<32>
+$object.name$_applied_verbatim_annotation.language("$annotation_parameter.value$");
+$elseif(annotation_parameter.isVerbatimText)$
+// string
+$object.name$_applied_verbatim_annotation.text("$annotation_parameter.value$");
 $endif$
 }; separator=""$
 $endif$
 >>
 
-minimal_member_detail(ctx, object, name) ::= <<
-//        - MinimalMemberDetail
-//            - NameHash
-$md5_hash(ctx=ctx, object=object, name=name)$
+applied_builtin_member_annotation_impl(ctx, object) ::= <<
+$if(object.isUnit)$
+// @optional string
+$object.name$_applied_builtin_member_annotation.unit("$annotation_parameter.value$");
+$elseif(object.isMin)$
+$applied_builtin_member_min_annotation_impl(ctx=ctx, object=object)$
+$elseif(object.isMax)$
+$applied_builtin_member_max_annotation_impl(ctx=ctx, object=object)$
+$elseif(object.isRange)$
+$if(object.valueList)$
+$object.valueList : { annotation_parameter |
+$if(annotation_parameter.isMin)$
+$applied_builtin_member_min_annotation_impl(ctx=ctx, object=annotation_parameter)$
+$elseif(annotation_parameter.isMax)$
+$applied_builtin_member_max_annotation_impl(ctx=ctx, object=annotation_parameter)$
+$endif$
+}; separator=""$
+$endif$
+$elseif(object.isHashId)$
+// @optional string
+$object.name$_applied_builtin_member_annotation.hash_id("$annotation_parameter.value$");
+$endif$
 >>
 
-common_bitflag(ctx, object, name) ::= <<
-//        - CommonBitflag
-//            - unsigned short: position
-$object.name$_$name$_bitflag.common().position($object.position$);
-//            - BitflagFlag: unused. No flags apply
+applied_builtin_member_max_annotation_impl(ctx, object) ::= <<
+// @optional AnnotationParameterValue
+$annotation_parameter_value_impl(ctx=ctx, object=object, name=["complete"], ek=["true"])$
+$object.name$_applied_builtin_member_annotation.max($object.name$_annotation_parameter_value);
 >>
 
-complete_member_detail(ctx, object, parent, name) ::= <<
-//        - CompleteMemberDetail
-//            - MemberName
-$object.name$$name$.detail().name("$object.name$");
+applied_builtin_member_min_annotation_impl(ctx, object) ::= <<
+// @optional AnnotationParameterValue
+$annotation_parameter_value_impl(ctx=ctx, object=object, name=["complete"], ek=["true"])$
+$object.name$_applied_builtin_member_annotation.min($object.name$_annotation_parameter_value);
+>>
+
+common_struct_member_impl(ctx, object) ::= <<>>
+
+complete_member_detail_impl(ctx, object) ::= <<
+// CompleteMemberDetail
+CompleteMemberDetail $object.name$_complete_member_detail;
+// - MemberName
+$object.name$_complete_member_detail.name("$object.name$");
 $if(object.annotationList)$
-//            - @optional AppliedAnnotationSeq:
+// - @optional AppliedBuiltinMemberAnnotations
+AppliedBuiltinMemberAnnotations $object.name$_applied_builtin_member_annotation;
+// - @optional AppliedAnnotationSeq
 $object.annotationList: { annotation |
 $if(annotation.isUnit || annotation.isMin || annotation.isMax || annotation.isRange || annotation.isHashId)$
-$applied_builtin_member_annotations(ctx=ctx, object=annotation, parent=annotation, member=object, root=parent)$
+$applied_builtin_member_annotation_impl(ctx=ctx, object=annotation)$
 $else$
-$applied_annotation(ctx=ctx, object=annotation)$
+$applied_annotation_impl(ctx=ctx, object=annotation)$
+$object.name$_complete_member_detail.ann_custom().push_back($annotation.name$_applied_annotation);
 $endif$
 }; separator=""$
+$object.name$_complete_member_detail.ann_builtin($object.name$_applied_builtin_member_annotation);
 $endif$
 >>
 
-common_annotation_parameter(ctx, object, name, complete) ::= <<
-//        - CommonAnnotationParameter
-//            - AnnotationParameterFlag: Unused. No flags apply
-//            - TypeIdentifier
-const TypeIdentifier* $object.name$_$name$_annotation_parameter_type_id =
+minimal_member_detail_impl(ctx, object) ::= <<
+// MinimalMemberDetail
+MinimalMemberDetail $object.name$_minimal_member_detail;
+// - NameHash
+$md5_hash(ctx=ctx, object=object, name=["_minimal_member_detail.name_hash()"])$
+>>
+
+complete_struct_member_impl(ctx, object) ::= <<>>
+
+minimal_struct_member_impl(ctx, object) ::= <<>>
+
+applied_builtin_type_annotation_impl(ctx, object) ::= <<
+AppliedBuiltinTypeAnnotations $object.name$_applied_builtin_type_annotations;
+$applied_verbatim_annotation_impl(ctx=ctx, object=object)$
+$object.name$_applied_builtin_type_annotations.verbatim($object.name$_applied_verbatim_annotation);
+>>
+
+minimal_type_detail_impl(ctx, object) ::= <<>>
+
+complete_type_detail_impl(ctx, object) ::= <<
+// CompleteTypeDetail
+CompleteTypeDetail $object.name$_complete_type_detail;
+$if(object.annotationList)$
+// - @optional AppliedAnnotationSeq
+$object.annotationList: { annotation |
+$if(annotation.isVerbatim)$
+// - @optional AppliedBuiltinTypeAnnotations
+$applied_builtin_type_annotation_impl(ctx=ctx, object=annotation)$
+$object.name$_complete_type_detail.ann_builtin($annotation.name$_applied_builtin_type_annotations);
+$else$
+$applied_annotation_impl(ctx=ctx, object=annotation)$
+$object.name$_complete_type_detail.ann_custom().push_back($annotation.name$_applied_annotation);
+$endif$
+}; separator=""$
+$endif$
+// - QualifiedTypeName
+$object.name$_complete_type_detail.type_name(
+    "$if(ctx.GenerateTypesROS2)$$object.ROS2Scopedname$$else$$object.scopedname$$endif$");
+>>
+
+complete_struct_header_impl(ctx, object) ::= <<>>
+
+minimal_struct_header_impl(ctx, object) ::= <<>>
+
+complete_struct_type_impl(ctx, object) ::= <<>>
+
+minimal_struct_type_impl(ctx, object) ::= <<>>
+
+common_union_member_impl(ctx, object) ::= <<>>
+
+complete_union_member_impl(ctx, object) ::= <<>>
+
+minimal_union_member_impl(ctx, object) ::= <<>>
+
+common_discriminator_member_impl(ctx, object) ::= <<>>
+
+complete_discriminator_member_impl(ctx, object) ::= <<>>
+
+minimal_discriminator_member_impl(ctx, object) ::= <<>>
+
+complete_union_header_impl(ctx, object) ::= <<>>
+
+minimal_union_header_impl(ctx, object) ::= <<>>
+
+complete_union_type_impl(ctx, object) ::= <<>>
+
+minimal_union_type_impl(ctx, object) ::= <<>>
+
+common_annotation_parameter_impl(ctx, object, complete) ::= <<
+// CommonAnnotationParameter
+CommonAnnotationParameter $object.name$_common_annotation_parameter;
+// - AnnotationParameterFlag: Unused. No flags apply
+// - TypeIdentifier
+const TypeIdentifier* $object.name$_common_annotation_parameter_type_id =
     TypeObjectFactory::get_instance()->get_type_identifier(
         "$object.typecode.cppTypename$",
         $if(object.typecode.isEnumType || !object.typecode.primitive)$$complete$$else$false$endif$);
-assert(nullptr != $object.name$_$name$_annotation_parameter_type_id);
-$object.name$_$name$_annotation_parameter.common().member_type_id(*$object.name$_$name$_annotation_parameter_type_id);
+assert(nullptr != $object.name$_common_annotation_parameter_type_id);
+$object.name$_common_annotation_parameter.member_type_id(*$object.name$_common_annotation_parameter_type_id);
 >>
 
-annotation_parameter_value(ctx, object, name, ek) ::= <<
-//        - AnnotationParameterValue
-AnnotationParameterValue $object.name$_annotation_parameter_value;
-$if(object.typecode.isEnumType || !object.typecode.primitive)$
-const TypeObject* $object.name$_annotation_parameter_type_ob =
-    TypeObjectFactory::get_instance()->get_type_object(
-        "$object.typecode.cppTypename$",
-        $ek$);
-assert(nullptr != $object.name$_annotation_parameter_type_ob);
-$object.name$_annotation_parameter_value._d($object.name$_annotation_parameter_type_ob->$name$()._d())
-$else$
-$object.name$_annotation_parameter_value._d($object.name$_$name$_annotation_parameter_type_id->_d());
-$endif$
-$if(object.value)$
-$annotation_parameter_value_value(ctx=ctx, object=object)$
-$endif$
-
-$object.name$_$name$_annotation_parameter.default_value($object.name$_annotation_parameter_value);
+complete_annotation_parameter_impl(ctx, object) ::= <<
+// CompleteAnnotationParameter
+CompleteAnnotationParameter $object.name$_complete_annotation_parameter;
+$common_annotation_parameter_impl(ctx=ctx, object=object, complete=["true"])$
+$object.name$_complete_annotation_parameter.common($object.name$_common_annotation_parameter);
+// - MemberName
+$object.name$_complete_annotation_parameter.name("$object.name$");
+// - AnnotationParameterValue
+$annotation_parameter_value_impl(ctx=ctx, object=object, name=["complete"], ek=["true"])$
+$object.name$_complete_annotation_parameter.default_value($object.name$_annotation_parameter_value);
 >>
+
+minimal_annotation_parameter_impl(ctx, object) ::= <<
+// MinimalAnnotationParameter
+MinimalAnnotationParameter $object.name$_minimal_annotation_parameter;
+$common_annotation_parameter_impl(ctx=ctx, object=object, complete=["false"])$
+$object.name$_minimal_annotation_parameter.common($object.name$_common_annotation_parameter);
+// - NameHash
+$md5_hash(ctx=ctx, object=object, name=["_minimal_annotation_parameter.name_hash()"])$
+// - AnnotationParameterValue
+$annotation_parameter_value_impl(ctx=ctx, object=object, name=["minimal"], ek=["false"])$
+$object.name$_minimal_annotation_parameter.default_value($object.name$_annotation_parameter_value);
+>>
+
+complete_annotation_header_impl(ctx, object) ::= <<
+// CompleteAnnotationHeader
+CompleteAnnotationHeader $object.name$_complete_annotation_header;
+// - QualifiedTypeName
+$object.name$_complete_annotation_header.annotation_name(
+    "$if(ctx.GenerateTypesROS2)$$annotation.ROS2Scopedname$$else$$annotation.scopedname$$endif$");
+>>
+
+minimal_annotation_header_impl(ctx, object) ::= <<
+// MinimalAnnotationHeader: empty. Available for future extension.
+MinimalAnnotationHeader $object.name$_minimal_annotation_header;
+>>
+
+complete_annotation_type_impl(ctx, object) ::= <<
+// CompleteAnnotationType
+CompleteAnnotationType $object.name$_complete_annotation_type;
+// - AnnotationTypeFlag: unused. No flags apply.
+$complete_annotation_header_impl(ctx=ctx, object=object)$
+$object.name$_complete_annotation_type.header($object.name$_complete_annotation_header);
+// - CompleteAnnotationParameterSeq
+
+$object.members:{ member |
+$complete_annotation_parameter_impl(ctx=ctx, object=member)$
+$object.name$_complete_annotation_type.member_seq().push_back($member.name$_complete_annotation_parameter);
+}; separator="\n"$
+>>
+
+minimal_annotation_type_impl(ctx, object) ::= <<
+// MinimalAnnotationType
+MinimalAnnotationType $object.name$_minimal_annotation_type;
+// - AnnotationTypeFlag: unused. No flags apply.
+$minimal_annotation_header_impl(ctx=ctx, object=object)$
+$object.name$_minimal_annotation_type.header($object.name$_minimal_annotation_header);
+// - MinimalAnnotationParameterSeq
+
+$object.members:{ member |
+$minimal_annotation_parameter_impl(ctx=ctx, object=member)$
+$object.name$_minimal_annotation_type.member_seq().push_back($member.name$_minimal_annotation_parameter);
+}; separator="\n"$
+>>
+
+common_alias_body_impl(ctx, object) ::= <<>>
+
+complete_alias_body_impl(ctx, object) ::= <<>>
+
+minimal_alias_body_impl(ctx, object) ::= <<>>
+
+complete_alias_header_impl(ctx, object) ::= <<>>
+
+minimal_alias_header_impl(ctx, object) ::= <<>>
+
+complete_alias_type_impl(ctx, object) ::= <<>>
+
+minimal_alias_type_impl(ctx, object) ::= <<>>
+
+complete_element_detail_impl(ctx, object) ::= <<>>
+
+common_collection_element_impl(ctx, object) ::= <<>>
+
+complete_collection_element_impl(ctx, object) ::= <<>>
+
+minimal_collection_element_impl(ctx, object) ::= <<>>
+
+common_collection_header_impl(ctx, object) ::= <<>>
+
+complete_collection_header_impl(ctx, object) ::= <<>>
+
+minimal_collection_header_impl(ctx, object) ::= <<>>
+
+complete_sequence_type_impl(ctx, object) ::= <<>>
+
+minimal_sequence_type_impl(ctx, object) ::= <<>>
+
+common_array_header_impl(ctx, object) ::= <<>>
+
+complete_array_header_impl(ctx, object) ::= <<>>
+
+minimal_array_header_impl(ctx, object) ::= <<>>
+
+complete_array_type_impl(ctx, object) ::= <<>>
+
+minimal_array_type_impl(ctx, object) ::= <<>>
+
+complete_map_type_impl(ctx, object) ::= <<>>
+
+minimal_map_type_impl(ctx, object) ::= <<>>
+
+common_enumerated_literal_impl(ctx, object) ::= <<
+// CommonEnumeratedLiteral
+CommonEnumeratedLiteral $object.name$_common_enumerated_literal;
+// - long: value
+$object.name$_common_enumerated_literal.value(value++);
+// - EnumeratedLiteralFlag: IS_DEFAULT (D) flag
+$if(object.annotationDefaultLiteral)$
+EnumeratedLiteralFlag $object.name$_enumerated_literal_flag = MemberFlagBits::IS_DEFAULT;
+$object.name$_common_enumerated_literal.flags($object.name$_enumerated_literal_flag);
+$endif$
+>>
+
+complete_enumerated_literal_impl(ctx, object) ::= <<
+// CompleteEnumeratedLiteral
+CompleteEnumeratedLiteral $object.name$_complete_enumerated_literal;
+$common_enumerated_literal_impl(ctx=ctx, object=object)$
+$object.name$_complete_enumerated_literal.common($object.name$_common_enumerated_literal);
+$complete_member_detail_impl(ctx=ctx, object=object)$
+$object.name$_complete_enumerated_literal.detail($object.name$_complete_member_detail);
+>>
+
+minimal_enumerated_literal_impl(ctx, object) ::= <<
+// MinimalEnumeratedLiteral
+MinimalEnumeratedLiteral $object.name$_minimal_enumerated_literal;
+$common_enumerated_literal_impl(ctx=ctx, object=object)$
+$object.name$_minimal_enumerated_literal.common($object.name$_common_enumerated_literal);
+$minimal_member_detail_impl(ctx=ctx, object=object)$
+$object.name$_minimal_enumerated_literal.detail($object.name$_minimal_member_detail);
+>>
+
+common_enumerated_header_impl(ctx, object) ::= <<
+// CommonEnumeratedHeader
+CommonEnumeratedHeader $object.name$_common_enumerated_header;
+// - BitBound
+$if(object.isEnumType)$
+// TODO: XTypes v1.3 Clause 7.3.1.2.1.5 Prior to this specification, it was impossible to indicate that objects of
+//       enumerated types could be stored using an integer size other than 32 bits. This specification uses the
+//       @bit_bound annotation defined in Sub Clause 8.3.4.1 of [IDL] for this purpose.
+//       It is important to note that the value member of the annotation may take any value from 1 to 32, inclusive,
+//       when this annotation is applied to an enumerated type.
+$object.name$_common_enumerated_header.bit_bound(32);
+$elseif(object.isBitmaskType)$
+$object.name$_common_enumerated_header.bit_bound($object.bitBound$);
+$endif$
+>>
+
+complete_enumerated_header_impl(ctx, object) ::= <<
+// CompleteEnumeratedHeader
+CompleteEnumeratedHeader $object.name$_complete_enumerated_header;
+$common_enumerated_header_impl(ctx=ctx, object=object)$
+$object.name$_complete_enumerated_header.common($object.name$_common_enumerated_header);
+$complete_type_detail_impl(ctx=ctx, object=object)$
+$object.name$_complete_enumerated_header.detail($object.name$_complete_type_detail);
+>>
+
+minimal_enumerated_header_impl(ctx, object) ::= <<
+// MinimalEnumeratedHeader
+MinimalEnumeratedHeader $object.name$_minimal_enumerated_header;
+$common_enumerated_header_impl(ctx=ctx, object=object)$
+$object.name$_minimal_enumerated_header.common($object.name$_common_enumerated_header);
+>>
+
+complete_enumerated_type_impl(ctx, object) ::= <<
+// CompleteEnumeratedType
+CompleteEnumeratedType $object.name$_complete_enumerated_type;
+// - EnumTypeFlag: Unused. No flags apply
+$complete_enumerated_header_impl(ctx=ctx, object=object)$
+$object.name$_complete_enumerated_type.header($object.name$_complete_enumerated_header);
+// - CompleteEnumeratedLiteralSeq
+
+uint32_t value = 0;
+$enum.members:{ member |
+$complete_enumerated_literal_impl(ctx=ctx, object=member)$
+$object.name$_complete_enumerated_type.literal_seq().push_back($member.name$_complete_enumerated_literal);
+}; separator="\n"$
+>>
+
+minimal_enumerated_type_impl(ctx, object) ::= <<
+// MinimalEnumeratedType
+MinimalEnumeratedType $object.name$_minimal_enumerated_type;
+// - EnumTypeFlag: Unused. No flags apply
+$minimal_enumerated_header_impl(ctx=ctx, object=object)$
+$object.name$_minimal_enumerated_type.header($object.name$_minimal_enumerated_header);
+// - MinimalEnumeratedLiteralSeq
+
+uint32_t value = 0;
+$enum.members:{ member |
+$minimal_enumerated_literal_impl(ctx=ctx, object=member)$
+$object.name$_minimal_enumerated_type.literal_seq().push_back($member.name$_minimal_enumerated_literal);
+}; separator="\n"$
+>>
+
+common_bitflag_impl(ctx, object) ::= <<
+// CommonBitflag
+CommonBitflag $object.name$_common_bitflag;
+// - unsigned short: position
+$object.name$_common_bitflag.position($object.position$);
+// - BitflagFlag: unused. No flags apply
+>>
+
+complete_bitflag_impl(ctx, object) ::= <<
+// CompleteBitflag
+CompleteBitflag $object.name$_complete_bitflag;
+$common_bitflag_impl(ctx=ctx, object=object)$
+$object.name$_complete_bitflag.common($object.name$_common_bitflag);
+$complete_member_detail_impl(ctx=ctx, object=object)$
+$object.name$_complete_bitflag.detail($object.name$_complete_member_detail);
+>>
+
+minimal_bitflag_impl(ctx, object) ::= <<
+// MinimalBitflag
+MinimalBitflag $object.name$_minimal_bitflag;
+$common_bitflag_impl(ctx=ctx, object=object)$
+$object.name$_minimal_bitflag.common($object.name$_common_bitflag);
+$minimal_member_detail_impl(ctx=ctx, object=object)$
+$object.name$_minimal_bitflag.detail($object.name$_minimal_member_detail);
+>>
+
+/* CommonBitmaskHeader is not included as it is not used by any other type */
+
+complete_bitmask_type_impl(ctx, object) ::= <<
+// CompleteBitmaskType
+CompleteBitmaskType $object.name$_complete_bitmask_type;
+// - BitmaskTypeFlag: Unused. No flags apply
+// - CompleteBitmaskHeader: CompleteEnumeratedHeader
+$complete_enumerated_header_impl(ctx=ctx, object=object)$
+$object.name$_complete_bitmask_type.header($object.name$_complete_enumerated_header);
+// - CompleteBitflagSeq
+
+$bitmask.members:{ member |
+$complete_bitflag_impl(ctx=ctx, object=member)$
+$object.name$_complete_bitmask_type.flag_seq().push_back($member.name$_complete_bitflag);
+}; separator="\n"$
+>>
+
+minimal_bitmask_type_impl(ctx, object) ::= <<
+// MinimalBitmaskType
+MinimalBitmaskType $object.name$_minimal_bitmask_type;
+// - BitmaskTypeFlag: Unused. No flags apply
+// - MinimalBitmaskHeader: MinimalEnumeratedHeader
+$minimal_enumerated_header_impl(ctx=ctx, object=object)$
+$object.name$_minimal_bitmask_type.header($object.name$_minimal_enumerated_header);
+//    - MinimalBitflagSeq
+
+$bitmask.bitmasks:{ member |
+$minimal_bitflag_impl(ctx=ctx, object=member)$
+$object.name$_minimal_bitmask_type.flag_seq().push_back($member.name$_minimal_bitflag)
+}; separator="\n"$
+>>
+
+common_bitfield_impl(ctx, object) ::= <<>>
+
+complete_bitfield_impl(ctx, object) ::= <<>>
+
+minimal_bitfield_impl(ctx, object) ::= <<>>
+
+complete_bitset_header_impl(ctx, object) ::= <<>>
+
+minimal_bitset_header_impl(ctx, object) ::= <<>>
+
+complete_bitset_type_impl(ctx, object) ::= <<>>
+
+minimal_bitset_type_impl(ctx, object) ::= <<>>
