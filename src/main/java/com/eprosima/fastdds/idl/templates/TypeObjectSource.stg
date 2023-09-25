@@ -94,18 +94,18 @@ register_annotation_types(annotation) ::= <<
 
 register_type_object(object) ::= <<
 
-$if(object.hasScope)$$object.scope$::$endif$get_$object.name$_identifier(true);
-$if(object.hasScope)$$object.scope$::$endif$get_$object.name$_identifier(false);
+$if(object.hasScope)$$object.scope$::$endif$get_$object.name$_object(true);
+$if(object.hasScope)$$object.scope$::$endif$get_$object.name$_object(false);
 >>
 
 register_annotation_enum(enum) ::= <<
-$if(enum.hasScope)$$enum.scope$::$endif$get_$enum.name$_identifier(true);
-$if(enum.hasScope)$$enum.scope$::$endif$get_$enum.name$_identifier(false);
+$if(enum.hasScope)$$enum.scope$::$endif$get_$enum.name$_object(true);
+$if(enum.hasScope)$$enum.scope$::$endif$get_$enum.name$_object(false);
 >>
 
 register_annotation_typedef(typedef) ::= <<
-$if(typedef.hasScope)$$typedef.scope$::$endif$get_$typedef.name$_identifier(true);
-$if(typedef.hasScope)$$typedef.scope$::$endif$get_$typedef.name$_identifier(false);
+$if(typedef.hasScope)$$typedef.scope$::$endif$get_$typedef.name$_object(true);
+$if(typedef.hasScope)$$typedef.scope$::$endif$get_$typedef.name$_object(false);
 >>
 
 module(ctx, parent, module, definition_list) ::= <<
