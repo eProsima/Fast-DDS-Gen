@@ -1190,7 +1190,47 @@ $annotation_parameter_value_impl(ctx=ctx, object=object, name=["complete"], ek=[
 $object.name$_applied_builtin_member_annotation.min($object.name$_annotation_parameter_value);
 >>
 
-common_struct_member_impl(ctx, object) ::= <<>>
+common_struct_member_impl(ctx, object) ::= <<
+// CommonStructMember
+CommonStructMember $object.name$_common_struct_member;
+// - MemberId
+$object.name$_common_struct_member.member_id(member_id++);
+// - StructMemberFlag: T1, T2, O, M, K, X
+StructMemberFlag $object.name$_struct_member_flag;
+$if(object.annotationTryConstruct)$
+$if(object.annotationDiscard)$
+$object.name$_struct_member_flag |= MemberFlagBits::TRY_CONSTRUCT1;
+$elseif(object.annotationUseDefault)$
+$object.name$_struct_member_flag |= MemberFlagBits::TRY_CONSTRUCT2;
+$elseif(object.annotationTrim)$
+$object.name$_struct_member_flag |= MemberFlagBits::TRY_CONSTRUCT1 | MemberFlagBits::TRY_CONSTRUCT2;
+$endif$
+$else$
+// XTypes v1.3 Clause 7.2.2.7 The default behavior unless otherwise specified using the TryConstruct annotation is
+// DISCARD
+$object.name$_struct_member_flag |= MemberFlagBits::TRY_CONSTRUCT1;
+$endif$
+$if(object.annotationOptional)$
+$object.name$_struct_member_flag |= MemberFlagBits::IS_OPTIONAL;
+$endif$
+$if(object.annotationMustUnderstand)$
+$object.name$_struct_member_flag |= MemberFlagBits::IS_MUST_UNDERSTAND;
+$endif$
+$if(object.annotationKey)$
+$object.name$_struct_member_flag |= MemberFlagBits::IS_KEY;
+$endif$
+$if(object.annotationExternal)$
+$object.name$_struct_member_flag |= MemberFlagBits::IS_EXTERNAL;
+$endif$
+$object.name$_common_struct_member.member_flags($object.name$_struct_member_flag);
+// - TypeIdentifier
+const TypeIdentifier* $object.name$_common_struct_member_type_id =
+    TypeObjectFactory::get_instance()->get_type_identifier(
+        $if(object.typecode.isStringType)$"DDS::String"$else$"$object.typecode.cppTypename$"$endif$,
+        $if(object.typecode.isEnumType || !object.typecode.primitive)$$complete$$else$false$endif$);
+assert(nullptr != $object.name$_common_struct_member_type_id);
+$object.name$_common_struct_member.member_type_id(*$object.name$_common_struct_member_type_id);
+>>
 
 complete_member_detail_impl(ctx, object) ::= <<
 // CompleteMemberDetail
