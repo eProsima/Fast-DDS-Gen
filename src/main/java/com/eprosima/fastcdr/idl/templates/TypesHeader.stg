@@ -181,7 +181,7 @@ $member_list$
  * @brief This class represents the structure $struct.name$ defined by the user in the IDL file.
  * @ingroup $ctx.trimfilename$
  */
-class $struct.name$$if(struct.inheritances)$ : public $struct.inheritances : { inheritance | $public_struct_inheritances(inheritance)$}; separator=", "$ $endif$
+class $struct.name$$if(struct.inheritance)$ : public $public_struct_inheritances(struct.inheritance)$$endif$
 {
 public:
 

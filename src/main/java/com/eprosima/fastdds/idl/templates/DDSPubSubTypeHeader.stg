@@ -243,11 +243,11 @@ private:
         return $struct.maxXCDRv1PlainTypeSerializedSize$ULL ==
                (detail::$struct.name$_offset_of<$struct.name$, detail::$struct.name$_f>() +
                sizeof($last(struct.members).typecode.cppTypename$));
-        $elseif(struct.inheritances)$
-        $if(last(struct.inheritances).isPlain)$
+        $elseif(struct.inheritance)$
+        $if(struct.inheritance.isPlain)$
         return $struct.maxXCDRv1PlainTypeSerializedSize$ULL ==
-               (detail::$last(struct.inheritances).name$_offset_of<$last(struct.inheritances).name$, detail::$last(struct.inheritances).name$_f>() +
-               sizeof($last(last(struct.inheritances).members).typecode.cppTypename$));
+               (detail::$struct.inheritance.name$_offset_of<$struct.inheritance.name$, detail::$struct.inheritance.name$_f>() +
+               sizeof($last(struct.inheritance.members).typecode.cppTypename$));
         $else$
         return true;
         $endif$
@@ -262,11 +262,11 @@ private:
         return $struct.maxXCDRv2PlainTypeSerializedSize$ULL ==
                (detail::$struct.name$_offset_of<$struct.name$, detail::$struct.name$_f>() +
                sizeof($last(struct.members).typecode.cppTypename$));
-        $elseif(struct.inheritances)$
-        $if(last(struct.inheritances).isPlain)$
+        $elseif(struct.inheritance)$
+        $if(struct.inheritance.isPlain)$
         return $struct.maxXCDRv2PlainTypeSerializedSize$ULL ==
-               (detail::$last(struct.inheritances).name$_offset_of<$last(struct.inheritances).name$, detail::$last(struct.inheritances).name$_f>() +
-               sizeof($last(last(struct.inheritances).members).typecode.cppTypename$));
+               (detail::$struct.inheritance.name$_offset_of<$struct.inheritance.name$, detail::$struct.inheritance.name$_f>() +
+               sizeof($last(struct.inheritance.members).typecode.cppTypename$));
         $else$
         return true;
         $endif$
