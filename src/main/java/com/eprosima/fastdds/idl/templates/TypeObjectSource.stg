@@ -167,145 +167,18 @@ $get_type_object_impl(ctx=ctx, param=typedefs)$
 
 $get_minimal_type_object_impl(ctx=ctx, param=typedefs)$
     type_object->minimal()._d(TK_ALIAS);
+    $minimal_alias_type_impl(ctx=ctx, object=typedefs)$
+    type_object->minimal().alias_type($typedefs.name$_minimal_alias_type);
 
-    // No flags apply
-    //type_object->minimal().alias_type().alias_flags().IS_FINAL(false);
-    //type_object->minimal().alias_type().alias_flags().IS_APPENDABLE(false);
-    //type_object->minimal().alias_type().alias_flags().IS_MUTABLE(false);
-    //type_object->minimal().alias_type().alias_flags().IS_NESTED(false);
-    //type_object->minimal().alias_type().alias_flags().IS_AUTOID_HASH(false);
-
-    // type_object->minimal().alias_type().header()... Is empty
-
-    // No flags apply
-    //type_object->minimal().alias_type().body().common().related_flags().TRY_CONSTRUCT1(false);
-    //type_object->minimal().alias_type().body().common().related_flags().TRY_CONSTRUCT2(false);
-    //type_object->minimal().alias_type().body().common().related_flags().IS_EXTERNAL(false);
-    //type_object->minimal().alias_type().body().common().related_flags().IS_OPTIONAL(false);
-    //type_object->minimal().alias_type().body().common().related_flags().IS_MUST_UNDERSTAND(false);
-    //type_object->minimal().alias_type().body().common().related_flags().IS_KEY(false);
-    //type_object->minimal().alias_type().body().common().related_flags().IS_DEFAULT(false);
-
-    // Must be defined already, if don't, may be an recursive alias
-    const TypeIdentifier *relatedType = TypeObjectFactory::get_instance()->get_type_identifier($get_content_type(ctx=ctx, type=typedefs.typedefContentTypeCode)$, false);
-
-
-    if (relatedType != nullptr)
-    {
-        type_object->minimal().alias_type().body().common().related_type() = *relatedType; // Make a copy
-    }
-    else
-    {
-        // Cannot determine base type
-        delete type_object;
-        return nullptr;
-    }
-
-    TypeIdentifier identifier;
-    identifier._d(EK_MINIMAL);
-
-    eprosima::fastcdr::CdrSizeCalculator calculator(eprosima::fastcdr::CdrVersion::XCDRv2);
-    size_t current_alignment {0};
-    SerializedPayload_t payload(static_cast<uint32_t>(
-        calculator.calculate_serialized_size(type_object->minimal().alias_type(), current_alignment) + 4));
-    eprosima::fastcdr::FastBuffer fastbuffer((char*) payload.data, payload.max_size);
-    // Fixed endian (Page 221, EquivalenceHash definition of Extensible and Dynamic Topic Types for DDS document)
-    eprosima::fastcdr::Cdr ser(
-        fastbuffer, eprosima::fastcdr::Cdr::DEFAULT_ENDIAN,
-        eprosima::fastcdr::CdrVersion::XCDRv2); // Object that serializes the data.
-    payload.encapsulation = ser.endianness() == eprosima::fastcdr::Cdr::BIG_ENDIANNESS ? CDR_BE : CDR_LE;
-
-    ser << *type_object;
-    payload.length = (uint32_t)ser.get_serialized_data_length(); //Get the serialized length
-    MD5 objectHash;
-    objectHash.update((char*)payload.data, payload.length);
-    objectHash.finalize();
-    for(int i = 0; i < 14; ++i)
-    {
-        identifier.equivalence_hash()[i] = objectHash.digest[i];
-    }
-
-    // Don't add our TypeIdentifier but our alias
-    TypeObjectFactory::get_instance()->add_alias("$typedefs.name$", $get_content_type(ctx=ctx, type=typedefs.typedefContentTypeCode)$);
-
-    TypeObjectFactory::get_instance()->add_type_object("$typedefs.name$", &identifier, type_object);
-    delete type_object;
-    return TypeObjectFactory::get_instance()->get_type_object("$typedefs.name$", false);
+    $type_identifier_impl(ctx=ctx, param=typedefs, complete_discr=["EK_MINIMAL"], member=["minimal().alias_type()"], complete_flag=["false"])$
 }
 
 $get_complete_type_object_impl(ctx=ctx, param=typedefs)$
     type_object->complete()._d(TK_ALIAS);
+    $complete_alias_type_impl(ctx=ctx, object=typedefs)$
+    type_object->complete().alias_type($typedefs.name$_alias_type);
 
-    // No flags apply
-    //type_object->complete().alias_type().alias_flags().IS_FINAL(false);
-    //type_object->complete().alias_type().alias_flags().IS_APPENDABLE(false);
-    //type_object->complete().alias_type().alias_flags().IS_MUTABLE(false);
-    //type_object->complete().alias_type().alias_flags().IS_NESTED(false);
-    //type_object->complete().alias_type().alias_flags().IS_AUTOID_HASH(false);
-
-    //type_object->complete().alias_type().header().detail().ann_builtin().verbatim().placement("placement");
-    //type_object->complete().alias_type().header().detail().ann_builtin().verbatim().language("language");
-    //type_object->complete().alias_type().header().detail().ann_builtin().verbatim().text("text");
-    //type_object->complete().alias_type().header().detail().ann_custom().push_back(...);
-    type_object->complete().alias_type().header().detail().type_name("$typedefs.name$");
-
-    // No flags apply
-    //type_object->complete().alias_type().body().common().related_flags().TRY_CONSTRUCT1(false);
-    //type_object->complete().alias_type().body().common().related_flags().TRY_CONSTRUCT2(false);
-    //type_object->complete().alias_type().body().common().related_flags().IS_EXTERNAL(false);
-    //type_object->complete().alias_type().body().common().related_flags().IS_OPTIONAL(false);
-    //type_object->complete().alias_type().body().common().related_flags().IS_MUST_UNDERSTAND(false);
-    //type_object->complete().alias_type().body().common().related_flags().IS_KEY(false);
-    //type_object->complete().alias_type().body().common().related_flags().IS_DEFAULT(false);
-
-    //type_object->complete().alias_type().body().common().ann_builtin()
-    //type_object->complete().alias_type().body().common().ann_custom()
-
-    // Must be defined already, if don't, may be an recursive alias
-    const TypeIdentifier *relatedType = TypeObjectFactory::get_instance()->get_type_identifier_trying_complete($get_content_type(ctx=ctx, type=typedefs.typedefContentTypeCode)$);
-
-
-    if (relatedType != nullptr)
-    {
-        type_object->complete().alias_type().body().common().related_type() = *relatedType; // Make a copy
-    }
-    else
-    {
-        // Cannot determine base type
-        delete type_object;
-        return nullptr;
-    }
-
-    TypeIdentifier identifier;
-    identifier._d(EK_COMPLETE);
-
-    eprosima::fastcdr::CdrSizeCalculator calculator(eprosima::fastcdr::CdrVersion::XCDRv2);
-    size_t current_alignment {0};
-    SerializedPayload_t payload(static_cast<uint32_t>(
-        calculator.calculate_serialized_size(type_object->complete().alias_type(), current_alignment) + 4));
-    eprosima::fastcdr::FastBuffer fastbuffer((char*) payload.data, payload.max_size);
-    // Fixed endian (Page 221, EquivalenceHash definition of Extensible and Dynamic Topic Types for DDS document)
-    eprosima::fastcdr::Cdr ser(
-        fastbuffer, eprosima::fastcdr::Cdr::DEFAULT_ENDIAN,
-        eprosima::fastcdr::CdrVersion::XCDRv2); // Object that serializes the data.
-    payload.encapsulation = ser.endianness() == eprosima::fastcdr::Cdr::BIG_ENDIANNESS ? CDR_BE : CDR_LE;
-
-    ser << *type_object;
-    payload.length = (uint32_t)ser.get_serialized_data_length(); //Get the serialized length
-    MD5 objectHash;
-    objectHash.update((char*)payload.data, payload.length);
-    objectHash.finalize();
-    for(int i = 0; i < 14; ++i)
-    {
-        identifier.equivalence_hash()[i] = objectHash.digest[i];
-    }
-
-    // Don't add our TypeIdentifier but our alias
-    TypeObjectFactory::get_instance()->add_alias("$typedefs.name$", $get_content_type(ctx=ctx, type=typedefs.typedefContentTypeCode)$);
-
-    TypeObjectFactory::get_instance()->add_type_object("$typedefs.name$", &identifier, type_object);
-    delete type_object;
-    return TypeObjectFactory::get_instance()->get_type_object("$typedefs.name$", true);
+    $type_identifier_impl(ctx=ctx, param=typedefs, complete_discr=["EK_COMPLETE"], member=["complete().alias_type()"], complete_flag=["true"])$
 }
 
 >>
@@ -1253,7 +1126,7 @@ $object.name$_complete_annotation_header.annotation_name(
 >>
 
 minimal_annotation_header_impl(ctx, object) ::= <<
-// MinimalAnnotationHeader: empty. Available for future extension.
+// MinimalAnnotationHeader: Empty. Available for future extension.
 MinimalAnnotationHeader $object.name$_minimal_annotation_header;
 >>
 
@@ -1285,19 +1158,61 @@ $object.name$_minimal_annotation_type.member_seq().push_back($member.name$_minim
 }; separator="\n"$
 >>
 
-common_alias_body_impl(ctx, object) ::= <<>>
+common_alias_body_impl(ctx, object) ::= <<
+// CommonAliasBody
+CommonAliasBody $object.name$_common_alias_body;
+// - AliasMemberFlag: unused. No flags apply.
+// - TypeIdentifier
+$common_member_type_id_impl(ctx=ctx, object=object)$
+$object.name$_common_alias_body.related_type($object.name$_common_member_type_id);
+>>
 
-complete_alias_body_impl(ctx, object) ::= <<>>
+complete_alias_body_impl(ctx, object) ::= <<
+// CompleteAliasBody
+CompleteAliasBody $object.name$_complete_alias_body;
+$common_alias_body_impl(ctx=ctx, object=object)$
+$object.name$_complete_alias_body.common($object.name$_common_alias_body);
+$applied_annotations_impl(ctx=ctx, object=object, name=["_complete_alias_body"])$
+>>
 
-minimal_alias_body_impl(ctx, object) ::= <<>>
+minimal_alias_body_impl(ctx, object) ::= <<
+// MinimalAliasBody
+MinimalAliasBody $object.name$_minimal_alias_body;
+$common_alias_body_impl(ctx=ctx, object=object)$
+$object.name$_minimal_alias_body.common($object.name$_common_alias_body);
+>>
 
-complete_alias_header_impl(ctx, object) ::= <<>>
+complete_alias_header_impl(ctx, object) ::= <<
+// CompleteAliasHeader
+CompleteAliasHeader $object.name$_complete_alias_header;
+$complete_type_detail_impl(ctx=ctx, object=object)$
+$object.name$_complete_alias_header.detail($object.name$_complete_type_detail);
+>>
 
-minimal_alias_header_impl(ctx, object) ::= <<>>
+minimal_alias_header_impl(ctx, object) ::= <<
+// MinimalAliasHeader: Empty. Available for future extension
+MinimalAliasHeader $object.name$_minimal_alias_header;
+>>
 
-complete_alias_type_impl(ctx, object) ::= <<>>
+complete_alias_type_impl(ctx, object) ::= <<
+// CompleteAliasType
+CompleteAliasType $object.name$_complete_alias_type;
+// - AliasTypeFlag: Unused. No flags apply
+$complete_alias_header_impl(ctx=ctx, object=object)$
+$object.name$_complete_alias_type.header($object.name$_complete_alias_header);
+$complete_alias_body_impl(ctx=ctx, onject=object)$
+$object.name$_complete_alias_type.body($object.name$_complete_alias_body);
+>>
 
-minimal_alias_type_impl(ctx, object) ::= <<>>
+minimal_alias_type_impl(ctx, object) ::= <<
+// MinimalAliasType
+MinimalAliasType $object.name$_minimal_alias_type;
+// - AliasTypeFlag: Unused. No flags apply
+$minimal_alias_header_impl(ctx=ctx, object=object)$
+$object.name$_minimal_alias_type.header($object.name$_minimal_alias_header);
+$minimal_alias_body_impl(ctx=ctx, onject=object)$
+$object.name$_minimal_alias_type.body($object.name$_minimal_alias_body);
+>>
 
 complete_element_detail_impl(ctx, object) ::= <<>>
 
