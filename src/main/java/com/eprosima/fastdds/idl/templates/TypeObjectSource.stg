@@ -282,183 +282,20 @@ $get_type_object_impl(ctx=ctx, param=bitset)$
 
 $get_minimal_type_object_impl(ctx=ctx, param=bitset)$
     type_object->minimal()._d(TK_BITSET);
-
-    $bitset.bitfields:{ member | $minimal_bitfield(ctx=ctx, object=member)$}; separator="\n"$
-
-    $bitset.parents:{ it | $minimal_bitset_inheritance(it)$}; separator="\n"$
+    $minimal_bitset_type_impl(ctx=ctx, object=bitset)$
+    type_object->minimal().bitset_type($bitset.name$_minimal_bitset_type);
 
     $type_identifier_impl(ctx=ctx, param=bitset, complete_discr=["EK_MINIMAL"], member=["minimal().bitset_type()"], complete_flag=["false"])$
 }
 
 $get_complete_type_object_impl(ctx=ctx, param=bitset)$
     type_object->complete()._d(TK_BITSET);
-
-    // No flags apply
-    //type_object->complete().bitset_type().bitset_flags().IS_FINAL(false);
-    //type_object->complete().bitset_type().bitset_flags().IS_APPENDABLE(false);
-    //type_object->complete().bitset_type().bitset_flags().IS_MUTABLE(false);
-    //type_object->complete().bitset_type().bitset_flags().IS_NESTED(false);
-    //type_object->complete().bitset_type().bitset_flags().IS_AUTOID_HASH(false);
-
-    $if(union.annotationList)$
-    $union.annotationList:{ ann |
-{
-    AppliedAnnotation ann;
-    //ann.annotation_typeid(get_$ann.name$_identifier(true));
-    ann.annotation_typeid(*TypeObjectFactory::get_instance()->get_type_identifier_trying_complete("$ann.name$"));
-    $if(ann.valueList)$
-    $ann.valueList:{ annval |
-{
-    AppliedAnnotationParameter annParam;
-    MD5 message_hash("$annval.name$");
-    for(int i = 0; i < 4; ++i)
-    {
-        annParam.paramname_hash()[i] = message_hash.digest[i];
-    \}
-    AnnotationParameterValue paramValue;
-    paramValue._d($annval.typecode.typeIdentifier$);
-    paramValue.from_string("$annval.value$");
-    annParam.value(paramValue);
-    ann.param_seq().push_back(annParam);
-\}
-    };separator="\n"$
-    $endif$
-    type_object->complete().bitset_type().header().detail().ann_custom().push_back(ann);
-\}
-    }; separator="\n"$
-    $endif$
-
-    type_object->complete().bitset_type().header().detail().type_name("$bitset.name$");
-
-    $bitset.bitfields:{ member | $complete_bitfield(ctx=ctx, object=member)$}; separator="\n"$
-
-    $bitset.parents:{ it | $complete_bitset_inheritance(it)$}; separator="\n"$
+    $complete_bitset_type_impl(ctx=ctx, object=bitset)$
+    type_object->complete().bitset_type($bitset.name$_complete_bitset_type);
 
     $type_identifier_impl(ctx=ctx, param=bitset, complete_discr=["EK_COMPLETE"], member=["complete().bitset_type()"], complete_flag=["true"])$
 }
 
->>
-
-minimal_bitfield(ctx, object) ::= <<
-$if(object.name)$
-MinimalBitfield mbf_$object.name$;
-mbf_$object.name$.common().flags().TRY_CONSTRUCT1(false);
-mbf_$object.name$.common().flags().TRY_CONSTRUCT2(false);
-mbf_$object.name$.common().flags().IS_EXTERNAL(false);
-mbf_$object.name$.common().flags().IS_OPTIONAL(false);
-mbf_$object.name$.common().flags().IS_MUST_UNDERSTAND(false);
-mbf_$object.name$.common().flags().IS_KEY(false);
-mbf_$object.name$.common().flags().IS_DEFAULT(false);
-mbf_$object.name$.common().position($object.basePosition$);
-mbf_$object.name$.common().bitcount($object.spec.bitSize$);
-mbf_$object.name$.common().holder_type($object.spec.typecode.typeIdentifier$);
-MD5 $object.name$_hash("$object.name$");
-for(int i = 0; i < 4; ++i)
-{
-    mbf_$object.name$.name_hash()[i] = $object.name$_hash.digest[i];
-}
-type_object->minimal().bitset_type().field_seq().emplace_back(mbf_$object.name$);
-$endif$
-
->>
-
-complete_bitfield(ctx, object) ::= <<
-$if(object.name)$
-CompleteBitfield cbf_$object.name$;
-cbf_$object.name$.common().flags().TRY_CONSTRUCT1(false);
-cbf_$object.name$.common().flags().TRY_CONSTRUCT2(false);
-cbf_$object.name$.common().flags().IS_EXTERNAL(false);
-cbf_$object.name$.common().flags().IS_OPTIONAL(false);
-cbf_$object.name$.common().flags().IS_MUST_UNDERSTAND(false);
-cbf_$object.name$.common().flags().IS_KEY(false);
-cbf_$object.name$.common().flags().IS_DEFAULT(false);
-cbf_$object.name$.common().position($object.basePosition$);
-cbf_$object.name$.common().bitcount($object.spec.bitSize$);
-cbf_$object.name$.common().holder_type($object.spec.typecode.typeIdentifier$);
-cbf_$object.name$.detail().name("$object.name$");
-
-// Position annotation always present
-{
-    // Position
-    AppliedAnnotation ann;
-    ann.annotation_typeid(*TypeObjectFactory::get_instance()->get_type_identifier_trying_complete("position"));
-    AppliedAnnotationParameter annParam;
-    MD5 message_hash("value");
-    for(int i = 0; i < 4; ++i)
-    {
-        annParam.paramname_hash()[i] = message_hash.digest[i];
-    }
-    AnnotationParameterValue paramValue;
-    paramValue._d(TK_UINT16);
-    paramValue.uint_16_value($object.basePosition$);
-    annParam.value(paramValue);
-    ann.param_seq().push_back(annParam);
-
-    cbf_$object.name$.detail().ann_custom().push_back(ann);
-}
-
-// Use bit_bound as bitcount.
-{
-    // Position
-    AppliedAnnotation ann;
-    ann.annotation_typeid(*TypeObjectFactory::get_instance()->get_type_identifier_trying_complete("bit_bound"));
-    AppliedAnnotationParameter annParam;
-    MD5 message_hash("value");
-    for(int i = 0; i < 4; ++i)
-    {
-        annParam.paramname_hash()[i] = message_hash.digest[i];
-    }
-    AnnotationParameterValue paramValue;
-    paramValue._d(TK_UINT16);
-    paramValue.uint_16_value($object.spec.bitSize$);
-    annParam.value(paramValue);
-    ann.param_seq().push_back(annParam);
-
-    cbf_$object.name$.detail().ann_custom().push_back(ann);
-}
-
-$if(object.annotationList)$
-$object.annotationList:{ ann |
-{
-    if (std::strcmp("position", "$ann.name$") != 0 && std::strcmp("bit_bound", "$ann.name$") != 0)
-    {
-        AppliedAnnotation ann;
-        //ann.annotation_typeid(get_$ann.name$_identifier(true));
-        ann.annotation_typeid(*TypeObjectFactory::get_instance()->get_type_identifier_trying_complete("$ann.name$"));
-        $if(ann.valueList)$
-        $ann.valueList:{ annval |
-        {
-            AppliedAnnotationParameter annParam;
-            MD5 message_hash("$annval.name$");
-            for(int i = 0; i < 4; ++i)
-            {
-                annParam.paramname_hash()[i] = message_hash.digest[i];
-            \}
-            AnnotationParameterValue paramValue;
-            paramValue._d($annval.typecode.typeIdentifier$);
-            paramValue.from_string("$annval.value$");
-            annParam.value(paramValue);
-            ann.param_seq().push_back(annParam);
-        \}
-        };separator="\n"$
-        $endif$
-        cbf_$object.name$.detail().ann_custom().push_back(ann);
-    \}
-\}
-}; separator="\n"$
-$endif$
-
-type_object->complete().bitset_type().field_seq().emplace_back(cbf_$object.name$);
-$endif$
-
->>
-
-minimal_bitset_inheritance(parent) ::= <<
-type_object->minimal().bitset_type().header().base_type(*get_$parent.name$_identifier(false));
->>
-
-complete_bitset_inheritance(parent) ::= <<
-type_object->complete().bitset_type().header().base_type(*get_$parent.name$_identifier(true));
 >>
 
 /***** Utils *****/
@@ -1396,16 +1233,76 @@ $object.name$_minimal_bitmask_type.flag_seq().push_back($member.name$_minimal_bi
 }; separator="\n"$
 >>
 
-common_bitfield_impl(ctx, object) ::= <<>>
+common_bitfield_impl(ctx, object) ::= <<
+// CommonBitfield
+CommonBitfield $object.name$_common_bitfield;
+// - unsigned short: position
+$object.name$_common_bitfield.position($object.basePosition$);
+// - BitsetMemberFlag: Unused. No flags apply
+// - octet: bitcount
+$object.name$_common_bitfield.bitcount($object.spec.bitSize$);
+// - TypeKind
+$object.name$_common_bitfield.holder_type($object.spec.typecode.typeIdentifier$);
+>>
 
-complete_bitfield_impl(ctx, object) ::= <<>>
+complete_bitfield_impl(ctx, object) ::= <<
+// CompleteBitfield
+CompleteBitfield $object.name$_complete_bitfield;
+$common_bitfield_impl(ctx=ctx, object=object)$
+$object.name$_complete_bitfield.common($object.name$_common_bitfield);
+$complete_member_detail_impl(ctx=ctx, object=object)$
+$object.name$_complete_bitfield.detail($object.name$_complete_member_detail);
+>>
 
-minimal_bitfield_impl(ctx, object) ::= <<>>
+minimal_bitfield_impl(ctx, object) ::= <<
+// MinimalBitfield
+MinimalBitfield $object.name$_minimal_bitfield;
+$common_bitfield_impl(ctx=ctx, object=object)$
+$object.name$_minimal_bitfield.common($object.name$_common_bitfield);
+// - Name Hash
+$md5_hash(ctx=ctx, object=object, name=["_minimal_bitfield.name_hash()"])$
+>>
 
-complete_bitset_header_impl(ctx, object) ::= <<>>
+complete_bitset_header_impl(ctx, object) ::= <<
+// CompleteBitsetHeader
+CompleteBitsetHeader $object.name$_complete_bitset_header;
+$complete_type_detail_impl(ctx=ctx, object=object)$
+$object.name$_complete_bitset_header.detail($object.name$_complete_type_detail);
+>>
 
-minimal_bitset_header_impl(ctx, object) ::= <<>>
+minimal_bitset_header_impl(ctx, object) ::= <<
+// MinimalBitsetHeader: Empty. Available for future extension
+MinimalBitsetHeader $object.name$_minimal_bitset_header;
+>>
 
-complete_bitset_type_impl(ctx, object) ::= <<>>
+complete_bitset_type_impl(ctx, object) ::= <<
+// CompleteBitsetType
+CompleteBitsetType $object.name$_complete_bitset_type;
+// - BitsetTypeFlag: Unused. No flags apply
+$complete_bitset_header_impl(ctx=ctx, object=object)$
+$object.name$_complete_bitset_type.header($object.name$_complete_bitset_header);
+$if(object.bitfields)$
+// - CompleteBitfieldSeq
 
-minimal_bitset_type_impl(ctx, object) ::= <<>>
+$object.bitfields:{ bitfield |
+$complete_bitfield_impl(ctx=ctx, object=bitfield)$
+$object.name$_complete_bitset_type.field_seq().push_back($bitfield.name$_complete_bitfield);
+}; separator="\n"$
+$endif$
+>>
+
+minimal_bitset_type_impl(ctx, object) ::= <<
+// MinimalBitsetType
+MinimalBitsetType $object.name$_minimal_bitset_type;
+// - BitsetTypeFlag: Unused. No flags apply
+$minimal_bitset_header_impl(ctx=ctx, object=object)$
+$object.name$_minimal_bitset_type.header($object.name$_minimal_bitset_header);
+$if(object.bitfields)$
+// - MinimalBitfieldSeq
+
+$object.bitfields:{ bitfield |
+$minimal_bitfield_impl(ctx=ctx, object=bitfield)$
+$object.name$_minimal_bitset_type.field_seq().push_back($bitfield.name$_minimal_bitfield);
+}; separator="\n"$
+$endif$
+>>
