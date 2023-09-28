@@ -340,161 +340,19 @@ $get_type_object_impl(ctx=ctx, param=struct)$
 
 $get_minimal_type_object_impl(ctx=ctx, param=struct)$
     type_object->minimal()._d(TK_STRUCTURE);
+    $minimal_struct_type_impl(ctx=ctx, object=struct)$
+    type_object->minimal().struct_type($struct.name$_minimal_struct_type);
 
-    type_object->minimal().struct_type().struct_flags().IS_FINAL($struct.annotationFinal$);
-    type_object->minimal().struct_type().struct_flags().IS_APPENDABLE($struct.annotationAppendable$);
-    type_object->minimal().struct_type().struct_flags().IS_MUTABLE($struct.annotationMutable$);
-    type_object->minimal().struct_type().struct_flags().IS_NESTED($struct.annotationNested$);
-    type_object->minimal().struct_type().struct_flags().IS_AUTOID_HASH(false); // Unsupported
-
-    MemberId memberId = 0;
-    $struct.members:{ member | $minimal_member_object_type(ctx=ctx, object=member)$}; separator="\n"$
-
-    // Header
-    // TODO Inheritance
-    //type_object->minimal().struct_type().header().base_type()._d(EK_MINIMAL);
-    //type_object->minimal().struct_type().header().base_type().equivalence_hash()[0..13];
-    $struct.inheritances:{ it | $minimal_struct_inheritance(it)$}; separator="\n"$
-
-    $type_identifier_impl(ctx=ctx, param=struct, complete_discr=["EK_MINIMAL"], member=["minimal().struct_type()"], complete=["false"])$
+    $type_identifier_impl(ctx=ctx, param=struct, complete_discr=["EK_MINIMAL"], member=["minimal().struct_type()"], complete_flag=["false"])$
 }
 
 $get_complete_type_object_impl(ctx=ctx, param=struct)$
     type_object->complete()._d(TK_STRUCTURE);
-
-    type_object->complete().struct_type().struct_flags().IS_FINAL($struct.annotationFinal$);
-    type_object->complete().struct_type().struct_flags().IS_APPENDABLE($struct.annotationAppendable$);
-    type_object->complete().struct_type().struct_flags().IS_MUTABLE($struct.annotationMutable$);
-    type_object->complete().struct_type().struct_flags().IS_NESTED($struct.annotationNested$);
-    type_object->complete().struct_type().struct_flags().IS_AUTOID_HASH(false); // Unsupported
-
-    MemberId memberId = 0;
-    $struct.members:{ member | $complete_member_object_type(ctx=ctx, object=member)$}; separator="\n"$
-
-    // Header
-    type_object->complete().struct_type().header().detail().type_name("$struct.name$");
-    // TODO inheritance
-    $struct.inheritances:{ it | $complete_struct_inheritance(it)$}; separator="\n"$
-
-    $if(struct.annotationList)$
-    $struct.annotationList:{ ann |
-{
-    AppliedAnnotation ann;
-    //ann.annotation_typeid(get_$ann.name$_identifier(true));
-    ann.annotation_typeid(*TypeObjectFactory::get_instance()->get_type_identifier_trying_complete("$ann.name$"));
-    $if(ann.valueList)$
-    $ann.valueList:{ annval |
-{
-    AppliedAnnotationParameter annParam;
-    MD5 message_hash("$annval.name$");
-    for(int i = 0; i < 4; ++i)
-    {
-        annParam.paramname_hash()[i] = message_hash.digest[i];
-    \}
-    AnnotationParameterValue paramValue;
-    paramValue._d($annval.typecode.typeIdentifier$);
-    paramValue.from_string("$annval.value$");
-    annParam.value(paramValue);
-    ann.param_seq().push_back(annParam);
-\}
-    };separator="\n"$
-    $endif$
-    type_object->complete().struct_type().header().detail().ann_custom().push_back(ann);
-\}
-    }; separator="\n"$
-    $endif$
+    $complete_struct_type_impl(ctx=ctx, object=struct)$
+    type_object->complete().struct_type($struct.name$_complete_struct_type);
 
     $type_identifier_impl(ctx=ctx, param=struct, complete_discr=["EK_COMPLETE"], member=["complete().struct_type()"], complete_flag=["true"])$
 }
-
->>
-
-minimal_struct_inheritance(parent) ::= <<
-type_object->minimal().struct_type().header().base_type(*get_$parent.name$_identifier(false));
->>
-
-complete_struct_inheritance(parent) ::= <<
-type_object->complete().struct_type().header().base_type(*get_$parent.name$_identifier(true));
->>
-
-minimal_member_object_type(ctx, object) ::= <<
-MinimalStructMember mst_$object.name$;
-mst_$object.name$.common().member_id(memberId++);
-mst_$object.name$.common().member_flags().TRY_CONSTRUCT1(false); // Unsupported
-mst_$object.name$.common().member_flags().TRY_CONSTRUCT2(false); // Unsupported
-mst_$object.name$.common().member_flags().IS_EXTERNAL(false); // Unsupported
-mst_$object.name$.common().member_flags().IS_OPTIONAL($object.annotationOptional$);
-mst_$object.name$.common().member_flags().IS_MUST_UNDERSTAND($object.annotationMustUnderstand$);
-mst_$object.name$.common().member_flags().IS_KEY($object.annotationKey$);
-mst_$object.name$.common().member_flags().IS_DEFAULT(false); // Doesn't apply
-$if(object.typecode.plainType)$
-mst_$object.name$.common().member_type_id(*$get_type_identifier(ctx=ctx, type=object.typecode, ek="false")$);
-$elseif(object.typecode.objectType)$
-mst_$object.name$.common().member_type_id(*$if(object.typecode.hasScope)$$object.typecode.scope$::$endif$get_$object.typecode.name$_identifier(false));
-$else$
-mst_$object.name$.common().member_type_id(*TypeObjectFactory::get_instance()->get_type_identifier("$object.typecode.cppTypenameForTypeId$", false));
-$endif$
-
-
-MD5 $object.name$_hash("$object.name$");
-for(int i = 0; i < 4; ++i)
-{
-    mst_$object.name$.detail().name_hash()[i] = $object.name$_hash.digest[i];
-}
-type_object->minimal().struct_type().member_seq().emplace_back(mst_$object.name$);
-
->>
-
-complete_member_object_type(ctx, object) ::= <<
-CompleteStructMember cst_$object.name$;
-cst_$object.name$.common().member_id(memberId++);
-cst_$object.name$.common().member_flags().TRY_CONSTRUCT1(false); // Unsupported
-cst_$object.name$.common().member_flags().TRY_CONSTRUCT2(false); // Unsupported
-cst_$object.name$.common().member_flags().IS_EXTERNAL(false); // Unsupported
-cst_$object.name$.common().member_flags().IS_OPTIONAL($object.annotationOptional$);
-cst_$object.name$.common().member_flags().IS_MUST_UNDERSTAND($object.annotationMustUnderstand$);
-cst_$object.name$.common().member_flags().IS_KEY($object.annotationKey$);
-cst_$object.name$.common().member_flags().IS_DEFAULT(false); // Doesn't apply
-$if(object.typecode.plainType)$
-cst_$object.name$.common().member_type_id(*$get_type_identifier(ctx=ctx, type=object.typecode, ek="true")$);
-$elseif(object.typecode.objectType)$
-cst_$object.name$.common().member_type_id(*$if(object.typecode.hasScope)$$object.typecode.scope$::$endif$get_$object.typecode.name$_identifier(true));
-$else$
-cst_$object.name$.common().member_type_id(*TypeObjectFactory::get_instance()->get_type_identifier("$object.typecode.cppTypenameForTypeId$", false));
-$endif$
-
-
-cst_$object.name$.detail().name("$object.name$");
-
-$if(object.annotationList)$
-$object.annotationList:{ ann |
-{
-    AppliedAnnotation ann;
-    //ann.annotation_typeid(get_$ann.name$_identifier(true));
-    ann.annotation_typeid(*TypeObjectFactory::get_instance()->get_type_identifier_trying_complete("$ann.name$"));
-    $if(ann.valueList)$
-    $ann.valueList:{ annval |
-    {
-        AppliedAnnotationParameter annParam;
-        MD5 message_hash("$annval.name$");
-        for(int i = 0; i < 4; ++i)
-        {
-            annParam.paramname_hash()[i] = message_hash.digest[i];
-        \}
-        AnnotationParameterValue paramValue;
-        paramValue._d($annval.typecode.typeIdentifier$);
-        paramValue.from_string("$annval.value$");
-        annParam.value(paramValue);
-        ann.param_seq().push_back(annParam);
-    \}
-    };separator="\n"$
-    $endif$
-    cst_$object.name$.detail().ann_custom().push_back(ann);
-\}
-}; separator="\n"$
-$endif$
-
-type_object->complete().struct_type().member_seq().emplace_back(cst_$object.name$);
 
 >>
 
@@ -1260,9 +1118,23 @@ MinimalMemberDetail $object.name$_minimal_member_detail;
 $md5_hash(ctx=ctx, object=object, name=["_minimal_member_detail.name_hash()"])$
 >>
 
-complete_struct_member_impl(ctx, object) ::= <<>>
+complete_struct_member_impl(ctx, object) ::= <<
+// CompleteStructMember
+CompleteStructMember $object.name$_complete_struct_member;
+$common_struct_member_impl(ctx=ctx, object=object)$
+$object.name$_complete_struct_member.common($object.name$_common_struct_member);
+$complete_member_detail_impl(ctx=ctx, object=object)$
+$object.name$_complete_struct_member.detail($object.name$_complete_member_detail);
+>>
 
-minimal_struct_member_impl(ctx, object) ::= <<>>
+minimal_struct_member_impl(ctx, object) ::= <<
+// MinimalStructMember
+MinimalStructMember $object.name$_minimal_struct_member;
+$common_struct_member_impl(ctx=ctx, object=object)$
+$object.name$_minimal_struct_member.common($object.name$_common_struct_member);
+$minimal_member_detail_impl(ctx=ctx, object=object)$
+$object.name$_minimal_struct_member.detail($object.name$_minimal_member_detail);
+>>
 
 applied_builtin_type_annotation_impl(ctx, object) ::= <<
 AppliedBuiltinTypeAnnotations $object.name$_applied_builtin_type_annotations;
@@ -1270,7 +1142,10 @@ $applied_verbatim_annotation_impl(ctx=ctx, object=object)$
 $object.name$_applied_builtin_type_annotations.verbatim($object.name$_applied_verbatim_annotation);
 >>
 
-minimal_type_detail_impl(ctx, object) ::= <<>>
+minimal_type_detail_impl(ctx, object) ::= <<
+// MinimalTypeDetail: Empty. Available for future extension
+MinimalTypeDetail $object.name$_minimal_type_detail;
+>>
 
 complete_type_detail_impl(ctx, object) ::= <<
 // CompleteTypeDetail
@@ -1293,13 +1168,91 @@ $object.name$_complete_type_detail.type_name(
     "$if(ctx.GenerateTypesROS2)$$object.ROS2Scopedname$$else$$object.scopedname$$endif$");
 >>
 
-complete_struct_header_impl(ctx, object) ::= <<>>
+complete_struct_header_impl(ctx, object) ::= <<
+// CompleteStructHeader
+CompleteStructHeader $object.name$_complete_struct_header;
+// - TypeIdentifier
+$if(object.inheritance)$
+TypeIdentifier* $object.inheritance.name$_type_id = TypeObjectFactory::get_instace()::get_type_identifier(
+    "$if(ctx.GenerateTypesROS2)$$object.inheritance.ROS2Scopedname$$else$$object.inheritance.scopedname$$endif$",
+    true);
+assert(nullptr != $object.inheritance.name$_type_id);
+$object.name$_complete_struct_header.base_type(*$object.inheritance.name$_type_id);
+$endif$
 
-minimal_struct_header_impl(ctx, object) ::= <<>>
+$complete_type_detail_impl(ctx=ctx, object=object)$
+$object.name$_complete_struct_header.detail($object.name$_complete_type_detail);
+>>
 
-complete_struct_type_impl(ctx, object) ::= <<>>
+minimal_struct_header_impl(ctx, object) ::= <<
+// MinimalStructHeader
+MinimalStructHeader $object.name$_minimal_struct_header;
+// - TypeIdentifier
+$if(object.inheritance)$
+TypeIdentifier* $object.inheritance.name$_type_id = TypeObjectFactory::get_instace()::get_type_identifier(
+    "$if(ctx.GenerateTypesROS2)$$object.inheritance.ROS2Scopedname$$else$$object.inheritance.scopedname$$endif$",
+    false);
+assert(nullptr != $object.inheritance.name$_type_id);
+$object.name$_minimal_struct_header.base_type(*$object.inheritance.name$_type_id);
+$endif$
 
-minimal_struct_type_impl(ctx, object) ::= <<>>
+$minimal_type_detail_impl(ctx=ctx, object=object)$
+$object.name$_minimal_struct_header.detail($object.name$_minimal_type_detail);
+>>
+
+struct_type_flag_impl(ctx, object) ::= <<
+// - StructTypeFlag
+StructTypeFlag $object.name$_struct_type_flag;
+$if(object.annotationFinal)$
+$object.name$_struct_type_flag |= TypeFlagBits::IS_FINAL;
+$elseif(object.annotationAppendable)$
+$object.name$_struct_type_flag |= TypeFlagBits::IS_APPENDABLE;
+$elseif(object.annotationMutable)$
+$object.name$_struct_type_flag |= TypeFlagBits::IS_MUTABLE;
+$endif$
+$if(object.annotationNested)$
+$object.name$_struct_type_flag |= TypeFlagBits::IS_NESTED;
+$endif$
+$if(object.annotationAutoidHash)$
+$object.name$_struct_type_flag |= TypeFlagBits::IS_AUTOID_HASH;
+$endif$
+>>
+
+complete_struct_type_impl(ctx, object) ::= <<
+// CompleteStructType
+CompleteStructType $object.name$_complete_struct_type;
+$struct_type_flag_impl(stx=ctx, object=object)$
+$object.name$_complete_struct_type.struct_flags($object.name$_struct_type_flag);
+$complete_struct_header_impl(ctx=ctx, object=object)$
+$object.name$_complete_struct_type.header($object.name$_complete_struct_header);
+$if(object.members)$
+// - CompleteStructMemberSeq
+
+MemberId member_id = 0;
+$struct.members:{ member |
+$complete_struct_member_impl(ctx=ctx, object=struct)$
+$object.name$_complete_struct_type.member_seq().push_back($member.name$_complete_struct_member);
+}; separator="\n"$
+$endif$
+>>
+
+minimal_struct_type_impl(ctx, object) ::= <<
+// MinimalStructType
+MinimalStructType $object.name$_minimal_struct_type;
+$struct_type_flag_impl(stx=ctx, object=object)$
+$object.name$_minimal_struct_type.struct_flags($object.name$_struct_type_flag);
+$minimal_struct_header_impl(ctx=ctx, object=object)$
+$object.name$_minimal_struct_type.header($object.name$_minimal_struct_header);
+$if(object.members)$
+// - MinimalStructMemberSeq
+
+MemberId member_id = 0;
+$struct.members:{ member |
+$minimal_struct_member_impl(ctx=ctx, object=struct)$
+$object.name$_minimal_struct_type.member_seq().push_back($member.name$_minimal_struct_member);
+}; separator="\n"$
+$endif$
+>>
 
 common_union_member_impl(ctx, object) ::= <<>>
 
