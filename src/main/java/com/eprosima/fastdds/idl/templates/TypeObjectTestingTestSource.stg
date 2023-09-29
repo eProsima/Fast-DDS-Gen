@@ -23,6 +23,7 @@ $fileHeader(ctx=ctx,  file=[ctx.filename, "TypeObjectTestingTest.cpp"], descript
 #include "iostream"
 #include "$ctx.filename$TypeObject.h"
 #include <fastrtps/types/TypeObjectFactory.h>
+#include <fastrtps/types/TypeNamesGenerator.h>
 
 #include <stdint.h>
 #include <inttypes.h>
@@ -33,52 +34,6 @@ $fileHeader(ctx=ctx,  file=[ctx.filename, "TypeObjectTestingTest.cpp"], descript
 using TestLambda = std::function<bool()>;
 
 std::vector<TestLambda> functions_to_run;
-
-std::string get_primitive_struct_type_name(std::string struct_name)
-{
-    // Convert struct_name to lowercase
-    std::transform(struct_name.begin(), struct_name.end(), struct_name.begin(), ::tolower);
-
-    // Remove "struct" from struct_name
-    if (struct_name.size() >= 6 && struct_name.substr(struct_name.size() - 6) == "struct") {
-        struct_name = struct_name.substr(0, struct_name.size() - 6);
-    }
-
-    if (struct_name == "int8") {
-        return TKNAME_INT8;
-    } else if (struct_name == "uint8") {
-        return TKNAME_UINT8;
-    } else if (struct_name == "short" || struct_name == "int16") {
-        return TKNAME_INT16;
-    } else if (struct_name == "ushort" || struct_name == "uint16") {
-        return TKNAME_UINT16;
-    } else if (struct_name == "long" || struct_name == "int32") {
-        return TKNAME_INT32;
-    } else if (struct_name == "ulong" || struct_name == "uint32") {
-        return TKNAME_UINT32;
-    } else if (struct_name == "longlong" || struct_name == "int64") {
-        return TKNAME_INT64;
-    } else if (struct_name == "ulonglong" || struct_name == "uint64") {
-        return TKNAME_UINT64;
-    } else if (struct_name == "float32" || struct_name == "float") {
-        return TKNAME_FLOAT32;
-    } else if (struct_name == "float64" || struct_name == "double") {
-        return TKNAME_FLOAT64;
-    } else if (struct_name == "float128" || struct_name == "longdouble") {
-        return TKNAME_FLOAT128;
-    } else if (struct_name == "bool" || struct_name == "boolean") {
-        return TKNAME_BOOLEAN;
-    } else if (struct_name == "byte" || struct_name == "octet") {
-        return TKNAME_BYTE;
-    } else if (struct_name == "char" || struct_name == "char8") {
-        return TKNAME_CHAR8;
-    } else if (struct_name == "wchar" || struct_name == "char16") {
-        return TKNAME_CHAR16;
-    } else {
-        // Handle the case where the struct_name is not recognized.
-        return "UnknownType";
-    }
-}
 
 int main(void)
 {
@@ -99,281 +54,622 @@ int main(void)
 >>
 
 
-check_primitives_structures(ctx, parent, struct) ::= <<
-functions_to_run.emplace_back([]() -> bool
-{        
-        std::cout << std::endl << "======================================== Testing $struct.name$ ========================================" << std::endl;
-        bool result = true;
-
-        // Minimal
-
-        const TypeIdentifier* $struct.name$_minimal_type_identifier = Get$struct.name$Identifier(false);
-        result &= $struct.name$_minimal_type_identifier != nullptr;
-        result &= $struct.name$_minimal_type_identifier->_d() == EK_MINIMAL;
-
-        const TypeObject* $struct.name$_minimal_typeobject = Get$struct.name$Object(false);
-        result &= $struct.name$_minimal_typeobject != nullptr;
-        result &= $struct.name$_minimal_typeobject->_d() == EK_MINIMAL;
-
-        MinimalTypeObject $struct.name$_minimal_object = $struct.name$_minimal_typeobject->minimal();
-        result &= $struct.name$_minimal_object._d() == TK_STRUCTURE;
-
-        MinimalStructType $struct.name$_minimal_struct = $struct.name$_minimal_object.struct_type();
-        result &= $struct.name$_minimal_struct.struct_flags().IS_FINAL() == false;
-        result &= $struct.name$_minimal_struct.struct_flags().IS_APPENDABLE() == true;
-        result &= $struct.name$_minimal_struct.struct_flags().IS_MUTABLE() == false;
-        result &= $struct.name$_minimal_struct.struct_flags().IS_NESTED() == false;
-        result &= $struct.name$_minimal_struct.struct_flags().IS_AUTOID_HASH() == false; // Unsupported
-
-        MinimalStructHeader $struct.name$_minimal_header = $struct.name$_minimal_struct.header();
-        //result &= $struct.name$_minimal_header.detail().type_name() == "$struct.name$"; // Empty. Available for future extension
-
-        MinimalStructMemberSeq $struct.name$_minimal_memberseq = $struct.name$_minimal_struct.member_seq();
-        result &= $struct.name$_minimal_memberseq.size() == 1;
-
-        MinimalStructMember $struct.name$_minimal_member0 = $struct.name$_minimal_memberseq.at(0);
-        CommonStructMember $struct.name$_minimal_common_member0 = $struct.name$_minimal_member0.common();
-        result &= $struct.name$_minimal_common_member0.member_id() == 0;
-        result &= $struct.name$_minimal_common_member0.member_flags().TRY_CONSTRUCT1() == false; // Unsupported
-        result &= $struct.name$_minimal_common_member0.member_flags().TRY_CONSTRUCT2() == false; // Unsupported
-        result &= $struct.name$_minimal_common_member0.member_flags().IS_EXTERNAL() == false; // Unsupported
-        result &= $struct.name$_minimal_common_member0.member_flags().IS_OPTIONAL() == false;
-        result &= $struct.name$_minimal_common_member0.member_flags().IS_MUST_UNDERSTAND() == false;
-        result &= $struct.name$_minimal_common_member0.member_flags().IS_KEY() == false;
-        result &= $struct.name$_minimal_common_member0.member_flags().IS_DEFAULT() == false; // Doesn't apply
-
-        const TypeIdentifier $struct.name$_minimal_content_type = *TypeObjectFactory::get_instance()->get_type_identifier(get_primitive_struct_type_name("$struct.name$"), false);        
-        result &= $struct.name$_minimal_common_member0.member_type_id()._d() == $struct.name$_minimal_content_type._d();
-
-
-
-        //Complete
-
-        const TypeIdentifier* $struct.name$_complete_type_identifier = Get$struct.name$Identifier(true);
-        result &= $struct.name$_complete_type_identifier != nullptr;
-        result &= $struct.name$_complete_type_identifier->_d() == EK_COMPLETE;
-
-        const TypeObject* $struct.name$_complete_typeobject = Get$struct.name$Object(true);
-        result &= $struct.name$_complete_typeobject != nullptr;
-        result &= $struct.name$_complete_typeobject->_d() == EK_COMPLETE;
-
-        CompleteTypeObject $struct.name$_complete_object = $struct.name$_complete_typeobject->complete();
-        result &= $struct.name$_complete_object._d() == TK_STRUCTURE;
-
-        CompleteStructType $struct.name$_complete_struct = $struct.name$_complete_object.struct_type();
-        result &= $struct.name$_complete_struct.struct_flags().IS_FINAL() == false;
-        result &= $struct.name$_complete_struct.struct_flags().IS_APPENDABLE() == true;
-        result &= $struct.name$_complete_struct.struct_flags().IS_MUTABLE() == false;
-        result &= $struct.name$_complete_struct.struct_flags().IS_NESTED() == false;
-        result &= $struct.name$_complete_struct.struct_flags().IS_AUTOID_HASH() == false; // Unsupported
-
-        CompleteStructHeader $struct.name$_complete_header = $struct.name$_complete_struct.header();
-        result &= $struct.name$_complete_header.detail().type_name() == "$struct.name$";
-
-        CompleteStructMemberSeq $struct.name$_complete_memberseq = $struct.name$_complete_struct.member_seq();
-        result &= $struct.name$_complete_memberseq.size() == 1;
-
-        CompleteStructMember $struct.name$_complete_member0 = $struct.name$_complete_memberseq.at(0);
-        CommonStructMember $struct.name$_complete_common_member0 = $struct.name$_complete_member0.common();
-        result &= $struct.name$_complete_common_member0.member_id() == 0;
-        result &= $struct.name$_complete_common_member0.member_flags().TRY_CONSTRUCT1() == false; // Unsupported
-        result &= $struct.name$_complete_common_member0.member_flags().TRY_CONSTRUCT2() == false; // Unsupported
-        result &= $struct.name$_complete_common_member0.member_flags().IS_EXTERNAL() == false; // Unsupported
-        result &= $struct.name$_complete_common_member0.member_flags().IS_OPTIONAL() == false;
-        result &= $struct.name$_complete_common_member0.member_flags().IS_MUST_UNDERSTAND() == false;
-        result &= $struct.name$_complete_common_member0.member_flags().IS_KEY() == false;
-        result &= $struct.name$_complete_common_member0.member_flags().IS_DEFAULT() == false; // Doesn't apply
-
-        const TypeIdentifier $struct.name$_complete_content_type = *TypeObjectFactory::get_instance()->get_type_identifier(get_primitive_struct_type_name("$struct.name$"), false); //???? Should this be minimal or complete????       
-        result &= $struct.name$_complete_common_member0.member_type_id()._d() == $struct.name$_complete_content_type._d();
-
-        return result;
-});
+get_type_identifier(ctx, type, relation) ::= <<
+    $if(type.isSequenceType)$
+    TypeObjectFactory::get_instance()->get_sequence_identifier($get_content_type(ctx=ctx, type=type.contentTypeCode)$, $type.maxsize$, $relation$);
+    $elseif(type.isArrayType)$
+    TypeObjectFactory::get_instance()->get_array_identifier($get_content_type(ctx=ctx, type=type.contentTypeCode)$, {$type.dimensions:{ dim |$dim$}; separator=", "$}, $relation$);
+    $elseif(type.isSetType)$
+    TypeObjectFactory::get_instance()->get_sequence_identifier($get_content_type(ctx=ctx, type=type.contentTypeCode)$, $type.maxsize$, $relation$);
+    $elseif(type.isMapType)$
+    TypeObjectFactory::get_instance()->get_map_identifier($get_content_type(ctx=ctx, type=type.keyTypeCode)$, $get_content_type(ctx=ctx, type=type.valueTypeCode)$, $type.maxsize$, $relation$);
+    $elseif(type.isStringType)$
+    TypeObjectFactory::get_instance()->get_string_identifier($type.maxsize$, false);
+    $elseif(type.isWStringType)$
+    TypeObjectFactory::get_instance()->get_string_identifier($type.maxsize$, true);
+    $elseif(type.objectType)$
+    Get$type.name$Identifier($relation$);
+    $elseif(type.plainType)$
+    TypeObjectFactory::get_instance()->get_type_identifier("$type.cppTypenameForTypeId$", false);
+    $else$
+    TypeObjectFactory::get_instance()->get_type_identifier("$type.cppTypenameForTypeId$", false);
+    $endif$
 >>
 
+get_type_object(ctx, type, relation) ::= <<
+    TypeObjectFactory::get_instance()->get_type_object("$type.name$", false);
+>>
 
-check_strings_structures(ctx, parent, struct) ::= <<
-functions_to_run.emplace_back([]() -> bool
-{        
-        std::cout << std::endl << "======================================== Testing $struct.name$ ========================================" << std::endl;
-        bool result = true;
-        
-        std::string $struct.name$_name = "$struct.name$";
+get_content_type(ctx, type) ::= <<
+    $if(type.plainType)$
+    $if(type.isSequenceType)$
+    TypeNamesGenerator::get_sequence_type_name($get_content_type(ctx=ctx, type=type.contentTypeCode)$, $type.maxsize$)
+    $elseif(type.isArrayType)$
+    TypeNamesGenerator::get_array_type_name($get_content_type(ctx=ctx, type=type.contentTypeCode)$, {$type.dimensions:{ dim |$dim$}; separator=", "$})
+    $elseif(type.isSetType)$
+    TypeNamesGenerator::get_sequence_type_name($get_content_type(ctx=ctx, type=type.contentTypeCode)$, $type.maxsize$)
+    $elseif(type.isMapType)$
+    TypeNamesGenerator::get_map_type_name($get_content_type(ctx=ctx, type=type.keyTypeCode)$, $get_content_type(ctx=ctx, type=type.valueTypeCode)$, $type.maxsize$)
+    $elseif(type.isStringType)$
+    TypeNamesGenerator::get_string_type_name($type.maxsize$, false)
+    $elseif(type.isWStringType)$
+    TypeNamesGenerator::get_string_type_name($type.maxsize$, true)
+    $else$
+    "$type.cppTypenameForTypeId$"
+    $endif$
+    $else$
+    "$type.cppTypenameForTypeId$"
+    $endif$
+>>
 
-        int $struct.name$_bound;
-        if($struct.name$_name.find("Small") != std::string::npos) {
-                $struct.name$_bound = 1;
-        }else if ($struct.name$_name.find("Large") != std::string::npos) {
-                $struct.name$_bound = 41925;
-        }else {
-                $struct.name$_bound = 255;
-        }
+check_struct_type(ctx, struct, relation) ::= <<
+    const TypeIdentifier* $struct.name$_$if(relation)$complete$else$minimal$endif$_type_identifier = Get$struct.name$Identifier($relation$);
+    result &= $struct.name$_$if(relation)$complete$else$minimal$endif$_type_identifier != nullptr;
+    result &= $struct.name$_$if(relation)$complete$else$minimal$endif$_type_identifier->_d() == EK_$if(relation)$COMPLETE$else$MINIMAL$endif$;
 
-        bool $struct.name$_is_wide;
-        if($struct.name$_name.find("WString") != std::string::npos) {
-                $struct.name$_is_wide = true;
-        }else {
-                $struct.name$_is_wide = false;
-        }
+    const TypeObject* $struct.name$_$if(relation)$complete$else$minimal$endif$_typeobject = Get$struct.name$Object($relation$);
+    result &= $struct.name$_$if(relation)$complete$else$minimal$endif$_typeobject != nullptr;
+    result &= $struct.name$_$if(relation)$complete$else$minimal$endif$_typeobject->_d() == EK_$if(relation)$COMPLETE$else$MINIMAL$endif$;
 
+    $if(relation)$Complete$else$Minimal$endif$TypeObject $struct.name$_$if(relation)$complete$else$minimal$endif$_object = $struct.name$_$if(relation)$complete$else$minimal$endif$_typeobject->$if(relation)$complete$else$minimal$endif$();
+    result &= $struct.name$_$if(relation)$complete$else$minimal$endif$_object._d() == TK_STRUCTURE;
 
-        // Minimal
+    $if(relation)$Complete$else$Minimal$endif$StructType $struct.name$_$if(relation)$complete$else$minimal$endif$_struct = $struct.name$_$if(relation)$complete$else$minimal$endif$_object.struct_type();
+    result &= $struct.name$_$if(relation)$complete$else$minimal$endif$_struct.struct_flags().IS_FINAL() == $struct.annotationFinal$;
+    result &= $struct.name$_$if(relation)$complete$else$minimal$endif$_struct.struct_flags().IS_APPENDABLE() == $struct.annotationAppendable$;
+    result &= $struct.name$_$if(relation)$complete$else$minimal$endif$_struct.struct_flags().IS_MUTABLE() == $struct.annotationMutable$;
+    result &= $struct.name$_$if(relation)$complete$else$minimal$endif$_struct.struct_flags().IS_NESTED() == $struct.annotationNested$;
+    result &= $struct.name$_$if(relation)$complete$else$minimal$endif$_struct.struct_flags().IS_AUTOID_HASH() == false; // Unsupported
 
-        const TypeIdentifier* $struct.name$_minimal_type_identifier = Get$struct.name$Identifier(false);
-        result &= $struct.name$_minimal_type_identifier != nullptr;
-        result &= $struct.name$_minimal_type_identifier->_d() == EK_MINIMAL;
+    $if(relation)$Complete$else$Minimal$endif$StructHeader $struct.name$_$if(relation)$complete$else$minimal$endif$_header = $struct.name$_$if(relation)$complete$else$minimal$endif$_struct.header();
+    $if(relation)$
+    result &= $struct.name$_$if(relation)$complete$else$minimal$endif$_header.detail().type_name() == "$struct.name$";
+    $else$
+    //result &= $struct.name$_$if(relation)$complete$else$minimal$endif$_header.detail().type_name() == ""; // Empty. Available for future extension
+    $endif$
+    $if(relation)$Complete$else$Minimal$endif$StructMemberSeq $struct.name$_$if(relation)$complete$else$minimal$endif$_memberseq = $struct.name$_$if(relation)$complete$else$minimal$endif$_struct.member_seq();
+>>
 
-        const TypeObject* $struct.name$_minimal_typeobject = Get$struct.name$Object(false);
-        result &= $struct.name$_minimal_typeobject != nullptr;
-        result &= $struct.name$_minimal_typeobject->_d() == EK_MINIMAL;
+check_struct_member_type(ctx, member, relation) ::= <<
+    $if(relation)$Complete$else$Minimal$endif$StructMember $struct.name$_$if(relation)$complete$else$minimal$endif$_$member.name$ = $struct.name$_$if(relation)$complete$else$minimal$endif$_memberseq.at(memberId);
+    CommonStructMember $struct.name$_$if(relation)$complete$else$minimal$endif$_common_$member.name$_struct_member = $struct.name$_$if(relation)$complete$else$minimal$endif$_$member.name$.common();
+    $if(relation)$Complete$else$Minimal$endif$MemberDetail $struct.name$_$if(relation)$complete$else$minimal$endif$_common_$member.name$_struct_member_detail = $struct.name$_$if(relation)$complete$else$minimal$endif$_$member.name$.detail();
+    $if(relation)$
+    MemberName $struct.name$_$if(relation)$complete$else$minimal$endif$_common_$member.name$_struct_member_name = $struct.name$_$if(relation)$complete$else$minimal$endif$_common_$member.name$_struct_member_detail.name();
+    //@optional AppliedBuiltinMemberAnnotations ann_builtin;?????
+    //@optional AppliedAnnotationSeq ann_custom;?????
+    $else$
+    NameHash $struct.name$_$if(relation)$complete$else$minimal$endif$_common_$member.name$_struct_member_name_hash = $struct.name$_$if(relation)$complete$else$minimal$endif$_common_$member.name$_struct_member_detail.name_hash();
+    $endif$
+    result &= $struct.name$_$if(relation)$complete$else$minimal$endif$_common_$member.name$_struct_member.member_id() == memberId;
+    result &= $struct.name$_$if(relation)$complete$else$minimal$endif$_common_$member.name$_struct_member.member_flags().TRY_CONSTRUCT1() == false; // Unsupported
+    result &= $struct.name$_$if(relation)$complete$else$minimal$endif$_common_$member.name$_struct_member.member_flags().TRY_CONSTRUCT2() == false; // Unsupported
+    result &= $struct.name$_$if(relation)$complete$else$minimal$endif$_common_$member.name$_struct_member.member_flags().IS_EXTERNAL() == false; // Unsupported
+    result &= $struct.name$_$if(relation)$complete$else$minimal$endif$_common_$member.name$_struct_member.member_flags().IS_OPTIONAL() == $member.annotationOptional$;
+    result &= $struct.name$_$if(relation)$complete$else$minimal$endif$_common_$member.name$_struct_member.member_flags().IS_MUST_UNDERSTAND() == $member.annotationMustUnderstand$;
+    result &= $struct.name$_$if(relation)$complete$else$minimal$endif$_common_$member.name$_struct_member.member_flags().IS_KEY() == $member.annotationKey$;
+    result &= $struct.name$_$if(relation)$complete$else$minimal$endif$_common_$member.name$_struct_member.member_flags().IS_DEFAULT() == false; // Doesn't apply
 
-        MinimalTypeObject $struct.name$_minimal_object = $struct.name$_minimal_typeobject->minimal();
-        result &= $struct.name$_minimal_object._d() == TK_STRUCTURE;
+    $if (member.typecode.isAliasType)$
+        //=====member.typecode.isAliasType=====
+        $check_alias_related_type(ctx=ctx, typedefs=member.typecode, relation=relation)$
+    $elseif (member.typecode.PrimitiveType)$
+        //=====member.typecode.PrimitiveType=====
+        const TypeIdentifier $struct.name$_$if(relation)$complete$else$minimal$endif$_$member.name$_content_type = *$get_type_identifier(ctx=ctx, type=member.typecode, relation=relation)$
+        result &= $struct.name$_$if(relation)$complete$else$minimal$endif$_common_$member.name$_struct_member.member_type_id()._d() == $struct.name$_$if(relation)$complete$else$minimal$endif$_$member.name$_content_type._d();
+    $elseif (member.typecode.isStringType)$
+        //=====member.typecode.isStringType=====
+        const TypeIdentifier $struct.name$_$if(relation)$complete$else$minimal$endif$_$member.name$_content_type = *$get_type_identifier(ctx=ctx, type=member.typecode, relation=relation)$
+        result &= $struct.name$_$if(relation)$complete$else$minimal$endif$_common_$member.name$_struct_member.member_type_id()._d() == $struct.name$_$if(relation)$complete$else$minimal$endif$_$member.name$_content_type._d();
 
-        MinimalStructType $struct.name$_minimal_struct = $struct.name$_minimal_object.struct_type();
-        result &= $struct.name$_minimal_struct.struct_flags().IS_FINAL() == false;
-        result &= $struct.name$_minimal_struct.struct_flags().IS_APPENDABLE() == true;
-        result &= $struct.name$_minimal_struct.struct_flags().IS_MUTABLE() == false;
-        result &= $struct.name$_minimal_struct.struct_flags().IS_NESTED() == false;
-        result &= $struct.name$_minimal_struct.struct_flags().IS_AUTOID_HASH() == false; // Unsupported
-
-        MinimalStructHeader $struct.name$_minimal_header = $struct.name$_minimal_struct.header();
-        //result &= $struct.name$_minimal_header.detail().type_name() == "$struct.name$"; // Empty. Available for future extension
-
-        MinimalStructMemberSeq $struct.name$_minimal_memberseq = $struct.name$_minimal_struct.member_seq();
-        result &= $struct.name$_minimal_memberseq.size() == 1;
-
-        MinimalStructMember $struct.name$_minimal_member0 = $struct.name$_minimal_memberseq.at(0);
-        CommonStructMember $struct.name$_minimal_common_member0 = $struct.name$_minimal_member0.common();
-        result &= $struct.name$_minimal_common_member0.member_id() == 0;
-        result &= $struct.name$_minimal_common_member0.member_flags().TRY_CONSTRUCT1() == false; // Unsupported
-        result &= $struct.name$_minimal_common_member0.member_flags().TRY_CONSTRUCT2() == false; // Unsupported
-        result &= $struct.name$_minimal_common_member0.member_flags().IS_EXTERNAL() == false; // Unsupported
-        result &= $struct.name$_minimal_common_member0.member_flags().IS_OPTIONAL() == false;
-        result &= $struct.name$_minimal_common_member0.member_flags().IS_MUST_UNDERSTAND() == false;
-        result &= $struct.name$_minimal_common_member0.member_flags().IS_KEY() == false;
-        result &= $struct.name$_minimal_common_member0.member_flags().IS_DEFAULT() == false; // Doesn't apply
-
-        const TypeIdentifier $struct.name$_minimal_content_type = *TypeObjectFactory::get_instance()->get_string_identifier($struct.name$_bound, $struct.name$_is_wide);        
-        result &= $struct.name$_minimal_common_member0.member_type_id()._d() == $struct.name$_minimal_content_type._d();
-
-        if($struct.name$_bound <= 255){
-                result &= $struct.name$_minimal_content_type.string_sdefn().bound() == $struct.name$_bound;
+        if($member.typecode.maxsize$ <= 255){
+            result &= $struct.name$_$if(relation)$complete$else$minimal$endif$_$member.name$_content_type.string_sdefn().bound() == $member.typecode.maxsize$;
         }else{
-                result &= $struct.name$_minimal_content_type.string_ldefn().bound() == $struct.name$_bound;
-         }
+            result &= $struct.name$_$if(relation)$complete$else$minimal$endif$_$member.name$_content_type.string_ldefn().bound() == $member.typecode.maxsize$;
+        }
+    $elseif (member.typecode.isWStringType)$
+        //=====member.typecode.isWStringType=====
+        const TypeIdentifier $struct.name$_$if(relation)$complete$else$minimal$endif$_$member.name$_content_type = *$get_type_identifier(ctx=ctx, type=member.typecode, relation=relation)$
+        result &= $struct.name$_$if(relation)$complete$else$minimal$endif$_common_$member.name$_struct_member.member_type_id()._d() == $struct.name$_$if(relation)$complete$else$minimal$endif$_$member.name$_content_type._d();
 
-
-
-        //Complete
-
-        const TypeIdentifier* $struct.name$_complete_type_identifier = Get$struct.name$Identifier(true);
-        result &= $struct.name$_complete_type_identifier != nullptr;
-        result &= $struct.name$_complete_type_identifier->_d() == EK_COMPLETE;
-
-        const TypeObject* $struct.name$_complete_typeobject = Get$struct.name$Object(true);
-        result &= $struct.name$_complete_typeobject != nullptr;
-        result &= $struct.name$_complete_typeobject->_d() == EK_COMPLETE;
-
-        CompleteTypeObject $struct.name$_complete_object = $struct.name$_complete_typeobject->complete();
-        result &= $struct.name$_complete_object._d() == TK_STRUCTURE;
-
-        CompleteStructType $struct.name$_complete_struct = $struct.name$_complete_object.struct_type();
-        result &= $struct.name$_complete_struct.struct_flags().IS_FINAL() == false;
-        result &= $struct.name$_complete_struct.struct_flags().IS_APPENDABLE() == true;
-        result &= $struct.name$_complete_struct.struct_flags().IS_MUTABLE() == false;
-        result &= $struct.name$_complete_struct.struct_flags().IS_NESTED() == false;
-        result &= $struct.name$_complete_struct.struct_flags().IS_AUTOID_HASH() == false; // Unsupported
-
-        CompleteStructHeader $struct.name$_complete_header = $struct.name$_complete_struct.header();
-        result &= $struct.name$_complete_header.detail().type_name() == "$struct.name$";
-
-        CompleteStructMemberSeq $struct.name$_complete_memberseq = $struct.name$_complete_struct.member_seq();
-        result &= $struct.name$_complete_memberseq.size() == 1;
-
-        CompleteStructMember $struct.name$_complete_member0 = $struct.name$_complete_memberseq.at(0);
-        CommonStructMember $struct.name$_complete_common_member0 = $struct.name$_complete_member0.common();
-        result &= $struct.name$_complete_common_member0.member_id() == 0;
-        result &= $struct.name$_complete_common_member0.member_flags().TRY_CONSTRUCT1() == false; // Unsupported
-        result &= $struct.name$_complete_common_member0.member_flags().TRY_CONSTRUCT2() == false; // Unsupported
-        result &= $struct.name$_complete_common_member0.member_flags().IS_EXTERNAL() == false; // Unsupported
-        result &= $struct.name$_complete_common_member0.member_flags().IS_OPTIONAL() == false;
-        result &= $struct.name$_complete_common_member0.member_flags().IS_MUST_UNDERSTAND() == false;
-        result &= $struct.name$_complete_common_member0.member_flags().IS_KEY() == false;
-        result &= $struct.name$_complete_common_member0.member_flags().IS_DEFAULT() == false; // Doesn't apply
-
-        const TypeIdentifier $struct.name$_complete_content_type = *TypeObjectFactory::get_instance()->get_string_identifier($struct.name$_bound, $struct.name$_is_wide);
-        result &= $struct.name$_complete_common_member0.member_type_id()._d() == $struct.name$_complete_content_type._d();
-
-        if($struct.name$_bound <= 255){
-                result &= $struct.name$_complete_content_type.string_sdefn().bound() == $struct.name$_bound;
+        if($member.typecode.maxsize$ <= 255){
+            result &= $struct.name$_$if(relation)$complete$else$minimal$endif$_$member.name$_content_type.string_sdefn().bound() == $member.typecode.maxsize$;
         }else{
-                result &= $struct.name$_complete_content_type.string_ldefn().bound() == $struct.name$_bound;
-         }
-        return result;
-});
+            result &= $struct.name$_$if(relation)$complete$else$minimal$endif$_$member.name$_content_type.string_ldefn().bound() == $member.typecode.maxsize$;
+        }
+    $elseif (member.typecode.isStructType)$
+        //=====member.typecode.isStructType=====
+        $check_struct_type(ctx=ctx, struct=member, relation=relation)$
+    $elseif (member.typecode.isArrayType)$
+        //=====member.typecode.isArrayType=====
+        $check_array_type(ctx=ctx, array=member, relation=relation)$
+    $elseif (member.typecode.isSequenceType)$
+        //=====member.typecode.isSequenceType=====
+        $check_sequence_type(ctx=ctx, sequence=member, relation=relation)$
+    $elseif (member.typecode.isMapType)$
+        //=====member.typecode.isSequenceType=====
+        $check_map_type(ctx=ctx, map=member, relation=relation)$
+    $else$
+        //check_struct_member_type UKNOWN TYPE
+        std::cout << std::endl << "======================================== Testing struct: $member.typecode$ ========================================" << std::endl;
+    memberId = 99;
+
+    $endif$
+
+    memberId++;
 >>
 
-check_aliases_structures(ctx, parent, struct) ::= <<
+check_array_type(ctx, array, relation) ::= <<
+    const TypeIdentifier $array.name$_$if(relation)$complete$else$minimal$endif$_type_identifier = *$get_type_identifier(ctx=ctx, type=member.typecode, relation=relation)$
+    /*
+    result &= $struct.name$_$if(relation)$complete$else$minimal$endif$_common_$member.name$_struct_member.member_type_id()._d() == $array.name$_$if(relation)$complete$else$minimal$endif$_type_identifier._d();
+    result &= $array.name$_$if(relation)$complete$else$minimal$endif$_type_identifier._d() == EK_$if(relation)$COMPLETE$else$MINIMAL$endif$;
+
+    const TypeObject* $array.name$_$if(relation)$complete$else$minimal$endif$_typeobject = $get_type_object(ctx=ctx, type=array, relation=relation)$
+    result &= $array.name$_$if(relation)$complete$else$minimal$endif$_typeobject != nullptr;
+    result &= $array.name$_$if(relation)$complete$else$minimal$endif$_typeobject->_d() == EK_$if(relation)$COMPLETE$else$MINIMAL$endif$;
+
+    $if(relation)$Complete$else$Minimal$endif$TypeObject $array.name$_$if(relation)$complete$else$minimal$endif$_object = $array.name$_$if(relation)$complete$else$minimal$endif$_typeobject->$if(relation)$complete$else$minimal$endif$();
+    result &= $array.name$_$if(relation)$complete$else$minimal$endif$_object._d() == TK_ARRAY;
+
+    $if(relation)$Complete$else$Minimal$endif$ArrayType $array.name$_$if(relation)$complete$else$minimal$endif$_array = $array.name$_$if(relation)$complete$else$minimal$endif$_object.array_type();
+    CollectionTypeFlag $array.name$_$if(relation)$complete$else$minimal$endif$_flags = $array.name$_$if(relation)$complete$else$minimal$endif$_array .collection_flag();// Unused. No flags apply
+    
+    $if(relation)$Complete$else$Minimal$endif$ArrayHeader $array.name$_$if(relation)$complete$else$minimal$endif$_header = $array.name$_$if(relation)$complete$else$minimal$endif$_array .header();// Empty. Available for future extension
+
+    CommonArrayHeader $array.name$_$if(relation)$complete$else$minimal$endif$_commonheader = $array.name$_$if(relation)$complete$else$minimal$endif$_header.common();
+
+    $if(relation)$
+    $if(relation)$Complete$else$Minimal$endif$TypeDetail $array.name$_$if(relation)$complete$else$minimal$endif$_header_details = $array.name$_$if(relation)$complete$else$minimal$endif$_header.detail();
+    //@optional AppliedBuiltinTypeAnnotations ann_builtin;?????
+    //@optional AppliedAnnotationSeq ann_custom;?????
+    QualifiedTypeName $array.name$_$if(relation)$complete$else$minimal$endif$_header_details_type_name = $array.name$_$if(relation)$complete$else$minimal$endif$_header_details.type_name();
+    $endif$
+
+    $if(relation)$Complete$else$Minimal$endif$CollectionElement $array.name$_$if(relation)$complete$else$minimal$endif$_collection_element = $array.name$_$if(relation)$complete$else$minimal$endif$_array .element();
+    CommonCollectionElement $array.name$_$if(relation)$complete$else$minimal$endif$_common_element = $array.name$_$if(relation)$complete$else$minimal$endif$_collection_element.common();
+    $if(relation)$
+    $if(relation)$Complete$else$Minimal$endif$ElementDetail $array.name$_$if(relation)$complete$else$minimal$endif$_element_details = $array.name$_$if(relation)$complete$else$minimal$endif$_collection_element.detail();
+    //@optional AppliedBuiltinTypeAnnotations ann_builtin;?????
+    //@optional AppliedAnnotationSeq ann_custom;?????
+    $endif$
+
+    */
+
+    int $array.name$_$if(relation)$complete$else$minimal$endif$_totalsize = $member.typecode.dimensions:{ dim | $dim$}; separator=" + "$;
+    
+    if($array.name$_$if(relation)$complete$else$minimal$endif$_totalsize <= 100){
+        SBoundSeq $array.name$_$if(relation)$complete$else$minimal$endif$_s_bound_seq;
+        $member.typecode.dimensions:{ dim | $array.name$_$if(relation)$complete$else$minimal$endif$_s_bound_seq.push_back($dim$);}; separator="\n"$
+        result &= $array.name$_$if(relation)$complete$else$minimal$endif$_type_identifier.array_sdefn().array_bound_seq() == $array.name$_$if(relation)$complete$else$minimal$endif$_s_bound_seq;
+    }else{
+        LBoundSeq $array.name$_$if(relation)$complete$else$minimal$endif$_l_bound_seq;
+        $member.typecode.dimensions:{ dim | $array.name$_$if(relation)$complete$else$minimal$endif$_l_bound_seq.push_back($dim$);}; separator="\n"$
+        result &= $array.name$_$if(relation)$complete$else$minimal$endif$_type_identifier.array_ldefn().array_bound_seq() == $array.name$_$if(relation)$complete$else$minimal$endif$_l_bound_seq;       
+    }
+>>
+
+check_sequence_type(ctx, sequence, relation) ::= <<
+    /*
+    const TypeIdentifier $sequence.name$_$if(relation)$complete$else$minimal$endif$_type_identifier = *$get_type_identifier(ctx=ctx, type=member.typecode, relation=relation)$
+    result &= $struct.name$_$if(relation)$complete$else$minimal$endif$_common_$member.name$_struct_member.member_type_id()._d() == $sequence.name$_$if(relation)$complete$else$minimal$endif$_type_identifier._d();
+    result &= $sequence.name$_$if(relation)$complete$else$minimal$endif$_type_identifier._d() == EK_$if(relation)$COMPLETE$else$MINIMAL$endif$;
+
+    const TypeObject* $sequence.name$_$if(relation)$complete$else$minimal$endif$_typeobject = $get_type_object(ctx=ctx, type=sequence, relation=relation)$
+    result &= $sequence.name$_$if(relation)$complete$else$minimal$endif$_typeobject != nullptr;
+    result &= $sequence.name$_$if(relation)$complete$else$minimal$endif$_typeobject->_d() == EK_$if(relation)$COMPLETE$else$MINIMAL$endif$;
+
+    $if(relation)$Complete$else$Minimal$endif$TypeObject $sequence.name$_$if(relation)$complete$else$minimal$endif$_object = $sequence.name$_$if(relation)$complete$else$minimal$endif$_typeobject->$if(relation)$complete$else$minimal$endif$();
+    result &= $sequence.name$_$if(relation)$complete$else$minimal$endif$_object._d() == TK_SEQUENCE;
+
+    $if(relation)$Complete$else$Minimal$endif$SequenceType $sequence.name$_$if(relation)$complete$else$minimal$endif$_sequence = $sequence.name$_$if(relation)$complete$else$minimal$endif$_object.sequence_type();
+    CollectionTypeFlag $sequence.name$_$if(relation)$complete$else$minimal$endif$_flags = $sequence.name$_$if(relation)$complete$else$minimal$endif$_sequence.collection_flag();// Unused. No flags apply
+    
+    $if(relation)$Complete$else$Minimal$endif$CollectionHeader $sequence.name$_$if(relation)$complete$else$minimal$endif$_header = $sequence.name$_$if(relation)$complete$else$minimal$endif$_sequence.header();// Empty. Available for future extension
+    CommonCollectionHeader $sequence.name$_$if(relation)$complete$else$minimal$endif$_commonheader = $sequence.name$_$if(relation)$complete$else$minimal$endif$_header.common();
+    $if(relation)$
+    //@optional CompleteTypeDetail detail; // not present for anonymous
+    $endif$
+
+    $if(relation)$
+    $if(relation)$Complete$else$Minimal$endif$TypeDetail $sequence.name$_$if(relation)$complete$else$minimal$endif$_header_details = $sequence.name$_$if(relation)$complete$else$minimal$endif$_header.detail();
+    //@optional AppliedBuiltinTypeAnnotations ann_builtin;?????
+    //@optional AppliedAnnotationSeq ann_custom;?????
+    QualifiedTypeName $sequence.name$_$if(relation)$complete$else$minimal$endif$_header_details_type_name = $sequence.name$_$if(relation)$complete$else$minimal$endif$_header_details.type_name();
+    $endif$
+
+    $if(relation)$Complete$else$Minimal$endif$CollectionElement $sequence.name$_$if(relation)$complete$else$minimal$endif$_collection_element = $sequence.name$_$if(relation)$complete$else$minimal$endif$_sequence.element();
+    CommonCollectionElement $sequence.name$_$if(relation)$complete$else$minimal$endif$_common_element = $sequence.name$_$if(relation)$complete$else$minimal$endif$_collection_element.common();
+    $if(relation)$
+    $if(relation)$Complete$else$Minimal$endif$ElementDetail $sequence.name$_$if(relation)$complete$else$minimal$endif$_element_details = $sequence.name$_$if(relation)$complete$else$minimal$endif$_collection_element.detail();
+    //@optional AppliedBuiltinTypeAnnotations ann_builtin;?????
+    //@optional AppliedAnnotationSeq ann_custom;?????
+    $endif$
+
+    if($sequence.typecode.maxsize$ <= 100){
+        result &= $sequence.name$_$if(relation)$complete$else$minimal$endif$_type_identifier.seq_sdefn().bound() == $sequence.typecode.maxsize$;
+    }else{
+        result &= $sequence.name$_$if(relation)$complete$else$minimal$endif$_type_identifier.seq_ldefn().bound() == $sequence.typecode.maxsize$;
+    }
+    */
+>>
+
+check_map_type(ctx, map, relation) ::= <<
+    /*
+    const TypeIdentifier $map.name$_$if(relation)$complete$else$minimal$endif$_type_identifier = *$get_type_identifier(ctx=ctx, type=member.typecode, relation=relation)$
+    result &= $struct.name$_$if(relation)$complete$else$minimal$endif$_common_$member.name$_struct_member.member_type_id()._d() == $map.name$_$if(relation)$complete$else$minimal$endif$_type_identifier._d();
+    result &= $map.name$_$if(relation)$complete$else$minimal$endif$_type_identifier._d() == EK_$if(relation)$COMPLETE$else$MINIMAL$endif$;
+
+    const TypeObject* $map.name$_$if(relation)$complete$else$minimal$endif$_typeobject = $get_type_object(ctx=ctx, type=map, relation=relation)$
+    result &= $map.name$_$if(relation)$complete$else$minimal$endif$_typeobject != nullptr;
+    result &= $map.name$_$if(relation)$complete$else$minimal$endif$_typeobject->_d() == EK_$if(relation)$COMPLETE$else$MINIMAL$endif$;
+
+    $if(relation)$Complete$else$Minimal$endif$TypeObject $map.name$_$if(relation)$complete$else$minimal$endif$_object = $map.name$_$if(relation)$complete$else$minimal$endif$_typeobject->$if(relation)$complete$else$minimal$endif$();
+    result &= $map.name$_$if(relation)$complete$else$minimal$endif$_object._d() == TK_MAP;
+
+    $if(relation)$Complete$else$Minimal$endif$MapType $map.name$_$if(relation)$complete$else$minimal$endif$_map = $map.name$_$if(relation)$complete$else$minimal$endif$_object.map_type();
+    CollectionTypeFlag $map.name$_$if(relation)$complete$else$minimal$endif$_flags = $map.name$_$if(relation)$complete$else$minimal$endif$_map.collection_flag();// Unused. No flags apply
+    
+    $if(relation)$Complete$else$Minimal$endif$CollectionHeader $map.name$_$if(relation)$complete$else$minimal$endif$_header = $map.name$_$if(relation)$complete$else$minimal$endif$_map.header();// Empty. Available for future extension
+
+    CommonCollectionHeader $map.name$_$if(relation)$complete$else$minimal$endif$_commonheader = $map.name$_$if(relation)$complete$else$minimal$endif$_header.common();
+    $if(relation)$
+    //@optional CompleteTypeDetail detail; // not present for anonymous
+    $endif$
+
+    $if(relation)$
+    $if(relation)$Complete$else$Minimal$endif$TypeDetail $map.name$_$if(relation)$complete$else$minimal$endif$_header_details = $map.name$_$if(relation)$complete$else$minimal$endif$_header.detail();
+    //@optional AppliedBuiltinTypeAnnotations ann_builtin;?????
+    //@optional AppliedAnnotationSeq ann_custom;?????
+    QualifiedTypeName $map.name$_$if(relation)$complete$else$minimal$endif$_header_details_type_name = $map.name$_$if(relation)$complete$else$minimal$endif$_header_details.type_name();
+    $endif$
+
+    $if(relation)$Complete$else$Minimal$endif$CollectionElement $map.name$_$if(relation)$complete$else$minimal$endif$_collection_key_element = $map.name$_$if(relation)$complete$else$minimal$endif$_map.key();
+    CommonCollectionElement $map.name$_$if(relation)$complete$else$minimal$endif$_key_common_element = $map.name$_$if(relation)$complete$else$minimal$endif$_collection_key_element.common();
+    $if(relation)$
+    $if(relation)$Complete$else$Minimal$endif$ElementDetail $map.name$_$if(relation)$complete$else$minimal$endif$_key_element_details = $map.name$_$if(relation)$complete$else$minimal$endif$_collection_key_element.detail();
+    //@optional AppliedBuiltinTypeAnnotations ann_builtin;?????
+    //@optional AppliedAnnotationSeq ann_custom;?????
+    $endif$
+
+    $if(relation)$Complete$else$Minimal$endif$CollectionElement $map.name$_$if(relation)$complete$else$minimal$endif$_element_collection_element = $map.name$_$if(relation)$complete$else$minimal$endif$_map.element();
+    CommonCollectionElement $map.name$_$if(relation)$complete$else$minimal$endif$_element_common_element = $map.name$_$if(relation)$complete$else$minimal$endif$_element_collection_element.common();
+    $if(relation)$
+    $if(relation)$Complete$else$Minimal$endif$ElementDetail $map.name$_$if(relation)$complete$else$minimal$endif$_element_element_details = $map.name$_$if(relation)$complete$else$minimal$endif$_element_collection_element.detail();
+    //@optional AppliedBuiltinTypeAnnotations ann_builtin;?????
+    //@optional AppliedAnnotationSeq ann_custom;?????
+    $endif$
+
+    if($map.typecode.maxsize$ <= 100){
+        result &= $map.name$_$if(relation)$complete$else$minimal$endif$_type_identifier.seq_sdefn().bound() == $map.typecode.maxsize$;
+    }else{
+        result &= $map.name$_$if(relation)$complete$else$minimal$endif$_type_identifier.seq_ldefn().bound() == $map.typecode.maxsize$;
+    }
+    */
+>>
+
+check_alias_type(ctx, typedefs, relation) ::= <<
+    const TypeIdentifier* $typedefs.name$_$if(relation)$complete$else$minimal$endif$_type_identifier = Get$typedefs.name$Identifier($relation$);
+    result &= $typedefs.name$_$if(relation)$complete$else$minimal$endif$_type_identifier != nullptr;
+    result &= $typedefs.name$_$if(relation)$complete$else$minimal$endif$_type_identifier->_d() == EK_$if(relation)$COMPLETE$else$MINIMAL$endif$;
+
+    const TypeObject* $typedefs.name$_$if(relation)$complete$else$minimal$endif$_typeobject = Get$typedefs.name$Object($relation$);
+    result &= $typedefs.name$_$if(relation)$complete$else$minimal$endif$_typeobject != nullptr;
+    result &= $typedefs.name$_$if(relation)$complete$else$minimal$endif$_typeobject->_d() == EK_$if(relation)$COMPLETE$else$MINIMAL$endif$;
+
+    $if(relation)$Complete$else$Minimal$endif$TypeObject $typedefs.name$_$if(relation)$complete$else$minimal$endif$_object = $typedefs.name$_$if(relation)$complete$else$minimal$endif$_typeobject->$if(relation)$complete$else$minimal$endif$();
+    result &= $typedefs.name$_$if(relation)$complete$else$minimal$endif$_object._d() == TK_ALIAS;
+
+    $if(relation)$Complete$else$Minimal$endif$AliasType $typedefs.name$_$if(relation)$complete$else$minimal$endif$_typedefs = $typedefs.name$_$if(relation)$complete$else$minimal$endif$_object.alias_type();
+    AliasTypeFlag $typedefs.name$_$if(relation)$complete$else$minimal$endif$_flags = $typedefs.name$_$if(relation)$complete$else$minimal$endif$_typedefs.alias_flags();// Unused. No flags apply
+    $if(relation)$Complete$else$Minimal$endif$AliasHeader $typedefs.name$_$if(relation)$complete$else$minimal$endif$_header = $typedefs.name$_$if(relation)$complete$else$minimal$endif$_typedefs.header();// Empty. Available for future extension
+
+    $if(relation)$
+    $if(relation)$Complete$else$Minimal$endif$TypeDetail $typedefs.name$_$if(relation)$complete$else$minimal$endif$_header_details = $typedefs.name$_$if(relation)$complete$else$minimal$endif$_header.detail();
+    //@optional AppliedBuiltinTypeAnnotations ann_builtin;?????
+    //@optional AppliedAnnotationSeq ann_custom;?????
+    QualifiedTypeName $typedefs.name$_$if(relation)$complete$else$minimal$endif$_header_details_type_name = $typedefs.name$_$if(relation)$complete$else$minimal$endif$_header_details.type_name();
+    $endif$
+
+    $if(relation)$Complete$else$Minimal$endif$AliasBody $typedefs.name$_$if(relation)$complete$else$minimal$endif$_body = $typedefs.name$_$if(relation)$complete$else$minimal$endif$_typedefs.body();
+    CommonAliasBody $typedefs.name$_$if(relation)$complete$else$minimal$endif$_common_alias_body = $typedefs.name$_$if(relation)$complete$else$minimal$endif$_body.common();
+    AliasMemberFlag $typedefs.name$_$if(relation)$complete$else$minimal$endif$_related_flags = $typedefs.name$_$if(relation)$complete$else$minimal$endif$_common_alias_body.related_flags();// Unused. No flags apply
+
+    $if(relation)$
+    //@optional AppliedBuiltinMemberAnnotations ann_builtin;?????
+    //@optional AppliedAnnotationSeq ann_custom;?????
+    $endif$
+>>
+
+check_alias_related_type(ctx, typedefs, relation) ::= <<
+    //=====check_alias_related_type - $if(relation)$complete$else$minimal$endif$ - $typedefs.name$=====
+    $if (typedefs.typedefContentTypeCode.isAliasType)$
+        //=====typedefs.typedefContentTypeCode.isAliasType=====
+        $check_alias_related_type(ctx=ctx, typedefs=typedefs.typedefContentTypeCode, relation=relation)$
+    $else$
+    {
+        const TypeIdentifier $typedefs.name$_$if(relation)$complete$else$minimal$endif$_content_type = *$get_type_identifier(ctx=ctx, type=typedefs.typedefContentTypeCode, relation=relation)$
+        TypeIdentifier $typedefs.name$_$if(relation)$complete$else$minimal$endif$_related_type = Get$typedefs.name$Object($relation$)->$if(relation)$complete$else$minimal$endif$().alias_type().body().common().related_type();
+
+        result &= $typedefs.name$_$if(relation)$complete$else$minimal$endif$_related_type._d() == $typedefs.name$_$if(relation)$complete$else$minimal$endif$_content_type._d();
+    }
+    $endif$
+>>
+
+check_enum_type(ctx, enum, relation) ::= <<
+    //=====check_enum_type - $if(relation)$complete$else$minimal$endif$ - $enum.name$=====
+    const TypeIdentifier* $enum.name$_$if(relation)$complete$else$minimal$endif$_type_identifier = Get$enum.name$Identifier($relation$);
+    result &= $enum.name$_$if(relation)$complete$else$minimal$endif$_type_identifier != nullptr;
+    result &= $enum.name$_$if(relation)$complete$else$minimal$endif$_type_identifier->_d() == EK_$if(relation)$COMPLETE$else$MINIMAL$endif$;
+
+    const TypeObject* $enum.name$_$if(relation)$complete$else$minimal$endif$_typeobject = Get$enum.name$Object($relation$);
+    result &= $enum.name$_$if(relation)$complete$else$minimal$endif$_typeobject != nullptr;
+    result &= $enum.name$_$if(relation)$complete$else$minimal$endif$_typeobject->_d() == EK_$if(relation)$COMPLETE$else$MINIMAL$endif$;
+
+    $if(relation)$Complete$else$Minimal$endif$TypeObject $enum.name$_$if(relation)$complete$else$minimal$endif$_object = $enum.name$_$if(relation)$complete$else$minimal$endif$_typeobject->$if(relation)$complete$else$minimal$endif$();
+    result &= $enum.name$_$if(relation)$complete$else$minimal$endif$_object._d() == TK_ENUM;
+
+    $if(relation)$Complete$else$Minimal$endif$EnumeratedType $enum.name$_$if(relation)$complete$else$minimal$endif$_enum = $enum.name$_$if(relation)$complete$else$minimal$endif$_object.enumerated_type();
+    //EnumTypeFlag; // Unused. No flags apply
+
+    $if(relation)$Complete$else$Minimal$endif$EnumeratedHeader $enum.name$_$if(relation)$complete$else$minimal$endif$_header = $enum.name$_$if(relation)$complete$else$minimal$endif$_enum.header();
+
+    CommonEnumeratedHeader $enum.name$_$if(relation)$complete$else$minimal$endif$_commonheader = $enum.name$_$if(relation)$complete$else$minimal$endif$_header.common();
+    //$enum.name$_$if(relation)$complete$else$minimal$endif$_commonheader.bit_bound()??????
+    $if(relation)$
+    CompleteTypeDetail $enum.name$_$if(relation)$complete$else$minimal$endif$_header_detail = $enum.name$_$if(relation)$complete$else$minimal$endif$_header.detail();
+    //@optional AppliedBuiltinTypeAnnotations ann_builtin;?????
+    //@optional AppliedAnnotationSeq ann_custom;?????
+    QualifiedTypeName $enum.name$_$if(relation)$complete$else$minimal$endif$_header_detail_type_name = $enum.name$_$if(relation)$complete$else$minimal$endif$_header_detail.type_name();
+    result &= $enum.name$_$if(relation)$complete$else$minimal$endif$_header_detail_type_name == "$enum.name$";
+    $endif$
+
+    $if(relation)$Complete$else$Minimal$endif$EnumeratedLiteralSeq $enum.name$_$if(relation)$complete$else$minimal$endif$_literalseq = $enum.name$_$if(relation)$complete$else$minimal$endif$_enum.literal_seq();
+>>
+
+check_enum_literal_type(ctx, literal, relation) ::= <<
+    $if(relation)$Complete$else$Minimal$endif$EnumeratedLiteral $enum.name$_$if(relation)$complete$else$minimal$endif$_$literal.name$ = $enum.name$_$if(relation)$complete$else$minimal$endif$_literalseq.at(literalId);
+    CommonEnumeratedLiteral $enum.name$_$if(relation)$complete$else$minimal$endif$_common_$literal.name$_enum_literal = $enum.name$_$if(relation)$complete$else$minimal$endif$_$literal.name$.common();
+    
+    long $enum.name$_$if(relation)$complete$else$minimal$endif$_common_$literal.name$_enum_literal_value = $enum.name$_$if(relation)$complete$else$minimal$endif$_common_$literal.name$_enum_literal.value();
+    result &= $enum.name$_$if(relation)$complete$else$minimal$endif$_common_$literal.name$_enum_literal.value() == literalId;
+    
+    EnumeratedLiteralFlag $enum.name$_$if(relation)$complete$else$minimal$endif$_common_$literal.name$_enum_flags = $enum.name$_$if(relation)$complete$else$minimal$endif$_common_$literal.name$_enum_literal.flags();
+    result &= $enum.name$_$if(relation)$complete$else$minimal$endif$_common_$literal.name$_enum_flags.TRY_CONSTRUCT1() == false; // Doesn't apply
+    result &= $enum.name$_$if(relation)$complete$else$minimal$endif$_common_$literal.name$_enum_flags.TRY_CONSTRUCT2() == false; // Doesn't apply
+    result &= $enum.name$_$if(relation)$complete$else$minimal$endif$_common_$literal.name$_enum_flags.IS_EXTERNAL() == false; // Doesn't apply
+    result &= $enum.name$_$if(relation)$complete$else$minimal$endif$_common_$literal.name$_enum_flags.IS_OPTIONAL() == false; // Doesn't apply
+    result &= $enum.name$_$if(relation)$complete$else$minimal$endif$_common_$literal.name$_enum_flags.IS_MUST_UNDERSTAND() == false; // Doesn't apply
+    result &= $enum.name$_$if(relation)$complete$else$minimal$endif$_common_$literal.name$_enum_flags.IS_KEY() == false; // Doesn't apply
+    result &= $enum.name$_$if(relation)$complete$else$minimal$endif$_common_$literal.name$_enum_flags.IS_DEFAULT() == $literal.annotationDefault$;
+
+    $if(relation)$Complete$else$Minimal$endif$MemberDetail $enum.name$_$if(relation)$complete$else$minimal$endif$_common_$literal.name$_enum_literal_detail = $enum.name$_$if(relation)$complete$else$minimal$endif$_$literal.name$.detail();
+    $if(relation)$
+    MemberName $enum.name$_$if(relation)$complete$else$minimal$endif$_common_$literal.name$_enum_literal_name = $enum.name$_$if(relation)$complete$else$minimal$endif$_common_$literal.name$_enum_literal_detail.name();
+    //@optional AppliedBuiltinLiteralAnnotations ann_builtin;?????
+    //@optional AppliedAnnotationSeq ann_custom;?????
+    $else$
+    NameHash $enum.name$_$if(relation)$complete$else$minimal$endif$_common_$literal.name$_enum_literal_name_hash = $enum.name$_$if(relation)$complete$else$minimal$endif$_common_$literal.name$_enum_literal_detail.name_hash();
+    $endif$
+
+    literalId++;
+>>
+
+
+
+
+
+check_const_type(ctx, const, relation) ::= <<
+    const TypeIdentifier $const.name$_$if(relation)$complete$else$minimal$endif$_type = *$get_type_identifier(ctx=ctx, type=const, relation=relation)$
+>>
+
+
+
+test_typedef(ctx, parent, typedefs) ::= <<
 functions_to_run.emplace_back([]() -> bool
-{        
-        std::cout << std::endl << "======================================== Testing $struct.name$ ========================================" << std::endl;
-        bool result = true;
-        
-        return result;
+{
+    std::cout << std::endl << "======================================== Testing typedef: $typedefs.name$ ========================================" << std::endl;
+    bool result = true;
+
+    //Minimal
+    $check_alias_type(ctx=ctx, typedefs=typedefs, relation=false)$
+    $check_alias_related_type(ctx=ctx, typedefs=typedefs, relation=false)$
+
+    //Complete
+    $check_alias_type(ctx=ctx, typedefs=typedefs, relation=true)$
+    $check_alias_related_type(ctx=ctx, typedefs=typedefs, relation=true)$
+
+
+    if(result){
+        std::cout << std::endl << "======OK====== Test $typedefs.name$" << std::endl;
+    }else{
+        std::cout << std::endl << "=====FAIL===== Test $typedefs.name$" << std::endl;
+    }
+    return result;
 });
 >>
 
-
-
-
-
-
-
-
-
-
-
-
-
-check_typedef(ctx, parent, typedefs) ::= <<
+test_structure(ctx, parent, struct) ::= <<
 functions_to_run.emplace_back([]() -> bool
-{        
-        std::cout << std::endl << "======================================== Testing $typedefs.name$ ========================================" << std::endl;
-        bool result = true;
-        
-        return result;
+{
+    std::cout << std::endl << "======================================== Testing struct: $struct.name$ ========================================" << std::endl;
+    MemberId memberId;
+    bool result = true;
+
+    //Minimal
+    $check_struct_type(ctx=ctx, struct=struct, relation=false)$ 
+    memberId = 0;
+    $struct.allMembers:{ member | $check_struct_member_type(ctx=ctx, member=member, relation=false)$ }; separator="\n"$
+    result &= $struct.name$_minimal_memberseq.size() == memberId; 
+
+    //Complete
+    $check_struct_type(ctx=ctx, struct=struct, relation=true)$ 
+    memberId = 0;
+    $struct.allMembers:{ member | $check_struct_member_type(ctx=ctx, member=member, relation=true)$ }; separator="\n"$
+    result &= $struct.name$_complete_memberseq.size() == memberId; 
+
+    if(result){
+        std::cout << std::endl << "======OK====== Test $struct.name$" << std::endl;
+    }else{
+        std::cout << std::endl << "=====FAIL===== Test $struct.name$" << std::endl;
+    }
+    return result;
 });
 >>
 
+test_union(ctx, parent, union) ::= <<
+functions_to_run.emplace_back([]() -> bool
+{
+    std::cout << std::endl << "======================================== Testing union: $union.name$ ========================================" << std::endl;
+    bool result = true;
 
+
+    if(result){
+        std::cout << std::endl << "======OK====== Test $union.name$" << std::endl;
+    }else{
+        std::cout << std::endl << "=====FAIL===== Test $union.name$" << std::endl;
+    }
+    return result;
+});
+>>
+
+test_enum(ctx, parent, enum) ::= <<
+functions_to_run.emplace_back([]() -> bool
+{
+    std::cout << std::endl << "======================================== Testing enum: $enum.name$ ========================================" << std::endl;
+    int literalId;
+    bool result = true;
+
+    //Minimal
+    $check_enum_type(ctx=ctx, enum=enum, relation=false)$ 
+    literalId = 0;
+    $enum.Members:{ literal | $check_enum_literal_type(ctx=ctx, literal=literal, relation=false)$ }; separator="\n"$
+    result &= $enum.name$_minimal_literalseq.size() == literalId; 
+
+    //Complete
+    $check_enum_type(ctx=ctx, enum=enum, relation=true)$ 
+    literalId = 0;
+    $enum.Members:{ literal | $check_enum_literal_type(ctx=ctx, literal=literal, relation=true)$ }; separator="\n"$
+    result &= $enum.name$_complete_literalseq.size() == literalId; 
+
+    if(result){
+        std::cout << std::endl << "======OK====== Test $enum.name$" << std::endl;
+    }else{
+        std::cout << std::endl << "=====FAIL===== Test $enum.name$" << std::endl;
+    }
+    return result;
+});
+>>
+
+test_bitmask(ctx, parent, bitmask) ::= <<
+functions_to_run.emplace_back([]() -> bool
+{
+    std::cout << std::endl << "======================================== Testing bitmask: $bitmask.name$ ========================================" << std::endl;
+    bool result = true;
+
+
+    if(result){
+        std::cout << std::endl << "======OK====== Test $bitmask.name$" << std::endl;
+    }else{
+        std::cout << std::endl << "=====FAIL===== Test $bitmask.name$" << std::endl;
+    }
+    return result;
+});
+>>
+
+test_bitset(ctx, parent, bitset) ::= <<
+functions_to_run.emplace_back([]() -> bool
+{
+    std::cout << std::endl << "======================================== Testing bitset: $bitset.name$ ========================================" << std::endl;
+    bool result = true;
+
+
+    if(result){
+        std::cout << std::endl << "======OK====== Test $bitset.name$" << std::endl;
+    }else{
+        std::cout << std::endl << "=====FAIL===== Test $bitset.name$" << std::endl;
+    }
+    return result;
+});
+>>
+
+test_annotation(ctx, parent, annotation) ::= <<
+functions_to_run.emplace_back([]() -> bool
+{
+    std::cout << std::endl << "======================================== Testing annotation: $annotation.name$ ========================================" << std::endl;
+    bool result = true;
+
+
+    if(result){
+        std::cout << std::endl << "======OK====== Test $annotation.name$" << std::endl;
+    }else{
+        std::cout << std::endl << "=====FAIL===== Test $annotation.name$" << std::endl;
+    }
+    return result;
+});
+>>
+
+test_const(ctx, parent, const) ::= <<
+functions_to_run.emplace_back([]() -> bool
+{
+    std::cout << std::endl << "======================================== Testing const: $const.name$ ========================================" << std::endl;
+    bool result = true;
+
+    //Minimal
+    $check_const_type(ctx=ctx, const=const, relation=false)$ 
+
+    //Complete
+    $check_const_type(ctx=ctx, const=const, relation=true)$ 
+    
+    if(result){
+        std::cout << std::endl << "======OK====== Test $const.name$" << std::endl;
+    }else{
+        std::cout << std::endl << "=====FAIL===== Test $const.name$" << std::endl;
+    }
+    return result;
+});
+>>
 
 
 fwd_decl(ctx, parent, type) ::= <<>>
 
-
 typedef_decl(ctx, parent, typedefs) ::= <<
-        $check_typedef(ctx=ctx, parent=parent, typedefs=typedefs)$
+$test_typedef(ctx=ctx, parent=parent, typedefs=typedefs)$
 >>
 
-
 struct_type(ctx, parent, struct) ::= <<
-$if (false)$
-        $check_primitives_structures(ctx=ctx, parent=parent, struct=struct)$
-$endif$
+$test_structure(ctx=ctx, parent=parent, struct=struct)$
+>>
 
-$if (false)$
-        $check_strings_structures(ctx=ctx, parent=parent, struct=struct)$
-$endif$
+union_type(ctx, parent, union) ::= <<
+$test_union(ctx=ctx, parent=parent, union=union)$
+>>
 
-$if (true)$
-        $check_aliases_structures(ctx=ctx, parent=parent, struct=struct)$
-$endif$
+enum_type(ctx, parent, enum) ::= <<
+$test_enum(ctx=ctx, parent=parent, enum=enum)$
+>>
 
-$if (struct.containsOptional)$
+bitmask_type(ctx, parent, bitmask) ::= <<
+$test_bitmask(ctx=ctx, parent=parent, enum=enum)$
+>>
 
-$endif$
+bitset_type(ctx, parent, bitset) ::= <<
+$test_bitset(ctx=ctx, parent=parent, bitset=bitset)$
+>>
 
+annotation(ctx, annotation) ::= <<
+$test_annotation(ctx=ctx, parent=parent, annotation=annotation)$
+>>
 
+module(ctx, parent, module, definition_list) ::= <<
+$definition_list$
+>>
+
+definition_list(definitions) ::= <<
+$definitions; separator="\n"$
+>>
+
+const_decl(ctx, parent, const) ::= <<
+$test_const(ctx=ctx, parent=parent, const=const)$
 >>
 
