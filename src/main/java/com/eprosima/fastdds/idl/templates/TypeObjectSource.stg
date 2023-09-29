@@ -406,6 +406,120 @@ return TypeObjectFactory::get_instance()->get_type_object(
     $complete_flag$);
 >>
 
+string_s_type_defn_impl(ctx, object) ::= <<
+// StringSTypeDefn
+StringSTypeDefn $object.name$_string_s_type_defn;
+// - SBound TODO(jlbueno) Collection Type
+$object.name$_string_s_type_defn.bound($object.bound$);
+>>
+
+string_l_type_defn_impl(ctx, object) ::= <<
+// StringLTypeDefn
+StringLTypeDefn $object.name$_string_l_type_defn;
+// -LBound TODO(jlbueno) Collection Type
+$object.name$_string_l_type_defn.bound($object.bound$);
+>>
+
+collection_element_flag_impl(ctx, object) ::= <<
+// - CollectionElementFlag: T1, T2, X
+CollectionElementFlag $object.name$_collection_element_flag;
+$member_flag_try_construct_impl(ctx=ctx, object=object, name=["_collection_element_flag"])$
+$if(object.annotationExternal)$
+$object.name$_collection_element_flag |= MemberFlagBits::IS_EXTERNAL;
+$endif$
+>>
+
+plain_collection_header_impl(ctx, object) ::= <<
+//PlainCollectionHeader
+PlainCollectionHeader $object.name$_plain_collection_header;
+// - EquivalenceKind
+// TODO(jlbueno) Collection Type
+$collection_element_flag_impl(ctx=ctx, object=object)$
+$object.name$_plain_collection_header.element_flags($object.name$_collection_element_flag);
+>>
+
+plain_sequence_s_elem_defn_impl(ctx, object) ::= <<
+// PlainSequenceSElemDefn
+PlainSequenceSElemDefn $object.name$_plain_sequence_s_elem_defn;
+$plain_collection_header_impl(ctx=ctx, object=object)$
+$object.name$_plain_sequence_s_elem_defn.header($object.name$_plain_collection_header);
+// - SBound TODO(jlbueno) Collection Type
+$object.name$_plain_sequence_s_elem_defn.bound();
+// - TypeIdentifier TODO(jlbueno) Collection Type
+$common_member_type_id_impl(ctx=ctx, object=object)$
+$object.name$_plain_sequence_s_elem_defn.element_identifier($object.name$_common_member_type_id);
+>>
+
+plain_sequence_l_elem_defn_impl(ctx, object) ::= <<
+// PlainSequenceLElemDefnImpl
+PlainSequenceLElemDefnImpl $object.name$_plain_sequence_l_elem_defn_impl;
+$plain_collection_header_impl(ctx=ctx, object=object)$
+$object.name$_plain_sequence_l_elem_defn_impl.header($object.name$_plain_collection_header);
+// - LBound TODO(jlbueno) Collection Type
+$object.name$_plain_sequence_l_elem_defn_impl.bound();
+// - TypeIdentifier TODO(jlbueno) Collection Type
+$common_member_type_id_impl(ctx=ctx, object=object)$
+$object.name$_plain_sequence_l_elem_defn_impl.element_identifier($object.name$_common_member_type_id);
+>>
+
+plain_array_s_elem_defn_impl(ctx, object) ::= <<
+// PlainArraySElemDefn
+PlainArraySElemDefn $object.name$_plain_array_s_elem_defn;
+$plain_collection_header_impl(ctx=ctx, object=object)$
+$object.name$_plain_array_s_elem_defn.header($object.name$_plain_collection_header);
+// - SBoundSeq TODO(jlbueno) Collection Type
+$object.dimensions:{ dimension |
+$object.name$_plain_array_s_elem_defn.array_bound_seq().push_back($dimension$);
+}; separator="\n"$
+// - TODO(jlbueno) Collection Type
+$common_member_type_id_impl(ctx=ctx, object=object)$
+$object.name$_plain_array_s_elem_defn.element_identifier($object.name$_common_member_type_id);
+>>
+
+plain_array_l_elem_defn_impl(ctx, object) ::= <<
+// PlainArrayLElemDefn
+PlainArrayLElemDefn $object.name$_plain_array_l_elem_defn;
+$plain_collection_header_impl(ctx=ctx, object=object)$
+$object.name$_plain_array_l_elem_defn.header($object.name$_plain_collection_header);
+// - LBoundSeq TODO(jlbueno) Collection Type
+$object.dimensions:{ dimension |
+$object.name$_plain_array_l_elem_defn.array_bound_seq().push_back($dimension$);
+}; separator="\n"$
+// - TODO(jlbueno) Collection Type
+$common_member_type_id_impl(ctx=ctx, object=object)$
+$object.name$_plain_array_l_elem_defn.element_identifier($object.name$_common_member_type_id);
+>>
+
+plain_map_s_type_defn_impl(ctx, object) ::= <<
+// PlainMapSTypeDefn
+PlainMapSTypeDefn $object.name$_plain_map_s_type_defn;
+$plain_collection_header_impl(ctx=ctx, object=object)$
+$object.name$_plain_map_s_type_defn.header($object.name$_plain_collection_header);
+// - TODO(jlbueno) Collection Type
+$common_member_type_id_impl(ctx=ctx, object=object.element)$
+$object.name$_plain_map_s_type_defn.element_identifier($object.element.name$_common_member_type_id);
+$collection_element_flag_impl(ctx=ctx, object=object.key)$
+$object.name$_plain_map_s_type_defn.key_flags($object.key.name$_collection_element_flag);
+$common_member_type_id_impl(ctx=ctx, object=object.key)$
+$object.name$_plain_map_s_type_defn.key_identifier($object.key.name$_common_member_type_id);
+>>
+
+plain_map_l_type_defn_impl(ctx, object) ::= <<
+// PlainMapLTypeDefn
+PlainMapLTypeDefn $object.name$_plain_map_l_type_defn;
+$plain_collection_header_impl(ctx=ctx, object=object)$
+$object.name$_plain_map_l_type_defn.header($object.name$_plain_collection_header);
+// - TODO(jlbueno) Collection Type
+$common_member_type_id_impl(ctx=ctx, object=object.element)$
+$object.name$_plain_map_l_type_defn.element_identifier($object.element.name$_common_member_type_id);
+$collection_element_flag_impl(ctx=ctx, object=object.key)$
+$object.name$_plain_map_l_type_defn.key_flags($object.key.name$_collection_element_flag);
+$common_member_type_id_impl(ctx=ctx, object=object.key)$
+$object.name$_plain_map_l_type_defn.key_identifier($object.key.name$_common_member_type_id);
+>>
+
+/* StronglyConnectedComponentId not yet supported */
+
 extended_annotation_parameter_value_impl(ctx, object) ::= <<
 // ExtendedAnnotationParameterValue: Empty. Available for future extension.
 ExtendedAnnotationParameterValue $object.name$_extended_annotation_parameter_value;
@@ -1060,12 +1174,7 @@ $applied_annotations_impl(ctx=ctx, object=object, name=["_complete_element_detai
 common_collection_element_impl(ctx, object) ::= <<
 // CommonCollectionElement
 CommonCollectionElement $object.name$_common_collection_element;
-// - CollectionElementFlag: T1, T2, X
-CollectionElementFlag $object.name$_collection_element_flag;
-$member_flag_try_construct_impl(ctx=ctx, object=object, name=["_collection_element_flag"])$
-$if(object.annotationExternal)$
-$object.name$_collection_element_flag |= MemberFlagBits::IS_EXTERNAL;
-$endif$
+$collection_element_flag_impl(ctx=ctx, object=object)$
 $object.name$_common_collection_element.element_flags($object.name$_collection_element_flag);
 $common_member_type_id_impl(ctx=ctx, object=object)$
 $object.name$_common_collection_element.type(*$object.name$_common_member_type_id);
