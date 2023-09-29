@@ -309,7 +309,8 @@ std::bitset<$bitset.fullBitSize$> $bitset.scopedname$::bitset() const
     return std::bitset<$bitset.fullBitSize$>(str_value);
 }
 
-void $bitset.scopedname$::bitset(const std::bitset<$bitset.fullBitSize$>& bitset)
+void $bitset.scopedname$::bitset(
+        const std::bitset<$bitset.fullBitSize$>& bitset)
 {
     std::string str_value {bitset.to_string()};
     size_t base_diff {0};

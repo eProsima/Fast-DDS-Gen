@@ -42,6 +42,7 @@ $definitions; separator="\n"$
 } // namespace eprosima
 
 #endif // _FAST_DDS_GENERATED_$ctx.headerGuardName$CDRAUX_IPP_
+$"\n"$
 >>
 
 module(ctx, parent, module, definition_list) ::= <<
