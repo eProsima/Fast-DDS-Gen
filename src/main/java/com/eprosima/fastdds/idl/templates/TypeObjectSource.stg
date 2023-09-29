@@ -1051,37 +1051,159 @@ $minimal_alias_body_impl(ctx=ctx, onject=object)$
 $object.name$_minimal_alias_type.body($object.name$_minimal_alias_body);
 >>
 
-complete_element_detail_impl(ctx, object) ::= <<>>
+complete_element_detail_impl(ctx, object) ::= <<
+// CompleteElementDetail
+CompleteElementDetail $object.name$_complete_element_detail;
+$applied_annotations_impl(ctx=ctx, object=object, name=["_complete_element_detail"])$
+>>
 
-common_collection_element_impl(ctx, object) ::= <<>>
+common_collection_element_impl(ctx, object) ::= <<
+// CommonCollectionElement
+CommonCollectionElement $object.name$_common_collection_element;
+// - CollectionElementFlag: T1, T2, X
+CollectionElementFlag $object.name$_collection_element_flag;
+$member_flag_try_construct_impl(ctx=ctx, object=object, name=["_collection_element_flag"])$
+$if(object.annotationExternal)$
+$object.name$_collection_element_flag |= MemberFlagBits::IS_EXTERNAL;
+$endif$
+$object.name$_common_collection_element.element_flags($object.name$_collection_element_flag);
+$common_member_type_id_impl(ctx=ctx, object=object)$
+$object.name$_common_collection_element.type(*$object.name$_common_member_type_id);
+>>
 
-complete_collection_element_impl(ctx, object) ::= <<>>
+complete_collection_element_impl(ctx, object) ::= <<
+// CompleteCollectionElement
+CompleteCollectionElement $object.name$_complete_collection_element;
+$common_collection_element_impl(ctx=ctx, object=object)$
+$object.name$_complete_collection_element.common($object.name$_common_collection_element);
+$complete_element_detail_impl(ctx=ctx, object=object)$
+$object.name$_complete_collection_element.detail($object.name$_complete_element_detail);
+>>
 
-minimal_collection_element_impl(ctx, object) ::= <<>>
+minimal_collection_element_impl(ctx, object) ::= <<
+// MinimalCollectionElement
+MinimalCollectionElement $object.name$_minimal_collection_element;
+$common_collection_element_impl(ctx=ctx, object=object)$
+$object.name$_minimal_collection_element.common($object.name$_common_collection_element);
+>>
 
-common_collection_header_impl(ctx, object) ::= <<>>
+common_collection_header_impl(ctx, object) ::= <<
+// CommonCollectionHeader
+CommonCollectionHeader $object.name$_common_collection_header;
+// - LBound: TODO(jlbueno) Collection types
+$object.name$_common_collection_header.bound();
+>>
 
-complete_collection_header_impl(ctx, object) ::= <<>>
+complete_collection_header_impl(ctx, object) ::= <<
+// CompleteCollectionHeader
+CompleteCollectionHeader $object.name$_complete_collection_header;
+$common_collection_header_impl(ctx=ctx, object=object)$
+$object.name$_complete_collection_header.common($object.name$_common_collection_header);
+// TODO(jlbueno) Collection Types
+$if(object.name)$
+// - @optional: not present for anonymous
+$complete_type_detail_impl(ctx=ctx, object=object)$
+$object.name$_complete_collection_header.detail($object.name$_complete_type_detail);
+$endif$
+>>
 
-minimal_collection_header_impl(ctx, object) ::= <<>>
+minimal_collection_header_impl(ctx, object) ::= <<
+// MinimalCollectionHeader
+MinimalCollectionHeader $object.name$_minimal_collection_header;
+$common_collection_header_impl(ctx=ctx, object=object)$
+$object.name$_minimal_collection_header.common($object.name$_common_collection_header);
+>>
 
-complete_sequence_type_impl(ctx, object) ::= <<>>
+complete_sequence_type_impl(ctx, object) ::= <<
+// CompleteSequenceType
+CompleteSequenceType $object.name$_complete_sequence_type;
+// - CollectionTypeFlag: Unused. No flags apply
+$complete_collection_header_impl(ctx=ctx, object=object)$
+$object.name$_complete_sequence_type.header($object.name$_complete_collection_header);
+$complete_collection_element_impl(ctx=ctx, object=object)$
+$object.name$_complete_sequence_type.element($object.name$_complete_collection_element);
+>>
 
-minimal_sequence_type_impl(ctx, object) ::= <<>>
+minimal_sequence_type_impl(ctx, object) ::= <<
+// MinimalSequenceType
+MinimalSequenceType $object.name$_minimal_sequence_type;
+// - CollectionTypeFlag: Unused. No flags apply
+$minimal_collection_header_impl(ctx=ctx, object=object)$
+$object.name$_minimal_sequence_type.header($object.name$_minimal_collection_header);
+$minimal_collection_element_impl(ctx=ctx, object=object)$
+$object.name$_minimal_sequence_type.element($object.name$_minimal_collection_element);
+>>
 
-common_array_header_impl(ctx, object) ::= <<>>
+common_array_header_impl(ctx, object) ::= <<
+// CommonArrayHeader
+CommonArrayHeader $object.name$_common_array_header;
+// - LBoundSeq: TODO(jlbueno) Collection Types
+$object.dimensions:{ dimension |
+$object.name$_common_array_header.bound_seq().push_back($dimension$);
+}; separator="\n"$
+>>
 
-complete_array_header_impl(ctx, object) ::= <<>>
+complete_array_header_impl(ctx, object) ::= <<
+// CompleteArrayHeader
+CompleteArrayHeader $object.name$_complete_array_header;
+$common_array_header_impl(ctx=ctx, object=object)$
+$object.name$_complete_array_header.common($object.name$_common_array_header);
+$complete_type_detail(ctx=ctx, object=object)$
+$object.name$_complete_array_header.detail($object.name$_complete_type_detail);
+>>
 
-minimal_array_header_impl(ctx, object) ::= <<>>
+minimal_array_header_impl(ctx, object) ::= <<
+// MinimalArrayHeader
+MinimalArrayHeader $object.name$_minimal_array_header;
+$common_array_header_impl(ctx=ctx, object=object)$
+$object.name$_minimal_array_header.common($object.name$_common_array_header);
+>>
 
-complete_array_type_impl(ctx, object) ::= <<>>
+complete_array_type_impl(ctx, object) ::= <<
+// CompleteArrayType
+CompleteArrayType $object.name$_complete_array_type;
+// - CollectionTypeFlag: Unused. No flags apply
+$complete_array_header_impl(ctx=ctx, object=object)$
+$object.name$_complete_array_type.header($object.name$_complete_array_header);
+$complete_collection_element_impl(ctx=ctx, object=object)$
+$object.name$_complete_array_type.element($object.name$_complete_collection_element);
+>>
 
-minimal_array_type_impl(ctx, object) ::= <<>>
+minimal_array_type_impl(ctx, object) ::= <<
+// MinimalArrayType
+MinimalArrayType $object.name$_minimal_array_type;
+// - CollectionTypeFlag: Unused. No flags apply
+$minimal_array_header_impl(ctx=ctx, object=object)$
+$object.name$_minimal_array_type.header($object.name$_minimal_array_header);
+$minimal_collection_element_impl(ctx=ctx, object=object)$
+$object.name$_minimal_array_type.element($object.name$_minimal_collection_element);
+>>
 
-complete_map_type_impl(ctx, object) ::= <<>>
+complete_map_type_impl(ctx, object) ::= <<
+// CompleteMapType
+CompleteMapType $object.name$_complete_map_type;
+// - CollectionTypeFlag: Unused. No flags apply
+$complete_collection_header_impl(ctx=ctx, object=object)$
+$object.name$_complete_map_type.header($object.name$_complete_collection_header);
+// TODO(jlbueno) Collection Type
+$complete_collection_element_impl(ctx=ctx, object=object.key)$
+$object.name$_complete_map_type.key($object.key.name$_complete_collection_element);
+$complete_collection_element_impl(ctx=ctx, object=object.element)$
+$object.name$_complete_map_type.element($object.element.name$_complete_collection_element);
+>>
 
-minimal_map_type_impl(ctx, object) ::= <<>>
+minimal_map_type_impl(ctx, object) ::= <<
+// MinimalMapType
+MinimalMapType $object.name$_minimal_map_type;
+// - CollectionTypeFlag: Unused. No flags apply
+$minimal_collection_header_impl(ctx=ctx, object=object)$
+$object.name$_minimal_map_type.header($object.name$_minimal_collection_header);
+// TODO(jlbueno) Collection Type
+$minimal_collection_element_impl(ctx=ctx, object=object.key)$
+$object.name$_minimal_map_type.key($object.key.name$_minimal_collection_element);
+$minimal_collection_element_impl(ctx=ctx, object=object.element)$
+$object.name$_minimal_map_type.element($object.element.name$_minimal_collection_element);
+>>
 
 common_enumerated_literal_impl(ctx, object) ::= <<
 // CommonEnumeratedLiteral
