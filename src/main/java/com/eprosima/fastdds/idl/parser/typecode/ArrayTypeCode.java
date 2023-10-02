@@ -91,28 +91,4 @@ public class ArrayTypeCode extends com.eprosima.idl.parser.typecode.ArrayTypeCod
         }
         return 0 != size;
     }
-
-    @Override
-    public String getInitialValue()
-    {
-        String initial_value =  getContentTypeCode().getInitialValue();
-
-        if (null != initial_value)
-        {
-            if (1 < getDimensions().size())
-            {
-                for (int count = 0; count < getDimensions().size() - 1; ++count)
-                {
-                    initial_value = " {{" + initial_value + "}} ";
-                }
-            }
-
-            if (getContentTypeCode().isIsArrayType())
-            {
-                initial_value = " {{" + initial_value + "}} ";
-            }
-        }
-
-        return initial_value;
-    }
 }
