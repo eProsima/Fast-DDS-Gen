@@ -88,7 +88,8 @@ param_list(parameters) ::= <<>>
 
 param(parameter) ::= <<>>
 
-const_decl(ctx, parent, const) ::= <<
+const_decl(ctx, parent, const, const_type) ::= <<
+$const_type$
 $if(const.parent)$
 $if(const.parent.isInterface)$
 $if(const.typeCode.isType_5)$
@@ -517,6 +518,16 @@ $endif$
 enum_type(ctx, parent, enum) ::= <<>>
 
 bitmask_type(ctx, parent, bitmask) ::= <<>>
+
+sequence_type(ctx, sequence) ::= <<>>
+
+map_type(ctx, map) ::= <<>>
+
+string_type(ctx, string) ::= <<>>
+
+wide_string_type(ctx, wstring) ::= <<>>
+
+array_declarator(ctx, array) ::= <<>>
 
 /***** Utils *****/
 

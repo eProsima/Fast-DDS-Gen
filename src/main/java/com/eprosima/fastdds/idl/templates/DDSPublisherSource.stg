@@ -191,7 +191,11 @@ param_list(parameters) ::= <<>>
 
 param(parameter) ::= <<>>
 
-const_decl(ctx, parent, const) ::= <<>>
+const_decl(ctx, parent, const, const_type) ::= <<
+
+$const_type$
+
+>>
 
 fwd_decl(ctx, parent, type) ::= <<>>
 
@@ -206,3 +210,13 @@ enum_type(ctx, parent, enum) ::= <<>>
 bitmask_type(ctx, parent, bitmask) ::= <<>>
 
 bitset_type(ctx, parent, bitset) ::= <<>>
+
+sequence_type(ctx, sequence) ::= <<>>
+
+map_type(ctx, map) ::= <<>>
+
+string_type(ctx, string) ::= <<>>
+
+wide_string_type(ctx, wstring) ::= <<>>
+
+array_declarator(ctx, array) ::= <<>>

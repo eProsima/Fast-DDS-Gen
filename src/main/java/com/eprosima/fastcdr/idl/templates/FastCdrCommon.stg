@@ -31,7 +31,11 @@ dcdr \>> aux_$member.name$;
 $member.name$(aux_$member.name$);$endif$
 >>
 
-const_decl(ctx, parent, const) ::= <<>>
+const_decl(ctx, parent, const, const_type) ::= <<
+
+$const_type$
+
+>>
 
 object_cpptypename(object) ::= <<
 $if(object.annotationOptional)$eprosima::fastcdr::optional<$endif$$object.typecode.cppTypename$$if(object.typecode.forwarded)$*$endif$$if(object.annotationOptional)$>$endif$

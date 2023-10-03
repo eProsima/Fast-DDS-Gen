@@ -156,7 +156,11 @@ interface(ctx, parent, interface, export_list) ::= <<>>
 
 export_list(exports) ::= <<>>
 
-const_decl(ctx, parent, const) ::= <<>>
+const_decl(ctx, parent, const, const_type) ::= <<
+
+$const_type$
+
+>>
 
 fwd_decl(ctx, parent, type) ::= <<>>
 
@@ -297,6 +301,16 @@ $get_complete_type_object_impl(ctx=ctx, param=bitset)$
 }
 
 >>
+
+sequence_type(ctx, sequence) ::= <<>>
+
+map_type(ctx, map) ::= <<>>
+
+string_type(ctx, string) ::= <<>>
+
+wide_string_type(ctx, wstring) ::= <<>>
+
+array_declarator(ctx, array) ::= <<>>
 
 /***** Utils *****/
 get_type_identifier_impl(ctx, param) ::= <<
