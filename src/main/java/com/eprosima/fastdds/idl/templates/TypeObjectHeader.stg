@@ -133,8 +133,22 @@ definition_list(definitions) ::= <<
 $definitions; separator="\n"$
 >>
 
-const_decl(ctx, parent, const) ::= <<>>
+const_decl(ctx, parent, const, const_type) ::= <<
+
+$const_type$
+
+>>
 
 fwd_decl(ctx, parent, type) ::= <<>>
+
+sequence_type(ctx, sequence) ::= <<>>
+
+map_type(ctx, map) ::= <<>>
+
+string_type(ctx, string) ::= <<>>
+
+wide_string_type(ctx, wstring) ::= <<>>
+
+array_declarator(ctx, array) ::= <<>>
 
 /***** Utils *****/

@@ -20,7 +20,11 @@ $definitions; separator="\n"$
 
 annotation(ctx, annotation) ::= <<>>
 
-const_decl(ctx, parent, const) ::= <<>>
+const_decl(ctx, parent, const, const_type) ::= <<
+
+$const_type$
+
+>>
 
 typedef_decl(ctx, parent, typedefs) ::= <<>>
 
@@ -35,6 +39,16 @@ bitset_type(ctx, parent, bitset, extensions) ::= <<>>
 enum_type(ctx, parent, enum) ::= <<>>
 
 bitmask_type(ctx, parent, bitmask) ::= <<>>
+
+sequence_type(ctx, sequence) ::= <<>>
+
+map_type(ctx, map) ::= <<>>
+
+string_type(ctx, string) ::= <<>>
+
+wide_string_type(ctx, wstring) ::= <<>>
+
+array_declarator(ctx, array) ::= <<>>
 
 interface(ctx, parent, interface, export_list) ::= <<>>
 
