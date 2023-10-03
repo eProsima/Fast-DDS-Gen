@@ -102,6 +102,56 @@ get_content_type(ctx, type) ::= <<
     $endif$
 >>
 
+
+check_alias_type(ctx, typedefs, relation) ::= <<
+    const TypeIdentifier* $typedefs.name$_$if(relation)$complete$else$minimal$endif$_type_identifier = Get$typedefs.name$Identifier($relation$);
+    result &= $typedefs.name$_$if(relation)$complete$else$minimal$endif$_type_identifier != nullptr;
+    result &= $typedefs.name$_$if(relation)$complete$else$minimal$endif$_type_identifier->_d() == EK_$if(relation)$COMPLETE$else$MINIMAL$endif$;
+
+    const TypeObject* $typedefs.name$_$if(relation)$complete$else$minimal$endif$_typeobject = Get$typedefs.name$Object($relation$);
+    result &= $typedefs.name$_$if(relation)$complete$else$minimal$endif$_typeobject != nullptr;
+    result &= $typedefs.name$_$if(relation)$complete$else$minimal$endif$_typeobject->_d() == EK_$if(relation)$COMPLETE$else$MINIMAL$endif$;
+
+    $if(relation)$Complete$else$Minimal$endif$TypeObject $typedefs.name$_$if(relation)$complete$else$minimal$endif$_object = $typedefs.name$_$if(relation)$complete$else$minimal$endif$_typeobject->$if(relation)$complete$else$minimal$endif$();
+    result &= $typedefs.name$_$if(relation)$complete$else$minimal$endif$_object._d() == TK_ALIAS;
+
+    $if(relation)$Complete$else$Minimal$endif$AliasType $typedefs.name$_$if(relation)$complete$else$minimal$endif$_typedefs = $typedefs.name$_$if(relation)$complete$else$minimal$endif$_object.alias_type();
+    AliasTypeFlag $typedefs.name$_$if(relation)$complete$else$minimal$endif$_flags = $typedefs.name$_$if(relation)$complete$else$minimal$endif$_typedefs.alias_flags();// Unused. No flags apply
+    $if(relation)$Complete$else$Minimal$endif$AliasHeader $typedefs.name$_$if(relation)$complete$else$minimal$endif$_header = $typedefs.name$_$if(relation)$complete$else$minimal$endif$_typedefs.header();// Empty. Available for future extension
+
+    $if(relation)$
+    $if(relation)$Complete$else$Minimal$endif$TypeDetail $typedefs.name$_$if(relation)$complete$else$minimal$endif$_header_details = $typedefs.name$_$if(relation)$complete$else$minimal$endif$_header.detail();
+    //@optional AppliedBuiltinTypeAnnotations ann_builtin;?????
+    //@optional AppliedAnnotationSeq ann_custom;?????
+    QualifiedTypeName $typedefs.name$_$if(relation)$complete$else$minimal$endif$_header_details_type_name = $typedefs.name$_$if(relation)$complete$else$minimal$endif$_header_details.type_name();
+    result &= $typedefs.name$_$if(relation)$complete$else$minimal$endif$_header_details_type_name == "$typedefs.name$";
+    $endif$
+
+    $if(relation)$Complete$else$Minimal$endif$AliasBody $typedefs.name$_$if(relation)$complete$else$minimal$endif$_body = $typedefs.name$_$if(relation)$complete$else$minimal$endif$_typedefs.body();
+    CommonAliasBody $typedefs.name$_$if(relation)$complete$else$minimal$endif$_common_alias_body = $typedefs.name$_$if(relation)$complete$else$minimal$endif$_body.common();
+    AliasMemberFlag $typedefs.name$_$if(relation)$complete$else$minimal$endif$_related_flags = $typedefs.name$_$if(relation)$complete$else$minimal$endif$_common_alias_body.related_flags();// Unused. No flags apply
+
+    $if(relation)$
+    //@optional AppliedBuiltinMemberAnnotations ann_builtin;?????
+    //@optional AppliedAnnotationSeq ann_custom;?????
+    $endif$
+>>
+
+check_alias_related_type(ctx, typedefs, relation) ::= <<
+    //=====check_alias_related_type - $if(relation)$complete$else$minimal$endif$ - $typedefs.name$=====
+    $if (typedefs.typedefContentTypeCode.isAliasType)$
+        //=====typedefs.typedefContentTypeCode.isAliasType=====
+        $check_alias_related_type(ctx=ctx, typedefs=typedefs.typedefContentTypeCode, relation=relation)$
+    $else$
+    {
+        const TypeIdentifier $typedefs.name$_$if(relation)$complete$else$minimal$endif$_content_type = *$get_type_identifier(ctx=ctx, type=typedefs.typedefContentTypeCode, relation=relation)$
+        TypeIdentifier $typedefs.name$_$if(relation)$complete$else$minimal$endif$_related_type = Get$typedefs.name$Object($relation$)->$if(relation)$complete$else$minimal$endif$().alias_type().body().common().related_type();
+
+        result &= $typedefs.name$_$if(relation)$complete$else$minimal$endif$_related_type._d() == $typedefs.name$_$if(relation)$complete$else$minimal$endif$_content_type._d();
+    }
+    $endif$
+>>
+
 check_struct_type(ctx, struct, relation) ::= <<
     const TypeIdentifier* $struct.name$_$if(relation)$complete$else$minimal$endif$_type_identifier = Get$struct.name$Identifier($relation$);
     result &= $struct.name$_$if(relation)$complete$else$minimal$endif$_type_identifier != nullptr;
@@ -123,10 +173,14 @@ check_struct_type(ctx, struct, relation) ::= <<
 
     $if(relation)$Complete$else$Minimal$endif$StructHeader $struct.name$_$if(relation)$complete$else$minimal$endif$_header = $struct.name$_$if(relation)$complete$else$minimal$endif$_struct.header();
     $if(relation)$
-    result &= $struct.name$_$if(relation)$complete$else$minimal$endif$_header.detail().type_name() == "$struct.name$";
+    $if(relation)$Complete$else$Minimal$endif$TypeDetail $struct.name$_$if(relation)$complete$else$minimal$endif$_header_detail = $struct.name$_$if(relation)$complete$else$minimal$endif$_header.detail();
+    //@optional AppliedBuiltinTypeAnnotations ann_builtin;?????
+    //@optional AppliedAnnotationSeq ann_custom;?????
+    result &= $struct.name$_$if(relation)$complete$else$minimal$endif$_header_detail.type_name() == "$struct.name$";
     $else$
     //result &= $struct.name$_$if(relation)$complete$else$minimal$endif$_header.detail().type_name() == ""; // Empty. Available for future extension
     $endif$
+
     $if(relation)$Complete$else$Minimal$endif$StructMemberSeq $struct.name$_$if(relation)$complete$else$minimal$endif$_memberseq = $struct.name$_$if(relation)$complete$else$minimal$endif$_struct.member_seq();
 >>
 
@@ -136,6 +190,7 @@ check_struct_member_type(ctx, member, relation) ::= <<
     $if(relation)$Complete$else$Minimal$endif$MemberDetail $struct.name$_$if(relation)$complete$else$minimal$endif$_common_$member.name$_struct_member_detail = $struct.name$_$if(relation)$complete$else$minimal$endif$_$member.name$.detail();
     $if(relation)$
     MemberName $struct.name$_$if(relation)$complete$else$minimal$endif$_common_$member.name$_struct_member_name = $struct.name$_$if(relation)$complete$else$minimal$endif$_common_$member.name$_struct_member_detail.name();
+    result &= $struct.name$_$if(relation)$complete$else$minimal$endif$_common_$member.name$_struct_member_name == "$member.name$";
     //@optional AppliedBuiltinMemberAnnotations ann_builtin;?????
     //@optional AppliedAnnotationSeq ann_custom;?????
     $else$
@@ -148,7 +203,6 @@ check_struct_member_type(ctx, member, relation) ::= <<
     result &= $struct.name$_$if(relation)$complete$else$minimal$endif$_common_$member.name$_struct_member.member_flags().IS_OPTIONAL() == $member.annotationOptional$;
     result &= $struct.name$_$if(relation)$complete$else$minimal$endif$_common_$member.name$_struct_member.member_flags().IS_MUST_UNDERSTAND() == $member.annotationMustUnderstand$;
     result &= $struct.name$_$if(relation)$complete$else$minimal$endif$_common_$member.name$_struct_member.member_flags().IS_KEY() == $member.annotationKey$;
-    result &= $struct.name$_$if(relation)$complete$else$minimal$endif$_common_$member.name$_struct_member.member_flags().IS_DEFAULT() == false; // Doesn't apply
 
     $if (member.typecode.isAliasType)$
         //=====member.typecode.isAliasType=====
@@ -189,6 +243,8 @@ check_struct_member_type(ctx, member, relation) ::= <<
     $elseif (member.typecode.isMapType)$
         //=====member.typecode.isSequenceType=====
         $check_map_type(ctx=ctx, map=member, relation=relation)$
+    $elseif (member.typecode.isUnionType)$
+        //=====member.typecode.isUnionType=====
     $else$
         //check_struct_member_type UKNOWN TYPE
         std::cout << std::endl << "======================================== Testing struct: $member.typecode$ ========================================" << std::endl;
@@ -199,10 +255,190 @@ check_struct_member_type(ctx, member, relation) ::= <<
     memberId++;
 >>
 
+check_union_type(ctx, union, relation) ::= <<
+    const TypeIdentifier* $union.name$_$if(relation)$complete$else$minimal$endif$_type_identifier = Get$union.name$Identifier($relation$);
+    result &= $union.name$_$if(relation)$complete$else$minimal$endif$_type_identifier != nullptr;
+    result &= $union.name$_$if(relation)$complete$else$minimal$endif$_type_identifier->_d() == EK_$if(relation)$COMPLETE$else$MINIMAL$endif$;
+
+    const TypeObject* $union.name$_$if(relation)$complete$else$minimal$endif$_typeobject = Get$union.name$Object($relation$);
+    result &= $union.name$_$if(relation)$complete$else$minimal$endif$_typeobject != nullptr;
+    result &= $union.name$_$if(relation)$complete$else$minimal$endif$_typeobject->_d() == EK_$if(relation)$COMPLETE$else$MINIMAL$endif$;
+
+    $if(relation)$Complete$else$Minimal$endif$TypeObject $union.name$_$if(relation)$complete$else$minimal$endif$_object = $union.name$_$if(relation)$complete$else$minimal$endif$_typeobject->$if(relation)$complete$else$minimal$endif$();
+    result &= $union.name$_$if(relation)$complete$else$minimal$endif$_object._d() == TK_UNION;
+
+    $if(relation)$Complete$else$Minimal$endif$UnionType $union.name$_$if(relation)$complete$else$minimal$endif$_union = $union.name$_$if(relation)$complete$else$minimal$endif$_object.union_type();
+    result &= $union.name$_$if(relation)$complete$else$minimal$endif$_union.union_flags().IS_FINAL() == $union.annotationFinal$;
+    result &= $union.name$_$if(relation)$complete$else$minimal$endif$_union.union_flags().IS_APPENDABLE() == $union.annotationAppendable$;
+    result &= $union.name$_$if(relation)$complete$else$minimal$endif$_union.union_flags().IS_MUTABLE() == $union.annotationMutable$;
+    result &= $union.name$_$if(relation)$complete$else$minimal$endif$_union.union_flags().IS_NESTED() == $union.annotationNested$;
+    result &= $union.name$_$if(relation)$complete$else$minimal$endif$_union.union_flags().IS_AUTOID_HASH() == false; // Unsupported
+
+    $if(relation)$Complete$else$Minimal$endif$UnionHeader $union.name$_$if(relation)$complete$else$minimal$endif$_header = $union.name$_$if(relation)$complete$else$minimal$endif$_union.header();
+    $if(relation)$
+    $if(relation)$Complete$else$Minimal$endif$TypeDetail $union.name$_$if(relation)$complete$else$minimal$endif$_header_detail = $union.name$_$if(relation)$complete$else$minimal$endif$_header.detail();
+    //@optional AppliedBuiltinTypeAnnotations ann_builtin;?????
+    //@optional AppliedAnnotationSeq ann_custom;?????
+    result &= $union.name$_$if(relation)$complete$else$minimal$endif$_header_detail.type_name() == "$union.name$";
+    $else$
+    //result &= $union.name$_$if(relation)$complete$else$minimal$endif$_header.detail().type_name() == ""; // Empty. Available for future extension
+    $endif$
+
+    $if(relation)$Complete$else$Minimal$endif$DiscriminatorMember $union.name$_$if(relation)$complete$else$minimal$endif$_discriminator = $union.name$_$if(relation)$complete$else$minimal$endif$_union.discriminator();
+
+    CommonDiscriminatorMember $union.name$_$if(relation)$complete$else$minimal$endif$_discriminator_common = $union.name$_$if(relation)$complete$else$minimal$endif$_discriminator.common();
+    //result &= $union.name$_$if(relation)$complete$else$minimal$endif$_discriminator_common.member_flags().TRY_CONSTRUCT1() == $union.discriminator.annotationTryConstruct1$;
+    //result &= $union.name$_$if(relation)$complete$else$minimal$endif$_discriminator_common.member_flags().TRY_CONSTRUCT2() == $union.discriminator.annotationTryConstruct2$;
+    //result &= $union.name$_$if(relation)$complete$else$minimal$endif$_discriminator_common.member_flags().IS_KEY() == $union.discriminator.annotationKey$;
+
+    //TypeIdentifier type_id;?????
+    $if(relation)$
+    //@optional AppliedBuiltinTypeAnnotations ann_builtin;?????
+    //@optional AppliedAnnotationSeq ann_custom;?????
+    $endif$
+
+    $if(relation)$Complete$else$Minimal$endif$UnionMemberSeq $union.name$_$if(relation)$complete$else$minimal$endif$_memberseq = $union.name$_$if(relation)$complete$else$minimal$endif$_union.member_seq();
+>>
+
+check_union_member_type(ctx, member, relation) ::= <<
+    $if(relation)$Complete$else$Minimal$endif$UnionMember $union.name$_$if(relation)$complete$else$minimal$endif$_$member.name$_member = $union.name$_$if(relation)$complete$else$minimal$endif$_memberseq.at(memberId);
+    CommonUnionMember $union.name$_$if(relation)$complete$else$minimal$endif$_common_$member.name$_common = $union.name$_$if(relation)$complete$else$minimal$endif$_$member.name$_member.common();
+
+    MemberId $union.name$_$if(relation)$complete$else$minimal$endif$_common_$member.name$_memberid = $union.name$_$if(relation)$complete$else$minimal$endif$_common_$member.name$_common.member_id();
+    result &= $union.name$_$if(relation)$complete$else$minimal$endif$_common_$member.name$_memberid == memberId;
+    UnionMemberFlag $union.name$_$if(relation)$complete$else$minimal$endif$_common_$member.name$_memberflags = $union.name$_$if(relation)$complete$else$minimal$endif$_common_$member.name$_common.member_flags();
+    //result &= $union.name$_$if(relation)$complete$else$minimal$endif$_common_$member.name$_memberflags.TRY_CONSTRUCT1() == $member.annotationTryConstruct1$;?????
+    //result &= $union.name$_$if(relation)$complete$else$minimal$endif$_common_$member.name$_memberflags.TRY_CONSTRUCT2() == $member.annotationTryConstruct2$;?????
+    //result &= $union.name$_$if(relation)$complete$else$minimal$endif$_common_$member.name$_memberflags.IS_EXTERNAL() == $member.annotationExternal$;?????
+    result &= $union.name$_$if(relation)$complete$else$minimal$endif$_common_$member.name$_memberflags.IS_DEFAULT() == $member.annotationDefault$;
+    
+    TypeIdentifier $union.name$_$if(relation)$complete$else$minimal$endif$_common_$member.name$_membertypeid = $union.name$_$if(relation)$complete$else$minimal$endif$_common_$member.name$_common.type_id();
+
+    UnionCaseLabelSeq $union.name$_$if(relation)$complete$else$minimal$endif$_common_$member.name$_memberlabelseq = $union.name$_$if(relation)$complete$else$minimal$endif$_common_$member.name$_common.label_seq();
+
+    $if(relation)$Complete$else$Minimal$endif$MemberDetail $union.name$_$if(relation)$complete$else$minimal$endif$_$member.name$_detail = $union.name$_$if(relation)$complete$else$minimal$endif$_$member.name$_member.detail();
+    $if(relation)$
+    result &= $union.name$_$if(relation)$complete$else$minimal$endif$_$member.name$_detail.name() == "$member.name$";
+    //@optional AppliedBuiltinTypeAnnotations ann_builtin;?????
+    //@optional AppliedAnnotationSeq ann_custom;?????
+    $else$
+    NameHash $union.name$_$if(relation)$complete$else$minimal$endif$_$member.name$_name_hash = $union.name$_$if(relation)$complete$else$minimal$endif$_$member.name$_detail.name_hash();
+    $endif$
+
+    memberId++;
+>>
+
+check_enum_type(ctx, enum, relation) ::= <<
+    //=====check_enum_type - $if(relation)$complete$else$minimal$endif$ - $enum.name$=====
+    const TypeIdentifier* $enum.name$_$if(relation)$complete$else$minimal$endif$_type_identifier = Get$enum.name$Identifier($relation$);
+    result &= $enum.name$_$if(relation)$complete$else$minimal$endif$_type_identifier != nullptr;
+    result &= $enum.name$_$if(relation)$complete$else$minimal$endif$_type_identifier->_d() == EK_$if(relation)$COMPLETE$else$MINIMAL$endif$;
+
+    const TypeObject* $enum.name$_$if(relation)$complete$else$minimal$endif$_typeobject = Get$enum.name$Object($relation$);
+    result &= $enum.name$_$if(relation)$complete$else$minimal$endif$_typeobject != nullptr;
+    result &= $enum.name$_$if(relation)$complete$else$minimal$endif$_typeobject->_d() == EK_$if(relation)$COMPLETE$else$MINIMAL$endif$;
+
+    $if(relation)$Complete$else$Minimal$endif$TypeObject $enum.name$_$if(relation)$complete$else$minimal$endif$_object = $enum.name$_$if(relation)$complete$else$minimal$endif$_typeobject->$if(relation)$complete$else$minimal$endif$();
+    result &= $enum.name$_$if(relation)$complete$else$minimal$endif$_object._d() == TK_ENUM;
+
+    $if(relation)$Complete$else$Minimal$endif$EnumeratedType $enum.name$_$if(relation)$complete$else$minimal$endif$_enum = $enum.name$_$if(relation)$complete$else$minimal$endif$_object.enumerated_type();
+    //EnumTypeFlag; // Unused. No flags apply
+
+    $if(relation)$Complete$else$Minimal$endif$EnumeratedHeader $enum.name$_$if(relation)$complete$else$minimal$endif$_header = $enum.name$_$if(relation)$complete$else$minimal$endif$_enum.header();
+
+    CommonEnumeratedHeader $enum.name$_$if(relation)$complete$else$minimal$endif$_commonheader = $enum.name$_$if(relation)$complete$else$minimal$endif$_header.common();
+    //$enum.name$_$if(relation)$complete$else$minimal$endif$_commonheader.bit_bound()??????
+    $if(relation)$
+    CompleteTypeDetail $enum.name$_$if(relation)$complete$else$minimal$endif$_header_detail = $enum.name$_$if(relation)$complete$else$minimal$endif$_header.detail();
+    //@optional AppliedBuiltinTypeAnnotations ann_builtin;?????
+    //@optional AppliedAnnotationSeq ann_custom;?????
+    QualifiedTypeName $enum.name$_$if(relation)$complete$else$minimal$endif$_header_detail_type_name = $enum.name$_$if(relation)$complete$else$minimal$endif$_header_detail.type_name();
+    result &= $enum.name$_$if(relation)$complete$else$minimal$endif$_header_detail_type_name == "$enum.name$";
+    $endif$
+
+    $if(relation)$Complete$else$Minimal$endif$EnumeratedLiteralSeq $enum.name$_$if(relation)$complete$else$minimal$endif$_literalseq = $enum.name$_$if(relation)$complete$else$minimal$endif$_enum.literal_seq();
+>>
+
+check_enum_literal_type(ctx, literal, relation) ::= <<
+    $if(relation)$Complete$else$Minimal$endif$EnumeratedLiteral $enum.name$_$if(relation)$complete$else$minimal$endif$_$literal.name$ = $enum.name$_$if(relation)$complete$else$minimal$endif$_literalseq.at(literalId);
+    CommonEnumeratedLiteral $enum.name$_$if(relation)$complete$else$minimal$endif$_common_$literal.name$_enum_literal = $enum.name$_$if(relation)$complete$else$minimal$endif$_$literal.name$.common();
+    
+    long $enum.name$_$if(relation)$complete$else$minimal$endif$_common_$literal.name$_enum_literal_value = $enum.name$_$if(relation)$complete$else$minimal$endif$_common_$literal.name$_enum_literal.value();
+    result &= $enum.name$_$if(relation)$complete$else$minimal$endif$_common_$literal.name$_enum_literal.value() == literalId;
+    
+    EnumeratedLiteralFlag $enum.name$_$if(relation)$complete$else$minimal$endif$_common_$literal.name$_enum_flags = $enum.name$_$if(relation)$complete$else$minimal$endif$_common_$literal.name$_enum_literal.flags();
+    result &= $enum.name$_$if(relation)$complete$else$minimal$endif$_common_$literal.name$_enum_flags.IS_DEFAULT() == $literal.annotationDefault$;
+
+    $if(relation)$Complete$else$Minimal$endif$MemberDetail $enum.name$_$if(relation)$complete$else$minimal$endif$_common_$literal.name$_enum_literal_detail = $enum.name$_$if(relation)$complete$else$minimal$endif$_$literal.name$.detail();
+    $if(relation)$
+    MemberName $enum.name$_$if(relation)$complete$else$minimal$endif$_common_$literal.name$_enum_literal_name = $enum.name$_$if(relation)$complete$else$minimal$endif$_common_$literal.name$_enum_literal_detail.name();
+    result &= $enum.name$_$if(relation)$complete$else$minimal$endif$_common_$literal.name$_enum_literal_name == "$literal.name$";
+    //@optional AppliedBuiltinLiteralAnnotations ann_builtin;?????
+    //@optional AppliedAnnotationSeq ann_custom;?????
+    $else$
+    NameHash $enum.name$_$if(relation)$complete$else$minimal$endif$_common_$literal.name$_enum_literal_name_hash = $enum.name$_$if(relation)$complete$else$minimal$endif$_common_$literal.name$_enum_literal_detail.name_hash();
+    $endif$
+
+    literalId++;
+>>
+
+check_bitmask_type(ctx, bitmask, relation) ::= <<
+>>
+
+check_bitset_type(ctx, bitset, relation) ::= <<
+>>
+
+check_annotation_type(ctx, annotation, relation) ::= <<
+    const TypeIdentifier* $annotation.name$_$if(relation)$complete$else$minimal$endif$_type_identifier = Get$annotation.name$Identifier($relation$);
+    result &= $annotation.name$_$if(relation)$complete$else$minimal$endif$_type_identifier != nullptr;
+    result &= $annotation.name$_$if(relation)$complete$else$minimal$endif$_type_identifier->_d() == EK_$if(relation)$COMPLETE$else$MINIMAL$endif$;
+
+    const TypeObject* $annotation.name$_$if(relation)$complete$else$minimal$endif$_typeobject = Get$annotation.name$Object($relation$);
+    result &= $annotation.name$_$if(relation)$complete$else$minimal$endif$_typeobject != nullptr;
+    result &= $annotation.name$_$if(relation)$complete$else$minimal$endif$_typeobject->_d() == EK_$if(relation)$COMPLETE$else$MINIMAL$endif$;
+
+    $if(relation)$Complete$else$Minimal$endif$TypeObject $annotation.name$_$if(relation)$complete$else$minimal$endif$_object = $annotation.name$_$if(relation)$complete$else$minimal$endif$_typeobject->$if(relation)$complete$else$minimal$endif$();
+    result &= $annotation.name$_$if(relation)$complete$else$minimal$endif$_object._d() == TK_ANNOTATION;
+
+    $if(relation)$Complete$else$Minimal$endif$AnnotationType $annotation.name$_$if(relation)$complete$else$minimal$endif$_annotation = $annotation.name$_$if(relation)$complete$else$minimal$endif$_object.annotation_type();
+    AnnotationTypeFlag $annotation.name$_$if(relation)$complete$else$minimal$endif$_annotation_flags = $annotation.name$_$if(relation)$complete$else$minimal$endif$_annotation.annotation_flag();// Unused. No flags apply
+
+    $if(relation)$Complete$else$Minimal$endif$AnnotationHeader $annotation.name$_$if(relation)$complete$else$minimal$endif$_header = $annotation.name$_$if(relation)$complete$else$minimal$endif$_annotation.header();
+    $if(relation)$
+    QualifiedTypeName $annotation.name$_$if(relation)$complete$else$minimal$endif$_name = $annotation.name$_$if(relation)$complete$else$minimal$endif$_header.annotation_name();
+    result &= $annotation.name$_$if(relation)$complete$else$minimal$endif$_name == "$annotation.name$";
+
+    $endif$
+
+    $if(relation)$Complete$else$Minimal$endif$AnnotationParameterSeq $annotation.name$_$if(relation)$complete$else$minimal$endif$_memberseq = $annotation.name$_$if(relation)$complete$else$minimal$endif$_annotation.member_seq();
+>>
+
+check_annotation_member_type(ctx, parameter, relation) ::= <<
+    $if(relation)$Complete$else$Minimal$endif$AnnotationParameter $parameter.name$_$if(relation)$complete$else$minimal$endif$_$parameter.name$ = $annotation.name$_$if(relation)$complete$else$minimal$endif$_memberseq.at(memberId);
+    CommonAnnotationParameter $parameter.name$_$if(relation)$complete$else$minimal$endif$_common_$parameter.name$_parameter_member = $parameter.name$_$if(relation)$complete$else$minimal$endif$_$parameter.name$.common();
+    //AnnotationParameterFlag member_flags;// Unused. No flags apply
+    //TypeIdentifier member_type_id;?????
+
+    $if(relation)$
+    MemberName $parameter.name$_$if(relation)$complete$else$minimal$endif$_$parameter.name$_name = $parameter.name$_$if(relation)$complete$else$minimal$endif$_$parameter.name$.name();
+    result &= $parameter.name$_$if(relation)$complete$else$minimal$endif$_$parameter.name$_name == "$parameter.name$";
+    $else$
+    //NameHash $parameter.name$_$if(relation)$complete$else$minimal$endif$_$parameter.name$_namehash = $parameter.name$_$if(relation)$complete$else$minimal$endif$_$parameter.name$.name_hash();?????
+    //result &= $parameter.name$_$if(relation)$complete$else$minimal$endif$_$parameter.name$_namehash == "$parameter.name$";?????
+    $endif$
+
+    AnnotationParameterValue $parameter.name$_$if(relation)$complete$else$minimal$endif$_$parameter.name$_default_value = $parameter.name$_$if(relation)$complete$else$minimal$endif$_$parameter.name$.default_value();
+    memberId++;
+>>
+
+check_const_type(ctx, const, relation) ::= <<
+    const TypeIdentifier $const.name$_$if(relation)$complete$else$minimal$endif$_type = *$get_type_identifier(ctx=ctx, type=const.typeCode, relation=relation)$
+>>
+
 check_array_type(ctx, array, relation) ::= <<
     const TypeIdentifier $array.name$_$if(relation)$complete$else$minimal$endif$_type_identifier = *$get_type_identifier(ctx=ctx, type=member.typecode, relation=relation)$
     /*
-    result &= $struct.name$_$if(relation)$complete$else$minimal$endif$_common_$member.name$_struct_member.member_type_id()._d() == $array.name$_$if(relation)$complete$else$minimal$endif$_type_identifier._d();
+    result &= $array.name$_$if(relation)$complete$else$minimal$endif$_common_$member.name$_array_member.member_type_id()._d() == $array.name$_$if(relation)$complete$else$minimal$endif$_type_identifier._d();
     result &= $array.name$_$if(relation)$complete$else$minimal$endif$_type_identifier._d() == EK_$if(relation)$COMPLETE$else$MINIMAL$endif$;
 
     const TypeObject* $array.name$_$if(relation)$complete$else$minimal$endif$_typeobject = $get_type_object(ctx=ctx, type=array, relation=relation)$
@@ -215,15 +451,15 @@ check_array_type(ctx, array, relation) ::= <<
     $if(relation)$Complete$else$Minimal$endif$ArrayType $array.name$_$if(relation)$complete$else$minimal$endif$_array = $array.name$_$if(relation)$complete$else$minimal$endif$_object.array_type();
     CollectionTypeFlag $array.name$_$if(relation)$complete$else$minimal$endif$_flags = $array.name$_$if(relation)$complete$else$minimal$endif$_array .collection_flag();// Unused. No flags apply
     
-    $if(relation)$Complete$else$Minimal$endif$ArrayHeader $array.name$_$if(relation)$complete$else$minimal$endif$_header = $array.name$_$if(relation)$complete$else$minimal$endif$_array .header();// Empty. Available for future extension
-
-    CommonArrayHeader $array.name$_$if(relation)$complete$else$minimal$endif$_commonheader = $array.name$_$if(relation)$complete$else$minimal$endif$_header.common();
+    $if(relation)$Complete$else$Minimal$endif$ArrayHeader $array.name$_$if(relation)$complete$else$minimal$endif$_header = $array.name$_$if(relation)$complete$else$minimal$endif$_array.header();// Empty. Available for future extension
 
     $if(relation)$
-    $if(relation)$Complete$else$Minimal$endif$TypeDetail $array.name$_$if(relation)$complete$else$minimal$endif$_header_details = $array.name$_$if(relation)$complete$else$minimal$endif$_header.detail();
+    $if(relation)$Complete$else$Minimal$endif$TypeDetail $array.name$_$if(relation)$complete$else$minimal$endif$_detail = $array.name$_$if(relation)$complete$else$minimal$endif$_header.detail();
     //@optional AppliedBuiltinTypeAnnotations ann_builtin;?????
     //@optional AppliedAnnotationSeq ann_custom;?????
-    QualifiedTypeName $array.name$_$if(relation)$complete$else$minimal$endif$_header_details_type_name = $array.name$_$if(relation)$complete$else$minimal$endif$_header_details.type_name();
+    result &= $array.name$_$if(relation)$complete$else$minimal$endif$_header.type_name() == "$array.name$";
+    $else$
+    //result &= $array.name$_$if(relation)$complete$else$minimal$endif$_header.detail().type_name() == ""; // Empty. Available for future extension
     $endif$
 
     $if(relation)$Complete$else$Minimal$endif$CollectionElement $array.name$_$if(relation)$complete$else$minimal$endif$_collection_element = $array.name$_$if(relation)$complete$else$minimal$endif$_array .element();
@@ -276,6 +512,7 @@ check_sequence_type(ctx, sequence, relation) ::= <<
     //@optional AppliedBuiltinTypeAnnotations ann_builtin;?????
     //@optional AppliedAnnotationSeq ann_custom;?????
     QualifiedTypeName $sequence.name$_$if(relation)$complete$else$minimal$endif$_header_details_type_name = $sequence.name$_$if(relation)$complete$else$minimal$endif$_header_details.type_name();
+    result &= $sequence.name$_$if(relation)$complete$else$minimal$endif$_header_details_type_name == "$sequence.name$";
     $endif$
 
     $if(relation)$Complete$else$Minimal$endif$CollectionElement $sequence.name$_$if(relation)$complete$else$minimal$endif$_collection_element = $sequence.name$_$if(relation)$complete$else$minimal$endif$_sequence.element();
@@ -322,6 +559,7 @@ check_map_type(ctx, map, relation) ::= <<
     //@optional AppliedBuiltinTypeAnnotations ann_builtin;?????
     //@optional AppliedAnnotationSeq ann_custom;?????
     QualifiedTypeName $map.name$_$if(relation)$complete$else$minimal$endif$_header_details_type_name = $map.name$_$if(relation)$complete$else$minimal$endif$_header_details.type_name();
+    result &= $map.name$_$if(relation)$complete$else$minimal$endif$_header_details_type_name == "$map.name$";
     $endif$
 
     $if(relation)$Complete$else$Minimal$endif$CollectionElement $map.name$_$if(relation)$complete$else$minimal$endif$_collection_key_element = $map.name$_$if(relation)$complete$else$minimal$endif$_map.key();
@@ -347,123 +585,6 @@ check_map_type(ctx, map, relation) ::= <<
     }
     */
 >>
-
-check_alias_type(ctx, typedefs, relation) ::= <<
-    const TypeIdentifier* $typedefs.name$_$if(relation)$complete$else$minimal$endif$_type_identifier = Get$typedefs.name$Identifier($relation$);
-    result &= $typedefs.name$_$if(relation)$complete$else$minimal$endif$_type_identifier != nullptr;
-    result &= $typedefs.name$_$if(relation)$complete$else$minimal$endif$_type_identifier->_d() == EK_$if(relation)$COMPLETE$else$MINIMAL$endif$;
-
-    const TypeObject* $typedefs.name$_$if(relation)$complete$else$minimal$endif$_typeobject = Get$typedefs.name$Object($relation$);
-    result &= $typedefs.name$_$if(relation)$complete$else$minimal$endif$_typeobject != nullptr;
-    result &= $typedefs.name$_$if(relation)$complete$else$minimal$endif$_typeobject->_d() == EK_$if(relation)$COMPLETE$else$MINIMAL$endif$;
-
-    $if(relation)$Complete$else$Minimal$endif$TypeObject $typedefs.name$_$if(relation)$complete$else$minimal$endif$_object = $typedefs.name$_$if(relation)$complete$else$minimal$endif$_typeobject->$if(relation)$complete$else$minimal$endif$();
-    result &= $typedefs.name$_$if(relation)$complete$else$minimal$endif$_object._d() == TK_ALIAS;
-
-    $if(relation)$Complete$else$Minimal$endif$AliasType $typedefs.name$_$if(relation)$complete$else$minimal$endif$_typedefs = $typedefs.name$_$if(relation)$complete$else$minimal$endif$_object.alias_type();
-    AliasTypeFlag $typedefs.name$_$if(relation)$complete$else$minimal$endif$_flags = $typedefs.name$_$if(relation)$complete$else$minimal$endif$_typedefs.alias_flags();// Unused. No flags apply
-    $if(relation)$Complete$else$Minimal$endif$AliasHeader $typedefs.name$_$if(relation)$complete$else$minimal$endif$_header = $typedefs.name$_$if(relation)$complete$else$minimal$endif$_typedefs.header();// Empty. Available for future extension
-
-    $if(relation)$
-    $if(relation)$Complete$else$Minimal$endif$TypeDetail $typedefs.name$_$if(relation)$complete$else$minimal$endif$_header_details = $typedefs.name$_$if(relation)$complete$else$minimal$endif$_header.detail();
-    //@optional AppliedBuiltinTypeAnnotations ann_builtin;?????
-    //@optional AppliedAnnotationSeq ann_custom;?????
-    QualifiedTypeName $typedefs.name$_$if(relation)$complete$else$minimal$endif$_header_details_type_name = $typedefs.name$_$if(relation)$complete$else$minimal$endif$_header_details.type_name();
-    $endif$
-
-    $if(relation)$Complete$else$Minimal$endif$AliasBody $typedefs.name$_$if(relation)$complete$else$minimal$endif$_body = $typedefs.name$_$if(relation)$complete$else$minimal$endif$_typedefs.body();
-    CommonAliasBody $typedefs.name$_$if(relation)$complete$else$minimal$endif$_common_alias_body = $typedefs.name$_$if(relation)$complete$else$minimal$endif$_body.common();
-    AliasMemberFlag $typedefs.name$_$if(relation)$complete$else$minimal$endif$_related_flags = $typedefs.name$_$if(relation)$complete$else$minimal$endif$_common_alias_body.related_flags();// Unused. No flags apply
-
-    $if(relation)$
-    //@optional AppliedBuiltinMemberAnnotations ann_builtin;?????
-    //@optional AppliedAnnotationSeq ann_custom;?????
-    $endif$
->>
-
-check_alias_related_type(ctx, typedefs, relation) ::= <<
-    //=====check_alias_related_type - $if(relation)$complete$else$minimal$endif$ - $typedefs.name$=====
-    $if (typedefs.typedefContentTypeCode.isAliasType)$
-        //=====typedefs.typedefContentTypeCode.isAliasType=====
-        $check_alias_related_type(ctx=ctx, typedefs=typedefs.typedefContentTypeCode, relation=relation)$
-    $else$
-    {
-        const TypeIdentifier $typedefs.name$_$if(relation)$complete$else$minimal$endif$_content_type = *$get_type_identifier(ctx=ctx, type=typedefs.typedefContentTypeCode, relation=relation)$
-        TypeIdentifier $typedefs.name$_$if(relation)$complete$else$minimal$endif$_related_type = Get$typedefs.name$Object($relation$)->$if(relation)$complete$else$minimal$endif$().alias_type().body().common().related_type();
-
-        result &= $typedefs.name$_$if(relation)$complete$else$minimal$endif$_related_type._d() == $typedefs.name$_$if(relation)$complete$else$minimal$endif$_content_type._d();
-    }
-    $endif$
->>
-
-check_enum_type(ctx, enum, relation) ::= <<
-    //=====check_enum_type - $if(relation)$complete$else$minimal$endif$ - $enum.name$=====
-    const TypeIdentifier* $enum.name$_$if(relation)$complete$else$minimal$endif$_type_identifier = Get$enum.name$Identifier($relation$);
-    result &= $enum.name$_$if(relation)$complete$else$minimal$endif$_type_identifier != nullptr;
-    result &= $enum.name$_$if(relation)$complete$else$minimal$endif$_type_identifier->_d() == EK_$if(relation)$COMPLETE$else$MINIMAL$endif$;
-
-    const TypeObject* $enum.name$_$if(relation)$complete$else$minimal$endif$_typeobject = Get$enum.name$Object($relation$);
-    result &= $enum.name$_$if(relation)$complete$else$minimal$endif$_typeobject != nullptr;
-    result &= $enum.name$_$if(relation)$complete$else$minimal$endif$_typeobject->_d() == EK_$if(relation)$COMPLETE$else$MINIMAL$endif$;
-
-    $if(relation)$Complete$else$Minimal$endif$TypeObject $enum.name$_$if(relation)$complete$else$minimal$endif$_object = $enum.name$_$if(relation)$complete$else$minimal$endif$_typeobject->$if(relation)$complete$else$minimal$endif$();
-    result &= $enum.name$_$if(relation)$complete$else$minimal$endif$_object._d() == TK_ENUM;
-
-    $if(relation)$Complete$else$Minimal$endif$EnumeratedType $enum.name$_$if(relation)$complete$else$minimal$endif$_enum = $enum.name$_$if(relation)$complete$else$minimal$endif$_object.enumerated_type();
-    //EnumTypeFlag; // Unused. No flags apply
-
-    $if(relation)$Complete$else$Minimal$endif$EnumeratedHeader $enum.name$_$if(relation)$complete$else$minimal$endif$_header = $enum.name$_$if(relation)$complete$else$minimal$endif$_enum.header();
-
-    CommonEnumeratedHeader $enum.name$_$if(relation)$complete$else$minimal$endif$_commonheader = $enum.name$_$if(relation)$complete$else$minimal$endif$_header.common();
-    //$enum.name$_$if(relation)$complete$else$minimal$endif$_commonheader.bit_bound()??????
-    $if(relation)$
-    CompleteTypeDetail $enum.name$_$if(relation)$complete$else$minimal$endif$_header_detail = $enum.name$_$if(relation)$complete$else$minimal$endif$_header.detail();
-    //@optional AppliedBuiltinTypeAnnotations ann_builtin;?????
-    //@optional AppliedAnnotationSeq ann_custom;?????
-    QualifiedTypeName $enum.name$_$if(relation)$complete$else$minimal$endif$_header_detail_type_name = $enum.name$_$if(relation)$complete$else$minimal$endif$_header_detail.type_name();
-    result &= $enum.name$_$if(relation)$complete$else$minimal$endif$_header_detail_type_name == "$enum.name$";
-    $endif$
-
-    $if(relation)$Complete$else$Minimal$endif$EnumeratedLiteralSeq $enum.name$_$if(relation)$complete$else$minimal$endif$_literalseq = $enum.name$_$if(relation)$complete$else$minimal$endif$_enum.literal_seq();
->>
-
-check_enum_literal_type(ctx, literal, relation) ::= <<
-    $if(relation)$Complete$else$Minimal$endif$EnumeratedLiteral $enum.name$_$if(relation)$complete$else$minimal$endif$_$literal.name$ = $enum.name$_$if(relation)$complete$else$minimal$endif$_literalseq.at(literalId);
-    CommonEnumeratedLiteral $enum.name$_$if(relation)$complete$else$minimal$endif$_common_$literal.name$_enum_literal = $enum.name$_$if(relation)$complete$else$minimal$endif$_$literal.name$.common();
-    
-    long $enum.name$_$if(relation)$complete$else$minimal$endif$_common_$literal.name$_enum_literal_value = $enum.name$_$if(relation)$complete$else$minimal$endif$_common_$literal.name$_enum_literal.value();
-    result &= $enum.name$_$if(relation)$complete$else$minimal$endif$_common_$literal.name$_enum_literal.value() == literalId;
-    
-    EnumeratedLiteralFlag $enum.name$_$if(relation)$complete$else$minimal$endif$_common_$literal.name$_enum_flags = $enum.name$_$if(relation)$complete$else$minimal$endif$_common_$literal.name$_enum_literal.flags();
-    result &= $enum.name$_$if(relation)$complete$else$minimal$endif$_common_$literal.name$_enum_flags.TRY_CONSTRUCT1() == false; // Doesn't apply
-    result &= $enum.name$_$if(relation)$complete$else$minimal$endif$_common_$literal.name$_enum_flags.TRY_CONSTRUCT2() == false; // Doesn't apply
-    result &= $enum.name$_$if(relation)$complete$else$minimal$endif$_common_$literal.name$_enum_flags.IS_EXTERNAL() == false; // Doesn't apply
-    result &= $enum.name$_$if(relation)$complete$else$minimal$endif$_common_$literal.name$_enum_flags.IS_OPTIONAL() == false; // Doesn't apply
-    result &= $enum.name$_$if(relation)$complete$else$minimal$endif$_common_$literal.name$_enum_flags.IS_MUST_UNDERSTAND() == false; // Doesn't apply
-    result &= $enum.name$_$if(relation)$complete$else$minimal$endif$_common_$literal.name$_enum_flags.IS_KEY() == false; // Doesn't apply
-    result &= $enum.name$_$if(relation)$complete$else$minimal$endif$_common_$literal.name$_enum_flags.IS_DEFAULT() == $literal.annotationDefault$;
-
-    $if(relation)$Complete$else$Minimal$endif$MemberDetail $enum.name$_$if(relation)$complete$else$minimal$endif$_common_$literal.name$_enum_literal_detail = $enum.name$_$if(relation)$complete$else$minimal$endif$_$literal.name$.detail();
-    $if(relation)$
-    MemberName $enum.name$_$if(relation)$complete$else$minimal$endif$_common_$literal.name$_enum_literal_name = $enum.name$_$if(relation)$complete$else$minimal$endif$_common_$literal.name$_enum_literal_detail.name();
-    //@optional AppliedBuiltinLiteralAnnotations ann_builtin;?????
-    //@optional AppliedAnnotationSeq ann_custom;?????
-    $else$
-    NameHash $enum.name$_$if(relation)$complete$else$minimal$endif$_common_$literal.name$_enum_literal_name_hash = $enum.name$_$if(relation)$complete$else$minimal$endif$_common_$literal.name$_enum_literal_detail.name_hash();
-    $endif$
-
-    literalId++;
->>
-
-
-
-
-
-check_const_type(ctx, const, relation) ::= <<
-    const TypeIdentifier $const.name$_$if(relation)$complete$else$minimal$endif$_type = *$get_type_identifier(ctx=ctx, type=const, relation=relation)$
->>
-
-
 
 test_typedef(ctx, parent, typedefs) ::= <<
 functions_to_run.emplace_back([]() -> bool
@@ -498,15 +619,9 @@ functions_to_run.emplace_back([]() -> bool
 
     //Minimal
     $check_struct_type(ctx=ctx, struct=struct, relation=false)$ 
-    memberId = 0;
-    $struct.allMembers:{ member | $check_struct_member_type(ctx=ctx, member=member, relation=false)$ }; separator="\n"$
-    result &= $struct.name$_minimal_memberseq.size() == memberId; 
 
     //Complete
     $check_struct_type(ctx=ctx, struct=struct, relation=true)$ 
-    memberId = 0;
-    $struct.allMembers:{ member | $check_struct_member_type(ctx=ctx, member=member, relation=true)$ }; separator="\n"$
-    result &= $struct.name$_complete_memberseq.size() == memberId; 
 
     if(result){
         std::cout << std::endl << "======OK====== Test $struct.name$" << std::endl;
@@ -521,8 +636,20 @@ test_union(ctx, parent, union) ::= <<
 functions_to_run.emplace_back([]() -> bool
 {
     std::cout << std::endl << "======================================== Testing union: $union.name$ ========================================" << std::endl;
+    MemberId memberId;
     bool result = true;
 
+    //Minimal
+    $check_union_type(ctx=ctx, union=union, relation=false)$ 
+    memberId = 0;
+    $union.members:{ member | $check_union_member_type(ctx=ctx, member=member, relation=false)$ }; separator="\n"$
+    result &= $union.name$_minimal_memberseq.size() == memberId; 
+
+    //Complete
+    $check_union_type(ctx=ctx, union=union, relation=true)$ 
+    memberId = 0;
+    $union.members:{ member | $check_union_member_type(ctx=ctx, member=member, relation=true)$ }; separator="\n"$
+    result &= $union.name$_complete_memberseq.size() == memberId; 
 
     if(result){
         std::cout << std::endl << "======OK====== Test $union.name$" << std::endl;
@@ -543,13 +670,13 @@ functions_to_run.emplace_back([]() -> bool
     //Minimal
     $check_enum_type(ctx=ctx, enum=enum, relation=false)$ 
     literalId = 0;
-    $enum.Members:{ literal | $check_enum_literal_type(ctx=ctx, literal=literal, relation=false)$ }; separator="\n"$
+    $enum.members:{ literal | $check_enum_literal_type(ctx=ctx, literal=literal, relation=false)$ }; separator="\n"$
     result &= $enum.name$_minimal_literalseq.size() == literalId; 
 
     //Complete
     $check_enum_type(ctx=ctx, enum=enum, relation=true)$ 
     literalId = 0;
-    $enum.Members:{ literal | $check_enum_literal_type(ctx=ctx, literal=literal, relation=true)$ }; separator="\n"$
+    $enum.members:{ literal | $check_enum_literal_type(ctx=ctx, literal=literal, relation=true)$ }; separator="\n"$
     result &= $enum.name$_complete_literalseq.size() == literalId; 
 
     if(result){
@@ -597,8 +724,20 @@ test_annotation(ctx, parent, annotation) ::= <<
 functions_to_run.emplace_back([]() -> bool
 {
     std::cout << std::endl << "======================================== Testing annotation: $annotation.name$ ========================================" << std::endl;
+    MemberId memberId;
     bool result = true;
 
+    //Minimal
+    $check_annotation_type(ctx=ctx, annotation=annotation, relation=false)$ 
+    memberId = 0;
+    $annotation.members:{ parameter | $check_annotation_member_type(ctx=ctx, parameter=parameter, relation=false)$ }; separator="\n"$
+    result &= $annotation.name$_minimal_memberseq.size() == memberId; 
+
+    //Complete
+    $check_annotation_type(ctx=ctx, annotation=annotation, relation=true)$ 
+    memberId = 0;
+    $annotation.members:{ parameter | $check_annotation_member_type(ctx=ctx, parameter=parameter, relation=true)$ }; separator="\n"$
+    result &= $annotation.name$_complete_memberseq.size() == memberId;
 
     if(result){
         std::cout << std::endl << "======OK====== Test $annotation.name$" << std::endl;
@@ -657,7 +796,7 @@ bitset_type(ctx, parent, bitset) ::= <<
 $test_bitset(ctx=ctx, parent=parent, bitset=bitset)$
 >>
 
-annotation(ctx, annotation) ::= <<
+annotation(ctx, parent, annotation) ::= <<
 $test_annotation(ctx=ctx, parent=parent, annotation=annotation)$
 >>
 
