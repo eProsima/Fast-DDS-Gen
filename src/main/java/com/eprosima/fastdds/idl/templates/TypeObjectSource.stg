@@ -487,7 +487,7 @@ $object.name$_plain_sequence_s_elem_defn.header($object.name$_plain_collection_h
 // - SBound TODO(jlbueno) Collection Type
 $object.name$_plain_sequence_s_elem_defn.bound();
 // - TypeIdentifier TODO(jlbueno) Collection Type
-$common_member_type_id_impl(ctx=ctx, object=object)$
+$common_member_type_id_impl(ctx=ctx, object=object, complete=["false"])$
 $object.name$_plain_sequence_s_elem_defn.element_identifier($object.name$_common_member_type_id);
 >>
 
@@ -499,7 +499,7 @@ $object.name$_plain_sequence_l_elem_defn_impl.header($object.name$_plain_collect
 // - LBound TODO(jlbueno) Collection Type
 $object.name$_plain_sequence_l_elem_defn_impl.bound();
 // - TypeIdentifier TODO(jlbueno) Collection Type
-$common_member_type_id_impl(ctx=ctx, object=object)$
+$common_member_type_id_impl(ctx=ctx, object=object, complete=["false"])$
 $object.name$_plain_sequence_l_elem_defn_impl.element_identifier($object.name$_common_member_type_id);
 >>
 
@@ -513,7 +513,7 @@ $object.dimensions:{ dimension |
 $object.name$_plain_array_s_elem_defn.array_bound_seq().push_back($dimension$);
 }; separator="\n"$
 // - TODO(jlbueno) Collection Type
-$common_member_type_id_impl(ctx=ctx, object=object)$
+$common_member_type_id_impl(ctx=ctx, object=object, complete=["false"])$
 $object.name$_plain_array_s_elem_defn.element_identifier($object.name$_common_member_type_id);
 >>
 
@@ -527,7 +527,7 @@ $object.dimensions:{ dimension |
 $object.name$_plain_array_l_elem_defn.array_bound_seq().push_back($dimension$);
 }; separator="\n"$
 // - TODO(jlbueno) Collection Type
-$common_member_type_id_impl(ctx=ctx, object=object)$
+$common_member_type_id_impl(ctx=ctx, object=object, complete=["false"])$
 $object.name$_plain_array_l_elem_defn.element_identifier($object.name$_common_member_type_id);
 >>
 
@@ -537,11 +537,11 @@ PlainMapSTypeDefn $object.name$_plain_map_s_type_defn;
 $plain_collection_header_impl(ctx=ctx, object=object)$
 $object.name$_plain_map_s_type_defn.header($object.name$_plain_collection_header);
 // - TODO(jlbueno) Collection Type
-$common_member_type_id_impl(ctx=ctx, object=object.element)$
+$common_member_type_id_impl(ctx=ctx, object=object.element, complete=["false"])$
 $object.name$_plain_map_s_type_defn.element_identifier($object.element.name$_common_member_type_id);
 $collection_element_flag_impl(ctx=ctx, object=object.key)$
 $object.name$_plain_map_s_type_defn.key_flags($object.key.name$_collection_element_flag);
-$common_member_type_id_impl(ctx=ctx, object=object.key)$
+$common_member_type_id_impl(ctx=ctx, object=object.key, complete=["false"])$
 $object.name$_plain_map_s_type_defn.key_identifier($object.key.name$_common_member_type_id);
 >>
 
@@ -551,11 +551,11 @@ PlainMapLTypeDefn $object.name$_plain_map_l_type_defn;
 $plain_collection_header_impl(ctx=ctx, object=object)$
 $object.name$_plain_map_l_type_defn.header($object.name$_plain_collection_header);
 // - TODO(jlbueno) Collection Type
-$common_member_type_id_impl(ctx=ctx, object=object.element)$
+$common_member_type_id_impl(ctx=ctx, object=object.element, complete=["false"])$
 $object.name$_plain_map_l_type_defn.element_identifier($object.element.name$_common_member_type_id);
 $collection_element_flag_impl(ctx=ctx, object=object.key)$
 $object.name$_plain_map_l_type_defn.key_flags($object.key.name$_collection_element_flag);
-$common_member_type_id_impl(ctx=ctx, object=object.key)$
+$common_member_type_id_impl(ctx=ctx, object=object.key, complete=["false"])$
 $object.name$_plain_map_l_type_defn.key_identifier($object.key.name$_common_member_type_id);
 >>
 
@@ -740,7 +740,7 @@ $object.name$$name$ |= MemberFlagBits::TRY_CONSTRUCT1;
 $endif$
 >>
 
-common_member_type_id_impl(ctx, object) ::= <<
+common_member_type_id_impl(ctx, object, complete) ::= <<
 // - TypeIdentifier
 const TypeIdentifier* $object.name$_common_member_type_id =
     TypeObjectFactory::get_instance()->get_type_identifier(
@@ -749,7 +749,7 @@ const TypeIdentifier* $object.name$_common_member_type_id =
 assert(nullptr != $object.name$_common_member_type_id);
 >>
 
-common_struct_member_impl(ctx, object) ::= <<
+common_struct_member_impl(ctx, object, complete) ::= <<
 // CommonStructMember
 CommonStructMember $object.name$_common_struct_member;
 // - MemberId
@@ -770,7 +770,7 @@ $if(object.annotationExternal)$
 $object.name$_struct_member_flag |= MemberFlagBits::IS_EXTERNAL;
 $endif$
 $object.name$_common_struct_member.member_flags($object.name$_struct_member_flag);
-$common_member_type_id_impl(ctx=ctx, object=object)$
+$common_member_type_id_impl(ctx=ctx, object=object, complete=complete)$
 $object.name$_common_struct_member.member_type_id(*$object.name$_common_member_type_id);
 >>
 
@@ -805,7 +805,7 @@ $md5_hash(ctx=ctx, object=object, name=["_minimal_member_detail.name_hash()"])$
 complete_struct_member_impl(ctx, object) ::= <<
 // CompleteStructMember
 CompleteStructMember $object.name$_complete_struct_member;
-$common_struct_member_impl(ctx=ctx, object=object)$
+$common_struct_member_impl(ctx=ctx, object=object, complete=["true"])$
 $object.name$_complete_struct_member.common($object.name$_common_struct_member);
 $complete_member_detail_impl(ctx=ctx, object=object)$
 $object.name$_complete_struct_member.detail($object.name$_complete_member_detail);
@@ -814,7 +814,7 @@ $object.name$_complete_struct_member.detail($object.name$_complete_member_detail
 minimal_struct_member_impl(ctx, object) ::= <<
 // MinimalStructMember
 MinimalStructMember $object.name$_minimal_struct_member;
-$common_struct_member_impl(ctx=ctx, object=object)$
+$common_struct_member_impl(ctx=ctx, object=object, complete=["false"])$
 $object.name$_minimal_struct_member.common($object.name$_common_struct_member);
 $minimal_member_detail_impl(ctx=ctx, object=object)$
 $object.name$_minimal_struct_member.detail($object.name$_minimal_member_detail);
@@ -944,7 +944,7 @@ $object.name$_minimal_struct_type.member_seq().push_back($member.name$_minimal_s
 $endif$
 >>
 
-common_union_member_impl(ctx, object) ::= <<
+common_union_member_impl(ctx, object, complete) ::= <<
 // CommonUnionMember
 CommonUnionMember $object.name$_common_union_member;
 // - MemberId
@@ -959,7 +959,7 @@ $if(object.annotationDefaultLiteral)$
 $object.name$_union_member_flag = MemberFlagBits::IS_DEFAULT;
 $endif$
 $object.name$_common_union_member.member_flags($object.name$_union_member_flag);
-$common_member_type_id_impl(ctx=ctx, object=object)$
+$common_member_type_id_impl(ctx=ctx, object=object, complete=complete)$
 $object.name$_common_struct_member.member_type_id(*$object.name$_common_member_type_id);
 $if(object.labels)$
 // - UnionCaseLabelSeq
@@ -970,22 +970,22 @@ $endif$
 complete_union_member_impl(ctx, object) ::= <<
 // CompleteUnionMember
 CompleteUnionMember $object.name$_complete_union_member;
-$common_union_member_impl(ctx, object)$
+$common_union_member_impl(ctx=ctx, object=object, complete=["true"])$
 $object.name$_complete_union_member.common($object.name$_common_union_member);
-$complete_member_detail_impl(ctx, object)$
+$complete_member_detail_impl(ctx=ctx, object=object)$
 $object.name$_complete_union_member.detail($object.name$_complete_member_detail);
 >>
 
 minimal_union_member_impl(ctx, object) ::= <<
 // MinimalUnionMember
 MinimalUnionMember $object.name$_minimal_union_member;
-$common_union_member_impl(ctx, object)$
+$common_union_member_impl(ctx=ctx, object=object, complete=["false"])$
 $object.name$_minimal_union_member.common($object.name$_common_union_member);
-$minimal_member_detail_impl(ctx, object)$
+$minimal_member_detail_impl(ctx=ctx, object=object)$
 $object.name$_minimal_union_member.detail($object.name$_minimal_member_detail);
 >>
 
-common_discriminator_member_impl(ctx, object) ::= <<
+common_discriminator_member_impl(ctx, object, complete) ::= <<
 // CommonDiscriminatorMember
 CommonDiscriminatorMember $object.name$_common_discriminator_member;
 // - UnionDiscriminatorFlag: T1, T2, K
@@ -995,14 +995,14 @@ $if(object.annotationKey)$
 $object.name$_union_member_flag |= MemberFlagBits::IS_KEY;
 $endif$
 $object.name$_common_discriminator_member.member_flags($object.name$_union_member_flag);
-$common_member_type_id_impl(ctx=ctx, object=object)$
+$common_member_type_id_impl(ctx=ctx, object=object, complete=complete)$
 $object.name$_common_discriminator_member.member_type_id(*$object.name$_common_member_type_id);
 >>
 
 complete_discriminator_member_impl(ctx, object) ::= <<
 // CompleteDiscriminatorMember
 CompleteDiscriminatorMember $object.name$_complete_discriminator_member;
-$common_discriminator_member_impl(ctx=ctx, object=object)$
+$common_discriminator_member_impl(ctx=ctx, object=object, complete=["true"])$
 $object.name$_complete_discriminator_member.common($object.name$_common_discriminator_member);
 $applied_annotations_impl(ctx=ctx, object=object, name=["_complete_discriminator_member"])$
 >>
@@ -1010,7 +1010,7 @@ $applied_annotations_impl(ctx=ctx, object=object, name=["_complete_discriminator
 minimal_discriminator_member_impl(ctx, object) ::= <<
 // MinimalDiscriminatorMember
 MinimalDiscriminatorMember $object.name$_minimal_discriminator_member;
-$common_discriminator_member_impl(ctx=ctx, object=object)$
+$common_discriminator_member_impl(ctx=ctx, object=object, complete=["false"])$
 $object.name$_minimal_discriminator_member.common($object.name$_common_discriminator_member);
 >>
 
@@ -1150,19 +1150,19 @@ $object.name$_minimal_annotation_type.member_seq().push_back($member.name$_minim
 }; separator="\n"$
 >>
 
-common_alias_body_impl(ctx, object) ::= <<
+common_alias_body_impl(ctx, object, complete) ::= <<
 // CommonAliasBody
 CommonAliasBody $object.name$_common_alias_body;
 // - AliasMemberFlag: unused. No flags apply.
 // - TypeIdentifier
-$common_member_type_id_impl(ctx=ctx, object=object)$
+$common_member_type_id_impl(ctx=ctx, object=object, complete=complete)$
 $object.name$_common_alias_body.related_type($object.name$_common_member_type_id);
 >>
 
 complete_alias_body_impl(ctx, object) ::= <<
 // CompleteAliasBody
 CompleteAliasBody $object.name$_complete_alias_body;
-$common_alias_body_impl(ctx=ctx, object=object)$
+$common_alias_body_impl(ctx=ctx, object=object, complete=["true"])$
 $object.name$_complete_alias_body.common($object.name$_common_alias_body);
 $applied_annotations_impl(ctx=ctx, object=object, name=["_complete_alias_body"])$
 >>
@@ -1170,7 +1170,7 @@ $applied_annotations_impl(ctx=ctx, object=object, name=["_complete_alias_body"])
 minimal_alias_body_impl(ctx, object) ::= <<
 // MinimalAliasBody
 MinimalAliasBody $object.name$_minimal_alias_body;
-$common_alias_body_impl(ctx=ctx, object=object)$
+$common_alias_body_impl(ctx=ctx, object=object, complete=["false"])$
 $object.name$_minimal_alias_body.common($object.name$_common_alias_body);
 >>
 
@@ -1192,7 +1192,7 @@ CompleteAliasType $object.name$_complete_alias_type;
 // - AliasTypeFlag: Unused. No flags apply
 $complete_alias_header_impl(ctx=ctx, object=object)$
 $object.name$_complete_alias_type.header($object.name$_complete_alias_header);
-$complete_alias_body_impl(ctx=ctx, onject=object)$
+$complete_alias_body_impl(ctx=ctx, object=object)$
 $object.name$_complete_alias_type.body($object.name$_complete_alias_body);
 >>
 
@@ -1202,7 +1202,7 @@ MinimalAliasType $object.name$_minimal_alias_type;
 // - AliasTypeFlag: Unused. No flags apply
 $minimal_alias_header_impl(ctx=ctx, object=object)$
 $object.name$_minimal_alias_type.header($object.name$_minimal_alias_header);
-$minimal_alias_body_impl(ctx=ctx, onject=object)$
+$minimal_alias_body_impl(ctx=ctx, object=object)$
 $object.name$_minimal_alias_type.body($object.name$_minimal_alias_body);
 >>
 
@@ -1212,19 +1212,19 @@ CompleteElementDetail $object.name$_complete_element_detail;
 $applied_annotations_impl(ctx=ctx, object=object, name=["_complete_element_detail"])$
 >>
 
-common_collection_element_impl(ctx, object) ::= <<
+common_collection_element_impl(ctx, object, complete) ::= <<
 // CommonCollectionElement
 CommonCollectionElement $object.name$_common_collection_element;
 $collection_element_flag_impl(ctx=ctx, object=object)$
 $object.name$_common_collection_element.element_flags($object.name$_collection_element_flag);
-$common_member_type_id_impl(ctx=ctx, object=object)$
+$common_member_type_id_impl(ctx=ctx, object=object, complete=complete)$
 $object.name$_common_collection_element.type(*$object.name$_common_member_type_id);
 >>
 
 complete_collection_element_impl(ctx, object) ::= <<
 // CompleteCollectionElement
 CompleteCollectionElement $object.name$_complete_collection_element;
-$common_collection_element_impl(ctx=ctx, object=object)$
+$common_collection_element_impl(ctx=ctx, object=object, complete=["true"])$
 $object.name$_complete_collection_element.common($object.name$_common_collection_element);
 $complete_element_detail_impl(ctx=ctx, object=object)$
 $object.name$_complete_collection_element.detail($object.name$_complete_element_detail);
@@ -1233,7 +1233,7 @@ $object.name$_complete_collection_element.detail($object.name$_complete_element_
 minimal_collection_element_impl(ctx, object) ::= <<
 // MinimalCollectionElement
 MinimalCollectionElement $object.name$_minimal_collection_element;
-$common_collection_element_impl(ctx=ctx, object=object)$
+$common_collection_element_impl(ctx=ctx, object=object, complete=["false"])$
 $object.name$_minimal_collection_element.common($object.name$_common_collection_element);
 >>
 
