@@ -106,13 +106,18 @@ $exports; separator="\n"$
 
 exception(ctx, parent, exception) ::= <<>>
 
-operation(ctx, parent, operation, param_list) ::= <<
+operation(ctx, parent, operation, param_list, operation_type) ::= <<
 $param_list$
+$operation_type$
 >>
 
 param_list(parameters) ::= <<>>
 
-param(parameter) ::= <<>>
+param(parameter, parameter_type) ::= <<
+
+$parameter_type$
+
+>>
 
 const_decl(ctx, parent, const, const_type) ::= <<
 
@@ -120,7 +125,9 @@ $const_type$
 
 >>
 
-typedef_decl(ctx, parent, typedefs) ::= <<
+typedef_decl(ctx, parent, typedefs, typedefs_type, declarator_type) ::= <<
+$declarator_type$
+$typedefs_type$
 $if(typedefs.typedefContentTypeCode.isType_e)$
 bool $typedefs.name$_copy(std::vector<$typedefs.contentTypeCode.scopedname$> &dst, jobject src, JNIEnv *env)
 {
@@ -144,7 +151,8 @@ $endif$
 
 >>
 
-struct_type(ctx, parent, struct) ::= <<
+struct_type(ctx, parent, struct, member_list) ::= <<
+$member_list$
 bool $struct.name$_copy($struct.scopedname$ &dst, jobject src, JNIEnv *env)
 {
     jclass except = env->FindClass("java/lang/Exception");
@@ -332,7 +340,7 @@ class $struct.name$PubSubJNI : public TopicDataType, public SubscriberListener
                         return;
                     }
 
-                    if(!$struct.name$_copy(dataObj, data, env))
+                    if(! $struct.name$_copy(dataObj, data, env))
                         return;
 
                     env->CallVoidMethod(listener_, receiveId_, dataObj);
@@ -411,7 +419,25 @@ extern "C" JNIEXPORT void JNICALL Java_$ctx.packageUnder$$ctx.jniFilename$PubSub
 }
 >>
 
-union_type(ctx, parent, union) ::= <<>>
+member_type(ctx, member, type_member, declarators) ::= <<
+
+$type_member$
+$declarators$
+
+>>
+
+union_type(ctx, parent, union, switch_type) ::= <<
+
+$switch_type$
+
+>>
+
+element_type(ctx, element, type_element, declarator) ::= <<
+
+$type_element$
+$declarator$
+
+>>
 
 enum_type(ctx, parent, enum) ::= <<>>
 
@@ -419,9 +445,18 @@ bitmask_type(ctx, parent, bitmask) ::= <<>>
 
 bitset_type(ctx, parent, bitset) ::= <<>>
 
-sequence_type(ctx, sequence) ::= <<>>
+sequence_type(ctx, sequence, type_sequence) ::= <<
 
-map_type(ctx, map) ::= <<>>
+$type_sequence$
+
+>>
+
+map_type(ctx, map, key_type, value_type) ::= <<
+
+$key_type$
+$value_type$
+
+>>
 
 string_type(ctx, string) ::= <<>>
 

@@ -76,11 +76,20 @@ $exports; separator="\n"$
 
 exception(ctx, parent, exception) ::= <<>>
 
-operation(ctx, parent, operation, param_list) ::= <<>>
+operation(ctx, parent, operation, param_list, operation_type) ::= <<
+
+$operation_type$
+$param_list$
+
+>>
 
 param_list(parameters) ::= <<>>
 
-param(parameter) ::= <<>>
+param(parameter, parameter_type) ::= <<
+
+$parameter_type$
+
+>>
 
 const_decl(ctx, parent, const, const_type) ::= <<
 
@@ -88,9 +97,15 @@ $const_type$
 
 >>
 
-typedef_decl(ctx, parent, typedefs) ::= <<>>
+typedef_decl(ctx, parent, typedefs, typedefs_type, declarator_type) ::= <<
 
-struct_type(ctx, parent, struct) ::= <<
+$declarator_type$
+$typedefs_type$
+
+>>
+
+struct_type(ctx, parent, struct, member_list) ::= <<
+$member_list$
 $if(struct.isTopic)$
 public interface $struct.name$Listener
 {
@@ -122,7 +137,25 @@ private long $struct.name$_ = 0;
 $endif$
 >>
 
-union_type(ctx, parent, union) ::= <<>>
+member_type(ctx, member, type_member, declarators) ::= <<
+
+$type_member$
+$declarators$
+
+>>
+
+union_type(ctx, parent, union, switch_type) ::= <<
+
+$switch_type$
+
+>>
+
+element_type(ctx, element, type_element, declarator) ::= <<
+
+$type_element$
+$declarator$
+
+>>
 
 enum_type(ctx, parent, enum) ::= <<>>
 
@@ -130,9 +163,18 @@ bitmask_type(ctx, parent, bitmask) ::= <<>>
 
 bitset_type(ctx, parent, bitset) ::= <<>>
 
-sequence_type(ctx, sequence) ::= <<>>
+sequence_type(ctx, sequence, type_sequence) ::= <<
 
-map_type(ctx, map) ::= <<>>
+$type_sequence$
+
+>>
+
+map_type(ctx, map, key_type, value_type) ::= <<
+
+$key_type$
+$value_type$
+
+>>
 
 string_type(ctx, string) ::= <<>>
 

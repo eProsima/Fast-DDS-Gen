@@ -54,7 +54,9 @@ $definitions; separator="\n"$
 
 >>
 
-typedef_decl(ctx, parent, typedefs) ::= <<
+typedef_decl(ctx, parent, typedefs, typedefs_type, declarator_type) ::= <<
+$declarator_type$
+$typedefs_type$
 $get_type_identifier_doxydoc(ctx=ctx, param=typedefs)$
 const TypeIdentifier* get_$typedefs.name$_identifier(
         bool complete = false);
@@ -96,7 +98,8 @@ const TypeObject* get_complete_$bitmask.name$_object();
 
 >>
 
-struct_type(ctx, parent, struct, extensions) ::= <<
+struct_type(ctx, parent, struct, extensions, member_list) ::= <<
+$member_list$
 $get_type_identifier_doxydoc(ctx=ctx, param=struct)$
 const TypeIdentifier* get_$struct.name$_identifier(
         bool complete = false);
@@ -110,7 +113,15 @@ const TypeObject* get_complete_$struct.name$_object();
 
 >>
 
-union_type(ctx, parent, union, extensions) ::= <<
+member_type(ctx, member, type_member, declarators) ::= <<
+
+$type_member$
+$declarators$
+
+>>
+
+union_type(ctx, parent, union, extensions, switch_type) ::= <<
+$switch_type$
 $get_type_identifier_doxydoc(ctx=ctx, param=union)$
 const TypeIdentifier* get_$union.name$_identifier(
         bool complete = false);
@@ -121,6 +132,13 @@ $get_minimal_type_object_doxydoc(ctx=ctx, param=union)$
 const TypeObject* get_minimal_$union.name$_object();
 $get_complete_type_object_doxydoc(ctx=ctx, param=union)$
 const TypeObject* get_complete_$union.name$_object();
+
+>>
+
+element_type(ctx, element, type_element, declarator) ::= <<
+
+$type_element$
+$declarator$
 
 >>
 
@@ -177,9 +195,18 @@ $const_type$
 
 fwd_decl(ctx, parent, type) ::= <<>>
 
-sequence_type(ctx, sequence) ::= <<>>
+sequence_type(ctx, sequence, type_sequence) ::= <<
 
-map_type(ctx, map) ::= <<>>
+$type_sequence$
+
+>>
+
+map_type(ctx, map, key_type, value_type) ::= <<
+
+$key_type$
+$value_type$
+
+>>
 
 string_type(ctx, string) ::= <<>>
 

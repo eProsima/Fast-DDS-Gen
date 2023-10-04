@@ -164,7 +164,9 @@ $const_type$
 
 fwd_decl(ctx, parent, type) ::= <<>>
 
-typedef_decl(ctx, parent, typedefs) ::= <<
+typedef_decl(ctx, parent, typedefs, typedefs_type, declarator_type) ::= <<
+$declarator_type$
+$typedefs_type$
 $get_type_identifier_impl(ctx=ctx, param=typedefs)$
 
 $get_type_object_impl(ctx=ctx, param=typedefs)$
@@ -210,7 +212,8 @@ $get_complete_type_object_impl(ctx=ctx, param=enum)$
 
 >>
 
-struct_type(ctx, parent, struct, extensions) ::= <<
+struct_type(ctx, parent, struct, extensions, member_list) ::= <<
+$member_list$
 $get_type_identifier_impl(ctx=ctx, param=struct)$
 
 $get_type_object_impl(ctx=ctx, param=struct)$
@@ -233,7 +236,15 @@ $get_complete_type_object_impl(ctx=ctx, param=struct)$
 
 >>
 
-union_type(ctx, parent, union) ::= <<
+member_type(ctx, member, type_member, declarators) ::= <<
+
+$type_member$
+$declarators$
+
+>>
+
+union_type(ctx, parent, union, switch_type) ::= <<
+$switch_type$
 $get_type_identifier_impl(ctx=ctx, param=union)$
 
 $get_type_object_impl(ctx=ctx, param=union)$
@@ -253,6 +264,13 @@ $get_complete_type_object_impl(ctx=ctx, param=union)$
 
     $type_identifier_impl(ctx=ctx, param=union, complete_discr=["EK_COMPLETE"], member=["complete().union_type()"], complete_flag=["true"])$
 }
+
+>>
+
+element_type(ctx, element, type_element, declarator) ::= <<
+
+$type_element$
+$declarator$
 
 >>
 
@@ -302,9 +320,18 @@ $get_complete_type_object_impl(ctx=ctx, param=bitset)$
 
 >>
 
-sequence_type(ctx, sequence) ::= <<>>
+sequence_type(ctx, sequence, type_sequence) ::= <<
 
-map_type(ctx, map) ::= <<>>
+$type_sequence$
+
+>>
+
+map_type(ctx, map, key_type, value_type) ::= <<
+
+$key_type$
+$value_type$
+
+>>
 
 string_type(ctx, string) ::= <<>>
 

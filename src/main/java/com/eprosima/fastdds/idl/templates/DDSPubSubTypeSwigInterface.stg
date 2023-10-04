@@ -35,9 +35,31 @@ module(ctx, parent, module, definition_list) ::= <<>>
 
 definition_list(definitions) ::= <<>>
 
-struct_type(ctx, parent, struct) ::= <<>>
+struct_type(ctx, parent, struct, member_list) ::= <<
 
-union_type(ctx, parent, union, extensions) ::= <<>>
+$member_list$
+
+>>
+
+member_type(ctx, member, type_member, declarators) ::= <<
+
+$type_member$
+$declarators$
+
+>>
+
+union_type(ctx, parent, union, extensions, switch_type) ::= <<
+
+$switch_type$
+
+>>
+
+element_type(ctx, element, type_element, declarator) ::= <<
+
+$type_element$
+$declarator$
+
+>>
 
 bitset_type(ctx, parent, bitset, extensions) ::= <<>>
 
@@ -53,7 +75,12 @@ $const_type$
 
 annotation(ctx, parent, annotation) ::= <<>>
 
-typedef_decl(ctx, parent, typedefs) ::= <<>>
+typedef_decl(ctx, parent, typedefs, typedefs_type, declarator_type) ::= <<
+
+$declarator_type$
+$typedefs_type$
+
+>>
 
 fwd_decl(ctx, parent, type) ::= <<>>
 
@@ -63,9 +90,18 @@ interface(ctx, parent, interface, export_list) ::= <<>>
 
 exception(ctx, parent, exception) ::= <<>>
 
-sequence_type(ctx, sequence) ::= <<>>
+sequence_type(ctx, sequence, type_sequence) ::= <<
 
-map_type(ctx, map) ::= <<>>
+$type_sequence$
+
+>>
+
+map_type(ctx, map, key_type, value_type) ::= <<
+
+$key_type$
+$value_type$
+
+>>
 
 string_type(ctx, string) ::= <<>>
 
