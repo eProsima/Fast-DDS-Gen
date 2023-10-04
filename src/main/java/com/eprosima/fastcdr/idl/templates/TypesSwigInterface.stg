@@ -43,6 +43,7 @@ $ctx.directIncludeDependencies : {include | %include "$include$.i"}; separator="
 #include <fastdds/dds/core/LoanableSequence.hpp>
 %}
 
+%import(module="fastdds") "fastcdr/xcdr/optional.hpp"
 %import(module="fastdds") "fastdds/dds/core/LoanableCollection.hpp"
 %import(module="fastdds") "fastdds/dds/core/LoanableTypedCollection.hpp"
 %import(module="fastdds") "fastdds/dds/core/LoanableSequence.hpp"
@@ -130,6 +131,21 @@ $endif$
 >>
 
 member_getters(struct_name, member) ::= <<
+$if(member.annotationOptional)$
+%ignore eprosima::fastcdr::optional::value;
+%ignore eprosima::fastcdr::optional::reset;
+%template($member.typecode.formatedCppTypename$Opt) eprosima::fastcdr::optional<$member.typecode.cppTypename$>;
+%extend eprosima::fastcdr::optional<$member.typecode.cppTypename$> {
+  $member.typecode.cppTypename$ get_value() const {
+      return \$self->value();
+  }
+
+  void set_value(const $member.typecode.cppTypename$& value) {
+      *\$self = value;
+  }
+}
+$endif$
+
 %ignore $struct_name$::$member.name$($member.typecode.cppTypename$&&);
 
 // Overloaded getter methods shadow each other and are equivalent in python
