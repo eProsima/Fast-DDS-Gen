@@ -33,7 +33,8 @@ public class $interface.name$
 }
 >>
 
-struct_type(ctx, parent, struct, extension) ::= <<
+struct_type(ctx, parent, struct, extension, member_list) ::= <<
+$member_list$
 public class $struct.name$
 {
     public $struct.name$()
@@ -82,9 +83,17 @@ public class $struct.name$
 }
 >>
 
+member_type(ctx, member, type_member, declarators) ::= <<
+
+$type_member$
+$declarators$
+
+>>
+
 bitset_type(ctx, parent, bitset, extension) ::= <<>>
 
-union_type(ctx, parent, union, extension) ::= <<
+union_type(ctx, parent, union, extension, switch_type) ::= <<
+$switch_type$
 public class $union.name$
 {
     public $union.name$()
@@ -185,6 +194,13 @@ public class $union.name$
 
     $extension$
 }
+>>
+
+element_type(ctx, element, type_element, declarator) ::= <<
+
+$type_element$
+$declarator$
+
 >>
 
 enum_type(ctx, parent, enum, extension) ::= <<

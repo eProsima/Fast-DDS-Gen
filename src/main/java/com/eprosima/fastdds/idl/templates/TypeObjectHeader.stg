@@ -60,7 +60,9 @@ $definitions; separator="\n"$
 #endif // _FAST_DDS_GENERATED_$ctx.headerGuardName$_TYPE_OBJECT_H_
 >>
 
-typedef_decl(ctx, parent, typedefs) ::= <<
+typedef_decl(ctx, parent, typedefs, typedefs_type, declarator_type) ::= <<
+$declarator_type$
+$typedefs_type$
 eProsima_user_DllExport const TypeIdentifier* Get$typedefs.name$Identifier(bool complete = false);
 eProsima_user_DllExport const TypeObject* Get$typedefs.name$Object(bool complete = false);
 eProsima_user_DllExport const TypeObject* GetMinimal$typedefs.name$Object();
@@ -84,7 +86,8 @@ eProsima_user_DllExport const TypeObject* GetComplete$bitmask.name$Object();
 
 >>
 
-struct_type(ctx, parent, struct, extensions) ::= <<
+struct_type(ctx, parent, struct, extensions, member_list) ::= <<
+$member_list$
 eProsima_user_DllExport const TypeIdentifier* Get$struct.name$Identifier(bool complete = false);
 eProsima_user_DllExport const TypeObject* Get$struct.name$Object(bool complete = false);
 eProsima_user_DllExport const TypeObject* GetMinimal$struct.name$Object();
@@ -92,11 +95,26 @@ eProsima_user_DllExport const TypeObject* GetComplete$struct.name$Object();
 
 >>
 
-union_type(ctx, parent, union, extensions) ::= <<
+member_type(ctx, member, type_member, declarators) ::= <<
+
+$type_member$
+$declarators$
+
+>>
+
+union_type(ctx, parent, union, extensions, switch_type) ::= <<
+$switch_type$
 eProsima_user_DllExport const TypeIdentifier* Get$union.name$Identifier(bool complete = false);
 eProsima_user_DllExport const TypeObject* Get$union.name$Object(bool complete = false);
 eProsima_user_DllExport const TypeObject* GetMinimal$union.name$Object();
 eProsima_user_DllExport const TypeObject* GetComplete$union.name$Object();
+
+>>
+
+element_type(ctx, element, type_element, declarator) ::= <<
+
+$type_element$
+$declarator$
 
 >>
 
@@ -141,9 +159,18 @@ $const_type$
 
 fwd_decl(ctx, parent, type) ::= <<>>
 
-sequence_type(ctx, sequence) ::= <<>>
+sequence_type(ctx, sequence, type_sequence) ::= <<
 
-map_type(ctx, map) ::= <<>>
+$type_sequence$
+
+>>
+
+map_type(ctx, map, key_type, value_type) ::= <<
+
+$key_type$
+$value_type$
+
+>>
 
 string_type(ctx, string) ::= <<>>
 

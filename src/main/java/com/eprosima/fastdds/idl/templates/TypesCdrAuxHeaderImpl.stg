@@ -69,11 +69,20 @@ fwd_decl(ctx, parent, type) ::= <<>>
 
 exception(ctx, parent, exception) ::= <<>>
 
-operation(ctx, parent, operation, param_list) ::= <<>>
+operation(ctx, parent, operation, param_list, operation_type) ::= <<
+
+$operation_type$
+$param_list$
+
+>>
 
 param_list(parameters) ::= <<>>
 
-param(parameter) ::= <<>>
+param(parameter, parameter_type) ::= <<
+
+$parameter_type$
+
+>>
 
 const_decl(ctx, parent, const, const_type) ::= <<
 
@@ -81,9 +90,15 @@ $const_type$
 
 >>
 
-typedef_decl(ctx, parent, typedefs) ::= <<>>
+typedef_decl(ctx, parent, typedefs, typedefs_type, declarator_type) ::= <<
 
-struct_type(ctx, parent, struct, extensions) ::= <<
+$declarator_type$
+$typedefs_type$
+
+>>
+
+struct_type(ctx, parent, struct, extensions, member_list) ::= <<
+$member_list$
 $if(ctx.anyCdr)$
 template<>
 eProsima_user_DllExport size_t calculate_serialized_size(
@@ -210,6 +225,13 @@ $endif$
 
 >>
 
+member_type(ctx, member, type_member, declarators) ::= <<
+
+$type_member$
+$declarators$
+
+>>
+
 bitset_type(ctx, parent, bitset) ::= <<
 $if(ctx.anyCdr)$
 template<>
@@ -257,7 +279,8 @@ $endif$
 
 public_bitfield_definition(member) ::= <<>>
 
-union_type(ctx, parent, union) ::= <<
+union_type(ctx, parent, union, switch_type) ::= <<
+$switch_type$
 $if(ctx.anyCdr)$
 template<>
 eProsima_user_DllExport size_t calculate_serialized_size(
@@ -383,13 +406,29 @@ eProsima_user_DllExport void deserialize(
 $endif$
 >>
 
+element_type(ctx, element, type_element, declarator) ::= <<
+
+$type_element$
+$declarator$
+
+>>
+
 enum_type(ctx, parent, enum) ::= <<>>
 
 bitmask_type(ctx, parent, bitmask) ::= <<>>
 
-sequence_type(ctx, sequence) ::= <<>>
+sequence_type(ctx, sequence, type_sequence) ::= <<
 
-map_type(ctx, map) ::= <<>>
+$type_sequence$
+
+>>
+
+map_type(ctx, map, key_type, value_type) ::= <<
+
+$key_type$
+$value_type$
+
+>>
 
 string_type(ctx, string) ::= <<>>
 
