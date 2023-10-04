@@ -108,7 +108,7 @@ template_sequence_name(typecode) ::= <<
 $if(typecode.isSequenceType)$
 $template_sequence_name(typecode.contentTypeCode)$_vector
 $else$
-$typecode.formatedCppTypename$_vector
+$typecode.noScopedCppTypename$_vector
 $endif$
 >>
 
@@ -134,7 +134,7 @@ member_getters(struct_name, member) ::= <<
 $if(member.annotationOptional)$
 %ignore eprosima::fastcdr::optional::value;
 %ignore eprosima::fastcdr::optional::reset;
-%template($member.typecode.formatedCppTypename$Opt) eprosima::fastcdr::optional<$member.typecode.cppTypename$>;
+%template($member.typecode.noScopedCppTypename$Opt) eprosima::fastcdr::optional<$member.typecode.cppTypename$>;
 %extend eprosima::fastcdr::optional<$member.typecode.cppTypename$> {
   $member.typecode.cppTypename$ get_value() const {
       return \$self->value();
@@ -159,7 +159,7 @@ $elseif(member.typecode.isMapType)$
 %template($member.typecode.keyTypeCode.name$_$member.typecode.valueTypeCode.cppTypename$_map) std::map<$member.typecode.keyTypeCode.cppTypename$,$member.typecode.valueTypeCode.cppTypename$>;
 $elseif(member.typecode.isType_f)$
 %ignore $struct_name$::$member.name$() const;
-%template($member.typecode.contentTypeCode.formatedCppTypename$_$member.typecode.dimensions$_array) std::array<$member.typecode.contentTypeCode.cppTypename$,$member.typecode.dimensions$>;
+%template($member.typecode.contentTypeCode.noScopedCppTypename$_$member.typecode.dimensions$_array) std::array<$member.typecode.contentTypeCode.cppTypename$,$member.typecode.dimensions$>;
 $if(member.typecode.contentTypeCode.primitive)$
 %extend std::array<$member.typecode.contentTypeCode.cppTypename$, $member.typecode.dimensions$>
 {
