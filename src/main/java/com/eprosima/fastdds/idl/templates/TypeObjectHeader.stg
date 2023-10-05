@@ -198,21 +198,94 @@ fwd_decl(ctx, parent, type) ::= <<>>
 sequence_type(ctx, sequence, type_sequence) ::= <<
 
 $type_sequence$
+$get_type_identifier_doxydoc(ctx=ctx, param=sequence)$
+const TypeIdentifier* get_$anonymous_sequence_name(sequence=sequence, type=type_seq)$_identifier(
+        bool complete = false);
+$get_type_object_doxydoc(ctx=ctx, param=sequence)$
+const TypeObject* get_$anonymous_sequence_name(sequence=sequence, type=type_seq)$_object(
+        bool complete = false);
+$get_minimal_type_object_doxydoc(ctx=ctx, param=sequence)$
+const TypeObject* get_minimal_$anonymous_sequence_name(sequence=sequence, type=type_seq)$_object();
+$get_complete_type_object_doxydoc(ctx=ctx, param=sequence)$
+const TypeObject* get_complete_$anonymous_sequence_name(sequence=sequence, type=type_seq)$_object();
 
 >>
+
+anonymous_sequence_name(sequence, type) ::= <%
+$if(sequence.name)$$sequence.name$$else$anonymous_sequence_$type_seq.cppTypename$$if(sequence.actualMaxsize)$_$sequence.actualMaxsize$$endif$$endif$
+%>
 
 map_type(ctx, map, key_type, value_type) ::= <<
 
 $key_type$
 $value_type$
+$get_type_identifier_doxydoc(ctx=ctx, param=map)$
+const TypeIdentifier* get_$map.name$_identifier(
+        bool complete = false);
+$get_type_object_doxydoc(ctx=ctx, param=map)$
+const TypeObject* get_$map.name$_object(
+        bool complete = false);
+$get_minimal_type_object_doxydoc(ctx=ctx, param=map)$
+const TypeObject* get_minimal_$map.name$_object();
+$get_complete_type_object_doxydoc(ctx=ctx, param=map)$
+const TypeObject* get_complete_$map.name$_object();
 
 >>
 
-string_type(ctx, string) ::= <<>>
+string_type(ctx, string) ::= <<
+// TODO(jlbueno) Anonymous Doxydoc. PENDING: TypeObjectFactory redesign.
+$get_type_identifier_doxydoc(ctx=ctx, param=string)$
+const TypeIdentifier* get_$anonymous_string_name(string=string)$_identifier(
+        bool complete = false);
+$get_type_object_doxydoc(ctx=ctx, param=string)$
+const TypeObject* get_$anonymous_string_name(string=string)$_object(
+        bool complete = false);
+$get_minimal_type_object_doxydoc(ctx=ctx, param=string)$
+const TypeObject* get_minimal_$anonymous_string_name(string=string)$_object();
+$get_complete_type_object_doxydoc(ctx=ctx, param=string)$
+const TypeObject* get_complete_$anonymous_string_name(string=string)$_object();
 
-wide_string_type(ctx, wstring) ::= <<>>
+>>
 
-array_declarator(ctx, array) ::= <<>>
+anonymous_string_name(string) ::= <<
+$if(string.name)$$string.name$$else$anonymous_string_$string.maxsize$$endif$
+>>
+
+wide_string_type(ctx, wstring) ::= <<
+$get_type_identifier_doxydoc(ctx=ctx, param=wstring)$
+const TypeIdentifier* get_$anonymous_wstring_name(wstring=wstring)$_identifier(
+        bool complete = false);
+$get_type_object_doxydoc(ctx=ctx, param=wstring)$
+const TypeObject* get_$anonymous_wstring_name(wstring=wstring)$_object(
+        bool complete = false);
+$get_minimal_type_object_doxydoc(ctx=ctx, param=wstring)$
+const TypeObject* get_minimal_$anonymous_wstring_name(wstring=wstring)$_object();
+$get_complete_type_object_doxydoc(ctx=ctx, param=wstring)$
+const TypeObject* get_complete_$anonymous_wstring_name(wstring=wstring)$_object();
+
+>>
+
+anonymous_wstring_name(wstring) ::= <<
+$if(wstring.name)$$string.name$$else$anonymous_wstring_$wstring.maxsize$$endif$
+>>
+
+array_declarator(ctx, array, array_type) ::= <<
+$get_type_identifier_doxydoc(ctx=ctx, param=array)$
+const TypeIdentifier* get_$anonymous_array_name(array=array, type=array_type)$_identifier(
+        bool complete = false);
+$get_type_object_doxydoc(ctx=ctx, param=array)$
+const TypeObject* get_$anonymous_array_name(array=array, type=array_type)$_object(
+        bool complete = false);
+$get_minimal_type_object_doxydoc(ctx=ctx, param=array)$
+const TypeObject* get_minimal_$anonymous_array_name(array=array, type=array_type)$_object();
+$get_complete_type_object_doxydoc(ctx=ctx, param=array)$
+const TypeObject* get_complete_$anonymous_array_name(array=array, type=array_type)$_object();
+
+>>
+
+anonymous_array_name(array, type) ::= <<
+$if(array.name)$$array.name$$else$anonymous_array_$type$$array.dimensions:{dimension|_$dimension$};separator=""$$endif$
+>>
 
 /***** Utils *****/
 get_type_identifier_doxydoc(ctx, param) ::= <<

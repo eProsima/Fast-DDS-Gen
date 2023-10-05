@@ -181,4 +181,4 @@ string_type(ctx, string) ::= <<>>
 
 wide_string_type(ctx, wstring) ::= <<>>
 
-array_declarator(ctx, array) ::= <<>>
+array_declarator(ctx, array, array_type) ::= <<>>
