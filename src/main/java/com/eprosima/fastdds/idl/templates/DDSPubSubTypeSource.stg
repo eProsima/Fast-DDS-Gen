@@ -90,7 +90,7 @@ $typedefs_type$
     
 >>
 
-struct_type(ctx, parent, struct. member_list) ::= <<
+struct_type(ctx, parent, struct, member_list) ::= <<
 $member_list$
 $if (parent.IsInterface)$$parent.name$_$endif$$struct.name$PubSubType::$if (parent.IsInterface)$$parent.name$_$endif$$struct.name$PubSubType()
 {
