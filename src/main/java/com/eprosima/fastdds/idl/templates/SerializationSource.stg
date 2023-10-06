@@ -556,7 +556,7 @@ $elseif(typecode.isBitsetType)$
 printf("$name$: %s\n", topic->$name$()$if(optional)$.value()$endif$.bitset().to_string().c_str());
 $elseif(typecode.isType_d)$
 $if(typecode.isWStringType)$
-printf("$name$: %S\n", topic->$name$()$if(optional)$.value()$endif$.c_str());
+printf("$name$: %ls\n", topic->$name$()$if(optional)$.value()$endif$.c_str());
 $elseif(ctx.generateTypesC)$
 printf("$name$: %s\n", topic->$name$()$if(optional)$.value()$endif$);
 $else$
