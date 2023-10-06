@@ -619,9 +619,15 @@ functions_to_run.emplace_back([]() -> bool
 
     //Minimal
     $check_struct_type(ctx=ctx, struct=struct, relation=false)$ 
+    memberId = 0;
+    $struct.allMembers:{ member | $check_struct_member_type(ctx=ctx, member=member, relation=false)$ }; separator="\n"$
+    result &= $struct.name$_minimal_memberseq.size() == memberId; 
 
     //Complete
     $check_struct_type(ctx=ctx, struct=struct, relation=true)$ 
+    memberId = 0;
+    $struct.allMembers:{ member | $check_struct_member_type(ctx=ctx, member=member, relation=true)$ }; separator="\n"$
+    result &= $struct.name$_complete_memberseq.size() == memberId; 
 
     if(result){
         std::cout << std::endl << "======OK====== Test $struct.name$" << std::endl;
