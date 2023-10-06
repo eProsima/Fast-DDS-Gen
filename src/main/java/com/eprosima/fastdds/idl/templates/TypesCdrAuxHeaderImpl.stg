@@ -80,6 +80,10 @@ const_decl(ctx, parent, const) ::= <<>>
 typedef_decl(ctx, parent, typedefs) ::= <<>>
 
 struct_type(ctx, parent, struct, extensions) ::= <<
+$if(!struct.scope.empty)$
+using namespace $struct.scope$;
+$endif$
+
 $if(ctx.anyCdr)$
 template<>
 eProsima_user_DllExport size_t calculate_serialized_size(
@@ -184,6 +188,10 @@ $endif$
 >>
 
 bitset_type(ctx, parent, bitset) ::= <<
+$if(!bitset.scope.empty)$
+using namespace $bitset.scope$;
+$endif$
+
 $if(ctx.anyCdr)$
 template<>
 eProsima_user_DllExport size_t calculate_serialized_size(
@@ -219,6 +227,10 @@ $endif$
 public_bitfield_definition(member) ::= <<>>
 
 union_type(ctx, parent, union) ::= <<
+$if(!union.scope.empty)$
+using namespace $union.scope$;
+$endif$
+
 $if(ctx.anyCdr)$
 template<>
 eProsima_user_DllExport size_t calculate_serialized_size(
