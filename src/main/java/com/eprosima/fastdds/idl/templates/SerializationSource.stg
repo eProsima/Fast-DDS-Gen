@@ -50,6 +50,9 @@ $endif$
 void $if(struct.hasScope)$$struct.scope$::$endif$print$struct.name$(
         $struct.name$* topic)
 {
+    $if(!struct.allMembers)$
+    static_cast<void>(topic);
+    $endif$
     printf("$struct.name$: { \n");
     $struct.allMembers:{ member |
         $member_print(ctx=ctx, typecode=member.typecode, name=member.name, originName=member.name, optional=member.annotationOptional)$
@@ -61,6 +64,7 @@ void $if(struct.hasScope)$$struct.scope$::$endif$initialize$struct.name$(
         $struct.name$* topic,
         int idx)
 {
+    $if(struct.allMembers)$
     if (idx == 0)
     {
         $struct.allMembers:{ member |
@@ -87,12 +91,20 @@ void $if(struct.hasScope)$$struct.scope$::$endif$initialize$struct.name$(
             $endif$
         }; separator="\n"$
     }
+    $else$
+    static_cast<void>(topic);
+    static_cast<void>(idx);
+    $endif$
 }
 
 int $if(struct.hasScope)$$struct.scope$::$endif$compare$struct.name$(
         $struct.name$* topic_a,
         $struct.name$* topic_b)
 {
+    $if(!struct.allMembers)$
+    static_cast<void>(topic_a);
+    static_cast<void>(topic_b);
+    $endif$
     $struct.allMembers:{ member |
         $member_comparision(ctx=ctx, typecode=member.typecode, name=member.name, originName=member.name, optional=member.annotationOptional)$
     }; separator="\n"$

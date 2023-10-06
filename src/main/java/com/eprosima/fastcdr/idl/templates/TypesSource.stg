@@ -140,7 +140,11 @@ $struct.scopedname$::$struct.name$(
     $endif$
 
 {
+    $if(struct.members)$
     $struct.members:{ member | $member_copy(ctx=ctx, member=member)$}; separator="\n"$
+    $else$
+    static_cast<void>(x);
+    $endif$
 }
 
 $struct.scopedname$::$struct.name$(
@@ -150,7 +154,11 @@ $struct.scopedname$::$struct.name$(
     $endif$
 
 {
+    $if(struct.members)$
     $struct.members:{ member | $member_move(member=member)$}; separator="\n"$
+    $else$
+    static_cast<void>(x);
+    $endif$
 }
 
 $struct.scopedname$& $struct.scopedname$::operator =(
@@ -158,7 +166,11 @@ $struct.scopedname$& $struct.scopedname$::operator =(
 {
     $if(struct.inheritances)$$struct.inheritances : { inheritance | $inheritance.scopedname$::operator =(x);}; separator="\n"$$endif$
 
+    $if(struct.members)$
     $struct.members:{ member | $member_copy(ctx=ctx, member=member)$}; separator="\n"$
+    $else$
+    static_cast<void>(x);
+    $endif$
 
     return *this;
 }
@@ -168,7 +180,11 @@ $struct.scopedname$& $struct.scopedname$::operator =(
 {
     $if(struct.inheritances)$$struct.inheritances : { inheritance | $inheritance.scopedname$::operator =(std::move(x));}; separator="\n"$$endif$
 
+    $if(struct.members)$
     $struct.members:{ member | $member_move(member=member)$}; separator="\n"$
+    $else$
+    static_cast<void>(x);
+    $endif$
 
     return *this;
 }
@@ -182,7 +198,12 @@ bool $struct.scopedname$::operator ==(
     \}
     }; separator="\n"$$endif$
 
-    return $if(struct.members)$($struct.members:{ member | m_$member.name$ == x.m_$member.name$}; separator=" &&\n           "$)$else$true$endif$;
+    $if(!struct.members)$
+    static_cast<void>(x);
+    return true;
+    $else$
+    return ($struct.members:{ member | m_$member.name$ == x.m_$member.name$}; separator=" &&\n           "$);
+    $endif$
 }
 
 bool $struct.scopedname$::operator !=(
