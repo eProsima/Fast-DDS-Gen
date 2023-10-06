@@ -586,7 +586,7 @@ $elseif(typecode.isBitsetType)$
 printf("$name$: %s\n", topic->$name$.bitset().to_string().c_str());
 $elseif(typecode.isType_d)$
 $if(typecode.isWStringType)$
-printf("$name$: %S\n", topic->$name$.c_str());
+printf("$name$: %ls\n", topic->$name$.c_str());
 $elseif(ctx.generateTypesC)$
 printf("$name$: %s\n", topic->$name$);
 $else$
@@ -613,7 +613,7 @@ $elseif(typecode.isBitsetType)$
 printf("$name$: %s\n", topic->$name$.bitset().to_string().c_str());
 $elseif(typecode.valueTypeCode.isType_d)$
 $if(typecode.valueTypeCode.isWStringType)$
-printf("$name$: %S\n", topic->$name$.c_str());
+printf("$name$: %ls\n", topic->$name$.c_str());
 $elseif(ctx.generateTypesC)$
 printf("$name$: %s\n", topic->$name$());
 $else$
@@ -676,7 +676,7 @@ for (auto it_$loopvar$ : topic->$name$$p$)
 map_key_print(ctx, typecode, name, originName, p, loopvar) ::= <<
 $if(typecode.isType_d)$
     $if(typecode.isWStringType)$
-        printf("[%S]", (it_$loopvar$.first).c_str());
+        printf("[%ls]", (it_$loopvar$.first).c_str());
     $elseif(ctx.generateTypesC)$
         printf("[%s]", (it_$loopvar$.first));
     $else$
@@ -691,8 +691,10 @@ $array_print(ctx=ctx, typecode=typecode, name=name, originName=originName, dimen
 $elseif(typecode.isType_10)$
     $map_key_print(ctx=ctx, typecode=typecode.contentTypeCode, name=name, originName=originName, p="", loopvar=loopvar)$
 $elseif(typecode.primitive)$
+    static_cast<void>(it_$loopvar$);
     printf("[$typecode$]");
 $else$
+    static_cast<void>(it_$loopvar$);
     printf("[$typecode$]");
 $endif$
 >>
@@ -700,7 +702,7 @@ $endif$
 map_value_print(ctx, typecode, name, originName, p, loopvar) ::= <<
 $if(typecode.isType_d)$
     $if(typecode.isWStringType)$
-        printf("[%S]", (topic->$name$$p$).c_str());
+        printf("[%ls]", (topic->$name$$p$).c_str());
     $elseif(ctx.generateTypesC)$
         printf("[%s]", (topic->$name$$p$));
     $else$
@@ -716,8 +718,10 @@ $array_print(ctx=ctx, typecode=typecode, name=name, originName=originName, dimen
 $elseif(typecode.isType_10)$
     $map_value_print(ctx=ctx, typecode=typecode.contentTypeCode, name=name, originName=originName, p="", loopvar=loopvar)$
 $elseif(typecode.primitive)$
+    static_cast<void>(it_$loopvar$);
     printf("[$typecode$]");
 $else$
+    static_cast<void>(it_$loopvar$);
     printf("[$typecode$]");
 $endif$
 >>
