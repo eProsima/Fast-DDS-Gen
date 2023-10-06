@@ -488,6 +488,10 @@ void $union.scopedname$::_d(
     switch (m__d)
     {
         $union.members:{ member | $unionmember_discriminator_case(member=member, totallabels=union.totallabels)$}; separator="\n"$
+        $if(!union.defaultMember)$
+        default:
+            break;
+        $endif$
     }
 
     if (!b)

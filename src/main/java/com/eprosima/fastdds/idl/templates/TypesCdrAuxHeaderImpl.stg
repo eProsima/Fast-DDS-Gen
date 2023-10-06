@@ -266,6 +266,10 @@ eProsima_user_DllExport size_t calculate_serialized_size(
             break;
         $endif$
         }; separator="\n"$
+        $if(!union.defaultMember)$
+        default:
+            break;
+        $endif$
     }
 
     calculated_size += calculator.end_calculate_type_serialized_size(previous_encoding, current_alignment);
@@ -298,6 +302,10 @@ eProsima_user_DllExport void serialize(
             break;
         $endif$
         }; separator="\n"$
+        $if(!union.defaultMember)$
+        default:
+            break;
+        $endif$
     }
 
     scdr.end_serialize_type(current_state);
@@ -329,6 +337,10 @@ eProsima_user_DllExport void deserialize(
                                 break;
                             $endif$
                             }; separator="\n"$
+                            $if(!union.defaultMember)$
+                            default:
+                                break;
+                            $endif$
                         }
                         $if(!union.annotationMutable)$ret_value = false;$endif$
                         break;
