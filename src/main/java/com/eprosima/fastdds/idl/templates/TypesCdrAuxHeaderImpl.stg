@@ -80,10 +80,6 @@ const_decl(ctx, parent, const) ::= <<>>
 typedef_decl(ctx, parent, typedefs) ::= <<>>
 
 struct_type(ctx, parent, struct, extensions) ::= <<
-$if(!struct.scope.empty)$
-using namespace $struct.scope$;
-$endif$
-
 $if(ctx.anyCdr)$
 template<>
 eProsima_user_DllExport size_t calculate_serialized_size(
@@ -91,6 +87,10 @@ eProsima_user_DllExport size_t calculate_serialized_size(
         const $struct.scopedname$& data,
         size_t& current_alignment)
 {
+    $if(!struct.scope.empty)$
+    using namespace $struct.scope$;
+    $endif$
+
     static_cast<void>(data);
 
     eprosima::fastcdr::EncodingAlgorithmFlag previous_encoding = calculator.get_encoding();
@@ -118,6 +118,10 @@ eProsima_user_DllExport void serialize(
         eprosima::fastcdr::Cdr& scdr,
         const $struct.scopedname$& data)
 {
+    $if(!struct.scope.empty)$
+    using namespace $struct.scope$;
+    $endif$
+
     eprosima::fastcdr::Cdr::state current_state(scdr);
     scdr.begin_serialize_type(current_state,
             eprosima::fastcdr::CdrVersion::XCDRv2 == scdr.get_cdr_version() ?
@@ -141,6 +145,10 @@ eProsima_user_DllExport void deserialize(
         eprosima::fastcdr::Cdr& cdr,
         $struct.scopedname$& data)
 {
+    $if(!struct.scope.empty)$
+    using namespace $struct.scope$;
+    $endif$
+
     cdr.deserialize_type(eprosima::fastcdr::CdrVersion::XCDRv2 == cdr.get_cdr_version() ?
             $if(struct.annotationFinal)$eprosima::fastcdr::EncodingAlgorithmFlag::PLAIN_CDR2$elseif(struct.annotationAppendable)$eprosima::fastcdr::EncodingAlgorithmFlag::DELIMIT_CDR2$elseif(struct.annotationMutable)$eprosima::fastcdr::EncodingAlgorithmFlag::PL_CDR2$endif$ :
             $if(struct.annotationFinal || struct.annotationAppendable)$eprosima::fastcdr::EncodingAlgorithmFlag::PLAIN_CDR$elseif(struct.annotationMutable)$eprosima::fastcdr::EncodingAlgorithmFlag::PL_CDR$endif$,
@@ -171,6 +179,10 @@ void serialize_key(
         eprosima::fastcdr::Cdr& scdr,
         const $struct.scopedname$& data)
 {
+    $if(!struct.scope.empty)$
+    using namespace $struct.scope$;
+    $endif$
+
     static_cast<void>(scdr);
     static_cast<void>(data);
     $if(struct.hasKey)$
@@ -195,10 +207,6 @@ $endif$
 >>
 
 bitset_type(ctx, parent, bitset) ::= <<
-$if(!bitset.scope.empty)$
-using namespace $bitset.scope$;
-$endif$
-
 $if(ctx.anyCdr)$
 template<>
 eProsima_user_DllExport size_t calculate_serialized_size(
@@ -206,6 +214,10 @@ eProsima_user_DllExport size_t calculate_serialized_size(
         const $bitset.scopedname$& data,
         size_t& current_alignment)
 {
+    $if(!bitset.scope.empty)$
+    using namespace $bitset.scope$;
+    $endif$
+
     return calculator.calculate_serialized_size(data.bitset(), current_alignment);
 }
 $endif$
@@ -216,6 +228,10 @@ eProsima_user_DllExport void serialize(
         eprosima::fastcdr::Cdr& scdr,
         const $bitset.scopedname$& data)
 {
+    $if(!bitset.scope.empty)$
+    using namespace $bitset.scope$;
+    $endif$
+
     scdr << data.bitset();
 }
 
@@ -224,6 +240,10 @@ eProsima_user_DllExport void deserialize(
         eprosima::fastcdr::Cdr& dcdr,
         $bitset.scopedname$& data)
 {
+    $if(!bitset.scope.empty)$
+    using namespace $bitset.scope$;
+    $endif$
+
     std::bitset<$bitset.fullBitSize$> bitset;
     dcdr \>> bitset;
     data.bitset(bitset);
@@ -234,10 +254,6 @@ $endif$
 public_bitfield_definition(member) ::= <<>>
 
 union_type(ctx, parent, union) ::= <<
-$if(!union.scope.empty)$
-using namespace $union.scope$;
-$endif$
-
 $if(ctx.anyCdr)$
 template<>
 eProsima_user_DllExport size_t calculate_serialized_size(
@@ -245,6 +261,10 @@ eProsima_user_DllExport size_t calculate_serialized_size(
         const $union.scopedname$& data,
         size_t& current_alignment)
 {
+    $if(!union.scope.empty)$
+    using namespace $union.scope$;
+    $endif$
+
     static_cast<void>(data);
 
     eprosima::fastcdr::EncodingAlgorithmFlag previous_encoding = calculator.get_encoding();
@@ -285,6 +305,10 @@ eProsima_user_DllExport void serialize(
         eprosima::fastcdr::Cdr& scdr,
         const $union.scopedname$& data)
 {
+    $if(!union.scope.empty)$
+    using namespace $union.scope$;
+    $endif$
+
     eprosima::fastcdr::Cdr::state current_state(scdr);
     scdr.begin_serialize_type(current_state,
             eprosima::fastcdr::CdrVersion::XCDRv2 == scdr.get_cdr_version() ?
@@ -316,6 +340,10 @@ eProsima_user_DllExport void deserialize(
         eprosima::fastcdr::Cdr& cdr,
         $union.scopedname$& data)
 {
+    $if(!union.scope.empty)$
+    using namespace $union.scope$;
+    $endif$
+
     cdr.deserialize_type(eprosima::fastcdr::CdrVersion::XCDRv2 == cdr.get_cdr_version() ?
             $if(union.annotationFinal)$eprosima::fastcdr::EncodingAlgorithmFlag::PLAIN_CDR2$elseif(union.annotationAppendable)$eprosima::fastcdr::EncodingAlgorithmFlag::DELIMIT_CDR2$elseif(union.annotationMutable)$eprosima::fastcdr::EncodingAlgorithmFlag::PL_CDR2$endif$ :
             $if(union.annotationFinal || union.annotationAppendable)$eprosima::fastcdr::EncodingAlgorithmFlag::PLAIN_CDR$elseif(union.annotationMutable)$eprosima::fastcdr::EncodingAlgorithmFlag::PL_CDR$endif$,

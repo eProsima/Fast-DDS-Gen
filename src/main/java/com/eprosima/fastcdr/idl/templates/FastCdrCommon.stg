@@ -44,7 +44,7 @@ $if(member.annotationOptional)$eprosima::fastcdr::optional<$endif$$member.typeco
 member_destructor(ctx, member) ::= <<$if(member.typecode.forwarded)$delete m_$member.name$;$elseif(ctx.generateTypesC)$$if(member.typecode.isStringType)$free(m_$member.name$);
 m_$member.name$ = nullptr;$elseif(member.typecode.isType_f)$$if(member.typecode.contentTypeCode.isStringType)$$member_array_cstring_destructor(ctx=ctx, name=memberName(member.name), loopvar=ctx.newLoopVarName, dims=member.typecode.dimensions)$$endif$$endif$$endif$>>
 
-member_array_cstring_destructor(ctx, name, loopvar, dims) ::= <<$if(rest(dims))$for (uint32_t $loopvar$ = 0; $loopvar$ < $name$.size(); ++$loopvar$)
+member_array_cstring_destructor(ctx, name, loopvar, dims) ::= <<$if(rest(dims))$for (size_t $loopvar$ = 0; $loopvar$ < $name$.size(); ++$loopvar$)
 {
     $member_array_cstring_destructor(ctx=ctx, name=indexName(name=name,loopvar=loopvar),  loopvar=ctx.nextLoopVarName, dims=rest(dims))$
 }$else$for (char* str : $name$)
