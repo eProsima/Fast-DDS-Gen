@@ -50,6 +50,9 @@ $endif$
 void $if(struct.hasScope)$$struct.scope$::$endif$print$struct.name$(
         $struct.name$* topic)
 {
+    $if(!struct.allMembers)$
+    static_cast<void>(topic);
+    $endif$
     printf("$struct.name$: { \n");
     $struct.allMembers:{ member |
         $member_print(ctx=ctx, typecode=member.typecode, name=member.name, originName=member.name, optional=member.annotationOptional)$
@@ -61,6 +64,7 @@ void $if(struct.hasScope)$$struct.scope$::$endif$initialize$struct.name$(
         $struct.name$* topic,
         int idx)
 {
+    $if(struct.allMembers)$
     if (idx == 0)
     {
         $struct.allMembers:{ member |
@@ -87,12 +91,20 @@ void $if(struct.hasScope)$$struct.scope$::$endif$initialize$struct.name$(
             $endif$
         }; separator="\n"$
     }
+    $else$
+    static_cast<void>(topic);
+    static_cast<void>(idx);
+    $endif$
 }
 
 int $if(struct.hasScope)$$struct.scope$::$endif$compare$struct.name$(
         $struct.name$* topic_a,
         $struct.name$* topic_b)
 {
+    $if(!struct.allMembers)$
+    static_cast<void>(topic_a);
+    static_cast<void>(topic_b);
+    $endif$
     $struct.allMembers:{ member |
         $member_comparision(ctx=ctx, typecode=member.typecode, name=member.name, originName=member.name, optional=member.annotationOptional)$
     }; separator="\n"$
@@ -488,7 +500,7 @@ for(size_t $loopvar$ = 0; $if(typecode.contentTypeCode.forwarded)$!$name$_detect
 >>
 
 map_assigment(ctx, typecode, name, originName, p, loopvar) ::= <<
-for(int $loopvar$ = 0; $loopvar$ < $typecode.maxsize$; ++$loopvar$)
+for(size_t $loopvar$ = 0; $loopvar$ < $typecode.maxsize$; ++$loopvar$)
 {
     $if(typecode.valueTypeCode.isSequenceType)$
     $map_member_assignment(ctx=ctx, keytypecode=typecode.keyTypeCode, valueTypeCode=typecode.valueTypeCode, name=name, originName=originName, p=p, loopvar=ctx.nextLoopVarName)$
@@ -504,24 +516,24 @@ for(int $loopvar$ = 0; $loopvar$ < $typecode.maxsize$; ++$loopvar$)
 
 array_assigment(ctx, typecode, name, originName, dimensions, p, loopvar) ::= <<
 $if(rest(dimensions))$
-for(int $loopvar$ = 0; $loopvar$ < topic->$name$$p$.size(); ++$loopvar$)
+for(size_t $loopvar$ = 0; $loopvar$ < topic->$name$$p$.size(); ++$loopvar$)
 {
     $array_assigment(ctx=ctx, typecode=typecode, name=indexName(name=name, p=p, loopvar=loopvar), originName=originName, dimensions=rest(dimensions), p="", loopvar=ctx.nextLoopVarName)$
 }
 $elseif(typecode.isType_f)$
-for(int $loopvar$ = 0; $loopvar$ < topic->$name$$p$.size(); ++$loopvar$)
+for(size_t $loopvar$ = 0; $loopvar$ < topic->$name$$p$.size(); ++$loopvar$)
 {
     $array_member_assignment(ctx=ctx, typecode=typecode.contentTypeCode, name=indexName(name=name, p=p, loopvar=loopvar), originName=name, loopvar=ctx.nextLoopVarName)$
 }
 $elseif(typecode.contentTypeCode.primitive)$
 memset(&topic->$name$$p$, static_cast<$typecode.contentTypeCode.cppTypename$>(rand()),  sizeof(topic->$name$$p$));
 $elseif(typecode.contentTypeCode.isType_d)$
-for(int $loopvar$ = 0; $loopvar$ < topic->$name$$p$.size(); ++$loopvar$)
+for(size_t $loopvar$ = 0; $loopvar$ < topic->$name$$p$.size(); ++$loopvar$)
 {
     $array_member_assignment(ctx=ctx, typecode=typecode.contentTypeCode, name=indexName(name=name, p=p, loopvar=loopvar), originName=name, loopvar=ctx.nextLoopVarName)$
 }
 $else$
-for(int $loopvar$ = 0; $loopvar$ < topic->$name$$p$.size(); ++$loopvar$)
+for(size_t $loopvar$ = 0; $loopvar$ < topic->$name$$p$.size(); ++$loopvar$)
 {
     $array_member_assignment(ctx=ctx, typecode=typecode.contentTypeCode, name=indexName(name=name, p=p, loopvar=loopvar), originName=name, loopvar=ctx.nextLoopVarName)$
 }
@@ -544,7 +556,7 @@ $elseif(typecode.isBitsetType)$
 printf("$name$: %s\n", topic->$name$()$if(optional)$.value()$endif$.bitset().to_string().c_str());
 $elseif(typecode.isType_d)$
 $if(typecode.isWStringType)$
-printf("$name$: %S\n", topic->$name$()$if(optional)$.value()$endif$.c_str());
+printf("$name$: %ls\n", topic->$name$()$if(optional)$.value()$endif$.c_str());
 $elseif(ctx.generateTypesC)$
 printf("$name$: %s\n", topic->$name$()$if(optional)$.value()$endif$);
 $else$
@@ -574,7 +586,7 @@ $elseif(typecode.isBitsetType)$
 printf("$name$: %s\n", topic->$name$.bitset().to_string().c_str());
 $elseif(typecode.isType_d)$
 $if(typecode.isWStringType)$
-printf("$name$: %S\n", topic->$name$.c_str());
+printf("$name$: %ls\n", topic->$name$.c_str());
 $elseif(ctx.generateTypesC)$
 printf("$name$: %s\n", topic->$name$);
 $else$
@@ -601,7 +613,7 @@ $elseif(typecode.isBitsetType)$
 printf("$name$: %s\n", topic->$name$.bitset().to_string().c_str());
 $elseif(typecode.valueTypeCode.isType_d)$
 $if(typecode.valueTypeCode.isWStringType)$
-printf("$name$: %S\n", topic->$name$.c_str());
+printf("$name$: %ls\n", topic->$name$.c_str());
 $elseif(ctx.generateTypesC)$
 printf("$name$: %s\n", topic->$name$());
 $else$
@@ -626,7 +638,7 @@ $if(typecode.contentTypeCode.primitive)$
 printf("$name$: ");
 $print_sequence(name=name, p=p, loopvar=loopvar)$
 $elseif(typecode.contentTypeCode.isType_10)$
-for(int $loopvar$ = 0; $loopvar$ < topic->$name$$p$.size(); ++$loopvar$)
+for(size_t $loopvar$ = 0; $loopvar$ < topic->$name$$p$.size(); ++$loopvar$)
 {
     $array_member_print(ctx=ctx, typecode=typecode.contentTypeCode.typedefContentTypeCode, name=indexName(name=name, p=p, loopvar=loopvar), originName=originName, loopvar=ctx.nextLoopVarName)$
 }
@@ -636,7 +648,7 @@ $map_print(ctx=ctx, typecode=typecode.contentTypeCode, name=name, originName=ori
 
 $else$
 printf("$name$: \n");
-for(int $loopvar$ = 0; $loopvar$ < topic->$name$$p$.size(); ++$loopvar$)
+for(size_t $loopvar$ = 0; $loopvar$ < topic->$name$$p$.size(); ++$loopvar$)
 {
     $if(ctx.generateTypesC)$
     $array_member_print(ctx=ctx, typecode=typecode.contentTypeCode, name=indexName(name=name, p=[p, ".value()"], loopvar=loopvar), originName=originName, loopvar=ctx.nextLoopVarName)$
@@ -664,7 +676,7 @@ for (auto it_$loopvar$ : topic->$name$$p$)
 map_key_print(ctx, typecode, name, originName, p, loopvar) ::= <<
 $if(typecode.isType_d)$
     $if(typecode.isWStringType)$
-        printf("[%S]", (it_$loopvar$.first).c_str());
+        printf("[%ls]", (it_$loopvar$.first).c_str());
     $elseif(ctx.generateTypesC)$
         printf("[%s]", (it_$loopvar$.first));
     $else$
@@ -679,8 +691,10 @@ $array_print(ctx=ctx, typecode=typecode, name=name, originName=originName, dimen
 $elseif(typecode.isType_10)$
     $map_key_print(ctx=ctx, typecode=typecode.contentTypeCode, name=name, originName=originName, p="", loopvar=loopvar)$
 $elseif(typecode.primitive)$
+    static_cast<void>(it_$loopvar$);
     printf("[$typecode$]");
 $else$
+    static_cast<void>(it_$loopvar$);
     printf("[$typecode$]");
 $endif$
 >>
@@ -688,7 +702,7 @@ $endif$
 map_value_print(ctx, typecode, name, originName, p, loopvar) ::= <<
 $if(typecode.isType_d)$
     $if(typecode.isWStringType)$
-        printf("[%S]", (topic->$name$$p$).c_str());
+        printf("[%ls]", (topic->$name$$p$).c_str());
     $elseif(ctx.generateTypesC)$
         printf("[%s]", (topic->$name$$p$));
     $else$
@@ -704,8 +718,10 @@ $array_print(ctx=ctx, typecode=typecode, name=name, originName=originName, dimen
 $elseif(typecode.isType_10)$
     $map_value_print(ctx=ctx, typecode=typecode.contentTypeCode, name=name, originName=originName, p="", loopvar=loopvar)$
 $elseif(typecode.primitive)$
+    static_cast<void>(it_$loopvar$);
     printf("[$typecode$]");
 $else$
+    static_cast<void>(it_$loopvar$);
     printf("[$typecode$]");
 $endif$
 >>
@@ -713,7 +729,7 @@ $endif$
 array_print(ctx, typecode, name, originName, dimensions, p, loopvar) ::= <<
 $if(rest(dimensions))$
 printf("$name$: \n");
-for(int $loopvar$ = 0; $loopvar$ < topic->$name$$p$.size(); ++$loopvar$)
+for(size_t $loopvar$ = 0; $loopvar$ < topic->$name$$p$.size(); ++$loopvar$)
 {
     $array_print(ctx=ctx, typecode=typecode, name=indexName(name=name, p=p, loopvar=loopvar), originName=originName, dimensions=rest(dimensions), p="", loopvar=ctx.nextLoopVarName)$
 }
@@ -722,7 +738,7 @@ printf("$name$: ");
 $print_array(name=name, p=p, loopvar=loopvar)$
 $elseif(typecode.contentTypeCode.isType_d)$
 printf("$name$: \n");
-for(int $loopvar$ = 0; $loopvar$ < topic->$name$$p$.size(); ++$loopvar$)
+for(size_t $loopvar$ = 0; $loopvar$ < topic->$name$$p$.size(); ++$loopvar$)
 {
     $array_member_print(ctx=ctx, typecode=typecode.contentTypeCode, name=indexName(name=name, p=p, loopvar=loopvar), originName=originName, loopvar=ctx.nextLoopVarName)$
 }
@@ -732,7 +748,7 @@ $map_print(ctx=ctx, typecode=typecode, name=name, originName=originName, p="", l
 
 $else$
 printf("$name$: \n");
-for(int $loopvar$ = 0; $loopvar$ < topic->$name$$p$.size(); ++$loopvar$)
+for(size_t $loopvar$ = 0; $loopvar$ < topic->$name$$p$.size(); ++$loopvar$)
 {
     $array_member_print(ctx=ctx, typecode=typecode.contentTypeCode, name=indexName(name=name, p=p, loopvar=loopvar), originName=originName, loopvar=ctx.nextLoopVarName)$
 }
@@ -740,7 +756,7 @@ $endif$
 >>
 
 print_sequence(name, p, loopvar) ::= <<
-for(int $loopvar$ = 0; $loopvar$ < topic->$name$$p$.size(); ++$loopvar$)
+for(size_t $loopvar$ = 0; $loopvar$ < topic->$name$$p$.size(); ++$loopvar$)
 {
     printf("%" PRIx64 " ", (uint64_t)topic->$name$$p$$if(ctx.generateTypesC)$.value()$endif$[$loopvar$]);
 }
@@ -748,7 +764,7 @@ printf("\n");
 >>
 
 print_array(name, p, loopvar) ::= <<
-for(int $loopvar$ = 0; $loopvar$ < topic->$name$$p$.size(); ++$loopvar$)
+for(size_t $loopvar$ = 0; $loopvar$ < topic->$name$$p$.size(); ++$loopvar$)
 {
     printf("%" PRIx64 " ", (uint64_t)topic->$name$$p$[$loopvar$]);
 }
@@ -881,7 +897,7 @@ $endif$
 >>
 
 sequence_comparision(ctx, typecode, name, p, loopvar) ::= <<
-for(int $loopvar$ = 0; $loopvar$ < topic_a->$name$$p$.size(); ++$loopvar$)
+for(size_t $loopvar$ = 0; $loopvar$ < topic_a->$name$$p$.size(); ++$loopvar$)
 {
     $if(ctx.generateTypesC)$
     $array_member_comparision(ctx=ctx, typecode=typecode.contentTypeCode, name=indexName(name=name, p=[p, ".value()"], loopvar=loopvar), originName=originName, loopvar=ctx.nextLoopVarName)$
@@ -900,19 +916,19 @@ for(auto it_$loopvar$ : topic_a->$name$$p$)
 
 array_comparision(ctx, typecode, name, originName, dimensions, p, loopvar) ::= <<
 $if(rest(dimensions))$
-for(int $loopvar$ = 0; $loopvar$ < topic_a->$name$$p$.size(); ++$loopvar$)
+for(size_t $loopvar$ = 0; $loopvar$ < topic_a->$name$$p$.size(); ++$loopvar$)
 {
     $array_comparision(ctx=ctx, typecode=typecode, name=indexName(name=name, loopvar=loopvar, p=p), originName=originName, dimensions=rest(dimensions), p="", loopvar=ctx.nextLoopVarName)$
 }
 $elseif(typecode.contentTypeCode.primitive)$
 if (memcmp(&topic_a->$name$$p$, &topic_b->$name$$p$, sizeof(topic_a->$name$$p$)) != 0) return 0;
 $elseif(typecode.contentTypeCode.isType_d)$
-for(int $loopvar$ = 0; $loopvar$ < topic_a->$name$$p$.size(); ++$loopvar$)
+for(size_t $loopvar$ = 0; $loopvar$ < topic_a->$name$$p$.size(); ++$loopvar$)
 {
     $array_member_comparision(ctx=ctx, typecode=typecode.contentTypeCode, name=indexName(name=name, p=p, loopvar=loopvar), originName=name, loopvar=ctx.nextLoopVarName)$
 }
 $else$
-for(int $loopvar$ = 0; $loopvar$ < topic_a->$name$$p$.size(); ++$loopvar$)
+for(size_t $loopvar$ = 0; $loopvar$ < topic_a->$name$$p$.size(); ++$loopvar$)
 {
     $array_member_comparision(ctx=ctx, typecode=typecode.contentTypeCode, name=indexName(name=name, p=p, loopvar=loopvar), originName=name, loopvar=ctx.nextLoopVarName)$
 }

@@ -140,7 +140,11 @@ $struct.scopedname$::$struct.name$(
     $endif$
 
 {
+    $if(struct.members)$
     $struct.members:{ member | $member_copy(ctx=ctx, member=member)$}; separator="\n"$
+    $else$
+    static_cast<void>(x);
+    $endif$
 }
 
 $struct.scopedname$::$struct.name$(
@@ -150,7 +154,11 @@ $struct.scopedname$::$struct.name$(
     $endif$
 
 {
+    $if(struct.members)$
     $struct.members:{ member | $member_move(member=member)$}; separator="\n"$
+    $else$
+    static_cast<void>(x);
+    $endif$
 }
 
 $struct.scopedname$& $struct.scopedname$::operator =(
@@ -158,7 +166,11 @@ $struct.scopedname$& $struct.scopedname$::operator =(
 {
     $if(struct.inheritances)$$struct.inheritances : { inheritance | $inheritance.scopedname$::operator =(x);}; separator="\n"$$endif$
 
+    $if(struct.members)$
     $struct.members:{ member | $member_copy(ctx=ctx, member=member)$}; separator="\n"$
+    $else$
+    static_cast<void>(x);
+    $endif$
 
     return *this;
 }
@@ -168,7 +180,11 @@ $struct.scopedname$& $struct.scopedname$::operator =(
 {
     $if(struct.inheritances)$$struct.inheritances : { inheritance | $inheritance.scopedname$::operator =(std::move(x));}; separator="\n"$$endif$
 
+    $if(struct.members)$
     $struct.members:{ member | $member_move(member=member)$}; separator="\n"$
+    $else$
+    static_cast<void>(x);
+    $endif$
 
     return *this;
 }
@@ -182,7 +198,12 @@ bool $struct.scopedname$::operator ==(
     \}
     }; separator="\n"$$endif$
 
-    return $if(struct.members)$($struct.members:{ member | m_$member.name$ == x.m_$member.name$}; separator=" &&\n           "$)$else$true$endif$;
+    $if(!struct.members)$
+    static_cast<void>(x);
+    return true;
+    $else$
+    return ($struct.members:{ member | m_$member.name$ == x.m_$member.name$}; separator=" &&\n           "$);
+    $endif$
 }
 
 bool $struct.scopedname$::operator !=(
@@ -467,6 +488,10 @@ void $union.scopedname$::_d(
     switch (m__d)
     {
         $union.members:{ member | $unionmember_discriminator_case(member=member, totallabels=union.totallabels)$}; separator="\n"$
+        $if(!union.defaultMember)$
+        default:
+            break;
+        $endif$
     }
 
     if (!b)
@@ -942,7 +967,7 @@ $scopedtypename$::$typename$(
     , release_(true)
 {
     value_ = new $typecode.contentTypeCode.cppTypename$[length_];
-    for (uint32_t i = 0; i < length_; ++i)
+    for (size_t i = 0; i < length_; ++i)
     {
         $if(ctx.generateTypesC)$$if(typecode.contentTypeCode.isStringType)$
         strncpy(value_[i], $typename$_.value_[i], strlen($typename$_.value_[i]) + 1);
@@ -961,7 +986,7 @@ $scopedtypename$& $scopedtypename$::operator =(
     release_ = true;
 
     value_ = new $typecode.contentTypeCode.cppTypename$[length_];
-    for (uint32_t i = 0; i < length_; ++i)
+    for (size_t i = 0; i < length_; ++i)
     {
         $if(ctx.generateTypesC)$$if(typecode.contentTypeCode.isStringType)$
         strncpy(value_[i], $typename$_.value_[i], strlen($typename$_.value_[i]) + 1);
@@ -996,7 +1021,7 @@ $typecode.contentTypeCode.cppTypename$$if(ctx.generateTypesC)$$if(typecode.conte
         }
 
         $if(ctx.generateTypesC)$$if(typecode.contentTypeCode.isStringType)$
-        for (uint32_t count = 0; count < length_; ++count)
+        for (size_t count = 0; count < length_; ++count)
         {
             value_[count] = nullptr;
         }
@@ -1024,7 +1049,7 @@ const $typecode.contentTypeCode.cppTypename$$if(ctx.generateTypesC)$$if(typecode
         }
 
         $if(ctx.generateTypesC)$$if(typecode.contentTypeCode.isStringType)$
-        for (uint32_t count = 0; count < length_; ++count)
+        for (size_t count = 0; count < length_; ++count)
         {
             value_[count] = nullptr;
         }
@@ -1042,7 +1067,7 @@ void $scopedtypename$::size(
         if(value_ != nullptr && size > length_)
         {
             $typecode.contentTypeCode.cppTypename$* temp = new $typecode.contentTypeCode.cppTypename$[size];
-            for (uint32_t i = 0; i < length_; ++i)
+            for (size_t i = 0; i < length_; ++i)
             {
                 $if(ctx.generateTypesC)$$if(typecode.contentTypeCode.isStringType)$
                 if (value_[i] != nullptr)
@@ -1086,7 +1111,7 @@ void $scopedtypename$::length(
         if(value_ != nullptr && length > length_)
         {
             $typecode.contentTypeCode.cppTypename$* temp = new $typecode.contentTypeCode.cppTypename$[length];
-            for (uint32_t i = 0; i < length_; ++i)
+            for (size_t i = 0; i < length_; ++i)
             {
                 $if(ctx.generateTypesC)$$if(typecode.contentTypeCode.isStringType)$
                 if (value_[i] != nullptr)
@@ -1165,7 +1190,7 @@ $typecode.contentTypeCode.cppTypename$* $scopedtypename$::value(
         }
 
         $if(ctx.generateTypesC)$$if(typecode.contentTypeCode.isStringType)$
-        for (uint32_t count = 0; count < length_; ++count)
+        for (size_t count = 0; count < length_; ++count)
         {
             value_[count] = nullptr;
         }
@@ -1198,7 +1223,7 @@ const $typecode.contentTypeCode.cppTypename$$if(ctx.generateTypesC)$$if(typecode
         }
 
         $if(ctx.generateTypesC)$$if(typecode.contentTypeCode.isStringType)$
-        for (uint32_t count = 0; count < length_; ++count)
+        for (size_t count = 0; count < length_; ++count)
         {
             value_[count] = nullptr;
         }
@@ -1251,18 +1276,18 @@ void $scopedtypename$::serialize(
 
     if (value_ == nullptr && length_ > 0)
     {
-        uint32_t size = (maximum_ == 0) ? length_ : maximum_;
+        size_t size = (maximum_ == 0) ? length_ : maximum_;
         value_ = new $typecode.contentTypeCode.cppTypename$[size];
 
         $if(ctx.generateTypesC)$$if(typecode.contentTypeCode.isStringType)$
-        for (uint32_t count = 0; count < length_; ++count)
+        for (size_t count = 0; count < length_; ++count)
         {
             value_[count] = nullptr;
         }
         $else$$endif$$else$$endif$
     }
 
-    for (uint32_t count = 0; count < length_; ++count)
+    for (size_t count = 0; count < length_; ++count)
     {
         scdr << value_[count];
     }
@@ -1286,13 +1311,13 @@ void $scopedtypename$::deserialize(
     {
         free_memory();
 
-        uint32_t size = (maximum_ == 0) ? new_length : maximum_;
+        size_t size = (maximum_ == 0) ? new_length : maximum_;
         value_ = new $typecode.contentTypeCode.cppTypename$[size];
     }
 
     length_ = new_length;
 
-    for (uint32_t count = 0; count < length_; ++count)
+    for (size_t count = 0; count < length_; ++count)
     {
         $if(ctx.generateTypesC)$$if(typecode.contentTypeCode.isStringType)$
         {
@@ -1312,7 +1337,7 @@ void $scopedtypename$::free_memory()
     if (release_)
     {
         $if(ctx.generateTypesC)$$if(typecode.contentTypeCode.isStringType)$
-        for (uint32_t count = 0; count < length_; ++count)
+        for (size_t count = 0; count < length_; ++count)
         {
             free(value_[count]);
             value_[count] = nullptr;
