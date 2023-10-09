@@ -22,9 +22,10 @@ public class StringTypeCode extends com.eprosima.idl.parser.typecode.StringTypeC
 {
     public StringTypeCode(
             int kind,
-            String maxsize)
+            String maxsize,
+            String evaluated_maxsize)
     {
-        super(kind, maxsize);
+        super(kind, maxsize, evaluated_maxsize);
     }
 
     @Override
@@ -32,7 +33,7 @@ public class StringTypeCode extends com.eprosima.idl.parser.typecode.StringTypeC
             long current_alignment)
     {
         long initial_alignment = current_alignment;
-        long maxsize = Long.parseLong(getMaxsize(), 10);
+        long maxsize = Long.parseLong(getEvaluatedMaxsize(), 10);
 
         switch (getKind())
         {

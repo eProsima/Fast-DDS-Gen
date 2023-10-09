@@ -122,7 +122,7 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
     public MapTypeCode createMapTypeCode(
             String maxsize)
     {
-        return new MapTypeCode(maxsize);
+        return new MapTypeCode(maxsize, evaluate_literal(maxsize));
     }
 
     @Override
@@ -136,14 +136,14 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
     public SequenceTypeCode createSequenceTypeCode(
             String maxsize)
     {
-        return new SequenceTypeCode(maxsize);
+        return new SequenceTypeCode(maxsize, evaluate_literal(maxsize));
     }
 
     @Override
     public SetTypeCode createSetTypeCode(
             String maxsize)
     {
-        return new SetTypeCode(maxsize);
+        return new SetTypeCode(maxsize, evaluate_literal(maxsize));
     }
 
     @Override
@@ -151,7 +151,7 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
             int kind,
             String maxsize)
     {
-        return new StringTypeCode(kind, maxsize);
+        return new StringTypeCode(kind, maxsize, evaluate_literal(maxsize));
     }
 
     @Override

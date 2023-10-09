@@ -20,9 +20,10 @@ public class MapTypeCode extends com.eprosima.idl.parser.typecode.MapTypeCode
     implements TypeCode
 {
     public MapTypeCode(
-            String maxsize)
+            String maxsize,
+            String evaluated_maxsize)
     {
-        super(maxsize);
+        super(maxsize, evaluated_maxsize);
     }
 
     @Override
@@ -30,7 +31,7 @@ public class MapTypeCode extends com.eprosima.idl.parser.typecode.MapTypeCode
             long current_alignment)
     {
         long initial_alignment = current_alignment;
-        long maxsize = Long.parseLong(getMaxsize(), 10);
+        long maxsize = Long.parseLong(getEvaluatedMaxsize(), 10);
 
 
         if (!getValueTypeCode().isPrimitive() &&
