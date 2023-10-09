@@ -20,9 +20,10 @@ public class SetTypeCode extends com.eprosima.idl.parser.typecode.SetTypeCode
     implements TypeCode
 {
     public SetTypeCode(
-            String maxsize)
+            String maxsize,
+            String evaluated_maxsize)
     {
-        super(maxsize);
+        super(maxsize, evaluated_maxsize);
     }
 
     @Override
@@ -30,7 +31,7 @@ public class SetTypeCode extends com.eprosima.idl.parser.typecode.SetTypeCode
             long current_alignment)
     {
         long initial_alignment = current_alignment;
-        long maxsize = Long.parseLong(getMaxsize(), 10);
+        long maxsize = Long.parseLong(getEvaluatedMaxsize(), 10);
 
         current_alignment += 4 + TypeCode.cdr_alignment(current_alignment, 4);
 

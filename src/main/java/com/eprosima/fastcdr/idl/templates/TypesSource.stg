@@ -61,7 +61,11 @@ $endif$
 >>
 
 module(ctx, parent, module, definition_list) ::= <<
+namespace $module.name$ {
+
 $definition_list$
+
+} // namespace $module.name$
 >>
 
 definition_list(definitions) ::= <<

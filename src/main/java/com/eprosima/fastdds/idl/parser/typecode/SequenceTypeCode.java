@@ -20,9 +20,10 @@ public class SequenceTypeCode extends com.eprosima.idl.parser.typecode.SequenceT
     implements TypeCode
 {
     public SequenceTypeCode(
-            String maxsize)
+            String maxsize,
+            String evaluated_maxsize)
     {
-        super(maxsize);
+        super(maxsize, evaluated_maxsize);
     }
 
     @Override
@@ -31,7 +32,7 @@ public class SequenceTypeCode extends com.eprosima.idl.parser.typecode.SequenceT
     {
         long initial_alignment = current_alignment;
         long maxsize = !detect_recursive_
-            ? Long.parseLong(getMaxsize(), 10)
+            ? Long.parseLong(getEvaluatedMaxsize(), 10)
             : 0;
 
         boolean should_set_and_unset = !detect_recursive_;

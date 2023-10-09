@@ -34,9 +34,9 @@ public class ArrayTypeCode extends com.eprosima.idl.parser.typecode.ArrayTypeCod
         }
 
         long size = 1;
-        for (int count = 0; count < getDimensions().size(); ++count)
+        for (int count = 0; count < getEvaluatedDimensions().size(); ++count)
         {
-            size *= Long.parseLong(getDimensions().get(count), 10);
+            size *= Long.parseLong(getEvaluatedDimensions().get(count), 10);
         }
 
         if (0 < size)
@@ -61,9 +61,9 @@ public class ArrayTypeCode extends com.eprosima.idl.parser.typecode.ArrayTypeCod
         long initial_alignment = current_alignment;
 
         long size = 1;
-        for (int count = 0; count < getDimensions().size(); ++count)
+        for (int count = 0; count < getEvaluatedDimensions().size(); ++count)
         {
-            size *= Long.parseLong(getDimensions().get(count), 10);
+            size *= Long.parseLong(getEvaluatedDimensions().get(count), 10);
         }
 
         if (0 < size)
@@ -85,9 +85,9 @@ public class ArrayTypeCode extends com.eprosima.idl.parser.typecode.ArrayTypeCod
     public boolean isNotZeroArray()
     {
         long size = 1;
-        for (int count = 0; count < getDimensions().size(); ++count)
+        for (int count = 0; count < getEvaluatedDimensions().size(); ++count)
         {
-            size *= Long.parseLong(getDimensions().get(count), 10);
+            size *= Long.parseLong(getEvaluatedDimensions().get(count), 10);
         }
         return 0 != size;
     }
