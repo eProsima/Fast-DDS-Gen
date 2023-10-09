@@ -98,7 +98,6 @@ $definitions; separator="\n"$
 $"\n"$
 >>
 
-// TODO name -> module
 module(ctx, parent, module, definition_list) ::= <<
 namespace $module.name$ {
 
