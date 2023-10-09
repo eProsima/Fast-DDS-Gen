@@ -76,11 +76,11 @@ struct_type(ctx, parent, struct) ::= <<
 $if (parent.IsInterface)$$parent.name$_$endif$$struct.name$PubSubType::$if (parent.IsInterface)$$parent.name$_$endif$$struct.name$PubSubType()
 {
     $if(ctx.GenerateTypesROS2)$setName("$struct.ROS2Scopedname$");$else$setName("$struct.scopedname$");$endif$
-    size_t type_size = $struct.cScopedname$_max_cdr_typesize;
+    uint32_t type_size = $struct.cScopedname$_max_cdr_typesize;
     type_size += static_cast<uint32_t>(eprosima::fastcdr::Cdr::alignment(type_size, 4)); /* possible submessage alignment */
     m_typeSize = type_size + 4; /*encapsulation*/
     m_isGetKeyDefined = $if(struct.hasKey)$true$else$false$endif$;
-    size_t keyLength = $struct.cScopedname$_max_key_cdr_typesize > 16 ? $struct.cScopedname$_max_key_cdr_typesize : 16;
+    uint32_t keyLength = $struct.cScopedname$_max_key_cdr_typesize > 16 ? $struct.cScopedname$_max_key_cdr_typesize : 16;
     m_keyBuffer = reinterpret_cast<unsigned char*>(malloc(keyLength));
     memset(m_keyBuffer, 0, keyLength);
 }
