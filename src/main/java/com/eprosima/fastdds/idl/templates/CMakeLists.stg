@@ -58,12 +58,25 @@ target_link_libraries($project.name$ $solution.libraries : { library | $library$
 $endif$
 
 $if(test)$
+###############################################################################
+# Testing
+###############################################################################
+enable_testing()
+include(CTest)
+
+find_package(GTest CONFIG REQUIRED)
+
+include(GoogleTest)
+
 # $project.name$ Serialization Test
 add_executable($project.name$SerializationTest
         $project.commonTestingFiles : { file | $file$}; separator="\n"$
 )
-target_link_libraries($project.name$SerializationTest $solution.libraries : { library | $library$}; separator=" "$
+target_link_libraries($project.name$SerializationTest
+        GTest::gtest_main
+        $solution.libraries : { library | $library$}; separator=" "$
         $project.name$_lib $project.dependencies : { dep | $dep$_lib}; separator=" "$)
+gtest_discover_tests($project.name$SerializationTest)
 
 $endif$
 
