@@ -34,14 +34,14 @@ $member.name$(aux_$member.name$);$endif$
 const_decl(ctx, parent, const) ::= <<>>
 
 object_cpptypename(object) ::= <<
-$if(object.annotationOptional)$eprosima::fastcdr::optional<$endif$$object.typecode.cppTypename$$if(object.typecode.forwarded)$*$endif$$if(object.annotationOptional)$>$endif$
+$if(object.annotationOptional)$eprosima::fastcdr::optional<$endif$$object.typecode.cppTypename$$if(object.annotationOptional)$>$endif$
 >>
 
 member_type_declaration(member) ::= <<
 $if(member.annotationOptional)$eprosima::fastcdr::optional<$endif$$member.typecode.cppTypename$$if(member.annotationOptional)$>$endif$
 >>
 
-member_destructor(ctx, member) ::= <<$if(member.typecode.forwarded)$delete m_$member.name$;$elseif(ctx.generateTypesC)$$if(member.typecode.isStringType)$free(m_$member.name$);
+member_destructor(ctx, member) ::= <<$if(ctx.generateTypesC)$$if(member.typecode.isStringType)$free(m_$member.name$);
 m_$member.name$ = nullptr;$elseif(member.typecode.isType_f)$$if(member.typecode.contentTypeCode.isStringType)$$member_array_cstring_destructor(ctx=ctx, name=memberName(member.name), loopvar=ctx.newLoopVarName, dims=member.typecode.dimensions)$$endif$$endif$$endif$>>
 
 member_array_cstring_destructor(ctx, name, loopvar, dims) ::= <<$if(rest(dims))$for (size_t $loopvar$ = 0; $loopvar$ < $name$.size(); ++$loopvar$)

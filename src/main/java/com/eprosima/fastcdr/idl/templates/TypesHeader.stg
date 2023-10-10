@@ -623,13 +623,11 @@ eProsima_user_DllExport $member.typecode.cppTypename$& $member.name$();
 >>
 
 member_default_init(member) ::= <%
-$if(!member.typecode.forwarded)$
 $if(member.annotationDefault)$
  {$member.annotationDefaultValue$}
 $elseif(!member.annotationOptional)$
 $if(member.typecode.initialValue)$
  {$member.typecode.initialValue$}
-$endif$
 $endif$
 $endif$
 %>

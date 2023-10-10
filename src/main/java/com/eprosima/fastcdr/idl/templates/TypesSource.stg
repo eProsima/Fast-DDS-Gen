@@ -124,8 +124,6 @@ $struct.scopedname$::$struct.name$()
     $endif$
 
 {
-    $struct.members:{ member |$member_default_init(ctx=ctx, member=member, loopvar=ctx.newLoopVarName)$}; separator="\n"$
-
     $if(ctx.generateTypeObject)$
     // Just to register all known types
     register$ctx.filename$Types();
@@ -403,7 +401,6 @@ $union.scopedname$::$union.name$()
     $else$
     m__d = $first(first(union.members).labels)$;
     $endif$
-    $union.members:{ member |$member_default_init(ctx=ctx, member=member, loopvar=ctx.newLoopVarName)$}; separator="\n"$
 }
 
 $union.scopedname$::~$union.name$()
@@ -574,7 +571,7 @@ public_primitive_member_declaration(class, member) ::= <<
 void $class$::$member.name$(
         $member_type_declaration(member)$ _$member.name$)
 {
-   $\ $$if(member.typecode.forwarded)$*$endif$m_$member.name$ = _$member.name$;
+   $\ $m_$member.name$ = _$member.name$;
 }
 
 /*!
@@ -583,7 +580,7 @@ void $class$::$member.name$(
  */
 $member_type_declaration(member)$ $class$::$member.name$() const
 {
-    return $if(member.typecode.forwarded)$*$endif$m_$member.name$;
+    return m_$member.name$;
 }
 
 /*!
@@ -592,7 +589,7 @@ $member_type_declaration(member)$ $class$::$member.name$() const
  */
 $member_type_declaration(member)$& $class$::$member.name$()
 {
-    return $if(member.typecode.forwarded)$*$endif$m_$member.name$;
+    return m_$member.name$;
 }
 >>
 
@@ -627,7 +624,7 @@ public_object_member_declaration(class, member) ::= <<
 void $class$::$member.name$(
         const $member_type_declaration(member)$& _$member.name$)
 {
-   $\ $$if(member.typecode.forwarded)$*$endif$m_$member.name$ = _$member.name$;
+   $\ $m_$member.name$ = _$member.name$;
 }
 
 /*!
@@ -637,7 +634,7 @@ void $class$::$member.name$(
 void $class$::$member.name$(
         $member_type_declaration(member)$&& _$member.name$)
 {
-   $\ $$if(member.typecode.forwarded)$*$endif$m_$member.name$ = std::move(_$member.name$);
+   $\ $m_$member.name$ = std::move(_$member.name$);
 }
 
 /*!
@@ -646,7 +643,7 @@ void $class$::$member.name$(
  */
 const $member_type_declaration(member)$& $class$::$member.name$() const
 {
-    return $if(member.typecode.forwarded)$*$endif$m_$member.name$;
+    return m_$member.name$;
 }
 
 /*!
@@ -655,7 +652,7 @@ const $member_type_declaration(member)$& $class$::$member.name$() const
  */
 $member_type_declaration(member)$& $class$::$member.name$()
 {
-    return $if(member.typecode.forwarded)$*$endif$m_$member.name$;
+    return m_$member.name$;
 }
 >>
 
@@ -735,10 +732,7 @@ $endif$
 >>
 
 member_copy(ctx, member) ::= <%
-$if(member.typecode.forwarded)$
-m_$member.name$ = new $member.typecode.cppTypename$();
-*m_$member.name$ = *x.m_$member.name$;
-$elseif(ctx.generateTypesC)$
+$if(ctx.generateTypesC)$
 $if(member.typecode.isStringType)$
 free(m_$member.name$);
 m_$member.name$ = (char*)malloc(sizeof(char) * (strlen(x.m_$member.name$) + 1));
@@ -755,12 +749,7 @@ member_move(member) ::= <%
 $if(member.typecode.primitive)$
 m_$member.name$ = x.m_$member.name$;
 $else$
-$if(member.typecode.forwarded)$
-m_$member.name$ = x.m_$member.name$;
-x.m_$member.name$ = nullptr;
-$else$
 m_$member.name$ = std::move(x.m_$member.name$);
-$endif$
 $endif$
 %>
 
@@ -1352,11 +1341,5 @@ void $scopedtypename$::free_memory()
     value_ = nullptr;
 }
 
-$endif$
->>
-
-member_default_init(ctx, member, loopvar) ::= <<
-$if(member.typecode.forwarded)$
-m_$member.name$ = new $member.typecode.cppTypename$($if(member.annotationDefault)$$member.annotationDefaultValue$$endif$);
 $endif$
 >>
