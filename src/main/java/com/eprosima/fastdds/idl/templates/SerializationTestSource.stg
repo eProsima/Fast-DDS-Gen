@@ -42,9 +42,11 @@ TEST_P($struct.formatedCppTypename$Test, encoding)
 {
     eprosima::fastdds::dds::DataRepresentationId_t cdr_version {std::get<0>(GetParam())};
     bool test_null_optional {$if(struct.containsOptional)$std::get<1>(GetParam())$else$false$endif$};
-    std::cout << std::endl <<"======================================== Testing $struct.name$" <<
-            (true == test_null_optional ? " with a null optional" : "") << " using encoding " <<
-            (eprosima::fastdds::dds::DataRepresentationId_t::XCDR_DATA_REPRESENTATION == cdr_version ? "XCDRv1" : "XCDRv2") <<
+    bool test_empty_external {$if(struct.containsExternal)$std::get<$if(!struct.containsOptional)$1$else$2$endif$>(GetParam())$else$false$endif$};
+    std::cout << std::endl <<"======================================== Testing $struct.name$"
+            << (true == test_null_optional ? " with a null optional" : "")
+            << (true == test_empty_external ? " with an empty external" : "")
+            << " using encoding " << (eprosima::fastdds::dds::DataRepresentationId_t::XCDR_DATA_REPRESENTATION == cdr_version ? "XCDRv1" : "XCDRv2") <<
             " ========================================" << std::endl;
     using eprosima::fastrtps::rtps::SerializedPayload_t;
     $if(struct.hasScope)$    using namespace $struct.scope$;$endif$
@@ -54,25 +56,39 @@ TEST_P($struct.formatedCppTypename$Test, encoding)
     $struct.name$ $struct.name$_deserialization_topic;
 
     g_$ctx.filename$_test_null_opt = test_null_optional;
+    g_$ctx.filename$_test_empty_ext = test_empty_external;
 
     initialize$struct.name$(&$struct.name$_serialization_topic);
 
     $struct.name$PubSubType pst;
-    uint32_t payloadSize = static_cast<uint32_t>(pst.getSerializedSizeProvider(&$struct.name$_serialization_topic,
-                cdr_version)());
 
-    SerializedPayload_t payload(payloadSize);
-    ASSERT_TRUE(pst.serialize(&$struct.name$_serialization_topic, &payload, cdr_version));
+    if (!test_empty_external)
+    {
+        uint32_t payloadSize = static_cast<uint32_t>(pst.getSerializedSizeProvider(&$struct.name$_serialization_topic,
+                    cdr_version)());
 
-    ASSERT_TRUE(pst.deserialize(&payload, &$struct.name$_deserialization_topic));
+        SerializedPayload_t payload(payloadSize);
 
-    uint32_t payloadOutSize = static_cast<uint32_t>(pst.getSerializedSizeProvider(&$struct.name$_deserialization_topic,
-                cdr_version)());
+        ASSERT_TRUE(pst.serialize(&$struct.name$_serialization_topic, &payload, cdr_version));
 
-    ASSERT_GT(compare$struct.name$(&$struct.name$_serialization_topic, &$struct.name$_deserialization_topic), 0);
-    ASSERT_EQ(payloadOutSize, payloadSize);
-    ASSERT_GE($struct.name$_type_support.m_typeSize + 4, payloadSize);
-    ASSERT_EQ(payload.length, payloadSize);
+        ASSERT_TRUE(pst.deserialize(&payload, &$struct.name$_deserialization_topic));
+
+        uint32_t payloadOutSize = static_cast<uint32_t>(pst.getSerializedSizeProvider(&$struct.name$_deserialization_topic,
+                    cdr_version)());
+
+        ASSERT_GT(compare$struct.name$(&$struct.name$_serialization_topic, &$struct.name$_deserialization_topic), 0);
+        ASSERT_EQ(payloadOutSize, payloadSize);
+        ASSERT_GE($struct.name$_type_support.m_typeSize + 4, payloadSize);
+        ASSERT_EQ(payload.length, payloadSize);
+    }
+    else
+    {
+        ASSERT_EQ(0, pst.getSerializedSizeProvider(&$struct.name$_serialization_topic, cdr_version)());
+
+        SerializedPayload_t payload(1000);
+
+        ASSERT_FALSE(pst.serialize(&$struct.name$_serialization_topic, &payload, cdr_version));
+    }
 
     $if((ctx.generateTypesC))$
     free_string$struct.name$(&$struct.name$_serialization_topic);
@@ -91,12 +107,14 @@ std::ostream& operator<<(std::ostream& stream, $struct.cppTypename$& e)
 }
 
 class $struct.formatedCppTypename$Test : public ::testing::TestWithParam<
+    std::tuple<eprosima::fastdds::dds::DataRepresentationId_t
 $if (struct.containsOptional)$
-    std::tuple<eprosima::fastdds::dds::DataRepresentationId_t, bool>
-$else$
-    std::tuple<eprosima::fastdds::dds::DataRepresentationId_t>
+    , bool
 $endif$
-    >
+$if (struct.containsExternal)$
+    , bool
+$endif$
+    > >
 {
 };
 
@@ -106,16 +124,10 @@ INSTANTIATE_TEST_SUITE_P(
     $ctx.filename$Test,
     $struct.formatedCppTypename$Test,
     ::testing::Values(
-$if (struct.containsOptional)$
-        std::make_tuple(eprosima::fastdds::dds::DataRepresentationId_t::XCDR_DATA_REPRESENTATION, false),
-        std::make_tuple(eprosima::fastdds::dds::DataRepresentationId_t::XCDR_DATA_REPRESENTATION, true),
-        std::make_tuple(eprosima::fastdds::dds::DataRepresentationId_t::XCDR2_DATA_REPRESENTATION, false),
-        std::make_tuple(eprosima::fastdds::dds::DataRepresentationId_t::XCDR2_DATA_REPRESENTATION, true)
-$else$
-        std::make_tuple(eprosima::fastdds::dds::DataRepresentationId_t::XCDR_DATA_REPRESENTATION),
-        std::make_tuple(eprosima::fastdds::dds::DataRepresentationId_t::XCDR2_DATA_REPRESENTATION)
-$endif$
-        ));
+    $["eprosima::fastdds::dds::DataRepresentationId_t::XCDR_DATA_REPRESENTATION", "eprosima::fastdds::dds::DataRepresentationId_t::XCDR2_DATA_REPRESENTATION"], [",", ""] : { cdr_version, last_element |
+        $tuple_maybe_with_opt(struct, cdr_version, last_element)$
+    }$
+    ));
 >>
 
 union_type(ctx, parent, union) ::= <<>>
@@ -135,3 +147,42 @@ module(ctx, parent, module, definition_list) ::= <<>>
 definition_list(definitions) ::= <<>>
 
 const_decl(ctx, parent, const) ::= <<>>
+
+/// Auxiliary templates
+
+tuple_maybe_with_opt(struct, cdr_version, last_element) ::= <%
+
+$if(struct.containsOptional)$
+$["false", "true"], [",", last_element] : { test_null_optional, last_element |
+    $tuple_maybe_with_ext(struct, cdr_version, test_null_optional, last_element)$
+}$
+$else$
+$tuple_maybe_with_ext(struct=struct, cdr_version=cdr_version, test_null_optional="", last_element=last_element)$
+$endif$
+
+%>
+
+tuple_maybe_with_ext(struct, cdr_version, test_null_optional, last_element) ::= <%
+
+$if(struct.containsExternal)$
+$["false", "true"], [",", last_element] : { test_empty_external, last_element |
+    $tuple_print(struct, cdr_version, test_null_optional, test_empty_external, last_element)$
+}$
+$else$
+$tuple_print(struct=struct, cdr_version=cdr_version, test_null_optional=test_null_optional, test_empty_external="", last_element=last_element)$
+$endif$
+
+%>
+
+tuple_print(struct, cdr_version, test_null_optional, test_empty_external, last_element) ::= <%
+
+std::make_tuple($cdr_version$
+$if(struct.containsOptional)$
+, $test_null_optional$
+$endif$
+$if(struct.containsExternal)$
+, $test_empty_external$
+$endif$
+)$last_element$$\n$
+
+%>

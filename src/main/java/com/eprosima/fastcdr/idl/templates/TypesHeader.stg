@@ -31,6 +31,7 @@ $fileHeader(ctx=ctx, file=[ctx.filename, ".h"], description=["This header file c
 #include <vector>
 
 #include <fastcdr/cdr/fixed_size_string.hpp>
+#include <fastcdr/xcdr/external.hpp>
 #include <fastcdr/xcdr/optional.hpp>
 
 $if(ctx.printexception)$
@@ -439,7 +440,7 @@ public_struct_inheritances(parent) ::= <<$parent.scopedname$>>
 public_bitset_inheritances(parent) ::= <<$parent.scopedname$>>
 
 public_member_declaration(member) ::= <<
-$if(member.annotationOptional)$
+$if(member.annotationOptional || member.annotationExternal)$
 $public_member_common_declaration(member=member)$
 $elseif(member.typecode.primitive)$
 $public_member_primitive_declaration(member=member)$
@@ -536,7 +537,7 @@ $endif$
 >>
 
 private_member_declaration(member) ::= <<
-$object_cpptypename(object=member)$ m_$member.name$$member_default_init(member)$;
+$member_type_declaration(member)$ m_$member.name$$member_default_init(member)$;
 >>
 
 public_unionmember_declaration(member) ::= <<
@@ -625,7 +626,7 @@ eProsima_user_DllExport $member.typecode.cppTypename$& $member.name$();
 member_default_init(member) ::= <%
 $if(member.annotationDefault)$
  {$member.annotationDefaultValue$}
-$elseif(!member.annotationOptional)$
+$elseif(!member.annotationOptional && !member.annotationExternal)$
 $if(member.typecode.initialValue)$
  {$member.typecode.initialValue$}
 $endif$

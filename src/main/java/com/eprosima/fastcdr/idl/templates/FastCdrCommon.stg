@@ -33,13 +33,23 @@ $member.name$(aux_$member.name$);$endif$
 
 const_decl(ctx, parent, const) ::= <<>>
 
-object_cpptypename(object) ::= <<
-$if(object.annotationOptional)$eprosima::fastcdr::optional<$endif$$object.typecode.cppTypename$$if(object.annotationOptional)$>$endif$
->>
+member_type_declaration(member) ::= <%
+$if(member.annotationOptional)$
+    eprosima::fastcdr::optional<
+$endif$
+$if(member.annotationExternal)$
+    eprosima::fastcdr::external<
+$endif$
 
-member_type_declaration(member) ::= <<
-$if(member.annotationOptional)$eprosima::fastcdr::optional<$endif$$member.typecode.cppTypename$$if(member.annotationOptional)$>$endif$
->>
+$member.typecode.cppTypename$
+
+$if(member.annotationExternal)$
+    >
+$endif$
+$if(member.annotationOptional)$
+    >
+$endif$
+%>
 
 member_destructor(ctx, member) ::= <<$if(ctx.generateTypesC)$$if(member.typecode.isStringType)$free(m_$member.name$);
 m_$member.name$ = nullptr;$elseif(member.typecode.isType_f)$$if(member.typecode.contentTypeCode.isStringType)$$member_array_cstring_destructor(ctx=ctx, name=memberName(member.name), loopvar=ctx.newLoopVarName, dims=member.typecode.dimensions)$$endif$$endif$$endif$>>

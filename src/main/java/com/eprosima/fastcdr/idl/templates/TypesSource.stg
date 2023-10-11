@@ -548,7 +548,7 @@ bitmask_type(ctx, parent, bitmask) ::= <<>>
 /***** Utils *****/
 
 public_member_declaration(class, member) ::= <<
-$if(member.annotationOptional)$
+$if(member.annotationOptional || member.annotationExternal)$
 $public_object_member_declaration(class=class, member=member)$
 $elseif(member.typecode.primitive)$
 $public_primitive_member_declaration(class=class, member=member)$

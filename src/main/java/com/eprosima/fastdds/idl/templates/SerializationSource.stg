@@ -29,6 +29,7 @@ $fileHeader(ctx=ctx,  file=[ctx.filename, "SerializationSource.cpp"], descriptio
 #include <cassert>
 
 bool g_$ctx.filename$_test_null_opt = false;
+bool g_$ctx.filename$_test_empty_ext = false;
 
 $ctx.directIncludeDependencies:{ header | #include "$header$Serialization.h"}; separator="\n"$
 
@@ -55,7 +56,8 @@ void $if(struct.hasScope)$$struct.scope$::$endif$print$struct.name$(
     $endif$
     printf("$struct.name$: { \n");
     $struct.allMembers:{ member |
-        $member_print(ctx=ctx, typecode=member.typecode, name=member.name, originName=member.name, optional=member.annotationOptional)$
+        $member_print(ctx=ctx, typecode=member.typecode, name=member.name, originName=member.name,
+                optional=member.annotationOptional, external=member.annotationExternal)$
     }; separator="\n"$
     printf("}\n");
 }
@@ -71,8 +73,17 @@ void $if(struct.hasScope)$$struct.scope$::$endif$initialize$struct.name$(
             $if(member.annotationOptional)$
             if(!g_$ctx.filename$_test_null_opt)
             {
+                topic->$member.name$().reset(true);
             $endif$
-            $member_assignment(ctx=ctx, typecode=member.typecode, name=member.name, originName=member.name, optional=member.annotationOptional)$
+            $if(member.annotationExternal)$
+            if(!g_$ctx.filename$_test_empty_ext)
+            {
+            $endif$
+            $member_assignment(ctx=ctx, typecode=member.typecode, name=member.name, originName=member.name,
+                    optional=member.annotationOptional, external=member.annotationExternal)$
+            $if(member.annotationExternal)$
+            \}
+            $endif$
             $if(member.annotationOptional)$
             \}
             $endif$
@@ -84,8 +95,17 @@ void $if(struct.hasScope)$$struct.scope$::$endif$initialize$struct.name$(
             $if(member.annotationOptional)$
             if(!g_$ctx.filename$_test_null_opt)
             {
+                topic->$member.name$().reset(true);
             $endif$
-            $simply_member_assignment(ctx=ctx, typecode=member.typecode, name=member.name, optional=member.annotationOptional)$
+            $if(member.annotationExternal)$
+            if(!g_$ctx.filename$_test_empty_ext)
+            {
+            $endif$
+            $simply_member_assignment(ctx=ctx, typecode=member.typecode, name=member.name,
+                    optional=member.annotationOptional)$
+            $if(member.annotationExternal)$
+            \}
+            $endif$
             $if(member.annotationOptional)$
             \}
             $endif$
@@ -106,7 +126,8 @@ int $if(struct.hasScope)$$struct.scope$::$endif$compare$struct.name$(
     static_cast<void>(topic_b);
     $endif$
     $struct.allMembers:{ member |
-        $member_comparision(ctx=ctx, typecode=member.typecode, name=member.name, originName=member.name, optional=member.annotationOptional)$
+        $member_comparision(ctx=ctx, typecode=member.typecode, name=member.name, originName=member.name,
+                optional=member.annotationOptional, external=member.annotationExternal)$
     }; separator="\n"$
     return 1;
 }
@@ -129,7 +150,8 @@ void $if(union.hasScope)$$union.scope$::$endif$print$union.name$(
     printf("$union.name$: { \n");
     $if(union.members)$
     $member_print(ctx=ctx, typecode=first(union.members).typecode, name=first(union.members).name,
-            originName=first(union.members).name, optional=first(union.members).annotationOptional)$
+            originName=first(union.members).name, optional=first(union.members).annotationOptional,
+            external=first(union.members).annotationExternal)$
     $endif$
     printf("}\n");
 }
@@ -139,7 +161,8 @@ void $if(union.hasScope)$$union.scope$::$endif$initialize$union.name$(
 {
     $if(union.members)$
     $member_assignment(ctx=ctx, typecode=first(union.members).typecode, name=first(union.members).name,
-            originName=first(union.members).name, optional=first(union.members).annotationOptional)$
+            originName=first(union.members).name, optional=first(union.members).annotationOptional,
+            external=first(union.members).annotationExternal)$
     $endif$
 }
 
@@ -151,7 +174,8 @@ int $if(union.hasScope)$$union.scope$::$endif$compare$union.name$(
     topic_b->_d(static_cast<$union.discriminator.cppTypename$>($first(first(union.members).labels)$));
     $if(union.members)$
     $member_comparision(ctx=ctx, typecode=first(union.members).typecode, name=first(union.members).name,
-            originName=first(union.members).name, optional=first(union.members).annotationOptional)$
+            originName=first(union.members).name, optional=first(union.members).annotationOptional,
+            external=first(union.members).annotationExternal)$
     $endif$
     return 1;
 }
@@ -268,9 +292,9 @@ assert(false);
 $endif$
 >>
 
-member_assignment(ctx, typecode, name, originName, optional) ::= <<
+member_assignment(ctx, typecode, name, originName, optional, external) ::= <<
 $if(typecode.isType_10)$
-$member_assignment(ctx=ctx, typecode=typecode.typedefContentTypeCode, name=name, originName=originName, optional=optional)$
+$member_assignment(ctx=ctx, typecode=typecode.typedefContentTypeCode, name=name, originName=originName, optional=optional, external=external)$
 $elseif(typecode.isType_7)$
 topic->$name$(static_cast<$typecode.cppTypename$>(rand()%2==1));
 $elseif(typecode.isWCharType)$
@@ -294,7 +318,8 @@ $if(optional)$topic->$name$().reset(true);$endif$
 $map_assigment(ctx=ctx, typecode=typecode, name=name, originName=originName, p=optional_suffix(p="()", optional=optional), loopvar=ctx.newLoopVarName)$
 $else$
 $if(optional)$topic->$name$().reset(true);$endif$
-$typecode.scope$::initialize$typecode.name$(&topic->$name$()$if(optional)$.value()$endif$);
+$if(external)$topic->$name$() = new $typecode.cppTypename$();$endif$
+$typecode.scope$::initialize$typecode.name$(&$if(external)$*$endif$topic->$name$()$if(optional)$.value()$endif$);
 $endif$
 >>
 
@@ -545,9 +570,14 @@ $endif$
 // ========================================================================================
 //                                         PRINT
 // ========================================================================================
-member_print(ctx, typecode, name, originName, optional) ::= <<
+member_print(ctx, typecode, name, originName, optional, external) ::= <<
 $if(optional)$
 if (topic->$name$().has_value()) {
+    $if(external)$
+    if (topic->$name$().value()) {
+    $endif$
+$elseif(external)$
+if (topic->$name$()) {
 $endif$
 
 $if(typecode.primitive)$
@@ -563,7 +593,7 @@ $else$
 printf("$name$: %s\n", topic->$name$()$if(optional)$.value()$endif$.c_str());
 $endif$
 $elseif(typecode.isType_10)$
-$member_print(ctx=ctx, typecode=typecode.typedefContentTypeCode, name=name, originName=originName, optional=optional)$
+$member_print(ctx=ctx, typecode=typecode.typedefContentTypeCode, name=name, originName=originName, optional=optional, external=external)$
 $elseif(typecode.isSequenceType)$
 $sequence_print(ctx=ctx, typecode=typecode, name=name, originName=originName, p=optional_suffix(p="()", optional=optional), loopvar=ctx.newLoopVarName)$
 $elseif(typecode.isMapType)$
@@ -571,10 +601,15 @@ $map_print(ctx=ctx, typecode=typecode, name=name, originName=originName, p=optio
 $elseif(typecode.isType_f)$
 $array_print(ctx=ctx, typecode=typecode, name=name, originName=originName, dimensions=typecode.dimensions, p=optional_suffix(p="()", optional=optional), loopvar=ctx.newLoopVarName)$
 $else$
-$typecode.scope$::print$typecode.name$(&topic->$name$()$if(optional)$.value()$endif$);
+$typecode.scope$::print$typecode.name$(&$if(external)$*$endif$topic->$name$()$if(optional)$.value()$endif$);
 $endif$
 
 $if(optional)$
+}
+    $if(external)$
+    }
+    $endif$
+$elseif(external)$
 }
 $endif$
 >>
@@ -774,7 +809,19 @@ printf("\n");
 // ========================================================================================
 //                                      COMPARISION
 // ========================================================================================
-member_comparision(ctx, typecode, name, originName, optional) ::= <<
+member_comparision(ctx, typecode, name, originName, optional, external) ::= <<
+$if(optional)$
+if(topic_a->$name$().has_value())
+{
+    $if(external)$
+    if(topic_a->$name$().value())
+    {
+    $endif$
+$elseif(external)$
+if(topic_a->$name$())
+{
+$endif$
+
 $if(typecode.primitive)$
 if (topic_a->$name$() != topic_b->$name$()) return 0;
 $elseif(typecode.isType_d)$
@@ -788,59 +835,36 @@ $else$
 if (topic_a->$name$() != topic_b->$name$()) return 0;
 $endif$
 $elseif(typecode.isType_10)$
-$member_comparision(ctx=ctx, typecode=typecode.typedefContentTypeCode, name=name, originName=originName, optional=optional)$
+$member_comparision(ctx=ctx, typecode=typecode.typedefContentTypeCode, name=name, originName=originName, optional=optional, external=external)$
 $elseif(typecode.isSequenceType)$
-$if(optional)$
-if(topic_a->$name$().has_value())
-{
-$endif$
 $sequence_comparision(ctx=ctx, typecode=typecode, name=name, p=optional_suffix(p="()", optional=optional), loopvar=ctx.newLoopVarName)$
-$if(optional)$
-}
-else
-{
-    if (topic_a->$name$().has_value() != topic_b->$name$().has_value()) return 0;
-}
-$endif$
 $elseif(typecode.isMapType)$
-$if(optional)$
-if(topic_a->$name$().has_value())
-{
-$endif$
 $map_comparision(ctx=ctx, typecode=typecode, name=name, originName=originName, p=optional_suffix(p="()", optional=optional), loopvar=ctx.newLoopVarName)$
-$if(optional)$
-}
-else
-{
-    if (topic_a->$name$().has_value() != topic_b->$name$().has_value()) return 0;
-}
-$endif$
 $elseif(typecode.isType_f)$
-$if(optional)$
-if(topic_a->$name$().has_value())
-{
-$endif$
 $array_comparision(ctx=ctx, typecode=typecode, name=name, originName=originName, dimensions=typecode.dimensions, p=optional_suffix(p="()", optional=optional), loopvar=ctx.newLoopVarName)$
-$if(optional)$
-}
-else
-{
-    if (topic_a->$name$().has_value() != topic_b->$name$().has_value()) return 0;
-}
-$endif$
 $else$
-$if(optional)$
-if(topic_a->$name$().has_value())
-{
+if (!$typecode.scope$::compare$typecode.name$(&$if(external)$*$endif$topic_a->$name$()$if(optional)$.value()$endif$, &$if(external)$*$endif$topic_b->$name$()$if(optional)$.value()$endif$)) return 0;
 $endif$
-if (!$typecode.scope$::compare$typecode.name$(&topic_a->$name$()$if(optional)$.value()$endif$, &topic_b->$name$()$if(optional)$.value()$endif$)) return 0;
+
 $if(optional)$
+    $if(external)$
+    }
+    else
+    {
+        if (topic_b->$name$().value()) return 0;
+    }
+    $endif$
 }
 else
 {
     if (topic_a->$name$().has_value() != topic_b->$name$().has_value()) return 0;
 }
-$endif$
+$elseif(external)$
+}
+else
+{
+    if (topic_b->$name$()) return 0;
+}
 $endif$
 >>
 
