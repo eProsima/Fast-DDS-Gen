@@ -62,7 +62,7 @@ TEST_P($struct.formatedCppTypename$Test, encoding)
 
     $struct.name$PubSubType pst;
 
-    if (!test_empty_external)
+    if (test_null_optional || !test_empty_external)
     {
         uint32_t payloadSize = static_cast<uint32_t>(pst.getSerializedSizeProvider(&$struct.name$_serialization_topic,
                     cdr_version)());
