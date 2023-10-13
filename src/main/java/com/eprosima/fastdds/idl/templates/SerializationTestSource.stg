@@ -99,6 +99,7 @@ TEST_P($struct.formatedCppTypename$Test, encoding)
 fwd_decl(ctx, parent, type) ::= <<>>
 
 struct_type(ctx, parent, struct) ::= <<
+$if(!struct.annotationNested)$
 
 std::ostream& operator<<(std::ostream& stream, $struct.cppTypename$& e)
 {
@@ -128,6 +129,8 @@ INSTANTIATE_TEST_SUITE_P(
         $tuple_maybe_with_opt(struct, cdr_version, last_element)$
     }$
     ));
+
+$endif$
 >>
 
 union_type(ctx, parent, union) ::= <<>>

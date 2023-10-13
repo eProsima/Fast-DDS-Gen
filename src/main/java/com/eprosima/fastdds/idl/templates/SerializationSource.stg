@@ -66,55 +66,64 @@ void $if(struct.hasScope)$$struct.scope$::$endif$initialize$struct.name$(
         $struct.name$* topic,
         int idx)
 {
-    $if(struct.allMembers)$
-    if (idx == 0)
+    static bool $struct.name$_detect_recursive_ = false;
+
+    if (!$struct.name$_detect_recursive_)
     {
-        $struct.allMembers:{ member |
-            $if(member.annotationOptional)$
-            if(!g_$ctx.filename$_test_null_opt)
-            {
-                topic->$member.name$().reset(true);
-            $endif$
-            $if(member.annotationExternal)$
-            if(!g_$ctx.filename$_test_empty_ext)
-            {
-            $endif$
-            $member_assignment(ctx=ctx, typecode=member.typecode, name=member.name, originName=member.name,
-                    optional=member.annotationOptional, external=member.annotationExternal)$
-            $if(member.annotationExternal)$
-            \}
-            $endif$
-            $if(member.annotationOptional)$
-            \}
-            $endif$
-        }; separator="\n"$
+        $struct.name$_detect_recursive_ = true;
+
+        $if(struct.allMembers)$
+        if (idx == 0)
+        {
+            $struct.allMembers:{ member |
+                $if(member.annotationOptional)$
+                if(!g_$ctx.filename$_test_null_opt)
+                {
+                    topic->$member.name$().reset(true);
+                $endif$
+                $if(member.annotationExternal)$
+                if(!g_$ctx.filename$_test_empty_ext)
+                {
+                $endif$
+                $member_assignment(ctx=ctx, typecode=member.typecode, name=member.name, originName=member.name,
+                        optional=member.annotationOptional, external=member.annotationExternal)$
+                $if(member.annotationExternal)$
+                \}
+                $endif$
+                $if(member.annotationOptional)$
+                \}
+                $endif$
+            }; separator="\n"$
+        }
+        else
+        {
+            $struct.allMembers:{ member |
+                $if(member.annotationOptional)$
+                if(!g_$ctx.filename$_test_null_opt)
+                {
+                    topic->$member.name$().reset(true);
+                $endif$
+                $if(member.annotationExternal)$
+                if(!g_$ctx.filename$_test_empty_ext)
+                {
+                $endif$
+                $simply_member_assignment(ctx=ctx, typecode=member.typecode, name=member.name,
+                        optional=member.annotationOptional, external=member.annotationExternal)$
+                $if(member.annotationExternal)$
+                \}
+                $endif$
+                $if(member.annotationOptional)$
+                \}
+                $endif$
+            }; separator="\n"$
+        }
+        $else$
+        static_cast<void>(topic);
+        static_cast<void>(idx);
+        $endif$
+
+        $struct.name$_detect_recursive_ = true;
     }
-    else
-    {
-        $struct.allMembers:{ member |
-            $if(member.annotationOptional)$
-            if(!g_$ctx.filename$_test_null_opt)
-            {
-                topic->$member.name$().reset(true);
-            $endif$
-            $if(member.annotationExternal)$
-            if(!g_$ctx.filename$_test_empty_ext)
-            {
-            $endif$
-            $simply_member_assignment(ctx=ctx, typecode=member.typecode, name=member.name,
-                    optional=member.annotationOptional, external=member.annotationExternal)$
-            $if(member.annotationExternal)$
-            \}
-            $endif$
-            $if(member.annotationOptional)$
-            \}
-            $endif$
-        }; separator="\n"$
-    }
-    $else$
-    static_cast<void>(topic);
-    static_cast<void>(idx);
-    $endif$
 }
 
 int $if(struct.hasScope)$$struct.scope$::$endif$compare$struct.name$(

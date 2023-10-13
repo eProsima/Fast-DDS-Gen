@@ -657,7 +657,42 @@ $member_type_declaration(member)$& $class$::$member.name$()
 >>
 
 public_unionmember_declaration(class, member, totallabels, defaultvalue) ::= <<
-$if(ctx.generateTypesC)$$if(member.typecode.isStringType)$$unionmember_cstring_declaration(class=class, member=member, totallabels=totallabels, defaultvalue=defaultvalue)$$else$$public_unionmember_cpp_declaration(class=class, member=member, totallabels=totallabels, defaultvalue=defaultvalue)$$endif$$else$$public_unionmember_cpp_declaration(class=class, member=member, totallabels=totallabels, defaultvalue=defaultvalue)$$endif$
+$if(member.annotationExternal)$
+$public_unionmember_cpp_declaration(class=class, member=member, totallabels=totallabels, defaultvalue=defaultvalue)$
+$elseif(member.typecode.primitive)$
+$public_unionmember_primitive_declaration(class=class, member=member, totallabels=totallabels, defaultvalue=defaultvalue)$
+$elseif(ctx.generateTypesC)$
+$if(member.typecode.isStringType)$
+$unionmember_cstring_declaration(class=class, member=member, totallabels=totallabels, defaultvalue=defaultvalue)$
+$else$
+$public_unionmember_cpp_declaration(class=class, member=member, totallabels=totallabels, defaultvalue=defaultvalue)$
+$endif$
+$else$
+$public_unionmember_cpp_declaration(class=class, member=member, totallabels=totallabels, defaultvalue=defaultvalue)$
+$endif$
+>>
+
+public_unionmember_primitive_declaration(class, member, totallabels, defaultvalue) ::= <<
+void $class$::$member.name$(
+        $member.typecode.cppTypename$ _$member.name$)
+{
+    m_$member.name$ = _$member.name$;
+    $unionmember_set_discriminator(member=member, defaultvalue=defaultvalue)$
+}
+
+$member.typecode.cppTypename$ $class$::$member.name$() const
+{
+    $unionmember_check_case_list(member=member, totallabels=totallabels)$
+
+    return m_$member.name$;
+}
+
+$member.typecode.cppTypename$& $class$::$member.name$()
+{
+    $unionmember_check_case_list(member=member, totallabels=totallabels)$
+
+    return m_$member.name$;
+}
 >>
 
 unionmember_cstring_declaration(class, member, totallabels, defaultvalue) ::= <<
@@ -679,56 +714,33 @@ const char* $class$::$member.name$() const
 >>
 
 public_unionmember_cpp_declaration(class, member, totallabels, defaultvalue) ::= <<
-$if(member.typecode.primitive)$
 void $class$::$member.name$(
-        $member.typecode.cppTypename$ _$member.name$)
-{
-    m_$member.name$ = _$member.name$;
-    $unionmember_set_discriminator(member=member, defaultvalue=defaultvalue)$
-}
-
-$member.typecode.cppTypename$ $class$::$member.name$() const
-{
-    $unionmember_check_case_list(member=member, totallabels=totallabels)$
-
-    return m_$member.name$;
-}
-
-$member.typecode.cppTypename$& $class$::$member.name$()
-{
-    $unionmember_check_case_list(member=member, totallabels=totallabels)$
-
-    return m_$member.name$;
-}
-$else$
-void $class$::$member.name$(
-        const $member.typecode.cppTypename$& _$member.name$)
+        const $member_type_declaration(member)$& _$member.name$)
 {
     m_$member.name$ = _$member.name$;
     $unionmember_set_discriminator(member=member, defaultvalue=defaultvalue)$
 }
 
 void $class$::$member.name$(
-        $member.typecode.cppTypename$&& _$member.name$)
+        $member_type_declaration(member)$&& _$member.name$)
 {
     m_$member.name$ = std::move(_$member.name$);
     $unionmember_set_discriminator(member=member, defaultvalue=defaultvalue)$
 }
 
-const $member.typecode.cppTypename$& $class$::$member.name$() const
+const $member_type_declaration(member)$& $class$::$member.name$() const
 {
     $unionmember_check_case_list(member=member, totallabels=totallabels)$
 
     return m_$member.name$;
 }
 
-$member.typecode.cppTypename$& $class$::$member.name$()
+$member_type_declaration(member)$& $class$::$member.name$()
 {
     $unionmember_check_case_list(member=member, totallabels=totallabels)$
 
     return m_$member.name$;
 }
-$endif$
 >>
 
 member_copy(ctx, member) ::= <%
