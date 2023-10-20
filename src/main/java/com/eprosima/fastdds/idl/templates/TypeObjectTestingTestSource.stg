@@ -19,6 +19,7 @@ import "eprosima.stg"
 main(ctx, definitions) ::= <<
 $fileHeader(ctx=ctx,  file=[ctx.filename, "TypeObjectTestingTest.cpp"], description=["This file contains TypeObject test code."])$
 
+#include <gtest/gtest.h>
 
 #include "iostream"
 #include "$ctx.filename$TypeObject.h"
@@ -32,40 +33,29 @@ $fileHeader(ctx=ctx,  file=[ctx.filename, "TypeObjectTestingTest.cpp"], descript
 #include <functional>
 #include <vector>
 
-using TestLambda = std::function<bool()>;
+$definitions;separator="\n\n"$
 
-std::vector<TestLambda> functions_to_run;
 
-int main(void)
+int main(
+        int argc,
+        char** argv)
 {
-    srand((unsigned) time(NULL));
-    bool ret_value = true;
-    
-    register$ctx.filename$Types();  
+    register$ctx.filename$Types();
 
-    $definitions; separator="\n"$
-
-    for (auto& fc : functions_to_run)
-    {
-        ret_value &= fc();
-    }
-    return ret_value ? 0 : 1;
+    testing::InitGoogleTest(&argc, argv);
+    return RUN_ALL_TESTS();
 }
-
 >>
-
 
 check_alias_type(ctx, typedefs, relation, relation_name, relation_capname) ::= <<
     $get_type_identifier(ctx=ctx, type=typedefs, relation=relation, relation_name=relation_name, var_name=["type_identifier"])$
-    result &= $typedefs.name$_$relation_name$_type_identifier != nullptr;
-    result &= $typedefs.name$_$relation_name$_type_identifier->_d() == EK_$if(relation)$COMPLETE$else$MINIMAL$endif$;
+    ASSERT_EQ(EK_$if(relation)$COMPLETE$else$MINIMAL$endif$, $typedefs.name$_$relation_name$_type_identifier->_d());
 
     $get_type_object(ctx=ctx, type=typedefs, relation=relation, relation_name=relation_name, var_name=["typeobject"])$
-    result &= $typedefs.name$_$relation_name$_typeobject != nullptr;
-    result &= $typedefs.name$_$relation_name$_typeobject->_d() == EK_$if(relation)$COMPLETE$else$MINIMAL$endif$;
+    ASSERT_EQ(EK_$if(relation)$COMPLETE$else$MINIMAL$endif$, $typedefs.name$_$relation_name$_typeobject->_d());
 
     $relation_capname$TypeObject $typedefs.name$_$relation_name$_object = $typedefs.name$_$relation_name$_typeobject->$relation_name$();
-    result &= $typedefs.name$_$relation_name$_object._d() == TK_ALIAS;
+    ASSERT_EQ(TK_ALIAS, $typedefs.name$_$relation_name$_object._d());
 
     $relation_capname$AliasType $typedefs.name$_$relation_name$_typedefs = $typedefs.name$_$relation_name$_object.alias_type();
     //AliasTypeFlag alias_flags;// Unused. No flags apply
@@ -76,7 +66,8 @@ check_alias_type(ctx, typedefs, relation, relation_name, relation_capname) ::= <
     CompleteTypeDetail $typedefs.name$_$relation_name$_header_detail = $typedefs.name$_$relation_name$_header.detail();// not present for anonymous
     $check_optional_detail_annotations(ctx=ctx, object=typedefs)$
     QualifiedTypeName $typedefs.name$_$relation_name$_header_detail_type_name = $typedefs.name$_$relation_name$_header_detail.type_name();
-    result &= $typedefs.name$_$relation_name$_header_detail_type_name == "$typedefs.scopedname$";
+    ASSERT_EQ("$typedefs.scopedname$", $typedefs.name$_$relation_name$_header_detail_type_name);
+
     $endif$
 
     $relation_capname$AliasBody $typedefs.name$_$relation_name$_body = $typedefs.name$_$relation_name$_typedefs.body();
@@ -84,8 +75,8 @@ check_alias_type(ctx, typedefs, relation, relation_name, relation_capname) ::= <
     //AliasMemberFlag related_flags;// Unused. No flags apply
 
     $get_type_identifier(ctx=ctx, type=typedefs.typedefContentTypeCode, relation=relation, relation_name=relation_name, var_name=["content_type_identifier"])$
-    result &= $typedefs.name$_$relation_name$_common_alias_body.related_type()._d() == $typedefs.typedefContentTypeCode.name$_$relation_name$_content_type_identifier->_d();
-     
+    ASSERT_EQ($typedefs.typedefContentTypeCode.name$_$relation_name$_content_type_identifier->_d(), $typedefs.name$_$relation_name$_common_alias_body.related_type()._d());
+
     $if(relation)$
     CompleteAliasBody $typedefs.name$_$relation_name$_detail = $typedefs.name$_$relation_name$_typedefs.body();
     $check_optional_detail_annotations(ctx=ctx, object=typedefs)$
@@ -101,38 +92,31 @@ check_alias_related_type(ctx, typedefs, relation, relation_name, relation_capnam
     {
     $get_type_identifier(ctx=ctx, type=typedefs, relation=relation, relation_name=relation_name, var_name=["content_type"])$
     TypeIdentifier $typedefs.name$_$relation_name$_related_type = $typedefs.name$_$relation_name$_common_alias_body.related_type();
-    result &= $typedefs.name$_$relation_name$_related_type._d() == $typedefs.name$_$relation_name$_content_type->_d();
-    }
+    ASSERT_EQ($typedefs.name$_$relation_name$_content_type->_d(), $typedefs.name$_$relation_name$_related_type._d());}
     $endif$
 >>
 
 check_struct_type(ctx, struct, relation, relation_name, relation_capname) ::= <<
     $get_type_identifier(ctx=ctx, type=struct, relation=relation, relation_name=relation_name, var_name=["type_identifier"])$
-    result &= $struct.name$_$relation_name$_type_identifier != nullptr;
-    result &= $struct.name$_$relation_name$_type_identifier->_d() == EK_$if(relation)$COMPLETE$else$MINIMAL$endif$;
-
+    ASSERT_EQ(EK_$if(relation)$COMPLETE$else$MINIMAL$endif$, $struct.name$_$relation_name$_type_identifier->_d());
     $get_type_object(ctx=ctx, type=struct, relation=relation, relation_name=relation_name, var_name=["typeobject"])$
-    result &= $struct.name$_$relation_name$_typeobject != nullptr;
-    result &= $struct.name$_$relation_name$_typeobject->_d() == EK_$if(relation)$COMPLETE$else$MINIMAL$endif$;
-
+    ASSERT_EQ(EK_$if(relation)$COMPLETE$else$MINIMAL$endif$, $struct.name$_$relation_name$_typeobject->_d());
     $relation_capname$TypeObject $struct.name$_$relation_name$_object = $struct.name$_$relation_name$_typeobject->$relation_name$();
-    result &= $struct.name$_$relation_name$_object._d() == TK_STRUCTURE;
-
+    ASSERT_EQ(TK_STRUCTURE, $struct.name$_$relation_name$_object._d());
     $relation_capname$StructType $struct.name$_$relation_name$_struct = $struct.name$_$relation_name$_object.struct_type();
     {
     $check_type_flags(ctx=ctx, object=struct, flags_var_name=["struct"])$
-    result &= $struct.name$_$relation_name$_struct.struct_flags() & struct_expected_flags;
+    ASSERT_TRUE(struct_expected_flags & $struct.name$_$relation_name$_struct.struct_flags());
     }
     $relation_capname$StructHeader $struct.name$_$relation_name$_header = $struct.name$_$relation_name$_struct.header();
 
     $get_type_identifier(ctx=ctx, type=struct.inheritance, relation=relation, relation_name=relation_name, var_name=["inheritance_type_id"])$
-    result &= $struct.name$_$relation_name$_header.base_type()->_d() == $struct.inheritance.name$_$relation_name$_inheritance_type_id->_d();
-
+    ASSERT_EQ($struct.inheritance.name$_$relation_name$_inheritance_type_id->_d(), $struct.name$_$relation_name$_header.base_type()._d());
     $if(relation)$
     CompleteTypeDetail $struct.name$_$relation_name$_detail = $struct.name$_$relation_name$_header.detail();
     $check_optional_detail_annotations(ctx=ctx, object=struct)$
     QualifiedTypeName $struct.name$_$relation_name$_detail_type_name = $struct.name$_$relation_name$_detail.type_name();
-    result &= $struct.name$_$relation_name$_detail_type_name == "$struct.scopedname$";
+    ASSERT_EQ("$struct.scopedname$", $struct.name$_$relation_name$_detail_type_name);
     $else$
     //MinimalTypeDetail detail;// Empty. Available for future extension
     $endif$
@@ -145,32 +129,30 @@ check_struct_member_type(ctx, member, relation, relation_name, relation_capname)
     CommonStructMember $struct.name$_$relation_name$_common_$member.name$_struct_member = $struct.name$_$relation_name$_$member.name$.common();
 
     MemberId $struct.name$_$relation_name$_common_$member.name$_struct_member_member_id = $struct.name$_$relation_name$_common_$member.name$_struct_member.member_id();
-    result &= $struct.name$_$relation_name$_common_$member.name$_struct_member.member_id() == memberId;
-
+    ASSERT_EQ(memberId, $struct.name$_$relation_name$_common_$member.name$_struct_member.member_id());
     StructMemberFlag $struct.name$_$relation_name$_common_$member.name$_struct_member_member_flags = $struct.name$_$relation_name$_common_$member.name$_struct_member.member_flags();
     {
     $check_member_flags(ctx=ctx, object=member, flags_var_name=["struct_member"])$
-    result &= $struct.name$_$relation_name$_common_$member.name$_struct_member_member_flags & struct_member_expected_flags;
+    ASSERT_TRUE(struct_member_expected_flags & $struct.name$_$relation_name$_common_$member.name$_struct_member_member_flags);
     }
     TypeIdentifier $member.name$_$relation_name$_common_struct_member_member_type_id = $struct.name$_$relation_name$_common_$member.name$_struct_member.member_type_id();
     $get_type_identifier(ctx=ctx, type=member, relation=relation, relation_name=relation_name, var_name=["common_struct_member_type_id"])$
-    result &= $member.name$_$relation_name$_common_struct_member_member_type_id._d() == $member.name$_$relation_name$_common_struct_member_type_id->_d();
-
+    ASSERT_EQ($member.name$_$relation_name$_common_struct_member_type_id->_d(), $member.name$_$relation_name$_common_struct_member_member_type_id._d());
     $if(relation)$
     {    
     CompleteMemberDetail $member.name$_$relation_name$_detail = $struct.name$_$relation_name$_$member.name$.detail();
     $check_optional_detail_annotations(ctx=ctx, object=member)$
     MemberName $struct.name$_$relation_name$_common_$member.name$_struct_member_name = $member.name$_$relation_name$_detail.name();
-    result &= $struct.name$_$relation_name$_common_$member.name$_struct_member_name == "$member.name$";
+    ASSERT_EQ("$member.name$", $struct.name$_$relation_name$_common_$member.name$_struct_member_name);
     }
     $else$
     {
     MinimalMemberDetail $member.name$_$relation_name$_detail = $struct.name$_$relation_name$_$member.name$.detail();
     NameHash $struct.name$_$relation_name$_common_$member.name$_struct_member_name_hash = $member.name$_$relation_name$_detail.name_hash();
     MD5 $struct.name$_$relation_name$_common_$member.name$_name_hash("$member.name$");
-    for(int i = 0; i < 4; ++i)
+    for(int i = 0;i < 4;++i)
     {
-        result &= $struct.name$_$relation_name$_common_$member.name$_struct_member_name_hash[i] == $struct.name$_$relation_name$_common_$member.name$_name_hash.digest[i];
+        ASSERT_EQ($struct.name$_$relation_name$_common_$member.name$_name_hash.digest[i], $struct.name$_$relation_name$_common_$member.name$_struct_member_name_hash[i]);
     }
     }
     $endif$
@@ -182,26 +164,26 @@ check_struct_member_type(ctx, member, relation, relation_name, relation_capname)
     $elseif (member.typecode.PrimitiveType)$
         //=====member.typecode.PrimitiveType=====
         $get_type_identifier(ctx=ctx, type=member, relation=relation, relation_name=relation_name, var_name=["member_type"])$
-        result &= $struct.name$_$relation_name$_common_$member.name$_struct_member.member_type_id()._d() == $member.name$_$relation_name$_member_type->_d();
+        ASSERT_EQ($member.name$_$relation_name$_member_type->_d(), $struct.name$_$relation_name$_common_$member.name$_struct_member.member_type_id()._d());
     $elseif (member.typecode.isStringType)$
         //=====member.typecode.isStringType=====
         $get_type_identifier(ctx=ctx, type=member, relation=relation, relation_name=relation_name, var_name=["member_type"])$
-        result &= $struct.name$_$relation_name$_common_$member.name$_struct_member.member_type_id()._d() == $member.name$_$relation_name$_member_type->_d();
+        ASSERT_EQ($member.name$_$relation_name$_member_type->_d(), $struct.name$_$relation_name$_common_$member.name$_struct_member.member_type_id()._d());
 
         if($member.typecode.maxsize$ <= 255){
-            result &= $struct.name$_$relation_name$_$member.name$_content_type.string_sdefn().bound() == $member.typecode.maxsize$;
+            ASSERT_EQ($member.typecode.maxsize$, $struct.name$_$relation_name$_$member.name$_content_type.string_sdefn().bound());
         }else{
-            result &= $struct.name$_$relation_name$_$member.name$_content_type.string_ldefn().bound() == $member.typecode.maxsize$;
+            ASSERT_EQ($member.typecode.maxsize$, $struct.name$_$relation_name$_$member.name$_content_type.string_ldefn().bound());
         }
     $elseif (member.typecode.isWStringType)$
         //=====member.typecode.isWStringType=====
         $get_type_identifier(ctx=ctx, type=member, relation=relation, relation_name=relation_name, var_name=["member_type"])$
-        result &= $struct.name$_$relation_name$_common_$member.name$_struct_member.member_type_id()._d() == $member.name$_$relation_name$_member_type->_d();
+        ASSERT_EQ($member.name$_$relation_name$_member_type->_d(), $struct.name$_$relation_name$_common_$member.name$_struct_member.member_type_id()._d());
 
         if($member.typecode.maxsize$ <= 255){
-            result &= $struct.name$_$relation_name$_$member.name$_content_type.string_sdefn().bound() == $member.typecode.maxsize$;
+            ASSERT_EQ($member.typecode.maxsize$, $struct.name$_$relation_name$_$member.name$_content_type.string_sdefn().bound());
         }else{
-            result &= $struct.name$_$relation_name$_$member.name$_content_type.string_ldefn().bound() == $member.typecode.maxsize$;
+            ASSERT_EQ($member.typecode.maxsize$, $struct.name$_$relation_name$_$member.name$_content_type.string_ldefn());
         }
     $elseif (member.typecode.isStructType)$
         //=====member.typecode.isStructType=====
@@ -231,22 +213,20 @@ check_struct_member_type(ctx, member, relation, relation_name, relation_capname)
 
 check_union_type(ctx, union, relation, relation_name, relation_capname) ::= <<
     $get_type_identifier(ctx=ctx, type=union, relation=relation, relation_name=relation_name, var_name=["type_identifier"])$
-    result &= $union.name$_$relation_name$_type_identifier != nullptr;
-    result &= $union.name$_$relation_name$_type_identifier->_d() == EK_$if(relation)$COMPLETE$else$MINIMAL$endif$;
+    ASSERT_EQ(EK_$if(relation)$COMPLETE$else$MINIMAL$endif$, $union.name$_$relation_name$_type_identifier->_d());
 
     $get_type_object(ctx=ctx, type=union, relation=relation, relation_name=relation_name, var_name=["typeobject"])$
-    result &= $union.name$_$relation_name$_typeobject != nullptr;
-    result &= $union.name$_$relation_name$_typeobject->_d() == EK_$if(relation)$COMPLETE$else$MINIMAL$endif$;
+    ASSERT_EQ(EK_$if(relation)$COMPLETE$else$MINIMAL$endif$, $union.name$_$relation_name$_typeobject->_d());
 
     $relation_capname$TypeObject $union.name$_$relation_name$_object = $union.name$_$relation_name$_typeobject->$relation_name$();
-    result &= $union.name$_$relation_name$_object._d() == TK_UNION;
+    ASSERT_EQ(TK_UNION, $union.name$_$relation_name$_object._d());
 
     $relation_capname$UnionType $union.name$_$relation_name$_union = $union.name$_$relation_name$_object.union_type();
 
     UnionTypeFlag $union.name$_$relation_name$_union_flags = $union.name$_$relation_name$_union.union_flags();
     {
     $check_type_flags(ctx=ctx, object=union, flags_var_name=["union"])$
-    result &= $union.name$_$relation_name$_union_flags & union_expected_flags;
+    ASSERT_TRUE(union_expected_flags & $union.name$_$relation_name$_union_flags);
     }
     $relation_capname$UnionHeader $union.name$_$relation_name$_header = $union.name$_$relation_name$_union.header();
     $if(relation)$
@@ -254,7 +234,7 @@ check_union_type(ctx, union, relation, relation_name, relation_capname) ::= <<
     CompleteTypeDetail $union.name$_$relation_name$_detail = $union.name$_$relation_name$_header.detail();
     $check_optional_detail_annotations(ctx=ctx, object=union)$
     QualifiedTypeName $union.name$_$relation_name$_detail_type_name = $union.name$_$relation_name$_detail.type_name();
-    result &= $union.name$_$relation_name$_detail_type_name == "$union.scopedname$";
+    ASSERT_EQ("$union.scopedname$", $union.name$_$relation_name$_detail_type_name);
     }
     $else$
     //MinimalTypeDetail detail;// Empty. Available for future extension
@@ -266,11 +246,11 @@ check_union_type(ctx, union, relation, relation_name, relation_capname) ::= <<
     UnionDiscriminatorFlag $union.name$_$relation_name$_discriminator_common_member_flags = $union.name$_$relation_name$_discriminator_common.member_flags();
     {
     $check_member_flags(ctx=ctx, object=union.discriminator, flags_var_name=["union_discriminator"])$
-    result &= $union.name$_$relation_name$_discriminator_common_member_flags & union_discriminator_expected_flags;
+    ASSERT_TRUE(union_discriminator_expected_flags & $union.name$_$relation_name$_discriminator_common_member_flags);
     }
     TypeIdentifier $union.name$_$relation_name$_discriminator_common_type_id = $union.name$_$relation_name$_discriminator_common.type_id();
     $get_type_identifier(ctx=ctx, type=union, relation=relation, relation_name=relation_name, var_name=["discriminator_common_factory_type_id"])$  
-    result &= $union.name$_$relation_name$_discriminator_common.type_id()._d() == $union.name$_$relation_name$_discriminator_common_factory_type_id->_d();
+    ASSERT_EQ($union.name$_$relation_name$_discriminator_common_factory_type_id->_d(), $union.name$_$relation_name$_discriminator_common.type_id()._d());
     $if(relation)$
     CompleteDiscriminatorMember $union.name$_$relation_name$_detail = $union.name$_$relation_name$_union.discriminator();
     $check_optional_detail_annotations(ctx=ctx, object=union)$
@@ -284,38 +264,41 @@ check_union_member_type(ctx, member, relation, relation_name, relation_capname) 
     CommonUnionMember $union.name$_$relation_name$_common_$member.name$_common = $union.name$_$relation_name$_$member.name$_member.common();
 
     MemberId $union.name$_$relation_name$_common_$member.name$_memberid = $union.name$_$relation_name$_common_$member.name$_common.member_id();
-    result &= $union.name$_$relation_name$_common_$member.name$_memberid == memberId;
+    ASSERT_EQ(memberId, $union.name$_$relation_name$_common_$member.name$_memberid);
 
     UnionMemberFlag $union.name$_$relation_name$_common_$member.name$_memberflags = $union.name$_$relation_name$_common_$member.name$_common.member_flags();
-    result &= $union.name$_$relation_name$_common_$member.name$_memberflags.IS_DEFAULT() == $member.annotationDefault$;
-    
+    {
+    $check_member_flags(ctx=ctx, object=union.member, flags_var_name=["union_member"])$
+    ASSERT_TRUE(union_member_expected_flags & $union.name$_$relation_name$_common_$member.name$_memberflags);
+    }
+
     TypeIdentifier $union.name$_$relation_name$_common_$member.name$_member_typeid = $union.name$_$relation_name$_common_$member.name$_common.type_id();
     $get_type_identifier(ctx=ctx, type=member, relation=relation, relation_name=relation_name, var_name=["common_member_factory_type_id"])$  
-    result &= $union.name$_$relation_name$_common_$member.name$_member_typeid._d() == $member.name$_$relation_name$_common_member_factory_type_id->_d();
+    ASSERT_EQ($member.name$_$relation_name$_common_member_factory_type_id->_d(), $union.name$_$relation_name$_common_$member.name$_member_typeid._d());
 
     UnionCaseLabelSeq $union.name$_$relation_name$_common_$member.name$_member_labelseq = $union.name$_$relation_name$_common_$member.name$_common.label_seq();
     {
     int $union.name$_label_index = 0;
     $member.labels:{ label |
-    result &= $union.name$_$relation_name$_common_$member.name$_member_labelseq.at($union.name$_label_index) == $label$;
+    ASSERT_EQ($label$, $union.name$_$relation_name$_common_$member.name$_member_labelseq.at($union.name$_label_index));
     $union.name$_label_index++;
-    }; separator="\n"$
+    };separator="\n"$
     }
     $if(relation)$
     {    
     CompleteMemberDetail $member.name$_$relation_name$_detail = $union.name$_$relation_name$_$member.name$_member.detail();
     $check_optional_detail_annotations(ctx=ctx, object=member)$
     MemberName $member.name$_$relation_name$_common_$member.name$_union_member_name = $member.name$_$relation_name$_detail.name();
-    result &= $member.name$_$relation_name$_common_$member.name$_union_member_name == "$member.name$";
+    ASSERT_EQ("$member.name$", $member.name$_$relation_name$_common_$member.name$_union_member_name);
     }
     $else$
     {
     MinimalMemberDetail $member.name$_$relation_name$_detail = $union.name$_$relation_name$_$member.name$_member.detail();
     NameHash $member.name$_$relation_name$_union_member_name_hash = $member.name$_$relation_name$_detail.name_hash();
     MD5 $member.name$_$relation_name$_name_hash("$member.name$");
-    for(int i = 0; i < 4; ++i)
+    for(int i = 0;i < 4;++i)
     {
-        result &= $member.name$_$relation_name$_union_member_name_hash[i] == $member.name$_$relation_name$_name_hash.digest[i];
+        ASSERT_EQ($member.name$_$relation_name$_name_hash.digest[i], $member.name$_$relation_name$_union_member_name_hash[i]);
     }
     }
     $endif$
@@ -326,15 +309,13 @@ check_union_member_type(ctx, member, relation, relation_name, relation_capname) 
 check_enum_type(ctx, enum, relation, relation_name, relation_capname) ::= <<
     //=====check_enum_type - $relation_name$ - $enum.name$=====
     $get_type_identifier(ctx=ctx, type=enum, relation=relation, relation_name=relation_name, var_name=["type_identifier"])$
-    result &= $enum.name$_$relation_name$_type_identifier != nullptr;
-    result &= $enum.name$_$relation_name$_type_identifier->_d() == EK_$if(relation)$COMPLETE$else$MINIMAL$endif$;
+    ASSERT_EQ(EK_$if(relation)$COMPLETE$else$MINIMAL$endif$, $enum.name$_$relation_name$_type_identifier->_d());
 
     $get_type_object(ctx=ctx, type=enum, relation=relation, relation_name=relation_name, var_name=["typeobject"])$
-    result &= $enum.name$_$relation_name$_typeobject != nullptr;
-    result &= $enum.name$_$relation_name$_typeobject->_d() == EK_$if(relation)$COMPLETE$else$MINIMAL$endif$;
+    ASSERT_EQ(EK_$if(relation)$COMPLETE$else$MINIMAL$endif$, $enum.name$_$relation_name$_typeobject->_d());
 
     $relation_capname$TypeObject $enum.name$_$relation_name$_object = $enum.name$_$relation_name$_typeobject->$relation_name$();
-    result &= $enum.name$_$relation_name$_object._d() == TK_ENUM;
+    ASSERT_EQ(TK_ENUM, $enum.name$_$relation_name$_object._d());
 
     $relation_capname$EnumeratedType $enum.name$_$relation_name$_enum = $enum.name$_$relation_name$_object.enumerated_type();
     //EnumTypeFlag flags;// Unused. No flags apply
@@ -343,13 +324,13 @@ check_enum_type(ctx, enum, relation, relation_name, relation_capname) ::= <<
 
     CommonEnumeratedHeader $enum.name$_$relation_name$_commonheader = $enum.name$_$relation_name$_header.common();
     BitBound $enum.name$_$relation_name$_commonheader_bit_bound = $enum.name$_$relation_name$_commonheader.bit_bound();
-    result &= $enum.name$_$relation_name$_commonheader_bit_bound == $enum.typecode.maxsize$;
+    ASSERT_EQ($enum.bitBound$, $enum.name$_$relation_name$_commonheader_bit_bound);
 
     $if(relation)$
     CompleteTypeDetail $enum.name$_$relation_name$_detail = $enum.name$_$relation_name$_header.detail();
     $check_optional_detail_annotations(ctx=ctx, object=enum)$
     QualifiedTypeName $enum.name$_$relation_name$_detail_type_name = $enum.name$_$relation_name$_detail.type_name();
-    result &= $enum.name$_$relation_name$_detail_type_name == "$enum.scopedname$";
+    ASSERT_EQ("$enum.scopedname$", $enum.name$_$relation_name$_detail_type_name);
     $endif$
 
     $relation_capname$EnumeratedLiteralSeq $enum.name$_$relation_name$_literalseq = $enum.name$_$relation_name$_enum.literal_seq();
@@ -360,20 +341,19 @@ check_enum_literal_type(ctx, literal, relation, relation_name, relation_capname)
     CommonEnumeratedLiteral $enum.name$_$relation_name$_common_$literal.name$_enum_literal = $enum.name$_$relation_name$_$literal.name$.common();
     
     long $enum.name$_$relation_name$_common_$literal.name$_enum_literal_value = $enum.name$_$relation_name$_common_$literal.name$_enum_literal.value();
-    result &= $enum.name$_$relation_name$_common_$literal.name$_enum_literal.value() == literalId;
+    ASSERT_EQ(literalId, $enum.name$_$relation_name$_common_$literal.name$_enum_literal.value());
     
     EnumeratedLiteralFlag $enum.name$_$relation_name$_common_$literal.name$_enum_flags = $enum.name$_$relation_name$_common_$literal.name$_enum_literal.flags();
-    //result &= $enum.name$_$relation_name$_common_$literal.name$_enum_flags.IS_DEFAULT() == $literal.annotationDefault$;
     {
-    $check_member_flags(ctx=ctx, object=literal, flags_var_name=["literal"])$
-    result &= $enum.name$_$relation_name$_common_$literal.name$_enum_flags & literal_expected_flags;
+    $check_member_flags(ctx=ctx, object=literal, flags_var_name=["enum_literal"])$
+    ASSERT_TRUE(enum_literal_expected_flags & $enum.name$_$relation_name$_common_$literal.name$_enum_flags);
     }
     $if(relation)$
     {
     CompleteMemberDetail $literal.name$_$relation_name$_detail = $enum.name$_$relation_name$_$literal.name$.detail();
     $check_optional_detail_annotations(ctx=ctx, object=literal)$
     MemberName $literal.name$_$relation_name$_detail_member_name = $literal.name$_$relation_name$_detail.name();
-    result &= $literal.name$_$relation_name$_detail_member_name == "$literal.name$";
+    ASSERT_EQ("$literal.name$", $literal.name$_$relation_name$_detail_member_name);
     }
     $endif$
 
@@ -383,15 +363,13 @@ check_enum_literal_type(ctx, literal, relation, relation_name, relation_capname)
 check_bitmask_type(ctx, bitmask, relation, relation_name, relation_capname) ::= <<
     //=====check_bitmask_type - $relation_name$ - $bitmask.name$=====
     $get_type_identifier(ctx=ctx, type=bitmask, relation=relation, relation_name=relation_name, var_name=["type_identifier"])$
-    result &= $bitmask.name$_$relation_name$_type_identifier != nullptr;
-    result &= $bitmask.name$_$relation_name$_type_identifier->_d() == EK_$if(relation)$COMPLETE$else$MINIMAL$endif$;
+    ASSERT_EQ(EK_$if(relation)$COMPLETE$else$MINIMAL$endif$, $bitmask.name$_$relation_name$_type_identifier->_d());
 
     $get_type_object(ctx=ctx, type=bitmask, relation=relation, relation_name=relation_name, var_name=["typeobject"])$
-    result &= $bitmask.name$_$relation_name$_typeobject != nullptr;
-    result &= $bitmask.name$_$relation_name$_typeobject->_d() == EK_$if(relation)$COMPLETE$else$MINIMAL$endif$;
+    ASSERT_EQ(EK_$if(relation)$COMPLETE$else$MINIMAL$endif$, $bitmask.name$_$relation_name$_typeobject->_d());
 
     $relation_capname$TypeObject $bitmask.name$_$relation_name$_object = $bitmask.name$_$relation_name$_typeobject->$relation_name$();
-    result &= $bitmask.name$_$relation_name$_object._d() == TK_BITMASK;
+    ASSERT_EQ(TK_BITMASK, $bitmask.name$_$relation_name$_object._d());
 
     $relation_capname$BitmaskType $bitmask.name$_$relation_name$_bitmask = $bitmask.name$_$relation_name$_object.bitmask_type();
     //BitmaskTypeFlag flags;// Unused. No flags apply
@@ -400,7 +378,7 @@ check_bitmask_type(ctx, bitmask, relation, relation_name, relation_capname) ::= 
     CommonBitmaskHeader $bitmask.name$_$relation_name$_commonheader = $bitmask.name$_$relation_name$_header.common();
 
     BitBound $bitmask.name$_$relation_name$_commonheader_bit_bound = $bitmask.name$_$relation_name$_commonheader.bit_bound();
-    result &= $bitmask.name$_$relation_name$_commonheader_bit_bound == $bitmask.typecode.maxsize$;
+    ASSERT_EQ($bitmask.bitBound$, $bitmask.name$_$relation_name$_commonheader_bit_bound);
 
     $relation_capname$BitflagSeq $bitmask.name$_$relation_name$_flagseq = $bitmask.name$_$relation_name$_bitmask.flag_seq();
 >>
@@ -410,7 +388,7 @@ check_bitmask_flag_type(ctx, flag, relation, relation_name, relation_capname) ::
     CommonBitflag $bitmask.name$_$relation_name$_common_$flag.name$_bitmask_flag = $bitmask.name$_$relation_name$_$flag.name$.common();
     
     unsigned short $bitmask.name$_$relation_name$_common_$flag.name$_bitmask_flag_position = $bitmask.name$_$relation_name$_common_$flag.name$_bitmask_flag.position();
-    result &= $bitmask.name$_$relation_name$_common_$flag.name$_bitmask_flag_position == flagId;
+    ASSERT_EQ(flagId, $bitmask.name$_$relation_name$_common_$flag.name$_bitmask_flag_position);
 
     //BitflagFlag flags;// Unused. No flags apply
 
@@ -419,16 +397,16 @@ check_bitmask_flag_type(ctx, flag, relation, relation_name, relation_capname) ::
     CompleteMemberDetail $flag.name$_$relation_name$_detail = $bitmask.name$_$relation_name$_$flag.name$.detail();
     $check_optional_detail_annotations(ctx=ctx, object=flag)$
     MemberName $flag.name$_$relation_name$_detail_flag_name = $flag.name$_$relation_name$_detail.name();
-    result &= $flag.name$_$relation_name$_detail_flag_name == "$flag.name$";
+    ASSERT_EQ("$flag.name$", $flag.name$_$relation_name$_detail_flag_name);
     }
     $else$
     {
     MinimalMemberDetail $bitmask.name$_$relation_name$_detail = $bitmask.name$_$relation_name$_$flag.name$.detail();
     NameHash $flag.name$_$relation_name$_flag_name_hash = $bitmask.name$_$relation_name$_detail.name_hash();
     MD5 $flag.name$_$relation_name$_name_hash("$flag.name$");
-    for(int i = 0; i < 4; ++i)
+    for(int i = 0;i < 4;++i)
     {
-        result &= $flag.name$_$relation_name$_flag_name_hash[i] == $flag.name$_$relation_name$_name_hash.digest[i];
+        ASSERT_EQ($flag.name$_$relation_name$_name_hash.digest[i], $flag.name$_$relation_name$_flag_name_hash[i]);
     }
     }
     $endif$
@@ -438,15 +416,13 @@ check_bitmask_flag_type(ctx, flag, relation, relation_name, relation_capname) ::
 
 check_bitset_type(ctx, bitset, relation, relation_name, relation_capname) ::= <<
     $get_type_identifier(ctx=ctx, type=bitset, relation=relation, relation_name=relation_name, var_name=["type_identifier"])$
-    result &= $bitset.name$_$relation_name$_type_identifier != nullptr;
-    result &= $bitset.name$_$relation_name$_type_identifier->_d() == EK_$if(relation)$COMPLETE$else$MINIMAL$endif$;
+    ASSERT_EQ(EK_$if(relation)$COMPLETE$else$MINIMAL$endif$, $bitset.name$_$relation_name$_type_identifier->_d());
 
     $get_type_object(ctx=ctx, type=bitset, relation=relation, relation_name=relation_name, var_name=["typeobject"])$
-    result &= $bitset.name$_$relation_name$_typeobject != nullptr;
-    result &= $bitset.name$_$relation_name$_typeobject->_d() == EK_$if(relation)$COMPLETE$else$MINIMAL$endif$;
+    ASSERT_EQ(EK_$if(relation)$COMPLETE$else$MINIMAL$endif$, $bitset.name$_$relation_name$_typeobject->_d());
 
     $relation_capname$TypeObject $bitset.name$_$relation_name$_object = $bitset.name$_$relation_name$_typeobject->$relation_name$();
-    result &= $bitset.name$_$relation_name$_object._d() == TK_BITSET;
+    ASSERT_EQ(TK_BITSET, $bitset.name$_$relation_name$_object._d());
 
     $relation_capname$BitsetType $bitset.name$_$relation_name$_bitset = $bitset.name$_$relation_name$_object.bitset_type();
     //BitsetTypeFlag bitset_flags;// Unused. No flags apply
@@ -457,7 +433,7 @@ check_bitset_type(ctx, bitset, relation, relation_name, relation_capname) ::= <<
     CompleteTypeDetail $bitset.name$_$relation_name$_detail = $bitset.name$_$relation_name$_header.detail();
     $check_optional_detail_annotations(ctx=ctx, object=bitset)$
     QualifiedTypeName $bitset.name$_$relation_name$_detail_type_name = $bitset.name$_$relation_name$_detail.type_name();
-    result &= $bitset.name$_$relation_name$_detail_type_name == "$bitset.scopedname$";
+    ASSERT_EQ("$bitset.scopedname$", $bitset.name$_$relation_name$_detail_type_name);
     $else$
     //MinimalTypeDetail detail;// Empty. Available for future extension
     $endif$
@@ -470,12 +446,12 @@ check_bitfield_type(ctx, bitfield, relation, relation_name, relation_capname) ::
     CommonBitfield $bitset.name$_$relation_name$_common_$bitfield.name$_bitset_bitfield = field_$bitset.name$_$relation_name$_$bitfield.name$.common();
     
     unsigned short $bitset.name$_$relation_name$_common_$bitfield.name$_bitset_bitfield_position = $bitset.name$_$relation_name$_common_$bitfield.name$_bitset_bitfield.position();
-    result &= $bitset.name$_$relation_name$_common_$bitfield.name$_bitset_bitfield_position == bitfieldId;
+    ASSERT_EQ(bitfieldId, $bitset.name$_$relation_name$_common_$bitfield.name$_bitset_bitfield_position);
     //BitsetMemberFlag flags;// Unused. No flags apply
     octet $bitset.name$_$relation_name$_common_$bitfield.name$_bitset_bitfield_bitcount = $bitset.name$_$relation_name$_common_$bitfield.name$_bitset_bitfield.bitcount();
-    result &= $bitset.name$_$relation_name$_common_$bitfield.name$_bitset_bitfield_bitcount == $bitfield.spec.bitSize$;
-    TypeKind $bitset.name$_$relation_name$_common_$bitfield.name$_bitset_bitfield_holder_type = $bitset.name$_$relation_name$_common_$bitfield.name$_bitset_bitfield.holder_type(); // Must be primitive integer type
-    result &= $bitset.name$_$relation_name$_common_$bitfield.name$_bitset_bitfield_holder_type == $bitfield.spec.typecode.typeIdentifier$;
+    ASSERT_EQ($bitfield.spec.bitSize$, $bitset.name$_$relation_name$_common_$bitfield.name$_bitset_bitfield_bitcount);
+    TypeKind $bitset.name$_$relation_name$_common_$bitfield.name$_bitset_bitfield_holder_type = $bitset.name$_$relation_name$_common_$bitfield.name$_bitset_bitfield.holder_type();// Must be primitive integer type
+    ASSERT_EQ($bitfield.spec.typecode.typeIdentifier$, $bitset.name$_$relation_name$_common_$bitfield.name$_bitset_bitfield_holder_type);
 
     //Bitfieldbitfield bitfields;// Unused. No bitfields apply
 
@@ -483,15 +459,15 @@ check_bitfield_type(ctx, bitfield, relation, relation_name, relation_capname) ::
     {
     CompleteMemberDetail $bitfield.name$_$relation_name$_detail = field_$bitset.name$_$relation_name$_$bitfield.name$.detail();
     MemberName $bitfield.name$_$relation_name$_detail_bitfield_name = $bitfield.name$_$relation_name$_detail.name();
-    result &= $bitfield.name$_$relation_name$_detail_bitfield_name == "$bitfield.name$";
+    ASSERT_EQ("$bitfield.name$", $bitfield.name$_$relation_name$_detail_bitfield_name);
     }
     $else$
     {
     NameHash field_$bitset.name$_$relation_name$_$bitfield.name$_name_hash = field_$bitset.name$_$relation_name$_$bitfield.name$.name_hash();
     MD5 minimal_field_$bitset.name$_$relation_name$_$bitfield.name$_name_hash("$bitfield.name$");
-    for(int i = 0; i < 4; ++i)
+    for(int i = 0;i < 4;++i)
     {
-        result &= field_$bitset.name$_$relation_name$_$bitfield.name$_name_hash[i] == minimal_field_$bitset.name$_$relation_name$_$bitfield.name$_name_hash.digest[i];
+        ASSERT_EQ(minimal_field_$bitset.name$_$relation_name$_$bitfield.name$_name_hash.digest[i], field_$bitset.name$_$relation_name$_$bitfield.name$_name_hash[i]);
     }
     }
     $endif$
@@ -501,15 +477,13 @@ check_bitfield_type(ctx, bitfield, relation, relation_name, relation_capname) ::
 
 check_annotation_type(ctx, annotation, relation, relation_name, relation_capname) ::= <<
     $get_type_identifier(ctx=ctx, type=annotation, relation=relation, relation_name=relation_name, var_name=["type_identifier"])$
-    result &= $annotation.name$_$relation_name$_type_identifier != nullptr;
-    result &= $annotation.name$_$relation_name$_type_identifier->_d() == EK_$if(relation)$COMPLETE$else$MINIMAL$endif$;
+    ASSERT_EQ(EK_$if(relation)$COMPLETE$else$MINIMAL$endif$, $annotation.name$_$relation_name$_type_identifier->_d());
 
     $get_type_object(ctx=ctx, type=annotation, relation=relation, relation_name=relation_name, var_name=["typeobject"])$
-    result &= $annotation.name$_$relation_name$_typeobject != nullptr;
-    result &= $annotation.name$_$relation_name$_typeobject->_d() == EK_$if(relation)$COMPLETE$else$MINIMAL$endif$;
+    ASSERT_EQ(EK_$if(relation)$COMPLETE$else$MINIMAL$endif$, $annotation.name$_$relation_name$_typeobject->_d());
 
     $relation_capname$TypeObject $annotation.name$_$relation_name$_object = $annotation.name$_$relation_name$_typeobject->$relation_name$();
-    result &= $annotation.name$_$relation_name$_object._d() == TK_ANNOTATION;
+    ASSERT_EQ(TK_ANNOTATION, $annotation.name$_$relation_name$_object._d());
 
     $relation_capname$AnnotationType $annotation.name$_$relation_name$_annotation = $annotation.name$_$relation_name$_object.annotation_type();
     //AnnotationTypeFlag annotation_flag;// Unused. No flags apply
@@ -517,7 +491,7 @@ check_annotation_type(ctx, annotation, relation, relation_name, relation_capname
     $relation_capname$AnnotationHeader $annotation.name$_$relation_name$_header = $annotation.name$_$relation_name$_annotation.header();
     $if(relation)$
     QualifiedTypeName $annotation.name$_$relation_name$_name = $annotation.name$_$relation_name$_header.annotation_name();
-    result &= $annotation.name$_$relation_name$_name == "$annotation.name$";
+    ASSERT_EQ("$annotation.name$", $annotation.name$_$relation_name$_name);
     $endif$
 
     $relation_capname$AnnotationParameterSeq $annotation.name$_$relation_name$_memberseq = $annotation.name$_$relation_name$_annotation.member_seq();
@@ -530,79 +504,77 @@ check_annotation_member_type(ctx, parameter, relation, relation_name, relation_c
 
     TypeIdentifier $annotation.name$_$relation_name$_common_$parameter.name$_parameter_member_typeid = $annotation.name$_$relation_name$_common_$parameter.name$_parameter_member.member_type_id();
     const TypeIdentifier* $annotation.name$_$relation_name$_common_$parameter.name$_factory_typeid = DomainParticipantFactory::get_instance()->type_object_registry()->get_type_identifier("$parameter.typecode.cppTypename$", $relation$);
-    result &= $annotation.name$_$relation_name$_common_$parameter.name$_parameter_member_typeid._d() == $annotation.name$_$relation_name$_common_$parameter.name$_factory_typeid->_d();
+    ASSERT_EQ($annotation.name$_$relation_name$_common_$parameter.name$_factory_typeid->_d(), $annotation.name$_$relation_name$_common_$parameter.name$_parameter_member_typeid._d());
 
     $if(relation)$
     MemberName $annotation.name$_$relation_name$_$parameter.name$_name = $annotation.name$_$relation_name$_$parameter.name$.name();
-    result &= $annotation.name$_$relation_name$_$parameter.name$_name == "$parameter.name$";
+    ASSERT_EQ("$parameter.name$", $annotation.name$_$relation_name$_$parameter.name$_name);
     $else$
     NameHash $annotation.name$_$relation_name$_$parameter.name$_member_name_hash = $annotation.name$_$relation_name$_$parameter.name$.name_hash();
     MD5 $annotation.name$_$relation_name$_$parameter.name$_name_hash("$flag.name$");
-    for(int i = 0; i < 4; ++i)
+    for(int i = 0;i < 4;++i)
     {
-        result &= $annotation.name$_$relation_name$_$parameter.name$_member_name_hash[i] == $annotation.name$_$relation_name$_$parameter.name$_name_hash.digest[i];
+        ASSERT_EQ($annotation.name$_$relation_name$_$parameter.name$_name_hash.digest[i], $annotation.name$_$relation_name$_$parameter.name$_member_name_hash[i]);
     }
     $endif$
 
     AnnotationParameterValue $annotation.name$_$relation_name$_$parameter.name$_default_value = $annotation.name$_$relation_name$_$parameter.name$.default_value();
     $if(parameter.typecode.primitiveType)$
     $if(parameter.typecode.isBooleanType)$
-    result &= $annotation.name$_$relation_name$_$parameter.name$_default_value.boolean_value() == ($parameter.value$;
+    ASSERT_EQ($parameter.value$, $annotation.name$_$relation_name$_$parameter.name$_default_value.boolean_value());
     $elseif(parameter.typecode.isByteType)$
-    result &= $annotation.name$_$relation_name$_$parameter.name$_default_value.byte_value() == $parameter.value$;
+    ASSERT_EQ($parameter.value$, $annotation.name$_$relation_name$_$parameter.name$_default_value.byte_value());
     $elseif(parameter.typecode.isInt8Type)$
-    result &= $annotation.name$_$relation_name$_$parameter.name$_default_value.int8_value() == $parameter.value$;
+    ASSERT_EQ($parameter.value$, $annotation.name$_$relation_name$_$parameter.name$_default_value.int8_value());
     $elseif(parameter.typecode.isUint8Type)$
-    result &= $annotation.name$_$relation_name$_$parameter.name$_default_value.uint8_value() == $parameter.value$;
+    ASSERT_EQ($parameter.value$, $annotation.name$_$relation_name$_$parameter.name$_default_value.uint8_value());
     $elseif(parameter.typecode.isInt16Type)$
-    result &= $annotation.name$_$relation_name$_$parameter.name$_default_value.int16_value() == $parameter.value$;
+    ASSERT_EQ($parameter.value$, $annotation.name$_$relation_name$_$parameter.name$_default_value.int16_value());
     $elseif(parameter.typecode.isUint16Type)$
-    result &= $annotation.name$_$relation_name$_$parameter.name$_default_value.uint16_value() == $parameter.value$;
+    ASSERT_EQ($parameter.value$, $annotation.name$_$relation_name$_$parameter.name$_default_value.uint16_value());
     $elseif(parameter.typecode.isInt32Type)$
-    result &= $annotation.name$_$relation_name$_$parameter.name$_default_value.int32_value() == $parameter.value$;
+    ASSERT_EQ($parameter.value$, $annotation.name$_$relation_name$_$parameter.name$_default_value.int32_value());
     $elseif(parameter.typecode.isUint32Type)$
-    result &= $annotation.name$_$relation_name$_$parameter.name$_default_value.uint32_value() == $parameter.value$;
+    ASSERT_EQ($parameter.value$, $annotation.name$_$relation_name$_$parameter.name$_default_value.uint32_value());
     $elseif(parameter.typecode.isInt64Type)$
-    result &= $annotation.name$_$relation_name$_$parameter.name$_default_value.int64_value() == $parameter.value$;
+    ASSERT_EQ($parameter.value$, $annotation.name$_$relation_name$_$parameter.name$_default_value.int64_value());
     $elseif(parameter.typecode.isUint64Type)$
-    result &= $annotation.name$_$relation_name$_$parameter.name$_default_value.uint64_value() == $parameter.value$;
+    ASSERT_EQ($parameter.value$, $annotation.name$_$relation_name$_$parameter.name$_default_value.uint64_value());
     $elseif(parameter.typecode.isFloat32Type)$
-    result &= $annotation.name$_$relation_name$_$parameter.name$_default_value.float32_value() == $parameter.value$;
+    ASSERT_EQ($parameter.value$, $annotation.name$_$relation_name$_$parameter.name$_default_value.float32_value());
     $elseif(parameter.typecode.isFloat64Type)$
-    result &= $annotation.name$_$relation_name$_$parameter.name$_default_value.float64_value() == $parameter.value$;
+    ASSERT_EQ($parameter.value$, $annotation.name$_$relation_name$_$parameter.name$_default_value.float64_value());
     $elseif(parameter.typecode.isFloat128Type)$
-    result &= $annotation.name$_$relation_name$_$parameter.name$_default_value.float128_value() == $parameter.value$;
+    ASSERT_EQ($parameter.value$, $annotation.name$_$relation_name$_$parameter.name$_default_value.float128_value());
     $elseif(parameter.typecode.isCharType)$
-    result &= $annotation.name$_$relation_name$_$parameter.name$_default_value.char_value() == $parameter.value$;
+    ASSERT_EQ($parameter.value$, $annotation.name$_$relation_name$_$parameter.name$_default_value.char_value());
     $elseif(parameter.typecode.isWCharType)$
-    result &= $annotation.name$_$relation_name$_$parameter.name$_default_value.wchar_value() == $parameter.value$;
+    ASSERT_EQ($parameter.value$, $annotation.name$_$relation_name$_$parameter.name$_default_value.wchar_value());
     $endif$
     $elseif(parameter.typecode.isEnumType)$
-    result &= $annotation.name$_$relation_name$_$parameter.name$_default_value.enumerated_value() == $parameter.value$;
+    ASSERT_EQ($parameter.value$, $annotation.name$_$relation_name$_$parameter.name$_default_value.enumerated_value());
     $elseif(parameter.typecode.isStringType)$
-    result &= $annotation.name$_$relation_name$_$parameter.name$_default_value.string8_value() == "$parameter.value$";
+    ASSERT_EQ("$parameter.value$", $annotation.name$_$relation_name$_$parameter.name$_default_value.string8_value());
     $elseif(parameter.typecode.isWStringType)$
-    result &= $annotation.name$_$relation_name$_$parameter.name$_default_value.string16_value() == "$parameter.value$";
+    ASSERT_EQ("$parameter.value$", $annotation.name$_$relation_name$_$parameter.name$_default_value.string16_value());
     $endif$
     memberId++;
 >>
 
 check_const_type(ctx, const, relation, relation_name, relation_capname) ::= <<
     $get_type_identifier(ctx=ctx, type=const, relation=relation, relation_name=relation_name, var_name=["type_identifier"])$
-    //result &= $const.name$_$relation_name$_type_identifier->_d() == $const.name$_$relation_name$_factory_type_identifier->_d();?????
+    ASSERT_EQ($const.name$_$relation_name$_type_identifier->_d(), $const.name$_$relation_name$_type_identifier->_d());
 >>
 
 check_array_type(ctx, array, relation, relation_name, relation_capname) ::= <<
     $get_type_identifier(ctx=ctx, type=array, relation=relation, relation_name=relation_name, var_name=["type_identifier"])$
-    result &= $array.name$_$relation_name$_type_identifier != nullptr;
-    result &= $array.name$_$relation_name$_type_identifier->_d() == EK_$if(relation)$COMPLETE$else$MINIMAL$endif$;
+    ASSERT_EQ(EK_$if(relation)$COMPLETE$else$MINIMAL$endif$, $array.name$_$relation_name$_type_identifier->_d());
 
     $get_type_identifier(ctx=ctx, type=array, relation=relation, relation_name=relation_name, var_name=["typeobject"])$
-    result &= $array.name$_$relation_name$_typeobject != nullptr;
-    result &= $array.name$_$relation_name$_typeobject->_d() == EK_$if(relation)$COMPLETE$else$MINIMAL$endif$;
+    ASSERT_EQ(EK_$if(relation)$COMPLETE$else$MINIMAL$endif$, $array.name$_$relation_name$_typeobject->_d());
 
     $relation_capname$TypeObject $array.name$_$relation_name$_object = $array.name$_$relation_name$_typeobject->$relation_name$();
-    result &= $array.name$_$relation_name$_object._d() == TK_ARRAY;
+    ASSERT_EQ(TK_ARRAY, $array.name$_$relation_name$_object._d());
 
     $relation_capname$ArrayType $array.name$_$relation_name$_array = $array.name$_$relation_name$_object.array_type();
     //CollectionTypeFlag collection_flag;// Unused. No flags apply
@@ -612,7 +584,7 @@ check_array_type(ctx, array, relation, relation_name, relation_capname) ::= <<
     CompleteTypeDetail $array.name$_$relation_name$_detail = $array.name$_$relation_name$_header.detail();
     $check_optional_detail_annotations(ctx=ctx, object=array)$
     QualifiedTypeName $array.name$_$relation_name$_detail_type_name = $array.name$_$relation_name$_detail.type_name();
-    result &= $array.name$_$relation_name$_detail_type_name == "$array.scopedname$";
+    ASSERT_EQ("$array.scopedname$", $array.name$_$relation_name$_detail_type_name);
     $endif$
 
     CommonArrayHeader $array.name$_$relation_name$_header_common = $array.name$_$relation_name$_header.common();
@@ -620,9 +592,9 @@ check_array_type(ctx, array, relation, relation_name, relation_capname) ::= <<
 
     int dimension_bound_index = 0;
     $array.typecode.dimensions:{ dimension_bound |
-    result &= $array.name$_$relation_name$_header_common_bound_seq.at(dimension_bound_index) == $dimension_bound$;
+    ASSERT_EQ($dimension_bound$, $array.name$_$relation_name$_header_common_bound_seq.at(dimension_bound_index));
     dimension_bound_index++;
-    }; separator="\n"$
+    };separator="\n"$
 
     $relation_capname$CollectionElement $array.name$_$relation_name$_collection_element = $array.name$_$relation_name$_array.element();
     CommonCollectionElement $array.name$_$relation_name$_common_element = $array.name$_$relation_name$_collection_element.common();
@@ -630,10 +602,10 @@ check_array_type(ctx, array, relation, relation_name, relation_capname) ::= <<
     CollectionElementFlag $array.name$_$relation_name$_common_element_flags = $array.name$_$relation_name$_common_element.element_flags();
     {
     $check_member_flags(ctx=ctx, object=array, flags_var_name=["array"])$
-    result &= $map.name$_$relation_name$_array & array_expected_flags;
+    ASSERT_TRUE(array_expected_flags & $map.name$_$relation_name$_array);
     }
     $get_type_identifier(ctx=ctx, type=array, relation=relation, relation_name=relation_name, var_name=["common_element_id"])$
-    result &= $array.name$_$relation_name$_common_element.type()._d() == $array.name$_$relation_name$_common_element_id->_d();
+    ASSERT_EQ($array.name$_$relation_name$_common_element_id->_d(), $array.name$_$relation_name$_common_element.type()._d());
 
     $if(relation)$
 {
@@ -642,44 +614,41 @@ check_array_type(ctx, array, relation, relation_name, relation_capname) ::= <<
 }
     $endif$
 
-    int $array.name$_$relation_name$_totalsize = $member.typecode.dimensions:{ dim | $dim$}; separator=" + "$;
+    int $array.name$_$relation_name$_totalsize = $member.typecode.dimensions:{ dim | $dim$};separator=" + "$;
     
     if($array.name$_$relation_name$_totalsize <= 100){
         SBoundSeq $array.name$_$relation_name$_s_bound_seq;
-        $member.typecode.dimensions:{ dim | $array.name$_$relation_name$_s_bound_seq.push_back($dim$);}; separator="\n"$
-        result &= $array.name$_$relation_name$_type_identifier.array_sdefn().array_bound_seq() == $array.name$_$relation_name$_s_bound_seq;
+        $member.typecode.dimensions:{ dim | $array.name$_$relation_name$_s_bound_seq.push_back($dim$);};separator="\n"$
+        ASSERT_EQ($array.name$_$relation_name$_s_bound_seq, $array.name$_$relation_name$_type_identifier.array_sdefn().array_bound_seq());
     }else{
         LBoundSeq $array.name$_$relation_name$_l_bound_seq;
-        $member.typecode.dimensions:{ dim | $array.name$_$relation_name$_l_bound_seq.push_back($dim$);}; separator="\n"$
-        result &= $array.name$_$relation_name$_type_identifier.array_ldefn().array_bound_seq() == $array.name$_$relation_name$_l_bound_seq;       
+        $member.typecode.dimensions:{ dim | $array.name$_$relation_name$_l_bound_seq.push_back($dim$);};separator="\n"$
+        ASSERT_EQ($array.name$_$relation_name$_l_bound_seq, $array.name$_$relation_name$_type_identifier.array_ldefn().array_bound_seq());
     }
 >>
 
 check_sequence_type(ctx, sequence, relation, relation_name, relation_capname) ::= <<
     $get_type_identifier(ctx=ctx, type=sequence, relation=relation, relation_name=relation_name, var_name=["type_identifier"])$
-    result &= $sequence.name$_$relation_name$_type_identifier != nullptr;
-    result &= $sequence.name$_$relation_name$_type_identifier._d() == EK_$if(relation)$COMPLETE$else$MINIMAL$endif$;
+    ASSERT_EQ(EK_$if(relation)$COMPLETE$else$MINIMAL$endif$, $sequence.name$_$relation_name$_type_identifier._d());
 
     $get_type_identifier(ctx=ctx, type=sequence, relation=relation, relation_name=relation_name, var_name=["typeobject"])$
-    result &= $sequence.name$_$relation_name$_typeobject != nullptr;
-    result &= $sequence.name$_$relation_name$_typeobject->_d() == EK_$if(relation)$COMPLETE$else$MINIMAL$endif$;
+    ASSERT_EQ(EK_$if(relation)$COMPLETE$else$MINIMAL$endif$, $sequence.name$_$relation_name$_typeobject->_d());
 
     $relation_capname$TypeObject $sequence.name$_$relation_name$_object = $sequence.name$_$relation_name$_typeobject->$relation_name$();
-    result &= $sequence.name$_$relation_name$_object._d() == TK_SEQUENCE;
-
+    ASSERT_EQ(TK_SEQUENCE, $sequence.name$_$relation_name$_object._d());
 
     $relation_capname$SequenceType $sequence.name$_$relation_name$_sequence = $sequence.name$_$relation_name$_object.sequence_type();
     //CollectionTypeFlag collection_flag;// Unused. No flags apply
     
-    $relation_capname$CollectionHeader $sequence.name$_$relation_name$_header = $sequence.name$_$relation_name$_sequence.header();        
+    $relation_capname$CollectionHeader $sequence.name$_$relation_name$_header = $sequence.name$_$relation_name$_sequence.header();
     CommonCollectionHeader $sequence.name$_$relation_name$_commonheader = $sequence.name$_$relation_name$_header.common();
-    result &= $array.name$_$relation_name$_header_common.bound() == $array.typecode.maxsize$;
+    ASSERT_EQ($array.typecode.maxsize$, $array.name$_$relation_name$_header_common.bound());
 
     $if(relation)$
     CompleteTypeDetail $sequence.name$_$relation_name$_detail = $sequence.name$_$relation_name$_header.detail();// not present for anonymous
     $check_optional_detail_annotations(ctx=ctx, object=sequence)$
     QualifiedTypeName $sequence.name$_$relation_name$_detail_type_name = $sequence.name$_$relation_name$_detail.type_name();
-    result &= $sequence.name$_$relation_name$_detail_type_name == "$sequence.scopedname$";
+    ASSERT_EQ("$sequence.scopedname$", $sequence.name$_$relation_name$_detail_type_name);
     $endif$
 
     $relation_capname$CollectionElement $sequence.name$_$relation_name$_collection_element = $sequence.name$_$relation_name$_sequence.element();
@@ -688,11 +657,11 @@ check_sequence_type(ctx, sequence, relation, relation_name, relation_capname) ::
     CollectionElementFlag $sequence.name$_$relation_name$_common_element_flags = $sequence.name$_$relation_name$_common_element.element_flags();
     {
     $check_member_flags(ctx=ctx, object=sequence, flags_var_name=["sequence"])$
-    result &= $sequence.name$_$relation_name$_common_element_flags & sequence_expected_flags;
+    ASSERT_TRUE(sequence_expected_flags & $sequence.name$_$relation_name$_common_element_flags);
     }
 
     $get_type_identifier(ctx=ctx, type=sequence, relation=relation, relation_name=relation_name, var_name=["common_element_id"])$
-    result &= $sequence.name$_$relation_name$_type_identifier._d() == $sequence.name$_$relation_name$_common_element_id->_d();
+    ASSERT_EQ($sequence.name$_$relation_name$_common_element_id->_d(), $sequence.name$_$relation_name$_type_identifier._d());
        
     $if(relation)$
     {
@@ -702,23 +671,21 @@ check_sequence_type(ctx, sequence, relation, relation_name, relation_capname) ::
     $endif$
 
     if($sequence.typecode.maxsize$ <= 100){
-        result &= $sequence.name$_$relation_name$_type_identifier.seq_sdefn().bound() == $sequence.typecode.maxsize$;
+        ASSERT_EQ($sequence.typecode.maxsize$, $sequence.name$_$relation_name$_type_identifier.seq_sdefn().bound());
     }else{
-        result &= $sequence.name$_$relation_name$_type_identifier.seq_ldefn().bound() == $sequence.typecode.maxsize$;
+        ASSERT_EQ($sequence.typecode.maxsize$, $sequence.name$_$relation_name$_type_identifier.seq_ldefn().bound());
     }
 >>
 
 check_map_type(ctx, map, relation, relation_name, relation_capname) ::= <<
     $get_type_identifier(ctx=ctx, type=map, relation=relation, relation_name=relation_name, var_name=["type_identifier"])$
-    result &= $map.name$_$relation_name$_type_identifier != nullptr;
-    result &= $map.name$_$relation_name$_type_identifier._d() == EK_$if(relation)$COMPLETE$else$MINIMAL$endif$;
+    ASSERT_EQ(EK_$if(relation)$COMPLETE$else$MINIMAL$endif$, $map.name$_$relation_name$_type_identifier._d());
 
     $get_type_identifier(ctx=ctx, type=map, relation=relation, relation_name=relation_name, var_name=["typeobject"])$
-    result &= $map.name$_$relation_name$_typeobject != nullptr;
-    result &= $map.name$_$relation_name$_typeobject->_d() == EK_$if(relation)$COMPLETE$else$MINIMAL$endif$;
+    ASSERT_EQ(EK_$if(relation)$COMPLETE$else$MINIMAL$endif$, $map.name$_$relation_name$_typeobject->_d());
 
     $relation_capname$TypeObject $map.name$_$relation_name$_object = $map.name$_$relation_name$_typeobject->$relation_name$();
-    result &= $map.name$_$relation_name$_object._d() == TK_MAP;
+    ASSERT_EQ(TK_MAP, $map.name$_$relation_name$_object._d());
 
     $relation_capname$MapType $map.name$_$relation_name$_map = $map.name$_$relation_name$_object.map_type();
     //CollectionTypeFlag collection_flag;// Unused. No flags apply
@@ -726,13 +693,13 @@ check_map_type(ctx, map, relation, relation_name, relation_capname) ::= <<
     //$relation_capname$CollectionHeader header;// Empty. Available for future extension
 
     CommonCollectionHeader $map.name$_$relation_name$_commonheader = $map.name$_$relation_name$_header.common();
-    result &= $map.name$_$relation_name$_commonheader.bound() == $map.typecode.maxsize$;
+    ASSERT_EQ($map.typecode.maxsize$, $map.name$_$relation_name$_commonheader.bound());
 
     $if(relation)$
     CompleteTypeDetail $map.name$_$relation_name$_detail = $map.name$_$relation_name$_header.detail();// not present for anonymous
     $check_optional_detail_annotations(ctx=ctx, object=map)$
     QualifiedTypeName $map.name$_$relation_name$_detail_type_name = $map.name$_$relation_name$_detail.type_name();
-    result &= $map.name$_$relation_name$_detail_type_name == "$map.scopedname$";
+    ASSERT_EQ("$map.scopedname$", $map.name$_$relation_name$_detail_type_name);
     $endif$
 
     $relation_capname$CollectionElement $map.name$_$relation_name$_collection_key_element = $map.name$_$relation_name$_map.key();
@@ -740,10 +707,10 @@ check_map_type(ctx, map, relation, relation_name, relation_capname) ::= <<
     CollectionElementFlag $map.name$_$relation_name$_key_common_element_flags = $map.name$_$relation_name$_key_common_element.element_flags();
     {
     $check_member_flags(ctx=ctx, object=map.key, flags_var_name=["key_common_element"])$
-    result &= $map.name$_$relation_name$_key_common_element_flags & key_common_element_expected_flags;
+    ASSERT_TRUE(key_common_element_expected_flags & $map.name$_$relation_name$_key_common_element_flags);
     }
     $get_type_identifier(ctx=ctx, type=map.key.typecode, relation=relation, relation_name=relation_name, var_name=["key_common_element_type_id"])$
-    result &= $map.name$_$relation_name$_key_common_element.type()._d() == $map.key.typecode.name$_$relation_name$_key_common_element_type_id->_d();
+    ASSERT_EQ($map.key.typecode.name$_$relation_name$_key_common_element_type_id->_d(), $map.name$_$relation_name$_key_common_element.type()._d());
       
     $if(relation)$
     {
@@ -757,10 +724,10 @@ check_map_type(ctx, map, relation, relation_name, relation_capname) ::= <<
     CollectionElementFlag $map.name$_$relation_name$_element_common_element_flags = $map.name$_$relation_name$_element_common_element.element_flags();
     {
     $check_member_flags(ctx=ctx, object=map.element, flags_var_name=["element_common_element"])$
-    result &= $map.name$_$relation_name$_element_common_element_flags & element_common_element_expected_flags;
+    ASSERT_TRUE(element_common_element_expected_flags & $map.name$_$relation_name$_element_common_element_flags);
     }
     $get_type_identifier(ctx=ctx, type=map.element.typecode, relation=relation, relation_name=relation_name, var_name=["element_common_element_type_id"])$
-    result &= $map.name$_$relation_name$_element_common_element.type()._d() == $map.element.typecode.name$_$relation_name$_element_common_element_type_id->_d();
+    ASSERT_EQ($map.element.typecode.name$_$relation_name$_element_common_element_type_id->_d(), $map.name$_$relation_name$_element_common_element.type()._d());
 
     $if(relation)$
     {
@@ -770,9 +737,9 @@ check_map_type(ctx, map, relation, relation_name, relation_capname) ::= <<
     $endif$
 
     if($map.typecode.maxsize$ <= 100){
-        result &= $map.name$_$relation_name$_type_identifier.seq_sdefn().bound() == $map.typecode.maxsize$;
+        ASSERT_EQ($map.typecode.maxsize$, $map.name$_$relation_name$_type_identifier.seq_sdefn().bound());
     }else{
-        result &= $map.name$_$relation_name$_type_identifier.seq_ldefn().bound() == $map.typecode.maxsize$;
+        ASSERT_EQ($map.typecode.maxsize$, $map.name$_$relation_name$_type_identifier.seq_ldefn().bound());
     }
 >>
 
@@ -780,11 +747,8 @@ check_map_type(ctx, map, relation, relation_name, relation_capname) ::= <<
 
 
 test_typedef(ctx, parent, typedefs) ::= <<
-functions_to_run.emplace_back([]() -> bool
+TEST(TypeObjectTests, TestTypedefTypeObject_$typedefs.name$)
 {
-    std::cout << std::endl << "======================================== Testing typedef: $typedefs.name$ ========================================" << std::endl;
-    bool result = true;
-
     //Minimal
     $check_alias_type(ctx=ctx, typedefs=typedefs, relation=false, relation_name="minimal", relation_capname="Minimal")$
     $check_alias_related_type(ctx=ctx, typedefs=typedefs, relation=false, relation_name="minimal", relation_capname="Minimal")$
@@ -792,204 +756,132 @@ functions_to_run.emplace_back([]() -> bool
     //Complete
     $check_alias_type(ctx=ctx, typedefs=typedefs, relation=true, relation_name="complete", relation_capname="Complete")$
     $check_alias_related_type(ctx=ctx, typedefs=typedefs, relation=true, relation_name="complete", relation_capname="Complete")$
-
-
-    if(result){
-        std::cout << std::endl << "======OK====== Test $typedefs.name$" << std::endl;
-    }else{
-        std::cout << std::endl << "=====FAIL===== Test $typedefs.name$" << std::endl;
-    }
-    return result;
-});
+}
 >>
 
 test_structure(ctx, parent, struct) ::= <<
-functions_to_run.emplace_back([]() -> bool
+TEST(TypeObjectTests, TestStructureTypeObject_$struct.name$)
 {
-    std::cout << std::endl << "======================================== Testing struct: $struct.name$ ========================================" << std::endl;
     MemberId memberId;
-    bool result = true;
 
     //Minimal
     $check_struct_type(ctx=ctx, struct=struct, relation=false, relation=false, relation_name="minimal", relation_capname="Minimal")$ 
     memberId = 0;
-    $struct.allMembers:{ member | $check_struct_member_type(ctx=ctx, member=member, relation=false, relation_name="minimal", relation_capname="Minimal")$ }; separator="\n"$
-    result &= $struct.name$_minimal_memberseq.size() == memberId; 
+    $struct.allMembers:{ member | $check_struct_member_type(ctx=ctx, member=member, relation=false, relation_name="minimal", relation_capname="Minimal")$ };separator="\n"$
+    ASSERT_EQ(memberId, $struct.name$_minimal_memberseq.size());
 
     //Complete
     $check_struct_type(ctx=ctx, struct=struct, relation=true, relation_name="complete", relation_capname="Complete")$ 
     memberId = 0;
-    $struct.allMembers:{ member | $check_struct_member_type(ctx=ctx, member=member, relation=true, relation_name="complete", relation_capname="Complete")$ }; separator="\n"$
-    result &= $struct.name$_complete_memberseq.size() == memberId; 
-
-    if(result){
-        std::cout << std::endl << "======OK====== Test $struct.name$" << std::endl;
-    }else{
-        std::cout << std::endl << "=====FAIL===== Test $struct.name$" << std::endl;
-    }
-    return result;
-});
+    $struct.allMembers:{ member | $check_struct_member_type(ctx=ctx, member=member, relation=true, relation_name="complete", relation_capname="Complete")$ };separator="\n"$
+    ASSERT_EQ(memberId, $struct.name$_complete_memberseq.size());
+}
 >>
 
 test_union(ctx, parent, union) ::= <<
-functions_to_run.emplace_back([]() -> bool
+TEST(TypeObjectTests, TestUnionTypeObject_$union.name$)
 {
-    std::cout << std::endl << "======================================== Testing union: $union.name$ ========================================" << std::endl;
     MemberId memberId;
-    bool result = true;
 
     //Minimal
     $check_union_type(ctx=ctx, union=union, relation=false, relation=false, relation_name="minimal", relation_capname="Minimal")$ 
     memberId = 0;
-    $union.members:{ member | $check_union_member_type(ctx=ctx, member=member, relation=false, relation=false, relation_name="minimal", relation_capname="Minimal")$ }; separator="\n"$
-    result &= $union.name$_minimal_memberseq.size() == memberId; 
+    $union.members:{ member | $check_union_member_type(ctx=ctx, member=member, relation=false, relation=false, relation_name="minimal", relation_capname="Minimal")$ };separator="\n"$
+    ASSERT_EQ(memberId, $union.name$_minimal_memberseq.size());
 
     //Complete
     $check_union_type(ctx=ctx, union=union, relation=true, relation_name="complete", relation_capname="Complete")$ 
     memberId = 0;
-    $union.members:{ member | $check_union_member_type(ctx=ctx, member=member, relation=true, relation_name="complete", relation_capname="Complete")$ }; separator="\n"$
-    result &= $union.name$_complete_memberseq.size() == memberId; 
-
-    if(result){
-        std::cout << std::endl << "======OK====== Test $union.name$" << std::endl;
-    }else{
-        std::cout << std::endl << "=====FAIL===== Test $union.name$" << std::endl;
-    }
-    return result;
-});
+    $union.members:{ member | $check_union_member_type(ctx=ctx, member=member, relation=true, relation_name="complete", relation_capname="Complete")$ };separator="\n"$
+    ASSERT_EQ(memberId, $union.name$_complete_memberseq.size());
+}
 >>
 
 test_enum(ctx, parent, enum) ::= <<
-functions_to_run.emplace_back([]() -> bool
+TEST(TypeObjectTests, TestEnumTypeObject_$enum.name$)
 {
-    std::cout << std::endl << "======================================== Testing enum: $enum.name$ ========================================" << std::endl;
     int literalId;
-    bool result = true;
 
     //Minimal
     $check_enum_type(ctx=ctx, enum=enum, relation=false, relation_name="minimal", relation_capname="Minimal")$ 
     literalId = 0;
-    $enum.members:{ literal | $check_enum_literal_type(ctx=ctx, literal=literal, relation=false, relation_name="minimal", relation_capname="Minimal")$ }; separator="\n"$
-    result &= $enum.name$_minimal_literalseq.size() == literalId; 
+    $enum.members:{ literal | $check_enum_literal_type(ctx=ctx, literal=literal, relation=false, relation_name="minimal", relation_capname="Minimal")$ };separator="\n"$
+    ASSERT_EQ(literalId, $enum.name$_minimal_literalseq.size());
 
     //Complete
     $check_enum_type(ctx=ctx, enum=enum, relation=true, relation_name="complete", relation_capname="Complete")$ 
     literalId = 0;
-    $enum.members:{ literal | $check_enum_literal_type(ctx=ctx, literal=literal, relation=true, relation_name="complete", relation_capname="Complete")$ }; separator="\n"$
-    result &= $enum.name$_complete_literalseq.size() == literalId; 
-
-    if(result){
-        std::cout << std::endl << "======OK====== Test $enum.name$" << std::endl;
-    }else{
-        std::cout << std::endl << "=====FAIL===== Test $enum.name$" << std::endl;
-    }
-    return result;
-});
+    $enum.members:{ literal | $check_enum_literal_type(ctx=ctx, literal=literal, relation=true, relation_name="complete", relation_capname="Complete")$ };separator="\n"$
+    ASSERT_EQ(literalId, $enum.name$_complete_literalseq.size());
+}
 >>
 
 test_bitmask(ctx, parent, bitmask) ::= <<
-functions_to_run.emplace_back([]() -> bool
+TEST(TypeObjectTests, TestBitmaskTypeObject_$bitmask.name$)
 {
-    std::cout << std::endl << "======================================== Testing bitmask: $bitmask.name$ ========================================" << std::endl;
     unsigned short flagId;
-    bool result = true;
 
     //Minimal
     $check_bitmask_type(ctx=ctx, bitmask=bitmask, relation=false, relation_name="minimal", relation_capname="Minimal")$ 
     flagId = 0;
-    $bitmask.members:{ flag | $check_bitmask_flag_type(ctx=ctx, flag=flag, relation=false, relation_name="minimal", relation_capname="Minimal")$ }; separator="\n"$
-    result &= $bitmask.name$_minimal_flagseq.size() == flagId; 
+    $bitmask.members:{ flag | $check_bitmask_flag_type(ctx=ctx, flag=flag, relation=false, relation_name="minimal", relation_capname="Minimal")$ };separator="\n"$
+    ASSERT_EQ(flagId, $bitmask.name$_minimal_flagseq.size());
 
     //Complete
     $check_bitmask_type(ctx=ctx, bitmask=bitmask, relation=true, relation_name="complete", relation_capname="Complete")$ 
     flagId = 0;
-    $bitmask.members:{ flag | $check_bitmask_flag_type(ctx=ctx, flag=flag, relation=true, relation_name="complete", relation_capname="Complete")$ }; separator="\n"$
-    result &= $bitmask.name$_complete_flagseq.size() == flagId; 
-
-    if(result){
-        std::cout << std::endl << "======OK====== Test $bitmask.name$" << std::endl;
-    }else{
-        std::cout << std::endl << "=====FAIL===== Test $bitmask.name$" << std::endl;
-    }
-    return result;
-});
+    $bitmask.members:{ flag | $check_bitmask_flag_type(ctx=ctx, flag=flag, relation=true, relation_name="complete", relation_capname="Complete")$ };separator="\n"$
+    ASSERT_EQ(flagId, $bitmask.name$_complete_flagseq.size());
+}
 >>
 
 test_bitset(ctx, parent, bitset) ::= <<
-functions_to_run.emplace_back([]() -> bool
+TEST(TypeObjectTests, TestBitsetTypeObject_$bitset.name$)
 {
-    std::cout << std::endl << "======================================== Testing bitset: $bitset.name$ ========================================" << std::endl;
     unsigned short bitfieldId;
-    bool result = true;
 
     //Minimal
     $check_bitset_type(ctx=ctx, bitset=bitset, relation=false, relation_name="minimal", relation_capname="Minimal")$ 
     bitfieldId = 0;
-    $bitset.members:{ bitfield | $check_bitfield_type(ctx=ctx, bitfield=bitfield, relation=false, relation_name="minimal", relation_capname="Minimal")$ }; separator="\n"$
-    result &= $bitset.name$_minimal_bitfieldseq.size() == bitfieldId; 
+    $bitset.members:{ bitfield | $check_bitfield_type(ctx=ctx, bitfield=bitfield, relation=false, relation_name="minimal", relation_capname="Minimal")$ };separator="\n"$
+    ASSERT_EQ(bitfieldId, $bitset.name$_minimal_bitfieldseq.size());
 
     //Complete
     $check_bitset_type(ctx=ctx, bitset=bitset, relation=true, relation_name="complete", relation_capname="Complete")$ 
     bitfieldId = 0;
-    $bitset.members:{ bitfield | $check_bitfield_type(ctx=ctx, bitfield=bitfield, relation=true, relation_name="complete", relation_capname="Complete")$ }; separator="\n"$
-    result &= $bitset.name$_complete_bitfieldseq.size() == bitfieldId; 
-
-    if(result){
-        std::cout << std::endl << "======OK====== Test $bitset.name$" << std::endl;
-    }else{
-        std::cout << std::endl << "=====FAIL===== Test $bitset.name$" << std::endl;
-    }
-    return result;
-});
+    $bitset.members:{ bitfield | $check_bitfield_type(ctx=ctx, bitfield=bitfield, relation=true, relation_name="complete", relation_capname="Complete")$ };separator="\n"$
+    ASSERT_EQ(bitfieldId, $bitset.name$_complete_bitfieldseq.size());
+}
 >>
 
 test_annotation(ctx, parent, annotation) ::= <<
-functions_to_run.emplace_back([]() -> bool
+TEST(TypeObjectTests, TestAnnotationTypeObject_$annotation.name$)
 {
-    std::cout << std::endl << "======================================== Testing annotation: $annotation.name$ ========================================" << std::endl;
     MemberId memberId;
-    bool result = true;
 
     //Minimal
     $check_annotation_type(ctx=ctx, annotation=annotation, relation=false, relation_name="minimal", relation_capname="Minimal")$ 
     memberId = 0;
-    $annotation.members:{ parameter | $check_annotation_member_type(ctx=ctx, parameter=parameter, relation=false, relation_name="minimal", relation_capname="Minimal")$ }; separator="\n"$
-    result &= $annotation.name$_minimal_memberseq.size() == memberId; 
+    $annotation.members:{ parameter | $check_annotation_member_type(ctx=ctx, parameter=parameter, relation=false, relation_name="minimal", relation_capname="Minimal")$ };separator="\n"$
+    ASSERT_EQ(memberId, $annotation.name$_minimal_memberseq.size());
 
     //Complete
     $check_annotation_type(ctx=ctx, annotation=annotation, relation=true, relation_name="complete", relation_capname="Complete")$ 
     memberId = 0;
-    $annotation.members:{ parameter | $check_annotation_member_type(ctx=ctx, parameter=parameter, relation=true, relation_name="complete", relation_capname="Complete")$ }; separator="\n"$
-    result &= $annotation.name$_complete_memberseq.size() == memberId;
-
-    if(result){
-        std::cout << std::endl << "======OK====== Test $annotation.name$" << std::endl;
-    }else{
-        std::cout << std::endl << "=====FAIL===== Test $annotation.name$" << std::endl;
-    }
-    return result;
-});
+    $annotation.members:{ parameter | $check_annotation_member_type(ctx=ctx, parameter=parameter, relation=true, relation_name="complete", relation_capname="Complete")$ };separator="\n"$
+    ASSERT_EQ(memberId, $annotation.name$_complete_memberseq.size());
+}
 >>
 
 test_const(ctx, parent, const) ::= <<
-functions_to_run.emplace_back([]() -> bool
+TEST(TypeObjectTests, TestConstTypeObject_$const.name$)
 {
-    std::cout << std::endl << "======================================== Testing const: $const.name$ ========================================" << std::endl;
-    bool result = true;
-
     //Minimal
     $check_const_type(ctx=ctx, const=const, relation=false, relation_name="minimal", relation_capname="Minimal")$ 
 
     //Complete
     $check_const_type(ctx=ctx, const=const, relation=true, relation_name="complete", relation_capname="Complete")$ 
-    
-    if(result){
-        std::cout << std::endl << "======OK====== Test $const.name$" << std::endl;
-    }else{
-        std::cout << std::endl << "=====FAIL===== Test $const.name$" << std::endl;
-    }
-    return result;
-});
+}
 >>
 
 
@@ -1028,7 +920,7 @@ $definition_list$
 >>
 
 definition_list(definitions) ::= <<
-$definitions; separator="\n"$
+$definitions;separator="\n"$
 >>
 
 const_decl(ctx, parent, const) ::= <<
@@ -1066,69 +958,70 @@ check_optional_detail_annotations(ctx, object) ::= <<
     $elseif(vermatim_param.isVerbatimText)$
     $object.name$_$relation_name$_vermatim_annotation.text() = $vermatim_param.value$;
     $endif$
-    }; separator="\n"$
+    };separator="\n"$
     $else$
     AppliedAnnotationSeq $object.name$_$relation_name$_annotation_seq = $object.name$_$relation_name$_detail.ann_custom();
-    for(int i = 0; i < $object.name$_$relation_name$_annotation_seq.size(); i++)
+    for(int i = 0;i < $object.name$_$relation_name$_annotation_seq.size();i++)
     {
         AppliedAnnotation $object.name$_$relation_name$_applied_annotation = $object.name$_$relation_name$_annotation_seq.at(i);
         $get_type_identifier(ctx=ctx, type=object, relation=relation, relation_name=relation_name, var_name=["annotation_type_id"])$
-        result &= $object.name$_$relation_name$_applied_annotation.annotation_typeid()._d() == $object.name$_$relation_name$_annotation_type_id->_d();
+        ASSERT_EQ($object.name$_$relation_name$_annotation_type_id->_d(), $object.name$_$relation_name$_applied_annotation.annotation_typeid()._d());
+
         AppliedAnnotationParameterSeq $object.name$_$relation_name$_annotation_param_seq = $object.name$_$relation_name$_applied_annotation.param_seq();
-        for(int i = 0; i < $object.name$_$relation_name$_annotation_param_seq.size(); i++)
+        for(int i = 0;i < $object.name$_$relation_name$_annotation_param_seq.size();i++)
         {
             AppliedAnnotationParameter $object.name$_$relation_name$_annotation_param = $object.name$_$relation_name$_annotation_param_seq.at(i);
             NameHash $object.name$_$relation_name$_annotation_paramname_hash = $object.name$_$relation_name$_annotation_param.paramname_hash();
             MD5 $object.name$_$relation_name$_paramname_hash("$object.name$");
-            for(int i = 0; i < 4; ++i)
+            for(int i = 0;i < 4;++i)
             {
-                result &= $object.name$_$relation_name$_annotation_paramname_hash[i] == $object.name$_$relation_name$_paramname_hash.digest[i];
+                ASSERT_EQ($object.name$_$relation_name$_paramname_hash.digest[i], $object.name$_$relation_name$_annotation_paramname_hash[i]);
             \}
 
             AnnotationParameterValue $object.name$_$relation_name$_value = $object.name$_$relation_name$_annotation_param.value();
             $if(object.typecode.primitiveType)$
             $if(object.typecode.isBooleanType)$
-            result &= $object.name$_$relation_name$_value.boolean_value() == $object.value$;
+            ASSERT_EQ($object.value$, $object.name$_$relation_name$_value.boolean_value());
             $elseif(object.typecode.isByteType)$
-            result &= $object.name$_$relation_name$_value.byte_value() == $object.value$;
+            ASSERT_EQ($object.value$, $object.name$_$relation_name$_value.byte_value());
             $elseif(object.typecode.isInt8Type)$
-            result &= $object.name$_$relation_name$_value.int8_value() == $object.value$;
+            ASSERT_EQ($object.value$, $object.name$_$relation_name$_value.int8_value());
             $elseif(object.typecode.isUint8Type)$
-            result &= $object.name$_$relation_name$_value.uint8_value() == $object.value$;
+            ASSERT_EQ($object.value$, $object.name$_$relation_name$_value.uint8_value());
             $elseif(object.typecode.isInt16Type)$
-            result &= $object.name$_$relation_name$_value.int16_value() == $object.value$;
+            ASSERT_EQ($object.value$, $object.name$_$relation_name$_value.int16_value());
             $elseif(object.typecode.isUint16Type)$
-            result &= $object.name$_$relation_name$_value.uint16_value() == $object.value$;
+            ASSERT_EQ($object.value$, $object.name$_$relation_name$_value.uint16_value());
             $elseif(object.typecode.isInt32Type)$
-            result &= $object.name$_$relation_name$_value.int32_value() == $object.value$;
+            ASSERT_EQ($object.value$, $object.name$_$relation_name$_value.int32_value());
             $elseif(object.typecode.isUint32Type)$
-            result &= $object.name$_$relation_name$_value.uint32_value() == $object.value$;
+            ASSERT_EQ($object.value$, $object.name$_$relation_name$_value.uint32_value());
             $elseif(object.typecode.isInt64Type)$
-            result &= $object.name$_$relation_name$_value.int64_value() == $object.value$;
+            ASSERT_EQ($object.value$, $object.name$_$relation_name$_value.int64_value());
             $elseif(object.typecode.isUint64Type)$
-            result &= $object.name$_$relation_name$_value.uint64_value() == $object.value$;
+            ASSERT_EQ($object.value$, $object.name$_$relation_name$_value.uint64_value());
             $elseif(object.typecode.isFloat32Type)$
-            result &= $object.name$_$relation_name$_value.float32_value() == $object.value$;
+            ASSERT_EQ($object.value$, $object.name$_$relation_name$_value.float32_value());
             $elseif(object.typecode.isFloat64Type)$
-            result &= $object.name$_$relation_name$_value.float64_value() == $object.value$;
+            ASSERT_EQ($object.value$, $object.name$_$relation_name$_value.float64_value());
             $elseif(object.typecode.isFloat128Type)$
-            result &= $object.name$_$relation_name$_value.float128_value() == $object.value$;
+            ASSERT_EQ($object.value$, $object.name$_$relation_name$_value.float128_value());
             $elseif(object.typecode.isCharType)$
-            result &= $object.name$_$relation_name$_value.char_value() == $object.value$;
+            ASSERT_EQ($object.value$, $object.name$_$relation_name$_value.char_value());
             $elseif(object.typecode.isWCharType)$
-            result &= $object.name$_$relation_name$_value.wchar_value() == $object.value$;
+            ASSERT_EQ($object.value$, $object.name$_$relation_name$_value.wchar_value());
             $endif$
             $elseif(object.typecode.isEnumType)$
-            result &= $object.name$_$relation_name$_value.enumerated_value() == $object.value$;
+            ASSERT_EQ($object.value$, $object.name$_$relation_name$_value.enumerated_value());
             $elseif(object.typecode.isStringType)$
-            result &= $object.name$_$relation_name$_value.string8_value() == "$object.value$";
+            ASSERT_EQ("$object.value$, $object.name$_$relation_name$_value.string8_value());
             $elseif(object.typecode.isWStringType)$
-            result &= $object.name$_$relation_name$_value.string16_value() == "$object.value$";
+            ASSERT_EQ("$object.value$", $object.name$_$relation_name$_value.string16_value());
             $endif$
         \}
     \}
     $endif$
-    }; separator=""$
+    };separator=""$
     $endif$
 >>
 
