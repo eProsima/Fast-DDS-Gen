@@ -43,9 +43,22 @@ $ctx.directIncludeDependencies : {include | %include "$include$.i"}; separator="
 #include <fastdds/dds/core/LoanableSequence.hpp>
 %}
 
+%import(module="fastdds") "fastcdr/xcdr/optional.hpp"
 %import(module="fastdds") "fastdds/dds/core/LoanableCollection.hpp"
 %import(module="fastdds") "fastdds/dds/core/LoanableTypedCollection.hpp"
 %import(module="fastdds") "fastdds/dds/core/LoanableSequence.hpp"
+
+%define %traits_penumn(Type...)
+  %fragment(SWIG_Traits_frag(Type),"header",
+        fragment="StdTraits") {
+namespace swig {
+  template <> struct traits< Type > {
+    typedef value_category category;
+    static const char* type_name() { return  #Type; }
+  };
+}
+}
+%enddef
 
 $definitions; separator="\n"$
 
@@ -103,13 +116,13 @@ $struct.members : { member | $member_getters(struct_name=struct.scopedname, memb
 
 >>
 
-template_sequence_name(typecode) ::= <<
+template_sequence_name(typecode) ::= <%
 $if(typecode.isSequenceType)$
 $template_sequence_name(typecode.contentTypeCode)$_vector
 $else$
-$typecode.formatedCppTypename$_vector
+$typecode.noScopedCppTypename$_vector
 $endif$
->>
+%>
 
 template_sequence(typecode) ::= <<
 $if(typecode.contentTypeCode.isSequenceType)$
@@ -126,10 +139,25 @@ $if(!typecode.contentTypeCode.isType_7)$
 $endif$
 $endif$
 
-%template($template_sequence_name(typecode.contentTypeCode)$) std::vector<$typecode.contentTypeCode.cppTypename$>;
+%template($template_sequence_name(typecode.contentTypeCode)$) std::vector<$if(typecode.contentTypeCode.isEnumType)$enum $endif$$typecode.contentTypeCode.cppTypename$>;
 >>
 
 member_getters(struct_name, member) ::= <<
+$if(member.annotationOptional)$
+%ignore eprosima::fastcdr::optional::value;
+%ignore eprosima::fastcdr::optional::reset;
+%template($member.typecode.noScopedCppTypename$Opt) eprosima::fastcdr::optional<$member.typecode.cppTypename$>;
+%extend eprosima::fastcdr::optional<$member.typecode.cppTypename$> {
+  $member.typecode.cppTypename$ get_value() const {
+      return \$self->value();
+  }
+
+  void set_value(const $member.typecode.cppTypename$& value) {
+      *\$self = value;
+  }
+}
+$endif$
+
 %ignore $struct_name$::$member.name$($member.typecode.cppTypename$&&);
 
 // Overloaded getter methods shadow each other and are equivalent in python
@@ -140,14 +168,14 @@ $if(member.typecode.isSequenceType)$
 $template_sequence(member.typecode)$
 $elseif(member.typecode.isMapType)$
 %ignore $struct_name$::$member.name$() const;
-%template($member.typecode.keyTypeCode.name$_$member.typecode.valueTypeCode.cppTypename$_map) std::map<$member.typecode.keyTypeCode.cppTypename$,$member.typecode.valueTypeCode.cppTypename$>;
+%template($member.typecode.keyTypeCode.name$_$member.typecode.valueTypeCode.cppTypename$_map) std::map<$if(member.typecode.keyTypeCode.isEnumType)$enum $endif$$member.typecode.keyTypeCode.cppTypename$,$if(member.typecode.valueTypeCode.isEnumType)$enum $endif$$member.typecode.valueTypeCode.cppTypename$>;
 $elseif(member.typecode.isType_f)$
 %ignore $struct_name$::$member.name$() const;
-%template($member.typecode.contentTypeCode.formatedCppTypename$_$member.typecode.dimensions$_array) std::array<$member.typecode.contentTypeCode.cppTypename$,$member.typecode.dimensions$>;
+%template($member.typecode.contentTypeCode.noScopedCppTypename$_$member.typecode.dimensions$_array) std::array<$if(member.typecode.contentTypeCode.isEnumType)$enum $endif$$member.typecode.contentTypeCode.cppTypename$,$member.typecode.dimensions$>;
 $if(member.typecode.contentTypeCode.primitive)$
-%extend std::array<$member.typecode.contentTypeCode.cppTypename$, $member.typecode.dimensions$>
+%extend std::array<$if(member.typecode.contentTypeCode.isEnumType)$enum $endif$$member.typecode.contentTypeCode.cppTypename$, $member.typecode.dimensions$>
 {
-    const $member.typecode.contentTypeCode.cppTypename$* get_buffer() const
+    const $if(member.typecode.contentTypeCode.isEnumType)$enum $endif$$member.typecode.contentTypeCode.cppTypename$* get_buffer() const
     {
         return self->data();
     }
@@ -189,7 +217,9 @@ bitset_type(ctx, parent, bitset, extensions) ::= <<
 >>
 
 // Enums are ported as constants in the target language
-enum_type(ctx, parent, enum) ::= <<>>
+enum_type(ctx, parent, enum) ::= <<
+%traits_penumn(enum $enum.cppTypename$);
+>>
 
 // bitmasks are implemented as enums. Therefore, are ported as constants in the target language
 bitmask_type(ctx, parent, bitmask) ::= <<>>
