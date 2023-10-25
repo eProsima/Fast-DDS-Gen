@@ -230,7 +230,7 @@ const TypeObject* get_complete_$anonymous_wstring_name(wstring=wstring)$_object(
 >>
 
 anonymous_wstring_name(wstring) ::= <<
-$if(wstring.name)$$string.name$$else$anonymous_wstring_$wstring.maxsize$$endif$
+$if(wstring.name)$$wstring.name$$else$anonymous_wstring_$wstring.maxsize$$endif$
 >>
 
 array_declarator(ctx, array, array_type) ::= <<
