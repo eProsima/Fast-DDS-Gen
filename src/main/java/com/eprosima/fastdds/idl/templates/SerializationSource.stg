@@ -37,7 +37,8 @@ $definitions; separator="\n"$
 
 >>
 
-struct_type(ctx, parent, struct) ::= <<
+struct_type(ctx, parent, struct, member_list) ::= <<
+$member_list$
 $if((ctx.generateTypesC))$
 void $if(struct.hasScope)$$struct.scope$::$endif$free_string$struct.name$(
         $struct.name$* topic)
@@ -151,7 +152,15 @@ $if(struct.hasScope)$$struct.scope$::$endif$$struct.name$ $if(struct.hasScope)$$
 
 >>
 
-union_type(ctx, parent, union) ::= <<
+member_type(ctx, member, type_member, declarators) ::= <<
+
+$type_member$
+$declarators$
+
+>>
+
+union_type(ctx, parent, union, switch_type) ::= <<
+$switch_type$
 void $if(union.hasScope)$$union.scope$::$endif$print$union.name$(
         $union.name$* topic)
 {
@@ -191,6 +200,13 @@ int $if(union.hasScope)$$union.scope$::$endif$compare$union.name$(
 
 >>
 
+element_type(ctx, element, type_element, declarator) ::= <<
+
+$type_element$
+$declarator$
+
+>>
+
 enum_type(ctx, parent, enum) ::= <<>>
 
 bitmask_type(ctx, parent, bitmask) ::= <<
@@ -221,7 +237,12 @@ int $if(bitmask.hasScope)$$bitmask.scope$::$endif$compare$bitmask.name$(
 
 >>
 
-typedef_decl(ctx, parent, typedefs) ::= <<>>
+typedef_decl(ctx, parent, typedefs, typedefs_type, declarator_type) ::= <<
+
+$declarator_type$
+$typedefs_type$
+
+>>
 
 annotation(ctx, annotation) ::= <<>>
 
@@ -236,7 +257,11 @@ $definitions; separator="\n"$
 
 fwd_decl(ctx, parent, type) ::= <<>>
 
-const_decl(ctx, parent, const) ::= <<>>
+const_decl(ctx, parent, const, const_type) ::= <<
+
+$const_type$
+
+>>
 
 bitset_type(ctx, parent, bitset) ::= <<
 void $if(bitset.hasScope)$$bitset.scope$::$endif$print$bitset.name$(
@@ -267,6 +292,25 @@ int $if(bitset.hasScope)$$bitset.scope$::$endif$compare$bitset.name$(
 }
 
 >>
+
+sequence_type(ctx, sequence, type_sequence) ::= <<
+
+$type_sequence$
+
+>>
+
+map_type(ctx, map, key_type, value_type) ::= <<
+
+$key_type$
+$value_type$
+
+>>
+
+string_type(ctx, string) ::= <<>>
+
+wide_string_type(ctx, wstring) ::= <<>>
+
+array_declarator(ctx, array, array_type) ::= <<>>
 
 // ========================================================================================
 //                                      ASSIGNMENT

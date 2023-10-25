@@ -32,7 +32,8 @@ extern bool g_$ctx.filename$_test_empty_ext;
 #endif //_FAST_DDS_GENERATED_$ctx.headerGuardName$_SERIALIZATION_H_
 >>
 
-struct_type(ctx, parent, struct) ::= <<
+struct_type(ctx, parent, struct, member_list) ::= <<
+$member_list$
 $if((ctx.generateTypesC))$
 void free_string$struct.name$(
         $struct.name$* topic);
@@ -54,7 +55,15 @@ $struct.name$ createKey$struct.name$(
 
 >>
 
-union_type(ctx, parent, union) ::= <<
+member_type(ctx, member, type_member, declarators) ::= <<
+
+$type_member$
+$declarators$
+
+>>
+
+union_type(ctx, parent, union, switch_type) ::= <<
+$switch_type$
 void print$union.name$(
         $union.name$* topic);
 
@@ -67,9 +76,21 @@ int compare$union.name$(
 
 >>
 
+element_type(ctx, element, type_element, declarator) ::= <<
+
+$type_element$
+$declarator$
+
+>>
+
 enum_type(ctx, parent, enum) ::= <<>>
 
-typedef_decl(ctx, parent, typedefs) ::= <<>>
+typedef_decl(ctx, parent, typedefs, typedefs_type, declarator_type) ::= <<
+
+$declarator_type$
+$typedefs_type$
+
+>>
 
 bitmask_type(ctx, parent, bitmask) ::= <<
 void print$bitmask.name$(
@@ -111,4 +132,27 @@ $definitions; separator="\n"$
 
 fwd_decl(ctx, parent, type) ::= <<>>
 
-const_decl(ctx, parent, const) ::= <<>>
+const_decl(ctx, parent, const, const_type) ::= <<
+
+$const_type$
+
+>>
+
+sequence_type(ctx, sequence, type_sequence) ::= <<
+
+$type_sequence$
+
+>>
+
+map_type(ctx, map, key_type, value_type) ::= <<
+
+$key_type$
+$value_type$
+
+>>
+
+string_type(ctx, string) ::= <<>>
+
+wide_string_type(ctx, wstring) ::= <<>>
+
+array_declarator(ctx, array, array_type) ::= <<>>

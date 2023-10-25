@@ -31,7 +31,11 @@ dcdr \>> aux_$member.name$;
 $member.name$(aux_$member.name$);$endif$
 >>
 
-const_decl(ctx, parent, const) ::= <<>>
+const_decl(ctx, parent, const, const_type) ::= <<
+
+$const_type$
+
+>>
 
 member_type_declaration(member) ::= <%
 $if(member.annotationOptional)$
