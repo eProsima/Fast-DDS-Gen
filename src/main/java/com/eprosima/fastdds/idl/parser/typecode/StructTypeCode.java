@@ -67,48 +67,57 @@ public class StructTypeCode extends com.eprosima.idl.parser.typecode.StructTypeC
             com.eprosima.idl.parser.typecode.TypeCode.ExtensibilityKind struct_ext_kind)
     {
         long initial_alignment = current_alignment;
-        current_alignment = MemberedTypeCode.xcdr_extra_header_serialized_size(current_alignment, struct_ext_kind);
 
-        for (com.eprosima.idl.parser.typecode.TypeCode parent : getInheritances())
+        if (!detect_recursive_)
         {
-            current_alignment += ((StructTypeCode)parent).maxSerializedSize(current_alignment, only_keys,
-                    com.eprosima.idl.parser.typecode.TypeCode.ExtensibilityKind.FINAL); // FINAL to avoid calculation
-                                                                                        // of any XCDR header.
-        }
+            detect_recursive_ = true;
+            current_alignment = MemberedTypeCode.xcdr_extra_header_serialized_size(current_alignment, struct_ext_kind);
 
-        // TODO if only_key, get members sorted.
-        for (Member member : getMembers())
-        {
-            if (member.isAnnotationNonSerialized())
+            for (com.eprosima.idl.parser.typecode.TypeCode parent : getInheritances())
             {
-                continue;
+                current_alignment += ((StructTypeCode)parent).maxSerializedSize(current_alignment, only_keys,
+                        com.eprosima.idl.parser.typecode.TypeCode.ExtensibilityKind.FINAL); // FINAL to avoid calculation
+                                                                                            // of any XCDR header.
             }
-            if (only_keys && isHasKey())
+
+            // TODO if only_key, get members sorted.
+            for (Member member : getMembers())
             {
-                if (member.isAnnotationKey())
+                if (member.isAnnotationNonSerialized())
                 {
-                    if (member.getTypecode() instanceof StructTypeCode && ((StructTypeCode)member.getTypecode()).isHasKey())
+                    continue;
+                }
+                if (only_keys && isHasKey())
+                {
+                    if (member.isAnnotationKey())
                     {
-                        current_alignment +=
-                            ((StructTypeCode)member.getTypecode()).maxSerializedSize(current_alignment, true,
-                            com.eprosima.idl.parser.typecode.TypeCode.ExtensibilityKind.FINAL); // FINAL to avoid calculation
-                                                                                                // of any XCDR header.
-                    }
-                    else
-                    {
-                        current_alignment += ((TypeCode)member.getTypecode()).maxSerializedSize(current_alignment);
+                        if (member.getTypecode() instanceof StructTypeCode &&
+                                ((StructTypeCode)member.getTypecode()).isHasKey())
+                        {
+                            current_alignment +=
+                                ((StructTypeCode)member.getTypecode()).maxSerializedSize(current_alignment, true,
+                                com.eprosima.idl.parser.typecode.TypeCode.ExtensibilityKind.FINAL); // FINAL to avoid calculation
+                                                                                                    // of any XCDR header.
+                        }
+                        else
+                        {
+                            current_alignment += ((TypeCode)member.getTypecode()).maxSerializedSize(current_alignment);
+                        }
                     }
                 }
+                else if (!only_keys)
+                {
+                    current_alignment = MemberedTypeCode.xcdr_extra_member_serialized_size(
+                            current_alignment,
+                            struct_ext_kind, member.isAnnotationOptional(),
+                            member.getTypecode() instanceof PrimitiveTypeCode ? Integer.parseInt(((PrimitiveTypeCode)member.getTypecode()).getSize()) : 8);
+                    current_alignment += ((TypeCode)member.getTypecode()).maxSerializedSize(current_alignment);
+                }
             }
-            else if (!only_keys)
-            {
-                current_alignment = MemberedTypeCode.xcdr_extra_member_serialized_size(current_alignment, struct_ext_kind, member.isAnnotationOptional(),
-                        member.getTypecode() instanceof PrimitiveTypeCode ? Integer.parseInt(((PrimitiveTypeCode)member.getTypecode()).getSize()) : 8);
-                current_alignment += ((TypeCode)member.getTypecode()).maxSerializedSize(current_alignment);
-            }
-        }
 
-        current_alignment = MemberedTypeCode.xcdr_extra_endheader_serialized_size(current_alignment, struct_ext_kind);
+            current_alignment = MemberedTypeCode.xcdr_extra_endheader_serialized_size(current_alignment, struct_ext_kind);
+            detect_recursive_ = false;
+        }
 
         return current_alignment - initial_alignment;
     }

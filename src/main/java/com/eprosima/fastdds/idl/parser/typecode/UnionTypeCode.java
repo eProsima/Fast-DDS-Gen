@@ -44,21 +44,26 @@ public class UnionTypeCode extends com.eprosima.idl.parser.typecode.UnionTypeCod
         long union_max_size_serialized = 0;
         com.eprosima.idl.parser.typecode.TypeCode.ExtensibilityKind union_ext_kind = get_extensibility();
 
-        current_alignment = MemberedTypeCode.xcdr_extra_header_serialized_size(current_alignment, union_ext_kind);
-
-        current_alignment += ((TypeCode)getDiscriminator()).maxSerializedSize(current_alignment);
-
-        for (Member member : getMembers())
+        if (!detect_recursive_)
         {
-            reset_alignment = current_alignment;
-            reset_alignment += ((TypeCode)member.getTypecode()).maxSerializedSize(reset_alignment);
-            if (union_max_size_serialized < reset_alignment)
-            {
-                union_max_size_serialized = reset_alignment;
-            }
-        }
+            detect_recursive_ = true;
+            current_alignment = MemberedTypeCode.xcdr_extra_header_serialized_size(current_alignment, union_ext_kind);
 
-        current_alignment = MemberedTypeCode.xcdr_extra_endheader_serialized_size(union_max_size_serialized, union_ext_kind);
+            current_alignment += ((TypeCode)getDiscriminator()).maxSerializedSize(current_alignment);
+
+            for (Member member : getMembers())
+            {
+                reset_alignment = current_alignment;
+                reset_alignment += ((TypeCode)member.getTypecode()).maxSerializedSize(reset_alignment);
+                if (union_max_size_serialized < reset_alignment)
+                {
+                    union_max_size_serialized = reset_alignment;
+                }
+            }
+
+            current_alignment = MemberedTypeCode.xcdr_extra_endheader_serialized_size(union_max_size_serialized, union_ext_kind);
+            detect_recursive_ = false;
+        }
 
         return current_alignment - initial_alignment;
     }

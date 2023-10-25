@@ -26,20 +26,30 @@ on:
 
 jobs:
   ubuntu-build-test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
         java_version: ['openjdk-11-jdk', 'openjdk-17-jdk', 'openjdk-18-jdk', 'openjdk-19-jdk']
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: eProsima/eProsima-CI/external/checkout@v0
         with:
           path: src/fastddsgen
 
-      - uses: ./src/fastddsgen/.github/actions/install-apt-packages
+      - name: Install apt packages
+        uses: eProsima/eProsima-CI/ubuntu/install_apt_packages@v0
         with:
-          java-version: ${{ matrix.java_version }}
-      - uses: ./src/fastddsgen/.github/actions/install-python-packages
+          packages: libasio-dev libtinyxml2-dev ${{ matrix.java_version }}
+
+      - name: Configure Java to ${{ matrix.java_version }}
+        shell: bash
+        run: |
+          jv=$(echo ${{ matrix.java_version }} | sed -r 's/.*-([0-9]*)-.*/\1/g'); jvs=$(update-alternatives --list java | grep "$jv" | head -1); sudo update-alternatives --set java "$jvs"
+          jv=$(echo ${{ matrix.java_version }} | sed -r 's/.*-([0-9]*)-.*/\1/g'); jvs=$(update-alternatives --list javac | grep "$jv" | head -1); sudo update-alternatives --set javac "$jvs"
+
+      - name: Install python packages
+        uses: eProsima/eProsima-CI/multiplatform/install_colcon@v0
+
       - uses: ./src/fastddsgen/.github/actions/fetch-fastddsgen-repos
         with:
           foonathan-memory-vendor-branch: ${{ github.event.inputs.foonathan_memory_vendor_branch || 'master' }}
@@ -47,18 +57,17 @@ jobs:
           fastdds-branch: ${{ github.event.inputs.fastdds_branch || 'master' }}
 
       - name: Get minimum supported version of CMake
-        uses: lukka/get-cmake@latest
+        uses: eProsima/eProsima-CI/external/get-cmake@v0
         with:
           cmakeVersion: 3.22.6
-      - name: Use cmake
-        run: cmake --version
 
-      - name: Setup ccache
-        uses: Chocobo1/setup-ccache-action@v1
+      - name: Setup CCache
+        uses: eProsima/eProsima-CI/external/setup-ccache-action@v0
 
       - name: Build workspace
         run: |
-          colcon build --event-handlers=console_direct+ --cmake-args -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
+          cmake --version
+          colcon build --event-handlers=console_direct+ --mixin rel-with-deb-info ccache
 
       - name: Build fastddsgen
         run: |
