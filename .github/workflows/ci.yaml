@@ -15,6 +15,10 @@ on:
         description: 'Fast-DDS branch to be used'
         required: false
         default: 'master'
+      fastdds_python_branch:
+        description: 'Fast-DDS-Python branch to be used'
+        required: false
+        default: 'main'
 
   push:
     branches:
@@ -55,6 +59,7 @@ jobs:
           foonathan-memory-vendor-branch: ${{ github.event.inputs.foonathan_memory_vendor_branch || 'master' }}
           fastcdr-branch: ${{ github.event.inputs.fastcdr_branch || 'master' }}
           fastdds-branch: ${{ github.event.inputs.fastdds_branch || 'master' }}
+          fastdds-python-branch: ${{ github.event.inputs.fastdds_python_branch || 'main' }}
 
       - name: Get minimum supported version of CMake
         uses: eProsima/eProsima-CI/external/get-cmake@v0
@@ -64,15 +69,27 @@ jobs:
       - name: Setup CCache
         uses: eProsima/eProsima-CI/external/setup-ccache-action@v0
 
-      - name: Build workspace
-        run: |
-          cmake --version
-          colcon build --event-handlers=console_direct+ --mixin rel-with-deb-info ccache
-
       - name: Build fastddsgen
         run: |
           cd src/fastddsgen
           ./gradlew assemble
+          echo "$(pwd)/scripts" >> ${{ github.path }}
+
+      - name: Regenerate IDL files for Fast-DDS and Fast-DDS-python
+        run: |
+          cd src/Fast-DDS/utils/scripts
+          ./update_generated_code_from_idl.sh
+          cd -
+          cd src/Fast-DDS-python/fastdds_python/test/types
+          ./generate.sh
+          cd -
+          cd src/Fast-DDS-python/fastdds_python_examples/HelloWorldExample
+          fastddsgen -python HelloWorld.idl
+
+      - name: Build workspace
+        run: |
+          cmake --version
+          colcon build --event-handlers=console_direct+ --mixin rel-with-deb-info ccache
 
       - name: Test fastddsgen
         run: |
