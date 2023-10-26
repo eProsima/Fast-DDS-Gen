@@ -745,19 +745,19 @@ public class fastddsgen
                 // Pass the finelame without the extension
 
                 Specification specification = parser.specification(ctx, tmanager, maintemplates).spec;
-                returnedValue = specification != null;
+                returnedValue = specification != null && !tmanager.get_st_error();;
 
             }
             catch (FileNotFoundException ex)
             {
                 System.out.println(ColorMessage.error(
                             "FileNotFounException") + "The File " + idlParseFileName + " was not found.");
-            }/* catch (ParseException ex) {
-                System.out.println(ColorMessage.error("ParseException") + ex.getMessage());
-                }*/
+                returnedValue = false;
+            }
             catch (Exception ex)
             {
                 System.out.println(ColorMessage.error("Exception") + ex.getMessage());
+                returnedValue = false;
             }
 
             if (returnedValue)
