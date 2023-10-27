@@ -256,8 +256,8 @@ $declarators$
 >>
 
 bitset_type(ctx, parent, bitset) ::= <<
-$bitset.scopedname$::$bitset.name$()$if(bitset.parents)$
-    : $bitset.parents : { bitset | $bitset_inherit_default_init(bitset)$}; separator=",\n"$ $endif$
+$bitset.scopedname$::$bitset.name$()$if(bitset.inheritance)$
+    : $bitset_inherit_default_init(bitset.inheritance)$$endif$
 {
     $if(ctx.generateTypeObject)$
     // Just to register all known types
@@ -270,15 +270,15 @@ $bitset.scopedname$::~$bitset.name$()
 }
 
 $bitset.scopedname$::$bitset.name$(
-        const $bitset.name$& x)$if(bitset.parents)$
-    : $bitset.parents : { bitset | $bitset_inherit_copy_init(bitset)$}; separator=",\n"$ $endif$
+        const $bitset.name$& x)$if(bitset.inheritance)$
+    : $bitset_inherit_copy_init(bitset.inheritance)$$endif$
 {
     m_bitset = x.m_bitset;
 }
 
 $bitset.scopedname$::$bitset.name$(
-        $bitset.name$&& x) noexcept $if(bitset.parents)$
-    : $bitset.parents : { bitset | $bitset_inherit_move_init(bitset)$}; separator=",\n"$ $endif$
+        $bitset.name$&& x) noexcept $if(bitset.inheritance)$
+    : $bitset_inherit_move_init(bitset.inheritance)$$endif$
 {
     m_bitset = x.m_bitset;
 }
@@ -286,7 +286,7 @@ $bitset.scopedname$::$bitset.name$(
 $bitset.scopedname$& $bitset.scopedname$::operator =(
         const $bitset.name$& x)
 {
-    $if(bitset.parents)$    $bitset.parents : { bitset | $bitset.scopedname$::operator =(x);}; separator="\n"$ $endif$
+    $if(bitset.inheritance)$    $bitset.inheritance.scopedname$::operator =(x);$endif$
 
     m_bitset = x.m_bitset;
 
@@ -296,7 +296,7 @@ $bitset.scopedname$& $bitset.scopedname$::operator =(
 $bitset.scopedname$& $bitset.scopedname$::operator =(
         $bitset.name$&& x) noexcept
 {
-    $if(bitset.parents)$    $bitset.parents : { bitset | $bitset.scopedname$::operator =(std::move(x));}; separator="\n"$ $endif$
+    $if(bitset.inheritance)$    $bitset.inheritance.scopedname$::operator =(std::move(x));$endif$
 
     m_bitset = x.m_bitset;
 
@@ -306,7 +306,7 @@ $bitset.scopedname$& $bitset.scopedname$::operator =(
 bool $bitset.scopedname$::operator ==(
         const $bitset.name$& x) const
 {
-    $if(bitset.parents)$    $bitset.parents : { bitset | if ($bitset.scopedname$::operator !=(x)) return false;}; separator="\n"$ $endif$
+    $if(bitset.inheritance)$    if ($bitset.inheritance.scopedname$::operator !=(x)) return false;$endif$
 
     return m_bitset == x.m_bitset;
 }
@@ -321,7 +321,7 @@ $if(ctx.fastcdr)$
 void $bitset.scopedname$::serialize(
         eprosima::fastcdr::FastCdr& scdr) const
 {
-    $if(bitset.parents)$    $bitset.parents : { bitset | $bitset.scopedname$::serialize(scdr);}; separator="\n"$ $endif$
+    $if(bitset.inheritance)$    $bitset.inheritance.scopedname$::serialize(scdr);$endif$
 
     $bitset.bitfields : { member |$if(!member.annotationNonSerialized)$$bitfield_serialization(ctx=ctx, object=member)$$endif$}; separator="\n"$
 }
@@ -329,7 +329,7 @@ void $bitset.scopedname$::serialize(
 void $bitset.scopedname$::deserialize(
         eprosima::fastcdr::FastCdr& dcdr)
 {
-    $if(bitset.parents)$    $bitset.parents : { bitset | $bitset.scopedname$::deserialize(dcdr);}; separator="\n"$ $endif$
+    $if(bitset.inheritance)$    $bitset.inheritance.scopedname$::deserialize(dcdr);$endif$
 
     $bitset.bitfields : { member |$if(!member.annotationNonSerialized)$$bitfield_deserialization(ctx=ctx, object=member)$$endif$}; separator="\n"$
 }
@@ -343,9 +343,9 @@ std::bitset<$bitset.fullBitSize$> $bitset.scopedname$::bitset() const
 {
     std::string str_value;
 
-    $bitset.parents : { bitset |
-        str_value = static_cast<const $bitset.scopedname$*>(this)->bitset().to_string() + str_value;
-    }; separator="\n"$
+    $if(bitset.inheritance)$
+    str_value = static_cast<const $bitset.inheritance.scopedname$*>(this)->bitset().to_string() + str_value;
+    $endif$
 
     str_value = m_bitset.to_string() + str_value;
 
@@ -359,14 +359,14 @@ void $bitset.scopedname$::bitset(
     size_t base_diff {0};
     size_t last_post {std::string::npos};
 
-    $bitset.parents : { bitset |
-        {
-            base_diff += $bitset.fullBitSize$;
-            std::bitset<$bitset.fullBitSize$> internal_bitset(str_value.substr(str_value.length() - base_diff, last_post));
-            static_cast<$bitset.scopedname$*>(this)->bitset(internal_bitset);
-            last_post = base_diff;
-        \}
-    }; separator="\n"$
+    $if(bitset.inheritance)$
+    {
+        base_diff += $bitset.inheritance.fullBitSize$;
+        std::bitset<$bitset.inheritance.fullBitSize$> internal_bitset(str_value.substr(str_value.length() - base_diff, last_post));
+        static_cast<$bitset.inheritance.scopedname$*>(this)->bitset(internal_bitset);
+        last_post = base_diff;
+    }
+    $endif$
 
     base_diff += $bitset.bitSize$;
     m_bitset = std::bitset<$bitset.bitSize$>(str_value.substr(str_value.length() - base_diff, last_post));

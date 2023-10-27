@@ -1602,7 +1602,9 @@ const TypeObject* GetMinimal$bitset.name$Object()
 
     $bitset.bitfields:{ member | $minimal_bitfield(ctx=ctx, object=member)$}; separator="\n"$
 
-    $bitset.parents:{ it | $minimal_bitset_inheritance(it)$}; separator="\n"$
+    $if(bitset.inheritance)$
+    $minimal_bitset_inheritance(bitset.inheritance)$
+    $endif$
 
     TypeIdentifier identifier;
     identifier._d(EK_MINIMAL);
@@ -1684,7 +1686,9 @@ const TypeObject* GetComplete$bitset.name$Object()
 
     $bitset.bitfields:{ member | $complete_bitfield(ctx=ctx, object=member)$}; separator="\n"$
 
-    $bitset.parents:{ it | $complete_bitset_inheritance(it)$}; separator="\n"$
+    $if(bitset.inheritance)$
+    $complete_bitset_inheritance(bitset.inheritance)$
+    $endif$
 
     TypeIdentifier identifier;
     identifier._d(EK_COMPLETE);
