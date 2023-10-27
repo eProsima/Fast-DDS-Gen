@@ -1408,8 +1408,8 @@ const TypeObject* GetComplete$bitmask.name$Object()
 
     type_object->complete().bitmask_type().header().common().bit_bound($bitmask.bitBound$);
 
-    $if(union.annotationList)$
-    $union.annotationList:{ ann |
+    $if(bitmask.annotationList)$
+    $bitmask.annotationList:{ ann |
 {
     AppliedAnnotation ann;
     //ann.annotation_typeid(Get$ann.name$Identifier(true));
@@ -1648,8 +1648,8 @@ const TypeObject* GetComplete$bitset.name$Object()
     //type_object->complete().bitset_type().bitset_flags().IS_NESTED(false);
     //type_object->complete().bitset_type().bitset_flags().IS_AUTOID_HASH(false);
 
-    $if(union.annotationList)$
-    $union.annotationList:{ ann |
+    $if(bitset.annotationList)$
+    $bitset.annotationList:{ ann |
 {
     AppliedAnnotation ann;
     //ann.annotation_typeid(Get$ann.name$Identifier(true));

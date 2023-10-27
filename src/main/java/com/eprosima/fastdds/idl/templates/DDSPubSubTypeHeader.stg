@@ -141,15 +141,15 @@ $endif$
  * @brief This class represents the TopicDataType of the type $struct.name$ defined by the user in the IDL file.
  * @ingroup $ctx.trimfilename$
  */
-class $if(parent.IsInterface)$$parent.name$_$endif$$struct.name$PubSubType : public eprosima::fastdds::dds::TopicDataType
+class $struct.name$PubSubType : public eprosima::fastdds::dds::TopicDataType
 {
 public:
 
-    typedef $if(parent.IsInterface)$$parent.name$_$endif$$struct.name$ type;
+    typedef $struct.name$ type;
 
-    eProsima_user_DllExport $if(parent.IsInterface)$$parent.name$_$endif$$struct.name$PubSubType();
+    eProsima_user_DllExport $struct.name$PubSubType();
 
-    eProsima_user_DllExport ~$if(parent.IsInterface)$$parent.name$_$endif$$struct.name$PubSubType() override;
+    eProsima_user_DllExport ~$struct.name$PubSubType() override;
 
     eProsima_user_DllExport bool serialize(
             void* data,
@@ -225,7 +225,7 @@ public:
     eProsima_user_DllExport inline bool construct_sample(
             void* memory) const override
     {
-        $if (struct.isPlain)$new (memory) $if(parent.IsInterface)$$struct.scopedname$$else$$struct.name$$endif$()$else$static_cast<void>(memory)$endif$;
+        $if (struct.isPlain)$new (memory) $struct.name$()$else$static_cast<void>(memory)$endif$;
         return $if (struct.isPlain)$true$else$false$endif$;
     }
 
