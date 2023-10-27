@@ -84,7 +84,7 @@ jobs:
           ./generate.sh
           cd -
           cd src/Fast-DDS-python/fastdds_python_examples/HelloWorldExample
-          fastddsgen -python HelloWorld.idl
+          fastddsgen -python -replace HelloWorld.idl
 
       - name: Build workspace
         run: |
