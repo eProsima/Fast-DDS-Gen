@@ -787,7 +787,9 @@ const TypeObject* GetMinimal$struct.name$Object()
     // TODO Inheritance
     //type_object->minimal().struct_type().header().base_type()._d(EK_MINIMAL);
     //type_object->minimal().struct_type().header().base_type().equivalence_hash()[0..13];
-    $struct.inheritances:{ it | $minimal_struct_inheritance(it)$}; separator="\n"$
+    $if(struct.inheritance)$
+    $minimal_struct_inheritance(struct.inheritance)$
+    $endif$
 
     TypeIdentifier identifier;
     identifier._d(EK_MINIMAL);
@@ -842,7 +844,9 @@ const TypeObject* GetComplete$struct.name$Object()
     // Header
     type_object->complete().struct_type().header().detail().type_name("$struct.name$");
     // TODO inheritance
-    $struct.inheritances:{ it | $complete_struct_inheritance(it)$}; separator="\n"$
+    $if(struct.inheritance)$
+    $complete_struct_inheritance(struct.inheritance)$
+    $endif$
 
     $if(struct.annotationList)$
     $struct.annotationList:{ ann |
