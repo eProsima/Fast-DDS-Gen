@@ -88,8 +88,11 @@ $if(type_object_files)$
 add_executable($project.name$TypeObjectTestingTest
         $project.typeObjectTestingFiles : { file | $file$}; separator="\n"$
 )
-target_link_libraries($project.name$TypeObjectTestingTest $solution.libraries : { library | $library$}; separator=" "$
+target_link_libraries($project.name$TypeObjectTestingTest
+        GTest::gtest_main
+        $solution.libraries : { library | $library$}; separator=" "$
         $project.name$_lib $project.dependencies : { dep | $dep$_lib}; separator=" "$)
+gtest_discover_tests($project.name$TypeObjectTestingTest)
 $endif$
 
 $endif$
