@@ -32,20 +32,16 @@ $if(ctx.generateTypeObject)$
 #include "$ctx.filename$TypeObject.h"
 $endif$
 
-$if(ctx.cdr)$
-#include <fastcdr/Cdr.h>
-
-$endif$
-
-$if(ctx.fastcdr)$
-#include <fastcdr/FastCdr.h>
-
-$endif$
-
-#include <fastcdr/exceptions/BadParamException.h>
-using namespace eprosima::fastcdr::exception;
+#include <fastdds/rtps/common/CdrSerialization.hpp>
 
 #include <utility>
+
+$if(ctx.thereIsStructOrUnion)$
+// Include auxiliary functions like for serializing/deserializing.
+#include "$ctx.filename$CdrAux.ipp"
+$endif$
+
+using namespace eprosima::fastcdr::exception;
 
 $extensions : { extension | $extension$}; separator="\n"$
 
@@ -54,10 +50,6 @@ $ctx.typeCodesToDefine : { type | $sequences_definition(type.value)$ }; separato
 $endif$
 
 $definitions; separator="\n"$
-$if(ctx.thereIsStructOrUnion)$
-// Include auxiliary functions like for serializing/deserializing.
-#include "$ctx.filename$CdrAux.ipp"
-$endif$
 >>
 
 module(ctx, parent, module, definition_list) ::= <<
@@ -227,6 +219,21 @@ bool $struct.scopedname$::operator !=(
     return !(*this == x);
 }
 
+$if(ctx.cdr)$
+void $struct.scopedname$::serialize(
+        eprosima::fastcdr::Cdr& scdr) const
+{
+    eprosima::fastcdr::serialize(scdr, *this);
+}
+
+void $struct.scopedname$::deserialize(
+        eprosima::fastcdr::Cdr& dcdr)
+{
+    eprosima::fastcdr::deserialize(dcdr, *this);
+}
+
+$endif$
+
 $if(ctx.fastcdr)$
 void $struct.scopedname$::serialize(
         eprosima::fastcdr::FastCdr &scdr) const
@@ -371,6 +378,21 @@ void $bitset.scopedname$::bitset(
     base_diff += $bitset.bitSize$;
     m_bitset = std::bitset<$bitset.bitSize$>(str_value.substr(str_value.length() - base_diff, last_post));
 }
+
+$if(ctx.cdr)$
+void $bitset.scopedname$::serialize(
+        eprosima::fastcdr::Cdr& scdr) const
+{
+    eprosima::fastcdr::serialize(scdr, *this);
+}
+
+void $bitset.scopedname$::deserialize(
+        eprosima::fastcdr::Cdr& dcdr)
+{
+    eprosima::fastcdr::deserialize(dcdr, *this);
+}
+
+$endif$
 
 >>
 
@@ -535,6 +557,22 @@ $union.discriminator.cppTypename$& $union.scopedname$::_d()
 }
 
 $union.members:{ member | $public_unionmember_declaration(class=union.scopedname, member=member, defaultvalue=union.defaultvalue, totallabels=union.totallabels)$}; separator="\n"$
+
+$if(ctx.cdr)$
+void $union.scopedname$::serialize(
+        eprosima::fastcdr::Cdr& scdr) const
+{
+    eprosima::fastcdr::serialize(scdr, *this);
+}
+
+void $union.scopedname$::deserialize(
+        eprosima::fastcdr::Cdr& dcdr)
+{
+    eprosima::fastcdr::deserialize(dcdr, *this);
+}
+
+$endif$
+
 $if(ctx.fastcdr)$
 void $union.scopedname$::serialize(
         eprosima::fastcdr::FastCdr& scdr) const

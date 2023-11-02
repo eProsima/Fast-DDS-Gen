@@ -26,7 +26,10 @@ $fileHeader(ctx=ctx, file=[ctx.filename, "CdrAux.ipp"], description=["This sourc
 
 $if(ctx.cdr)$
 #include <fastcdr/Cdr.h>
+#if FASTCDR_VERSION_MAJOR > 1
 #include <fastcdr/CdrSizeCalculator.hpp>
+#endif // FASTCDR_VERSION_MAJOR > 1
+
 
 $endif$
 
@@ -112,6 +115,21 @@ eProsima_user_DllExport size_t calculate_serialized_size(
 
     static_cast<void>(data);
 
+#if FASTCDR_VERSION_MAJOR == 1
+
+    static_cast<void>(calculator);
+    static_cast<void>(current_alignment);
+
+    size_t initial_alignment {current_alignment};
+
+    $struct.allIdentifiedMembers : { map_entry_member | $if(!map_entry_member.value.annotationNonSerialized)$
+        $serialized_size(ctx=ctx, object=map_entry_member.value, data="data", var="current_alignment")$
+    $endif$}; separator="\n"$
+
+    return current_alignment - initial_alignment;
+
+#else
+
     eprosima::fastcdr::EncodingAlgorithmFlag previous_encoding = calculator.get_encoding();
     size_t calculated_size {calculator.begin_calculate_type_serialized_size(
                                 eprosima::fastcdr::CdrVersion::XCDRv2 == calculator.get_cdr_version() ?
@@ -120,14 +138,16 @@ eProsima_user_DllExport size_t calculate_serialized_size(
                                 current_alignment)};
 
 
-    $struct.allIdentifiedMembers : { member | $if(!member.value.annotationNonSerialized)$
-    calculated_size += calculator.calculate_member_serialized_size(eprosima::fastcdr::MemberId($member.key$),
-            data.$member.value.name$(), current_alignment);
+    $struct.allIdentifiedMembers : { map_entry_member | $if(!map_entry_member.value.annotationNonSerialized)$
+    calculated_size += calculator.calculate_member_serialized_size(eprosima::fastcdr::MemberId($map_entry_member.key$),
+            data.$map_entry_member.value.name$(), current_alignment);
     $endif$}; separator="\n"$
 
     calculated_size += calculator.end_calculate_type_serialized_size(previous_encoding, current_alignment);
 
     return calculated_size;
+
+#endif // FASTCDR_VERSION_MAJOR == 1
 }
 $endif$
 
@@ -141,13 +161,45 @@ eProsima_user_DllExport void serialize(
     using namespace $struct.scope$;
     $endif$
 
+#if FASTCDR_VERSION_MAJOR > 1
     eprosima::fastcdr::Cdr::state current_state(scdr);
     scdr.begin_serialize_type(current_state,
             eprosima::fastcdr::CdrVersion::XCDRv2 == scdr.get_cdr_version() ?
             $if(struct.annotationFinal)$eprosima::fastcdr::EncodingAlgorithmFlag::PLAIN_CDR2$elseif(struct.annotationAppendable)$eprosima::fastcdr::EncodingAlgorithmFlag::DELIMIT_CDR2$elseif(struct.annotationMutable)$eprosima::fastcdr::EncodingAlgorithmFlag::PL_CDR2$endif$ :
             $if(struct.annotationFinal || struct.annotationAppendable)$eprosima::fastcdr::EncodingAlgorithmFlag::PLAIN_CDR$elseif(struct.annotationMutable)$eprosima::fastcdr::EncodingAlgorithmFlag::PL_CDR$endif$);
+#endif // FASTCDR_VERSION_MAJOR > 1
 
     $if(struct.allIdentifiedMembers)$
+#if FASTCDR_VERSION_MAJOR == 1
+    $struct.allIdentifiedMembers : { map_entry_member | $if(!map_entry_member.value.annotationNonSerialized)$
+        $if(map_entry_member.value.typecode.isArrayType)$
+            $if(map_entry_member.value.typecode.contentTypeCode.isStringType)$
+        $map_entry_member.value.typecode.dimensions : { dim |
+        for (size_t index_$i$ = 0; index_$i$ < $dim$; ++index_$i$)
+        {
+        }; separator="\n"$
+            scdr << data.$map_entry_member.value.name$()
+        $map_entry_member.value.typecode.dimensions : { dim |
+                [index_$i$]
+        }$
+                .c_str();
+        $map_entry_member.value.typecode.dimensions : { dim |
+        \}
+        }; separator="\n"$
+            $else$
+        scdr << $serializeCasting(map_entry_member.value.typecode)$data.$map_entry_member.value.name$();
+            $endif$
+        $else$
+        scdr << $serializeCasting(map_entry_member.value.typecode)$data.$map_entry_member.value.name$()
+            $if(map_entry_member.value.typecode.isStringType && map_entry_member.value.typecode.isBounded)$
+            .c_str()
+            $endif$
+        ;
+        $endif$
+
+    $endif$
+    }; separator="\n"$
+#else
     scdr$struct.allIdentifiedMembers : { member | $if(!member.value.annotationNonSerialized)$
         << eprosima::fastcdr::MemberId($member.key$) << data.$member.value.name$()
     $endif$
@@ -155,8 +207,11 @@ eProsima_user_DllExport void serialize(
     $else$
     static_cast<void>(data);
     $endif$
+#endif // FASTCDR_VERSION_MAJOR == 1
 
+#if FASTCDR_VERSION_MAJOR > 1
     scdr.end_serialize_type(current_state);
+#endif // FASTCDR_VERSION_MAJOR > 1
 }
 
 template<>
@@ -168,6 +223,91 @@ eProsima_user_DllExport void deserialize(
     using namespace $struct.scope$;
     $endif$
 
+#if FASTCDR_VERSION_MAJOR == 1
+    $struct.allIdentifiedMembers : { map_entry_member |
+        $if(!map_entry_member.value.annotationNonSerialized)$
+            $if(map_entry_member.value.typecode.isEnumType)$
+            {
+                uint32_t enum_value = 0;
+                cdr \>> enum_value;
+                data.$map_entry_member.value.name$() = ($map_entry_member.value.typecode.scopedname$)enum_value;
+            \}
+            $elseif(map_entry_member.value.typecode.isStringType && map_entry_member.value.typecode.isBounded)$
+            {
+                std::string aux;
+                cdr \>> aux;
+                data.$map_entry_member.value.name$() = aux.c_str();
+            \}
+            $elseif(map_entry_member.value.typecode.isArrayType)$
+                $if(map_entry_member.value.typecode.contentTypeCode.isStringType)$
+            $map_entry_member.value.typecode.dimensions : { dim |
+            for (size_t index_$i$ = 0; index_$i$ < $dim$; ++index_$i$)
+            {
+            }; separator="\n"$
+                std::string aux;
+                cdr \>> aux;
+                data.$map_entry_member.value.name$()
+            $map_entry_member.value.typecode.dimensions : { dim |
+                    [index_$i$]
+            }$
+                    = aux.c_str();
+            $map_entry_member.value.typecode.dimensions : { dim |
+            \}
+            }; separator="\n"$
+                $elseif(map_entry_member.value.typecode.contentTypeCode.isEnumType)$
+            {
+                for (size_t index = 0; index < data.$map_entry_member.value.name$().size(); ++index)
+                {
+                    uint32_t enum_value = 0;
+                    cdr \>> enum_value;
+                    data.$map_entry_member.value.name$()[index] = ($map_entry_member.value.typecode.contentTypeCode.scopedname$)enum_value;
+                \}
+            \}
+                $elseif(map_entry_member.value.typecode.contentTypeCode.isAliasType)$
+                    $if(map_entry_member.value.typecode.contentTypeCode.contentTypeCode.isEnumType)$
+            {
+                for (size_t index = 0; index < data.$map_entry_member.value.name$().size(); ++index)
+                {
+                    uint32_t enum_value = 0;
+                    cdr \>> enum_value;
+                    data.$map_entry_member.value.name$()[index] = ($map_entry_member.value.typecode.contentTypeCode.scopedname$)enum_value;
+                \}
+            \}
+                    $else$
+                    cdr \>> data.$map_entry_member.value.name$();
+                    $endif$
+                $else$
+            cdr \>> data.$map_entry_member.value.name$();
+                $endif$
+            $elseif(map_entry_member.value.typecode.isSequenceType)$
+                $if(map_entry_member.value.typecode.contentTypeCode.isEnumType)$
+            {
+                for (size_t index = 0; index < data.$map_entry_member.value.name$().size(); ++index)
+                {
+                    uint32_t enum_value = 0;
+                    cdr \>> enum_value;
+                    data.$map_entry_member.value.name$()[index] = ($map_entry_member.value.typecode.contentTypeCode.scopedname$)enum_value;
+                \}
+            \}
+                $else$
+                cdr \>> data.$map_entry_member.value.name$();
+                $endif$
+            $elseif(map_entry_member.value.typecode.isAliasType)$
+                $if(map_entry_member.value.typecode.contentTypeCode.isEnumType)$
+            {
+                uint32_t enum_value = 0;
+                cdr \>> enum_value;
+                data.$map_entry_member.value.name$() = ($map_entry_member.value.typecode.scopedname$)enum_value;
+            \}
+                $else$
+            cdr \>> data.$map_entry_member.value.name$();
+                $endif$
+            $else$
+            cdr \>> data.$map_entry_member.value.name$();
+            $endif$
+        $endif$
+    }; separator=""$;
+#else
     cdr.deserialize_type(eprosima::fastcdr::CdrVersion::XCDRv2 == cdr.get_cdr_version() ?
             $if(struct.annotationFinal)$eprosima::fastcdr::EncodingAlgorithmFlag::PLAIN_CDR2$elseif(struct.annotationAppendable)$eprosima::fastcdr::EncodingAlgorithmFlag::DELIMIT_CDR2$elseif(struct.annotationMutable)$eprosima::fastcdr::EncodingAlgorithmFlag::PL_CDR2$endif$ :
             $if(struct.annotationFinal || struct.annotationAppendable)$eprosima::fastcdr::EncodingAlgorithmFlag::PLAIN_CDR$elseif(struct.annotationMutable)$eprosima::fastcdr::EncodingAlgorithmFlag::PL_CDR$endif$,
@@ -179,10 +319,10 @@ eProsima_user_DllExport void deserialize(
                     $if(!struct.allIdentifiedMembers)$
                     static_cast<void>(dcdr);
                     $endif$
-                    $struct.allIdentifiedMembers : { member |
-                    case $member.key$:
-                        $if(!member.value.annotationNonSerialized)$
-                            dcdr \>> data.$member.value.name$();
+                    $struct.allIdentifiedMembers : { map_entry_member |
+                    case $map_entry_member.key$:
+                        $if(!map_entry_member.value.annotationNonSerialized)$
+                            dcdr \>> data.$map_entry_member.value.name$();
                         $endif$
                         break;
                     }; separator="\n"$
@@ -192,6 +332,7 @@ eProsima_user_DllExport void deserialize(
                 }
                 return ret_value;
             });
+#endif // FASTCDR_VERSION_MAJOR == 1
 }
 
 void serialize_key(
@@ -205,6 +346,35 @@ void serialize_key(
     static_cast<void>(scdr);
     static_cast<void>(data);
     $if(struct.hasKey)$
+
+#if FASTCDR_VERSION_MAJOR > 1
+        eprosima::fastcdr::Cdr::state current_state(scdr);
+        scdr.begin_serialize_type(current_state,
+                eprosima::fastcdr::CdrVersion::XCDRv2 == scdr.get_cdr_version() ?
+                $if(struct.annotationFinal)$eprosima::fastcdr::EncodingAlgorithmFlag::PLAIN_CDR2$elseif(struct.annotationAppendable)$eprosima::fastcdr::EncodingAlgorithmFlag::DELIMIT_CDR2$elseif(struct.annotationMutable)$eprosima::fastcdr::EncodingAlgorithmFlag::PL_CDR2$endif$ :
+                $if(struct.annotationFinal || struct.annotationAppendable)$eprosima::fastcdr::EncodingAlgorithmFlag::PLAIN_CDR$elseif(struct.annotationMutable)$eprosima::fastcdr::EncodingAlgorithmFlag::PL_CDR$endif$);
+#endif // FASTCDR_VERSION_MAJOR > 1
+
+#if FASTCDR_VERSION_MAJOR == 1
+        $struct.members : { member |
+            $if(member.annotationKey)$
+                $if(member.typecode.isStructType)$
+                    $if(member.typecode.hasKey)$
+                        serialize_key(scdr, data.$member.name$());
+                    $else$
+                        scdr << data.$member.name$();
+                    $endif$
+                $else$
+                    scdr <<
+                    $serializeCasting(member.typecode)$data.$member.name$()
+                    $if(member.typecode.isStringType && member.typecode.isBounded)$
+                    .c_str()
+                    $endif$
+                    ;
+                $endif$
+            $endif$
+        }; separator="\n"$
+#else
         $struct.members : { member |
             $if(member.annotationKey)$
                 $if(member.typecode.isStructType)$
@@ -218,6 +388,11 @@ void serialize_key(
                 $endif$
             $endif$
         }; separator="\n"$
+#endif // FASTCDR_VERSION_MAJOR == 1
+
+#if FASTCDR_VERSION_MAJOR > 1
+        scdr.end_serialize_type(current_state);
+#endif // FASTCDR_VERSION_MAJOR > 1
     $endif$
 }
 
@@ -244,7 +419,15 @@ eProsima_user_DllExport size_t calculate_serialized_size(
     using namespace $bitset.scope$;
     $endif$
 
+    static_cast<void>(data);
+
+#if FASTCDR_VERSION_MAJOR == 1
+    static_cast<void>(calculator);
+    static_cast<void>(current_alignment);
+    return 4 + eprosima::fastcdr::Cdr::alignment(current_alignment, 4);
+#else
     return calculator.calculate_serialized_size(data.bitset(), current_alignment);
+#endif // FASTCDR_VERSION_MAJOR == 1
 }
 $endif$
 
@@ -258,7 +441,15 @@ eProsima_user_DllExport void serialize(
     using namespace $bitset.scope$;
     $endif$
 
-    scdr << data.bitset();
+    scdr <<
+#if FASTCDR_VERSION_MAJOR == 1
+    (uint32_t)
+#endif // FASTCDR_VERSION_MAJOR == 1
+    data.bitset()
+#if FASTCDR_VERSION_MAJOR == 1
+    .to_ulong()
+#endif // FASTCDR_VERSION_MAJOR == 1
+    ;
 }
 
 template<>
@@ -270,9 +461,15 @@ eProsima_user_DllExport void deserialize(
     using namespace $bitset.scope$;
     $endif$
 
+#if FASTCDR_VERSION_MAJOR == 1
+    uint32_t bitset;
+    dcdr \>> bitset;
+    data.bitset(bitset);
+#else
     std::bitset<$bitset.fullBitSize$> bitset;
     dcdr \>> bitset;
     data.bitset(bitset);
+#endif // FASTCDR_VERSION_MAJOR == 1
 }
 $endif$
 >>
@@ -294,6 +491,25 @@ eProsima_user_DllExport size_t calculate_serialized_size(
 
     static_cast<void>(data);
 
+#if FASTCDR_VERSION_MAJOR == 1
+
+    static_cast<void>(calculator);
+    static_cast<void>(current_alignment);
+
+    size_t initial_alignment {current_alignment};
+
+    $serialized_size_type(ctx=ctx, typecode=union.discriminator, var="current_alignment")$
+
+    switch(data._d())
+    {
+        $union.identifiedMembers:{ map_entry_member | $unionmember_case_selection_sesize(ctx=ctx, member=map_entry_member.value, data="data", var="current_alignment")$}; separator="\n"$
+        $unionmemberdefault_case_selection_sesize(ctx=ctx, member=union.defaultMember, data="data", var="current_alignment")$
+    }
+
+    return current_alignment - initial_alignment;
+
+#else
+
     eprosima::fastcdr::EncodingAlgorithmFlag previous_encoding = calculator.get_encoding();
     size_t calculated_size {calculator.begin_calculate_type_serialized_size(
                                 eprosima::fastcdr::CdrVersion::XCDRv2 == calculator.get_cdr_version() ?
@@ -306,10 +522,10 @@ eProsima_user_DllExport size_t calculate_serialized_size(
 
     switch (data._d())
     {
-        $union.identifiedMembers:{ member | $if(member.value.printable)$$member.value.labels:{ label |case $label$:}; separator="\n"$
-        $if(member.value.default)$default:$endif$
-            calculated_size += calculator.calculate_member_serialized_size(eprosima::fastcdr::MemberId($member.key$),
-                        data.$member.value.name$(), current_alignment);
+        $union.identifiedMembers:{ map_entry_member | $if(map_entry_member.value.printable)$$map_entry_member.value.labels:{ label |case $label$:}; separator="\n"$
+        $if(map_entry_member.value.default)$default:$endif$
+            calculated_size += calculator.calculate_member_serialized_size(eprosima::fastcdr::MemberId($map_entry_member.key$),
+                        data.$map_entry_member.value.name$(), current_alignment);
             break;
         $endif$
         }; separator="\n"$
@@ -322,6 +538,8 @@ eProsima_user_DllExport size_t calculate_serialized_size(
     calculated_size += calculator.end_calculate_type_serialized_size(previous_encoding, current_alignment);
 
     return calculated_size;
+
+#endif // FASTCDR_VERSION_MAJOR == 1
 }
 
 $endif$
@@ -336,20 +554,27 @@ eProsima_user_DllExport void serialize(
     using namespace $union.scope$;
     $endif$
 
+#if FASTCDR_VERSION_MAJOR > 1
     eprosima::fastcdr::Cdr::state current_state(scdr);
     scdr.begin_serialize_type(current_state,
             eprosima::fastcdr::CdrVersion::XCDRv2 == scdr.get_cdr_version() ?
             $if(union.annotationFinal)$eprosima::fastcdr::EncodingAlgorithmFlag::PLAIN_CDR2$elseif(union.annotationAppendable)$eprosima::fastcdr::EncodingAlgorithmFlag::DELIMIT_CDR2$elseif(union.annotationMutable)$eprosima::fastcdr::EncodingAlgorithmFlag::PL_CDR2$endif$ :
             $if(union.annotationFinal || union.annotationAppendable)$eprosima::fastcdr::EncodingAlgorithmFlag::PLAIN_CDR$elseif(union.annotationMutable)$eprosima::fastcdr::EncodingAlgorithmFlag::PL_CDR$endif$);
+#endif // FASTCDR_VERSION_MAJOR > 1
 
-    scdr << eprosima::fastcdr::MemberId(0) << data._d();
+#if FASTCDR_VERSION_MAJOR == 1
+    scdr << $serializeCasting(union.discriminator)$data._d();
 
     switch (data._d())
     {
-        $union.identifiedMembers:{ member | $if(member.value.printable)$
-        $member.value.labels:{ label |case $label$:}; separator="\n"$
-        $if(member.value.default)$default:$endif$
-            scdr << eprosima::fastcdr::MemberId($member.key$) << data.$member.value.name$();
+        $union.identifiedMembers:{ map_entry_member | $if(map_entry_member.value.printable)$
+        $map_entry_member.value.labels:{ label |case $label$:}; separator="\n"$
+        $if(map_entry_member.value.default)$default:$endif$
+            scdr << $serializeCasting(map_entry_member.value.typecode)$data.$map_entry_member.value.name$()
+                $if(map_entry_member.value.typecode.isStringType && map_entry_member.value.typecode.isBounded)$
+                .c_str()
+                $endif$
+                ;
             break;
         $endif$
         }; separator="\n"$
@@ -358,8 +583,28 @@ eProsima_user_DllExport void serialize(
             break;
         $endif$
     }
+#else
+    scdr << eprosima::fastcdr::MemberId(0) << data._d();
 
+    switch (data._d())
+    {
+        $union.identifiedMembers:{ map_entry_member | $if(map_entry_member.value.printable)$
+        $map_entry_member.value.labels:{ label |case $label$:}; separator="\n"$
+        $if(map_entry_member.value.default)$default:$endif$
+            scdr << eprosima::fastcdr::MemberId($map_entry_member.key$) << data.$map_entry_member.value.name$();
+            break;
+        $endif$
+        }; separator="\n"$
+        $if(!union.defaultMember)$
+        default:
+            break;
+        $endif$
+    }
+#endif // FASTCDR_VERSION_MAJOR == 1
+
+#if FASTCDR_VERSION_MAJOR > 1
     scdr.end_serialize_type(current_state);
+#endif // FASTCDR_VERSION_MAJOR > 1
 }
 
 template<>
@@ -371,6 +616,56 @@ eProsima_user_DllExport void deserialize(
     using namespace $union.scope$;
     $endif$
 
+#if FASTCDR_VERSION_MAJOR == 1
+
+    $if(union.discriminator.isEnumType)$
+    {
+        uint32_t enum_value = 0;
+        cdr \>> enum_value;
+        data._d() = ($union.discriminator.scopedname$)enum_value;
+    \}
+    $else$
+    cdr \>> data._d();
+    $endif$
+
+    switch (data._d())
+    {
+        $union.identifiedMembers: { map_entry_member |
+            $if(map_entry_member.value.printable)$
+                $map_entry_member.value.labels:{ label |case $label$:}; separator="\n"$
+                $if(map_entry_member.value.default)$default:$endif$
+                $if(map_entry_member.value.typecode.isEnumType)$
+                {
+                    uint32_t enum_value = 0;
+                    cdr \>> enum_value;
+                    data.$map_entry_member.value.name$() = ($map_entry_member.value.typecode.scopedname$)enum_value;
+                \}
+                $elseif(map_entry_member.value.typecode.isStringType && map_entry_member.value.typecode.isBounded)$
+                {
+                    std::string aux;
+                    cdr \>> aux;
+                    data.$map_entry_member.value.name$() = aux.c_str();
+                \}
+                $elseif(map_entry_member.value.typecode.isArrayType)$
+                    $if(map_entry_member.value.typecode.contentTypeCode.isEnumType)$
+                    cdr \>> static_cast<std::array<uint32_t, $map_entry_member.value.typecode.size$> >(data.$map_entry_member.value.name$());
+                    $else$
+                    cdr \>> data.$map_entry_member.value.name$();
+                    $endif$
+                $elseif(map_entry_member.value.typecode.isSequenceType)$
+                    $if(map_entry_member.value.typecode.contentTypeCode.isEnumType)$
+                    cdr \>> static_cast<std::vector<uint32_t> >(data.$map_entry_member.value.name$());
+                    $else$
+                    cdr \>> data.$map_entry_member.value.name$();
+                    $endif$
+                $else$
+                    cdr \>> data.$map_entry_member.value.name$();
+                $endif$
+                break;
+            $endif$
+        }; separator="\n"$
+    }
+#else
     cdr.deserialize_type(eprosima::fastcdr::CdrVersion::XCDRv2 == cdr.get_cdr_version() ?
             $if(union.annotationFinal)$eprosima::fastcdr::EncodingAlgorithmFlag::PLAIN_CDR2$elseif(union.annotationAppendable)$eprosima::fastcdr::EncodingAlgorithmFlag::DELIMIT_CDR2$elseif(union.annotationMutable)$eprosima::fastcdr::EncodingAlgorithmFlag::PL_CDR2$endif$ :
             $if(union.annotationFinal || union.annotationAppendable)$eprosima::fastcdr::EncodingAlgorithmFlag::PLAIN_CDR$elseif(union.annotationMutable)$eprosima::fastcdr::EncodingAlgorithmFlag::PL_CDR$endif$,
@@ -385,10 +680,10 @@ eProsima_user_DllExport void deserialize(
                     default:
                         switch (data._d())
                         {
-                            $union.identifiedMembers:{ member | $if(member.value.printable)$
-                            $member.value.labels:{ label |case $label$:}; separator="\n"$
-                            $if(member.value.default)$default:$endif$
-                                dcdr \>> data.$member.value.name$();
+                            $union.identifiedMembers:{ map_entry_member | $if(map_entry_member.value.printable)$
+                            $map_entry_member.value.labels:{ label |case $label$:}; separator="\n"$
+                            $if(map_entry_member.value.default)$default:$endif$
+                                dcdr \>> data.$map_entry_member.value.name$();
                                 break;
                             $endif$
                             }; separator="\n"$
@@ -402,6 +697,7 @@ eProsima_user_DllExport void deserialize(
                 }
                 return ret_value;
             });
+#endif // FASTCDR_VERSION_MAJOR == 1
 }
 $endif$
 >>
@@ -435,3 +731,183 @@ string_type(ctx, string) ::= <<>>
 wide_string_type(ctx, wstring) ::= <<>>
 
 array_declarator(ctx, array, array_type) ::= <<>>
+
+// FASTCDR_VERSION_MAJOR Remove
+serializeCasting(typecode) ::= <%
+$if(typecode.isEnumType)$
+(uint32_t)
+$elseif(typecode.isBitmaskType)$
+($typecode.castingType$)
+$elseif(typecode.isArrayType)$
+    $if(typecode.contentTypeCode.isEnumType)$
+        (std::array<uint32_t, $typecode.size$>&)
+    $elseif(typecode.contentTypeCode.isAliasType)$
+        $if(typecode.contentTypeCode.contentTypeCode.isEnumType)$
+        (std::array<uint32_t, $typecode.size$>&)
+        $endif$
+    $endif$
+$elseif(typecode.isSequenceType)$
+    $if(typecode.contentTypeCode.isEnumType)$
+        (std::vector<uint32_t>&)
+    $endif$
+$elseif(typecode.isAliasType)$
+    $if(typecode.contentTypeCode.isEnumType)$
+        (uint32_t)
+    $endif$
+$endif$
+%>
+
+serialized_size(ctx, object, data, var) ::= <<
+$if(object.typecode.isType_13)$
+$var$ += 16$if(ctx.cdr)$ + eprosima::fastcdr::Cdr::alignment($var$, 8)$endif$; // 128 bits, but aligned as 64
+$elseif(object.typecode.primitive)$
+$var$ += $object.typecode.size$$if(ctx.cdr)$ + eprosima::fastcdr::Cdr::alignment($var$, $object.typecode.size$)$endif$;
+$elseif(object.typecode.isBitsetType)$
+$var$ += 4$if(ctx.cdr)$ + eprosima::fastcdr::Cdr::alignment($var$, 4)$endif$;
+$elseif(object.typecode.isBitmaskType)$
+$var$ += $object.typecode.size$$if(ctx.cdr)$ + eprosima::fastcdr::Cdr::alignment($var$, $object.typecode.size$)$endif$;
+$elseif(object.typecode.isWStringType)$
+$var$ += 4$if(ctx.cdr)$ + eprosima::fastcdr::Cdr::alignment($var$, 4)$endif$ + ($data$.$object.name$().size()) * 4; // 32 bits
+$elseif(object.typecode.isType_d)$
+$var$ += 4$if(ctx.cdr)$ + eprosima::fastcdr::Cdr::alignment($var$, 4)$endif$ + $if(ctx.generateTypesC)$strlen($data$.$object.name$())$else$$data$.$object.name$().size()$endif$ + 1;
+$elseif(object.typecode.isMapType)$
+$var$ += 4$if(ctx.cdr)$ + eprosima::fastcdr::Cdr::alignment($var$, 4)$endif$;
+
+$map_serialized_size(ctx=ctx, typecodeMap=object.typecode, data=[data, ".", object.name, "()"], var=var, loopvar=ctx.newLoopVarName)$
+$elseif(object.typecode.isType_e)$
+$var$ += 4$if(ctx.cdr)$ + eprosima::fastcdr::Cdr::alignment($var$, 4)$endif$;
+
+$sequence_serialized_size(ctx=ctx, typecodeSeq=object.typecode, data=[data, ".", object.name, "()"], var=var, loopvar=ctx.newLoopVarName)$
+$elseif(object.typecode.isType_f)$
+$array_serialized_size(ctx=ctx, typecodeArr=object.typecode, data=[data, ".", object.name, "()"], var=var, loopvar=ctx.newLoopVarName, dimensions=object.typecode.dimensions)$
+$else$
+calculate_serialized_size(calculator, $data$.$object.name$(), $var$);
+$endif$
+
+>>
+
+sequence_serialized_size(ctx, typecodeSeq, data, var, loopvar) ::= <<
+$if(typecodeSeq.contentTypeCode.primitive)$
+if ($data$.size() > 0)
+{
+    $var$ += ($data$.size() * $typecodeSeq.contentTypeCode.size$)$if(ctx.cdr)$ + eprosima::fastcdr::Cdr::alignment($var$, $typecodeSeq.contentTypeCode.size$)$endif$;
+}
+
+$elseif(typecodeSeq.contentTypeCode.isType_d)$
+
+for(size_t $loopvar$ = 0; $loopvar$ < $data$.size(); ++$loopvar$)
+{
+    $var$ += 4$if(ctx.cdr)$ + eprosima::fastcdr::Cdr::alignment($var$, 4)$endif$ +
+        $if(ctx.generateTypesC)$strlen($data$.value()[$loopvar$])$else$$data$.at($loopvar$).size()$endif$ + 1;
+}
+$else$
+
+for(size_t $loopvar$ = 0; $loopvar$ < $data$.size(); ++$loopvar$)
+{
+$if(typecodeSeq.contentTypeCode.isType_e)$
+    $var$ += 4$if(ctx.cdr)$ + eprosima::fastcdr::Cdr::alignment($var$, 4)$endif$;
+
+    $if(ctx.generateTypesC)$
+    $sequence_serialized_size(ctx=ctx, typecodeSeq=typecodeSeq.contentTypeCode, data=[data, ".value()[", loopvar, "]"], var=var, loopvar=ctx.nextLoopVarName)$
+    $else$
+    $sequence_serialized_size(ctx=ctx, typecodeSeq=typecodeSeq.contentTypeCode, data=[data, ".at(", loopvar, ")"], var=var, loopvar=ctx.nextLoopVarName)$
+    $endif$
+$elseif(typecodeSeq.contentTypeCode.isType_f)$
+    $if(ctx.generateTypesC)$
+    $array_serialized_size(ctx=ctx, typecodeArr=typecodeSeq.contentTypeCode, data=[data, ".value()[", loopvar, "]"], var=var, loopvar=ctx.nextLoopVarName, dimensions=typecodeSeq.contentTypeCode.dimensions)$
+    $else$
+    $array_serialized_size(ctx=ctx, typecodeArr=typecodeSeq.contentTypeCode, data=[data, ".at(", loopvar, ")"], var=var, loopvar=ctx.nextLoopVarName, dimensions=typecodeSeq.contentTypeCode.dimensions)$
+    $endif$
+$else$
+    calculate_serialized_size(calculator, $data$.at($loopvar$), $var$);
+$endif$
+}
+$endif$
+>>
+
+array_serialized_size(ctx, typecodeArr, data, var, loopvar, dimensions) ::= <<
+$if(typecodeArr.contentTypeCode.primitive)$
+$if(typecodeArr.notZeroArray)$
+$var$ += ($typecodeArr.size$ * $typecodeArr.contentTypeCode.size$)$if(ctx.cdr)$ + eprosima::fastcdr::Cdr::alignment($var$, $typecodeArr.contentTypeCode.size$)$endif$;
+
+$endif$
+$else$
+$if(first(dimensions))$
+
+for(size_t $loopvar$ = 0; $loopvar$ < $data$.size(); ++$loopvar$)
+{
+    $array_serialized_size(ctx=ctx, typecodeArr=typecodeArr, data=[data, ".at(", loopvar, ")"], var=var, loopvar=ctx.nextLoopVarName, dimensions=rest(dimensions))$
+}
+$else$
+$if(typecodeArr.contentTypeCode.isType_d)$
+    $var$ += 4$if(ctx.cdr)$ + eprosima::fastcdr::Cdr::alignment($var$, 4)$endif$ + $if(ctx.generateTypesC)$strlen($data$)$else$$data$.size()$endif$ + 1;
+$elseif(typecodeArr.contentTypeCode.isType_e)$
+    $var$ += 4$if(ctx.cdr)$ + eprosima::fastcdr::Cdr::alignment($var$, 4)$endif$;
+
+    $sequence_serialized_size(ctx=ctx, typecodeSeq=typecodeArr.contentTypeCode, data=data, var=var, loopvar=ctx.nextLoopVarName)$
+$elseif(typecodeArr.contentTypeCode.isType_f)$
+    $array_serialized_size(ctx=ctx, typecodeArr=typecodeArr.contentTypeCode, data=data, var=var, loopvar=loopvar, dimensions=typecodeArr.contentTypeCode.dimensions)$
+$else$
+    calculate_serialized_size(calculator, $data$, $var$);
+$endif$
+$endif$
+$endif$
+>>
+
+map_serialized_size(ctx, typecodeMap, data, var, loopvar) ::= <<
+for(auto $loopvar$ : $data$)
+{
+    (void)$loopvar$;
+
+    $map_serialized_size_element(ctx=ctx, typecodeMapElement=typecodeMap.keyTypeCode, data=[loopvar, ".first"], var=var, loopvar=loopvar)$
+    $map_serialized_size_element(ctx=ctx, typecodeMapElement=typecodeMap.valueTypeCode, data=[loopvar, ".second"], var=var, loopvar=loopvar)$
+}
+>>
+
+map_serialized_size_element(ctx, typecodeMapElement, data, var, loopvar) ::= <<
+$if(typecodeMapElement.primitive)$
+    $var$ += $typecodeMapElement.size$$if(ctx.cdr)$ + eprosima::fastcdr::Cdr::alignment($var$, $typecodeMapElement.size$)$endif$;
+$elseif(typecodeMapElement.isType_d)$
+    $var$ += 4$if(ctx.cdr)$ + eprosima::fastcdr::Cdr::alignment($var$, 4)$endif$ + $if(ctx.generateTypesC)$strlen($loopvar$)$else$$data$.size()$endif$ + 1;
+$elseif(typecodeMapElement.isMapType)$
+    $var$ += 4$if(ctx.cdr)$ + eprosima::fastcdr::Cdr::alignment($var$, 4)$endif$;
+
+    $map_serialized_size(ctx=ctx, typecodeMap=typecodeMapElement, data=data, var=var, loopvar=ctx.nextLoopVarName)$
+$elseif(typecodeMapElement.isType_e)$
+    $var$ += 4$if(ctx.cdr)$ + eprosima::fastcdr::Cdr::alignment($var$, 4)$endif$;
+
+    $sequence_serialized_size(ctx=ctx, typecodeSeq=typecodeMapElement, data=data, var=var, loopvar=ctx.nextLoopVarName)$
+$elseif(typecodeMapElement.isType_f)$
+    $array_serialized_size(ctx=ctx, typecodeArr=typecodeMapElement, data=data, var=var, loopvar=ctx.nextLoopVarName, dimensions=typecodeMapElement.dimensions)$
+$else$
+    calculate_serialized_size(calculator, $data$, $var$);
+$endif$
+>>
+
+serialized_size_type(ctx, typecode, var) ::= <<
+$if(typecode.isType_13)$
+$var$ += 16$if(ctx.cdr)$ + eprosima::fastcdr::Cdr::alignment($var$, 8)$endif$; // 128 bits, but aligned as 64
+$elseif(typecode.primitive)$
+$var$ += $typecode.size$$if(ctx.cdr)$ + eprosima::fastcdr::Cdr::alignment($var$, $typecode.size$)$endif$;
+
+$endif$
+>>
+
+unionmember_case_selection_sesize(ctx, member, data, var) ::= <<
+$if(member.labels)$
+$member.labels:{ label |case $label$:}; separator="\n"$
+$serialized_size(ctx=ctx, object=member, data=data, var=var)$
+break;
+$endif$
+>>
+
+unionmemberdefault_case_selection_sesize(ctx, member, data, var) ::= <<
+default:
+$if(member)$
+$if(member.default)$
+$serialized_size(ctx=ctx, object=member, data=data, var=var)$
+$endif$
+$endif$
+
+break;
+>>
