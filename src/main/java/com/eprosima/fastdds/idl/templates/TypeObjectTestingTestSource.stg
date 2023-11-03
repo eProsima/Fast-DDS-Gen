@@ -146,8 +146,8 @@ check_optional_detail_annotations(ctx, object) ::= <<
 >>
 
 check_member_flags(ctx, object, flags_var_name) ::= <<
-    //=====check_type_flags - $flags_var_name$=====
-    MemberFlag $flags_var_name$_expected_flags = 0;
+    //=====check_member_flags - $flags_var_name$=====
+    MemberFlag $flags_var_name$_expected_flags;
     $if(object.annotationTryConstruct)$
     $if(object.annotationDiscard)$
     $flags_var_name$_expected_flags |= MemberFlagBits::TRY_CONSTRUCT1
@@ -311,7 +311,6 @@ check_struct_member_type(ctx, member, relation, relation_name, relation_capname)
     }
     }
     $endif$
-
 
     $if (member.typecode.isAliasType)$
         //=====member.typecode.isAliasType=====
