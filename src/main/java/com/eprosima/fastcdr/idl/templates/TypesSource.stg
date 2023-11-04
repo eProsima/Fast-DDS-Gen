@@ -28,6 +28,11 @@ char dummy;
 #endif  // _WIN32
 
 #include "$ctx.filename$.h"
+
+$if(ctx.cdr_both)$
+#if FASTCDR_VERSION_MAJOR > 1
+$endif$
+
 $if(ctx.generateTypeObject)$
 #include "$ctx.filename$TypeObject.h"
 $endif$
@@ -57,6 +62,10 @@ $definitions; separator="\n"$
 $if(ctx.thereIsStructOrUnion)$
 // Include auxiliary functions like for serializing/deserializing.
 #include "$ctx.filename$CdrAux.ipp"
+$endif$
+
+$if(ctx.cdr_both)$
+#endif // FASTCDR_VERSION_MAJOR > 1
 $endif$
 >>
 
@@ -131,7 +140,7 @@ $endif$
 
 struct_type(ctx, parent, struct, extensions, member_list) ::= <<
 $member_list$
-$struct.scopedname$::$struct.name$()
+$struct.name$::$struct.name$()
     $if(struct.inheritance)$
     : $struct_inherit_default_init(struct.inheritance)$
     $endif$
@@ -143,12 +152,12 @@ $struct.scopedname$::$struct.name$()
     $endif$
 }
 
-$struct.scopedname$::~$struct.name$()
+$struct.name$::~$struct.name$()
 {
     $struct.members:{ member |$member_destructor(ctx=ctx, member=member)$}; separator="\n"$
 }
 
-$struct.scopedname$::$struct.name$(
+$struct.name$::$struct.name$(
         const $struct.name$& x)
     $if(struct.inheritance)$
     : $struct_inherit_copy_init(struct.inheritance)$
@@ -162,7 +171,7 @@ $struct.scopedname$::$struct.name$(
     $endif$
 }
 
-$struct.scopedname$::$struct.name$(
+$struct.name$::$struct.name$(
         $struct.name$&& x) noexcept
     $if(struct.inheritance)$
     : $struct_inherit_move_init(struct.inheritance)$
@@ -176,7 +185,7 @@ $struct.scopedname$::$struct.name$(
     $endif$
 }
 
-$struct.scopedname$& $struct.scopedname$::operator =(
+$struct.name$& $struct.name$::operator =(
         const $struct.name$& x)
 {
     $if(struct.inheritance)$$struct.inheritance.scopedname$::operator =(x);$endif$
@@ -190,7 +199,7 @@ $struct.scopedname$& $struct.scopedname$::operator =(
     return *this;
 }
 
-$struct.scopedname$& $struct.scopedname$::operator =(
+$struct.name$& $struct.name$::operator =(
         $struct.name$&& x) noexcept
 {
     $if(struct.inheritance)$$struct.inheritance.scopedname$::operator =(std::move(x));$endif$
@@ -204,7 +213,7 @@ $struct.scopedname$& $struct.scopedname$::operator =(
     return *this;
 }
 
-bool $struct.scopedname$::operator ==(
+bool $struct.name$::operator ==(
         const $struct.name$& x) const
 {
     $if(struct.inheritance)$if ($struct.inheritance.scopedname$::operator !=(x))
@@ -221,14 +230,14 @@ bool $struct.scopedname$::operator ==(
     $endif$
 }
 
-bool $struct.scopedname$::operator !=(
+bool $struct.name$::operator !=(
         const $struct.name$& x) const
 {
     return !(*this == x);
 }
 
 $if(ctx.fastcdr)$
-void $struct.scopedname$::serialize(
+void $struct.name$::serialize(
         eprosima::fastcdr::FastCdr &scdr) const
 {
     $if(struct.inheritance)$$struct.inheritance.scopedname$::serialize(scdr);$endif$
@@ -236,7 +245,7 @@ void $struct.scopedname$::serialize(
     $struct.members : { member |$if(!member.annotationNonSerialized)$$object_serialization(ctx=ctx, object=member)$$endif$}; separator=""$
 }
 
-void $struct.scopedname$::deserialize(
+void $struct.name$::deserialize(
         eprosima::fastcdr::FastCdr& dcdr)
 {
     $if(struct.inheritance)$$struct.inheritance.scopedname$::deserialize(dcdr);$endif$
@@ -244,7 +253,7 @@ void $struct.scopedname$::deserialize(
     $struct.members : { member |$if(!member.annotationNonSerialized)$$object_deserialization(ctx=ctx, object=member)$$endif$}; separator="\n"$
 }
 $endif$
-$struct.members:{ member | $public_member_declaration(class=struct.scopedname, member=member)$}; separator="\n"$
+$struct.members:{ member | $public_member_declaration(class=struct.name, member=member)$}; separator="\n"$
 $extensions : { extension | $extension$}; separator="\n"$
 >>
 
@@ -256,7 +265,7 @@ $declarators$
 >>
 
 bitset_type(ctx, parent, bitset) ::= <<
-$bitset.scopedname$::$bitset.name$()$if(bitset.inheritance)$
+$bitset.name$::$bitset.name$()$if(bitset.inheritance)$
     : $bitset_inherit_default_init(bitset.inheritance)$$endif$
 {
     $if(ctx.generateTypeObject)$
@@ -265,25 +274,25 @@ $bitset.scopedname$::$bitset.name$()$if(bitset.inheritance)$
     $endif$
 }
 
-$bitset.scopedname$::~$bitset.name$()
+$bitset.name$::~$bitset.name$()
 {
 }
 
-$bitset.scopedname$::$bitset.name$(
+$bitset.name$::$bitset.name$(
         const $bitset.name$& x)$if(bitset.inheritance)$
     : $bitset_inherit_copy_init(bitset.inheritance)$$endif$
 {
     m_bitset = x.m_bitset;
 }
 
-$bitset.scopedname$::$bitset.name$(
+$bitset.name$::$bitset.name$(
         $bitset.name$&& x) noexcept $if(bitset.inheritance)$
     : $bitset_inherit_move_init(bitset.inheritance)$$endif$
 {
     m_bitset = x.m_bitset;
 }
 
-$bitset.scopedname$& $bitset.scopedname$::operator =(
+$bitset.name$& $bitset.name$::operator =(
         const $bitset.name$& x)
 {
     $if(bitset.inheritance)$    $bitset.inheritance.scopedname$::operator =(x);$endif$
@@ -293,7 +302,7 @@ $bitset.scopedname$& $bitset.scopedname$::operator =(
     return *this;
 }
 
-$bitset.scopedname$& $bitset.scopedname$::operator =(
+$bitset.name$& $bitset.name$::operator =(
         $bitset.name$&& x) noexcept
 {
     $if(bitset.inheritance)$    $bitset.inheritance.scopedname$::operator =(std::move(x));$endif$
@@ -303,7 +312,7 @@ $bitset.scopedname$& $bitset.scopedname$::operator =(
     return *this;
 }
 
-bool $bitset.scopedname$::operator ==(
+bool $bitset.name$::operator ==(
         const $bitset.name$& x) const
 {
     $if(bitset.inheritance)$    if ($bitset.inheritance.scopedname$::operator !=(x)) return false;$endif$
@@ -311,14 +320,14 @@ bool $bitset.scopedname$::operator ==(
     return m_bitset == x.m_bitset;
 }
 
-bool $bitset.scopedname$::operator !=(
+bool $bitset.name$::operator !=(
         const $bitset.name$& x) const
 {
     return !(*this == x);
 }
 
 $if(ctx.fastcdr)$
-void $bitset.scopedname$::serialize(
+void $bitset.name$::serialize(
         eprosima::fastcdr::FastCdr& scdr) const
 {
     $if(bitset.inheritance)$    $bitset.inheritance.scopedname$::serialize(scdr);$endif$
@@ -326,7 +335,7 @@ void $bitset.scopedname$::serialize(
     $bitset.bitfields : { member |$if(!member.annotationNonSerialized)$$bitfield_serialization(ctx=ctx, object=member)$$endif$}; separator="\n"$
 }
 
-void $bitset.scopedname$::deserialize(
+void $bitset.name$::deserialize(
         eprosima::fastcdr::FastCdr& dcdr)
 {
     $if(bitset.inheritance)$    $bitset.inheritance.scopedname$::deserialize(dcdr);$endif$
@@ -337,9 +346,9 @@ void $bitset.scopedname$::deserialize(
 $endif$
 
 
-$bitset.bitfields:{ member | $public_bitfield_definition(class=bitset.scopedname, member=member)$}; separator="\n"$
+$bitset.bitfields:{ member | $public_bitfield_definition(class=bitset.name, member=member)$}; separator="\n"$
 
-std::bitset<$bitset.fullBitSize$> $bitset.scopedname$::bitset() const
+std::bitset<$bitset.fullBitSize$> $bitset.name$::bitset() const
 {
     std::string str_value;
 
@@ -352,7 +361,7 @@ std::bitset<$bitset.fullBitSize$> $bitset.scopedname$::bitset() const
     return std::bitset<$bitset.fullBitSize$>(str_value);
 }
 
-void $bitset.scopedname$::bitset(
+void $bitset.name$::bitset(
         const std::bitset<$bitset.fullBitSize$>& bitset)
 {
     std::string str_value {bitset.to_string()};
@@ -415,7 +424,7 @@ $endif$
 
 union_type(ctx, parent, union, switch_type) ::= <<
 $switch_type$
-$union.scopedname$::$union.name$()
+$union.name$::$union.name$()
 {
     $if(union.defaultvalue)$
     m__d = $union.defaultvalue$;
@@ -424,11 +433,11 @@ $union.scopedname$::$union.name$()
     $endif$
 }
 
-$union.scopedname$::~$union.name$()
+$union.name$::~$union.name$()
 {
 }
 
-$union.scopedname$::$union.name$(
+$union.name$::$union.name$(
         const $union.name$& x)
 {
     m__d = x.m__d;
@@ -440,7 +449,7 @@ $union.scopedname$::$union.name$(
     }
 }
 
-$union.scopedname$::$union.name$(
+$union.name$::$union.name$(
         $union.name$&& x) noexcept
 {
     m__d = x.m__d;
@@ -452,7 +461,7 @@ $union.scopedname$::$union.name$(
     }
 }
 
-$union.scopedname$& $union.scopedname$::operator =(
+$union.name$& $union.name$::operator =(
         const $union.name$& x)
 {
     m__d = x.m__d;
@@ -466,7 +475,7 @@ $union.scopedname$& $union.scopedname$::operator =(
     return *this;
 }
 
-$union.scopedname$& $union.scopedname$::operator =(
+$union.name$& $union.name$::operator =(
         $union.name$&& x) noexcept
 {
     m__d = x.m__d;
@@ -480,7 +489,7 @@ $union.scopedname$& $union.scopedname$::operator =(
     return *this;
 }
 
-bool $union.scopedname$::operator ==(
+bool $union.name$::operator ==(
         const $union.name$& x) const
 {
     if (m__d != x.m__d)
@@ -496,13 +505,13 @@ bool $union.scopedname$::operator ==(
     return false;
 }
 
-bool $union.scopedname$::operator !=(
+bool $union.name$::operator !=(
         const $union.name$& x) const
 {
     return !(*this == x);
 }
 
-void $union.scopedname$::_d(
+void $union.name$::_d(
         $union.discriminator.cppTypename$ __d)
 {
     bool b = false;
@@ -524,19 +533,19 @@ void $union.scopedname$::_d(
     m__d = __d;
 }
 
-$union.discriminator.cppTypename$ $union.scopedname$::_d() const
+$union.discriminator.cppTypename$ $union.name$::_d() const
 {
     return m__d;
 }
 
-$union.discriminator.cppTypename$& $union.scopedname$::_d()
+$union.discriminator.cppTypename$& $union.name$::_d()
 {
     return m__d;
 }
 
-$union.members:{ member | $public_unionmember_declaration(class=union.scopedname, member=member, defaultvalue=union.defaultvalue, totallabels=union.totallabels)$}; separator="\n"$
+$union.members:{ member | $public_unionmember_declaration(class=union.name, member=member, defaultvalue=union.defaultvalue, totallabels=union.totallabels)$}; separator="\n"$
 $if(ctx.fastcdr)$
-void $union.scopedname$::serialize(
+void $union.name$::serialize(
         eprosima::fastcdr::FastCdr& scdr) const
 {
     scdr << m__d;
@@ -548,7 +557,7 @@ void $union.scopedname$::serialize(
     }
 }
 
-void $union.scopedname$::deserialize(
+void $union.name$::deserialize(
         eprosima::fastcdr::FastCdr& dcdr)
 {
     dcdr \>> m__d;

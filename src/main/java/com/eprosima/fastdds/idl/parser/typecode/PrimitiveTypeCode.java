@@ -55,7 +55,6 @@ public class PrimitiveTypeCode extends com.eprosima.idl.parser.typecode.Primitiv
                 break;
             case com.eprosima.idl.parser.typecode.Kind.KIND_SHORT:
             case com.eprosima.idl.parser.typecode.Kind.KIND_USHORT:
-            case com.eprosima.idl.parser.typecode.Kind.KIND_WCHAR:
                 current_alignment += 2 + TypeCode.cdr_alignment(current_alignment, 2);
                 break;
             case com.eprosima.idl.parser.typecode.Kind.KIND_BOOLEAN:
@@ -64,6 +63,16 @@ public class PrimitiveTypeCode extends com.eprosima.idl.parser.typecode.Primitiv
             case com.eprosima.idl.parser.typecode.Kind.KIND_INT8:
             case com.eprosima.idl.parser.typecode.Kind.KIND_UINT8:
                 current_alignment += 1;
+                break;
+            case com.eprosima.idl.parser.typecode.Kind.KIND_WCHAR:
+                if (ctx instanceof com.eprosima.fastcdr.idl.context.Context && ((com.eprosima.fastcdr.idl.context.Context)ctx).isCdrv1TemplatesEnabled())
+                {
+                    current_alignment += 4 + TypeCode.cdr_alignment(current_alignment, 4);
+                }
+                else
+                {
+                    current_alignment += 2 + TypeCode.cdr_alignment(current_alignment, 2);
+                }
                 break;
         }
 

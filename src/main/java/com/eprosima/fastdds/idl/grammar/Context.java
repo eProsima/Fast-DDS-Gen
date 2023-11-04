@@ -14,6 +14,7 @@
 
 package com.eprosima.fastdds.idl.grammar;
 
+import com.eprosima.fastcdr.util.CdrVersion;
 import com.eprosima.fastdds.idl.parser.typecode.AliasTypeCode;
 import com.eprosima.fastdds.idl.parser.typecode.ArrayTypeCode;
 import com.eprosima.fastdds.idl.parser.typecode.BitmaskTypeCode;
@@ -51,7 +52,9 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
             String appProduct,
             boolean generate_type_object,
             boolean generate_typesc,
-            boolean generate_type_ros2)
+            boolean generate_type_ros2,
+            CdrVersion.Select cdr_version
+            )
     {
         super(file, includePaths);
         m_fileNameUpper = getFilename().toUpperCase();
@@ -67,6 +70,7 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
         m_type_object = generate_type_object;
         m_typesc = generate_typesc;
         m_type_ros2 = generate_type_ros2;
+        cdr_version_ = cdr_version;
     }
 
     public void setTypelimitation(
@@ -533,6 +537,42 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
         return getFilename().replace("_", "_1");
     }
 
+    @Override
+    public boolean isCdr_v1()
+    {
+        return CdrVersion.Select.V2 != cdr_version_;
+    }
+
+    @Override
+    public boolean isCdr_v2()
+    {
+        return CdrVersion.Select.V1 != cdr_version_;
+    }
+
+    @Override
+    public boolean isCdr_both()
+    {
+        return CdrVersion.Select.BOTH == cdr_version_;
+    }
+
+    @Override
+    public void isSetCdrv1Templates()
+    {
+        cdr_v1_templates = true;
+    }
+
+    @Override
+    public void isUnsetCdrv1Templates()
+    {
+        cdr_v1_templates = false;
+    }
+
+    @Override
+    public boolean isCdrv1TemplatesEnabled()
+    {
+        return cdr_v1_templates;
+    }
+
     //// Java block ////
     // Java package name.
     private String m_package = "";
@@ -541,5 +581,9 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
     private String m_packageDir = "";
     private boolean activateFusion_ = false;
     //// End Java block
+
+    private CdrVersion.Select cdr_version_ = CdrVersion.Select.V2;
+
+    private boolean cdr_v1_templates = false;
 
 }

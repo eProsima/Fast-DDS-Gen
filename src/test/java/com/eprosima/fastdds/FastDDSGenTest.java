@@ -116,9 +116,31 @@ public class FastDDSGenTest
             list_tests = java.util.Arrays.asList(list_tests_str.split(",", -1));
         }
 
+        String blacklist_tests_str = System.getProperty("blacklist_tests");
+        java.util.List<String> blacklist_tests = null;
+
+        if (null != blacklist_tests_str)
+        {
+            blacklist_tests = java.util.Arrays.asList(blacklist_tests_str.split(",", -1));
+        }
+
+        String cdr_version = System.getProperty("cdr_version");
+        if (null == cdr_version)
+        {
+            cdr_version = "v2";
+        }
+
+
         //Configure idl tests
-        TestManager tests = new TestManager(TestLevel.RUN, "share/fastddsgen/java/fastddsgen", INPUT_PATH,
-                        OUTPUT_PATH, "CMake", list_tests);
+        TestManager tests = new TestManager(
+                TestLevel.RUN,
+                "share/fastddsgen/java/fastddsgen",
+                INPUT_PATH,
+                OUTPUT_PATH,
+                "CMake",
+                cdr_version,
+                list_tests,
+                blacklist_tests);
         tests.addCMakeArguments("-DCMAKE_BUILD_TYPE=Debug");
         tests.removeTests("basic_inner_types");
 

@@ -49,5 +49,17 @@ public interface Context
 
     public boolean isFastcdr();
 
+    public boolean isCdr_v1();
+
+    public boolean isCdr_v2();
+
+    public boolean isCdr_both();
+
+    public void isSetCdrv1Templates();
+
+    public void isUnsetCdrv1Templates();
+
+    public boolean isCdrv1TemplatesEnabled();
+
     /*** End ***/
 }
