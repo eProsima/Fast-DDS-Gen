@@ -858,6 +858,12 @@ public class fastddsgen
                             {
                                 project.addCommonIncludeFile(relative_dir + ctx.getFilename() + ".h");
                                 project.addCommonSrcFile(relative_dir + ctx.getFilename() + ".cxx");
+                                if (CdrVersion.Select.BOTH == cdr_version_)
+                                {
+                                    project.addCommonIncludeFile(relative_dir + ctx.getFilename() + "v1.h");
+                                    project.addCommonSrcFile(relative_dir + ctx.getFilename() + "v1.cxx");
+                                }
+
                                 if (m_type_object_files)
                                 {
                                     System.out.println("Generating TypeObject files...");
