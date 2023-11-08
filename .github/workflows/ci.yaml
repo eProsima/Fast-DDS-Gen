@@ -7,10 +7,10 @@ on:
         description: 'foonathan_memory_vendor branch to be used'
         required: false
         default: 'master'
-      fastcdr_branch:
-        description: 'Fast-CDR branch to be used'
+      fastcdr_versions:
+        description: 'Fast-CDR branches to be used'
         required: false
-        default: 'master'
+        default: '["1.1.x", "master"]'
       fastdds_branch:
         description: 'Fast-DDS branch to be used'
         required: false
@@ -33,6 +33,7 @@ jobs:
     runs-on: ubuntu-22.04
     strategy:
       matrix:
+        fastcdr_version: ${{ fromJson(github.event.inputs.fastcdr_versions || '["1.1.x", "master"]') }}
         java_version: ['openjdk-11-jdk', 'openjdk-17-jdk', 'openjdk-18-jdk', 'openjdk-19-jdk']
 
     steps:
@@ -57,7 +58,7 @@ jobs:
       - uses: ./src/fastddsgen/.github/actions/fetch-fastddsgen-repos
         with:
           foonathan-memory-vendor-branch: ${{ github.event.inputs.foonathan_memory_vendor_branch || 'master' }}
-          fastcdr-branch: ${{ github.event.inputs.fastcdr_branch || 'master' }}
+          fastcdr-branch: ${{ matrix.fastcdr_version }}
           fastdds-branch: ${{ github.event.inputs.fastdds_branch || 'master' }}
           fastdds-python-branch: ${{ github.event.inputs.fastdds_python_branch || 'main' }}
 
@@ -77,21 +78,29 @@ jobs:
 
       - name: Regenerate IDL files for Fast-DDS and Fast-DDS-python
         run: |
-          cd src/Fast-DDS/utils/scripts
-          ./update_generated_code_from_idl.sh
+          cd src/Fast-DDS
+          ./utils/scripts/update_generated_code_from_idl.sh
           cd -
           cd src/Fast-DDS-python/fastdds_python/test/types
           ./generate.sh
           cd -
           cd src/Fast-DDS-python/fastdds_python_examples/HelloWorldExample
-          fastddsgen -python -replace HelloWorld.idl
+          fastddsgen -cdr both -python -replace HelloWorld.idl
 
       - name: Build workspace
         run: |
           cmake --version
           colcon build --event-handlers=console_direct+ --mixin rel-with-deb-info ccache
 
-      - name: Test fastddsgen
+      - name: Test fastddsgen with fastcdr v1
+        if: startsWith(matrix.fastcdr_version, '1')
+        run: |
+          source install/local_setup.bash
+          cd src/fastddsgen
+          ./gradlew test -Dcdr_version=v1 -Dblacklist_tests=external,optional
+
+      - name: Test fastddsgen with fastcdr v2
+        if: ${{ ! startsWith(matrix.fastcdr_version, '1') }}
         run: |
           source install/local_setup.bash
           cd src/fastddsgen

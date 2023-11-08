@@ -21,12 +21,15 @@ $fileHeader(ctx=ctx,  file=[ctx.filename, "SerializationSource.cpp"], descriptio
 
 #include "$ctx.filename$Serialization.h"
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdint.h>
-#include <inttypes.h>
-#include <string.h>
 #include <cassert>
+#include <cinttypes>
+#include <cstdint>
+#include <cstdio>
+#include <cstdlib>
+#include <string>
+#include <type_traits>
+
+#include <fastcdr/config.h>
 
 bool g_$ctx.filename$_test_null_opt = false;
 bool g_$ctx.filename$_test_empty_ext = false;
@@ -123,7 +126,7 @@ void $if(struct.hasScope)$$struct.scope$::$endif$initialize$struct.name$(
         static_cast<void>(idx);
         $endif$
 
-        $struct.name$_detect_recursive_ = true;
+        $struct.name$_detect_recursive_ = false;
     }
 }
 
@@ -351,13 +354,13 @@ $endif$
 member_assignment(ctx, typecode, name, originName, optional, external) ::= <<
 $if(optional && !typecode.isType_10)$topic->$name$().reset(true);$endif$
 
-$if(!typecode.isType_10)$
-$typecode.cppTypename$$if(external)$*$endif$ _$name$ $if(external)$= new $typecode.cppTypename$()$endif$;
-$endif$
-
 $if(typecode.isType_10)$
 $member_assignment(ctx=ctx, typecode=typecode.typedefContentTypeCode, name=name, originName=originName, optional=optional, external=external)$
-$elseif(typecode.isType_7)$
+$else$
+
+$cppTypenameBetweenCdrVersions(typecode)$$if(external)$*$endif$ _$name$ $if(external)$= new $cppTypenameBetweenCdrVersions(typecode)$()$endif$;
+
+$if(typecode.isType_7)$
 $if(external)$*$endif$_$name$ = static_cast<$typecode.cppTypename$>(rand()%2==1);
 $elseif(typecode.isWCharType)$
 $if(external)$*$endif$_$name$ = L'W';
@@ -383,6 +386,7 @@ $typecode.scope$::initialize$typecode.name$(&$if(external)$*$endif$_$name$);
 $endif$
 
 topic->$name$($if(external)${$endif$_$name$$if(external)$}$endif$);
+$endif$
 >>
 
 array_member_assignment(ctx, typecode, name, originName, loopvar) ::= <<
@@ -1022,6 +1026,20 @@ itMapName(name, p, loopvar) ::= <<$name$$p$at(it_$loopvar$->first)>>
 optional_external_suffix(p, optional, external) ::= <<$p$$if(optional)$.value()$endif$$if(external)$->$else$.$endif$>>
 
 external_suffix(p, external) ::= <<$p$$if(external)$->$else$.$endif$>>
+
+cppTypenameBetweenCdrVersions(typecode) ::= <<
+$if(typecode.isStringType && typecode.isBounded)$
+$! Avoid error with namespace when generated fixed_string depending on CDR version !$
+#if FASTCDR_VERSION_MAJOR == 1
+eprosima::fastrtps::fixed_string<$typecode.maxsize$>
+#else
+eprosima::fastcdr::fixed_string<$typecode.maxsize$>
+#endif
+
+$else$
+$typecode.cppTypename$
+$endif$
+>>
 
 // ========================================================================================
 //                                      C STRING

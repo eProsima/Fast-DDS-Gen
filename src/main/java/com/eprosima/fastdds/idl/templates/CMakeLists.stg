@@ -38,7 +38,7 @@ endif()
 $endif$
 
 # Find requirements
-find_package(fastcdr 2 REQUIRED)
+find_package(fastcdr REQUIRED)
 find_package(fastrtps 2.12 REQUIRED)
 
 $solution.projects : { project | $pub_sub_execs(project=project, libraries=solution.libraries, test=test)$}; separator="\n"$

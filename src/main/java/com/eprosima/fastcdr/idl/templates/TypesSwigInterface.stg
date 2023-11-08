@@ -43,7 +43,10 @@ $ctx.directIncludeDependencies : {include | %include "$include$.i"}; separator="
 #include <fastdds/dds/core/LoanableSequence.hpp>
 %}
 
+%include <fastcdr/config.h>
+#if FASTCDR_VERSION_MAJOR > 1
 %import(module="fastdds") "fastcdr/xcdr/optional.hpp"
+#endif
 %import(module="fastdds") "fastdds/dds/core/LoanableCollection.hpp"
 %import(module="fastdds") "fastdds/dds/core/LoanableTypedCollection.hpp"
 %import(module="fastdds") "fastdds/dds/core/LoanableSequence.hpp"
@@ -179,7 +182,7 @@ $elseif(member.typecode.isMapType)$
 %template($member.typecode.keyTypeCode.name$_$member.typecode.valueTypeCode.cppTypename$_map) std::map<$if(member.typecode.keyTypeCode.isEnumType)$enum $endif$$member.typecode.keyTypeCode.cppTypename$,$if(member.typecode.valueTypeCode.isEnumType)$enum $endif$$member.typecode.valueTypeCode.cppTypename$>;
 $elseif(member.typecode.isType_f)$
 %ignore $struct_name$::$member.name$() const;
-%template($member.typecode.contentTypeCode.noScopedCppTypename$_$member.typecode.dimensions$_array) std::array<$if(member.typecode.contentTypeCode.isEnumType)$enum $endif$$member.typecode.contentTypeCode.cppTypename$,$member.typecode.dimensions$>;
+%template($member.typecode.contentTypeCode.noScopedCppTypename$_$member.typecode.evaluatedDimensions$_array) std::array<$if(member.typecode.contentTypeCode.isEnumType)$enum $endif$$member.typecode.contentTypeCode.cppTypename$,$member.typecode.dimensions$>;
 $if(member.typecode.contentTypeCode.primitive)$
 %extend std::array<$if(member.typecode.contentTypeCode.isEnumType)$enum $endif$$member.typecode.contentTypeCode.cppTypename$, $member.typecode.dimensions$>
 {

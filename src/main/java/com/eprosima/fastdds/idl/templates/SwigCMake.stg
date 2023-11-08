@@ -47,16 +47,13 @@ project($project.name$)
 find_package(fastcdr REQUIRED)
 find_package(fastrtps REQUIRED)
 
-
-set(\${PROJECT_NAME}_FILES
-    $project.name$.cxx
-    $project.name$PubSubTypes.cxx
-    )
-
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 #Create library for C++ types
-add_library(\${PROJECT_NAME} SHARED \${\${PROJECT_NAME}_FILES})
+add_library(\${PROJECT_NAME} SHARED
+        $project.commonSrcFiles : { file | $file$}; separator="\n"$
+        $project.projectSrcFiles : { file | $file$}; separator="\n"$
+        )
 if(WIN32)
     target_compile_definitions(\${PROJECT_NAME} PRIVATE EPROSIMA_USER_DLL_EXPORT)
 endif(WIN32)
