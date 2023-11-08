@@ -216,6 +216,7 @@ param(parameter) ::= <<>>
 
 const_decl(ctx, parent, const, const_type) ::= <<
 $ctx.setCdrv1Templates$
+$const_type$
 $if(ctx.inScopedFile)$
 $if(const.parent)$
 $if(const.parent.isInterface)$ static $endif$

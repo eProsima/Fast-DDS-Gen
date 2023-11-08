@@ -1,4 +1,4 @@
-package com.eprosima.fastcdr.util;
+package com.eprosima.fastcdr.idl.util;
 
 public class CdrVersion
 {

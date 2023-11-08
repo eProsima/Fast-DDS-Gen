@@ -15,7 +15,7 @@
 package com.eprosima.fastdds;
 
 import com.eprosima.fastcdr.idl.generator.TypesGenerator;
-import com.eprosima.fastcdr.util.CdrVersion;
+import com.eprosima.fastcdr.idl.util.CdrVersion;
 import com.eprosima.fastdds.exceptions.BadArgumentException;
 import com.eprosima.fastdds.idl.grammar.Context;
 import com.eprosima.fastdds.solution.Project;

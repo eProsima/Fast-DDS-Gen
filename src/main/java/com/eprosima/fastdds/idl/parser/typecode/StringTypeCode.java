@@ -18,8 +18,6 @@ import com.eprosima.fastcdr.idl.context.Context;
 import com.eprosima.idl.parser.exception.RuntimeGenerationException;
 import com.eprosima.idl.parser.typecode.Kind;
 
-import org.stringtemplate.v4.ST;
-
 public class StringTypeCode extends com.eprosima.idl.parser.typecode.StringTypeCode
     implements TypeCode
 {

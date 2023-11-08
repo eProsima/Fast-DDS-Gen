@@ -22,11 +22,11 @@ $fileHeader(ctx=ctx,  file=[ctx.filename, "SerializationSource.cpp"], descriptio
 #include "$ctx.filename$Serialization.h"
 
 #include <cassert>
-#include <inttypes.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cinttypes>
+#include <cstdint>
+#include <cstdio>
+#include <cstdlib>
+#include <string>
 #include <type_traits>
 
 #include <fastcdr/config.h>
