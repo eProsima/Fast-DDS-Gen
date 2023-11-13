@@ -107,9 +107,6 @@ public class fastddsgen
     // Generates type naming compatible with ROS 2
     private boolean m_type_ros2 = false;
 
-    // Generate deprecated TypeObject files
-    private boolean m_type_object_files = false;
-
     // Generate string and sequence types compatible with C?
     private boolean m_typesc = false;
 
@@ -360,10 +357,6 @@ public class fastddsgen
             else if (arg.equals(execute_test_arg))
             {
                 m_test = true;
-            }
-            else if (arg.equals(typeobject_arg))
-            {
-                m_type_object_files = true;
             }
             else if (arg.equals(ros2_names_arg))
             {
@@ -634,8 +627,6 @@ public class fastddsgen
         System.out.println("\t\t" + python_bindings_arg + ": generates python bindings for the generated types.");
         System.out.println("\t\t" + replace_arg + ": replaces existing generated files.");
         System.out.println("\t\t" + temp_dir_arg + " <temp dir>: sets a specific directory as a temporary directory.");
-        System.out.print("\t\t" + typeobject_arg + ": generates TypeObject files to automatically register the ");
-        System.out.println("types as dynamic.");
         System.out.println("\t\t" + cnames_arg + ": generates string and sequence types compatible with C.");
         System.out.println("\t\t" + ros2_names_arg + ": generates type naming compatible with ROS2.");
         System.out.println("\t\t" + version_arg + ": shows the current version of eProsima Fast DDS gen.");
@@ -729,7 +720,7 @@ public class fastddsgen
             TemplateManager tmanager = new TemplateManager();
 
             Context ctx = new Context(tmanager, idlFilename, m_includePaths, m_subscribercode, m_publishercode,
-                            m_localAppProduct, m_type_object_files, m_typesc, m_type_ros2, gen_api_);
+                            m_localAppProduct, m_typesc, m_type_ros2, gen_api_);
 
             String relative_dir = ctx.getRelativeDir(dependant_idl_dir);
             String output_dir;
@@ -768,11 +759,6 @@ public class fastddsgen
             // Load common types template
             tmanager.addGroup("com/eprosima/fastcdr/idl/templates/TypesHeader.stg").enable_custom_property(
                     Context.using_explicitly_modules_custom_property);
-            if (m_type_object_files)
-            {
-                tmanager.addGroup("com/eprosima/fastdds/idl/templates/TypeObjectHeader.stg");
-                tmanager.addGroup("com/eprosima/fastdds/idl/templates/TypeObjectSource.stg");
-            }
 
             // Load Types common templates
             if (generate_typesupport_)
@@ -781,6 +767,7 @@ public class fastddsgen
                 tmanager.addGroup("com/eprosima/fastdds/idl/templates/TypesCdrAuxHeaderImpl.stg");
                 tmanager.addGroup("com/eprosima/fastdds/idl/templates/DDSPubSubTypeHeader.stg");
                 tmanager.addGroup("com/eprosima/fastdds/idl/templates/DDSPubSubTypeSource.stg");
+                tmanager.addGroup("com/eprosima/fastdds/idl/templates/XTypesTypeObjectHeader.stg");
             }
 
             if (m_exampleOption != null)
@@ -804,11 +791,8 @@ public class fastddsgen
                 tmanager.addGroup("com/eprosima/fastdds/idl/templates/SerializationHeader.stg");
                 tmanager.addGroup("com/eprosima/fastdds/idl/templates/SerializationSource.stg");
 
-                if(!m_type_object_files)
-                {
-                    // Load TypeObject test template
-                    tmanager.addGroup("com/eprosima/fastdds/idl/templates/TypeObjectTestingTestSource.stg");
-                }
+                // Load TypeObjectSupport test template
+                tmanager.addGroup("com/eprosima/fastdds/idl/templates/TypeObjectTestingTestSource.stg");
             }
 
             // Add JNI sources.
@@ -913,32 +897,17 @@ public class fastddsgen
                         maintemplates.getTemplate("com/eprosima/fastcdr/idl/templates/TypesHeader.stg"),
                         m_replace)))
                 {
-                   project.addCommonIncludeFile(relative_dir + ctx.getFilename() + ".hpp");
+                    project.addCommonIncludeFile(relative_dir + ctx.getFilename() + ".hpp");
 
-                   if (m_type_object_files)
-                   {
-                       System.out.println("Generating TypeObject files...");
-                       if (returnedValue = Utils.writeFile(output_dir + ctx.getFilename() + "TypeObject.h",
-                                   maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/TypeObjectHeader.stg"), m_replace))
-                       {
-                           if (returnedValue = Utils.writeFile(output_dir + ctx.getFilename() + "TypeObject.cxx",
-                                       maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/TypeObjectSource.stg"), m_replace))
-                           {
-                               project.addCommonIncludeFile(relative_dir + ctx.getFilename() + "TypeObject.h");
-                               project.addCommonSrcFile(relative_dir + ctx.getFilename() + "TypeObject.cxx");
-                           }
-                       }
-                   }
-                   if (m_python)
-                   {
-                       System.out.println("Generating Swig interface files...");
-                       if (returnedValue =
-                               Utils.writeFile(output_dir + ctx.getFilename() + ".i",
-                                   maintemplates.getTemplate("com/eprosima/fastcdr/idl/templates/TypesSwigInterface.stg"), m_replace))
-                       {
-
-                       }
-                   }
+                    if (m_python)
+                    {
+                        System.out.println("Generating Swig interface files...");
+                        if (returnedValue =
+                                Utils.writeFile(output_dir + ctx.getFilename() + ".i",
+                                    maintemplates.getTemplate("com/eprosima/fastcdr/idl/templates/TypesSwigInterface.stg"), m_replace))
+                        {
+                        }
+                    }
                 }
 
                 if (m_test)
@@ -966,19 +935,22 @@ public class fastddsgen
                         project.addCommonTestingFile(trimmedElement + "Serialization.cpp");
                     }
 
-                    if(!m_type_object_files)
-                    {
-                        System.out.println("Generating TypeObjects Test file...");
-                        String fileNameTO = output_dir + ctx.getFilename() + "TypeObjectTestingTest.cpp";
-                        returnedValue = Utils.writeFile(fileNameTO, maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/TypeObjectTestingTestSource.stg"), m_replace);
-                        project.addTypeObjectTestingFile(relative_dir + ctx.getFilename() + "TypeObjectTestingTest.cpp");
-                        //project.addTypeObjectTestingFile(relative_dir + ctx.getFilename() + "TypeObject.cxx");
-                    }
+                    System.out.println("Generating TypeObjects Test file...");
+                    String fileNameTO = output_dir + ctx.getFilename() + "TypeObjectTestingTest.cpp";
+                    returnedValue = Utils.writeFile(fileNameTO, maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/TypeObjectTestingTestSource.stg"), m_replace);
+                    project.addTypeObjectTestingFile(relative_dir + ctx.getFilename() + "TypeObjectTestingTest.cpp");
                 }
 
                 System.out.println("Generating Type Support files...");
                 if (generate_typesupport_)
                 {
+                    System.out.println("Generating TypeObject files...");
+                    if (returnedValue &= Utils.writeFile(output_dir + ctx.getFilename() + "TypeObjectSupport.hpp",
+                            maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/XTypesTypeObjectHeader.stg"), m_replace))
+                    {
+                        project.addCommonIncludeFile(relative_dir + ctx.getFilename() + "TypeObjectSupport.hpp");
+                    }
+
                     if (ctx.isThereIsStructOrUnion())
                     {
                         if (returnedValue &=
@@ -1046,7 +1018,7 @@ public class fastddsgen
 
                             System.out.println("Generating main file...");
                             if (returnedValue =
-                                    Utils.writeFile(output_dir + ctx.getFilename() + "PubSubMain.cxx",
+                                    Utils.writeFile(output_dir + ctx.getFilename() + "PubSubFain.cxx",
                                         maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/DDSPubSubMain.stg"), m_replace))
                             {
                                 project.addProjectSrcFile(relative_dir + ctx.getFilename() + "PubSubMain.cxx");
@@ -1333,7 +1305,6 @@ public class fastddsgen
 
             cmake.add("solution", solution);
             cmake.add("test", m_test);
-            cmake.add("type_object_files", !m_type_object_files);
 
             returnedValue = Utils.writeFile(m_outputDir + "CMakeLists.txt", cmake, m_replace);
         }

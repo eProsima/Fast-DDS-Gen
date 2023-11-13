@@ -56,9 +56,7 @@ $endif$
 
 $ctx.directIncludeDependencies : {include | #include "$include$.hpp"}; separator="\n"$
 
-$if(ctx.generateTypeObject)$
-#include "$ctx.filename$TypeObject.h"
-$endif$
+#include "$ctx.filename$TypeObjectSupport.hpp"
 
 #if defined(_WIN32)
 #if defined(EPROSIMA_USER_DLL_EXPORT)
@@ -157,10 +155,8 @@ public:
         : $struct_inherit_default_init(struct.inheritance)$
         $endif$
     {
-        $if(ctx.generateTypeObject)$
-        // Just to register all known types
-        register$ctx.filename$Types();
-        $endif$
+        // Register TypeObject in Fast DDS DomainParticipantFactory TypeObjectRegistry.
+        register_$ctx.filename$_type_objects();
     }
 
     /*!
@@ -308,6 +304,9 @@ public:
         $else$
         m__d = $first(first(union.members).labels)$;
         $endif$
+
+        // Register TypeObject in Fast DDS DomainParticipantFactory TypeObjectRegistry.
+        register_$ctx.filename$_type_objects();
     }
 
     /*!
@@ -491,10 +490,6 @@ public:
     : $struct_inherit_default_init(bitset.inheritance)$
     $endif$
     {
-        $if(ctx.generateTypeObject)$
-        // Just to register all known types
-        register$ctx.filename$Types();
-        $endif$
     }
 
     /*!

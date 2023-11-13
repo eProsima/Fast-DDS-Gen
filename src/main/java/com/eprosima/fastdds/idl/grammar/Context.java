@@ -61,7 +61,6 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
             boolean subscribercode,
             boolean publishercode,
             String appProduct,
-            boolean generate_type_object,
             boolean generate_typesc,
             boolean generate_type_ros2,
             boolean is_generating_api
@@ -78,7 +77,6 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
         //m_protocol = protocol;
         //m_ddstypes = ddstypes;
 
-        m_type_object = generate_type_object;
         m_type_ros2 = generate_type_ros2;
         is_generating_api_ = is_generating_api;
 
@@ -565,15 +563,7 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
 
     private TypeDeclaration m_lastStructure = null;
 
-    private boolean m_type_object = false;
-
     private boolean m_type_ros2 = false;
-
-    @Override
-    public boolean isGenerateTypeObject()
-    {
-        return m_type_object;
-    }
 
     @Override
     public boolean isGenerateTypesROS2()
