@@ -67,6 +67,9 @@ $definitions; separator="\n"$
 
 // Include the class interfaces
 %include "$ctx.filename$.h"
+$if(ctx.cdr_both)$
+%include "$ctx.filename$v1.h"
+$endif$
 
 // Include the corresponding TopicDataType
 %include "$ctx.filename$PubSubTypes.i"
@@ -188,9 +191,9 @@ $elseif(member.typecode.isMapType)$
 %template($member.typecode.keyTypeCode.name$_$member.typecode.valueTypeCode.cppTypename$_map) std::map<$if(member.typecode.keyTypeCode.isEnumType)$enum $endif$$member.typecode.keyTypeCode.cppTypename$,$if(member.typecode.valueTypeCode.isEnumType)$enum $endif$$member.typecode.valueTypeCode.cppTypename$>;
 $elseif(member.typecode.isType_f)$
 %ignore $struct_name$::$member.name$() const;
-%template($member.typecode.contentTypeCode.noScopedCppTypename$_$member.typecode.evaluatedDimensions$_array) std::array<$if(member.typecode.contentTypeCode.isEnumType)$enum $endif$$member.typecode.contentTypeCode.cppTypename$,$member.typecode.dimensions$>;
+%template($member.typecode.contentTypeCode.noScopedCppTypename$_$member.typecode.evaluatedDimensions$_array) std::array<$if(member.typecode.contentTypeCode.isEnumType)$enum $endif$$member.typecode.contentTypeCode.cppTypename$,$member.typecode.evaluatedDimensions$>;
 $if(member.typecode.contentTypeCode.primitive)$
-%extend std::array<$if(member.typecode.contentTypeCode.isEnumType)$enum $endif$$member.typecode.contentTypeCode.cppTypename$, $member.typecode.dimensions$>
+%extend std::array<$if(member.typecode.contentTypeCode.isEnumType)$enum $endif$$member.typecode.contentTypeCode.cppTypename$, $member.typecode.evaluatedDimensions$>
 {
     const $if(member.typecode.contentTypeCode.isEnumType)$enum $endif$$member.typecode.contentTypeCode.cppTypename$* get_buffer() const
     {
