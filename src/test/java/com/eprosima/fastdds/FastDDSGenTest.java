@@ -20,7 +20,6 @@ public class FastDDSGenTest
 
     private static final String INPUT_PATH = "thirdparty/dds-types-test/IDL";
     private static final String OUTPUT_PATH = "build/test/integration/idls";
-    private static final boolean TYPEOBJECTS_FLAG = true;
 
     private static boolean isUnix()
     {

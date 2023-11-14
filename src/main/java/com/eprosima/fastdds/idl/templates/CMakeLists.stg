@@ -41,11 +41,11 @@ $endif$
 find_package(fastcdr REQUIRED)
 find_package(fastrtps 2.12 REQUIRED)
 
-$solution.projects : { project | $pub_sub_execs(project=project, libraries=solution.libraries, test=test)$}; separator="\n"$
+$solution.projects : { project | $pub_sub_execs(project=project, libraries=solution.libraries, test=test, typeobject=type_object_files)$}; separator="\n"$
 
 >>
 
-pub_sub_execs(project, libraries, test) ::= <<
+pub_sub_execs(project, libraries, test, typeobject) ::= <<
 
 message(STATUS "Configuring $project.name$...")
 $if(!project.commonSrcFiles.empty)$
@@ -82,7 +82,7 @@ target_link_libraries($project.name$SerializationTest
         )
 gtest_discover_tests($project.name$SerializationTest)
 
-$if(type_object_files)$
+$if(typeobject)$
 
 # $project.name$ TypeObject Test
 add_executable($project.name$TypeObjectTestingTest

@@ -255,7 +255,7 @@ $annotation.typeDefs : { it |$typedef_decl(ctx=ctx, parent=annotation, typedefs=
 
 minimal_annotation_member(ctx, object) ::= <<
 MinimalAnnotationParameter mam_$object.name$;
-const TypeIdentifier* mam_$object.name$_typeId = $get_type_identifier(ctx=ctx, type=object.typecode, ek="false")$;
+TypeIdentifier* mam_$object.name$_typeId = $get_type_identifier(ctx=ctx, type=object.typecode, ek="false")$;
 if (mam_$object.name$_typeId != nullptr)
 {
     mam_$object.name$.common().member_type_id(*mam_$object.name$_typeId);
@@ -275,8 +275,8 @@ type_object->minimal().annotation_type().member_seq().emplace_back(mam_$object.n
 
 complete_annotation_member(ctx, object) ::= <<
 CompleteAnnotationParameter cam_$object.name$;
-const TypeIdentifier* cam_$object.name$_typeId = $get_type_identifier(ctx=ctx, type=object.typecode, ek="true")$;
-if (cam_$object.name$_typeId != nullptr)
+TypeIdentifier* cam_$object.name$_typeId = $get_type_identifier(ctx=ctx, type=object.typecode, ek="true")$;
+if (mam_$object.name$_typeId != nullptr)
 {
     cam_$object.name$.common().member_type_id(*cam_$object.name$_typeId);
 }
