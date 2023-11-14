@@ -518,36 +518,25 @@ check_bitmask_flag_type(ctx, flag, relation, relation_name, relation_capname) ::
 >>
 
 check_bitset_type(bitset) ::= <<
-    //=====check_bitset_type - $relation_name$ - $bitset.name$=====
-    $get_type_identifier(typename=bitset.scopedname)$
-    ASSERT_EQ(eprosima::fastrtps::types::EK_$if(relation)$COMPLETE$else$MINIMAL$endif$, $bitset.name$_$relation_name$_type_identifier->_d());
-
-    $get_type_object(typename=bitset.scopedname)$
-    ASSERT_EQ(eprosima::fastrtps::types::EK_$if(relation)$COMPLETE$else$MINIMAL$endif$, $bitset.name$_$relation_name$_typeobject->_d());
-
-    $relation_capname$TypeObject $bitset.name$_$relation_name$_object = $bitset.name$_$relation_name$_typeobject->$relation_name$();
-    ASSERT_EQ(TK_BITSET, $bitset.name$_$relation_name$_object._d());
-
-    $relation_capname$BitsetType $bitset.name$_$relation_name$_bitset = $bitset.name$_$relation_name$_object.bitset_type();
-    //BitsetTypeFlag bitset_flags;// Unused. No flags apply
-
-    $relation_capname$BitsetHeader $bitset.name$_$relation_name$_header = $bitset.name$_$relation_name$_bitset.header();
-
-    $if(relation)$
-    CompleteTypeDetail $bitset.name$_$relation_name$_detail = $bitset.name$_$relation_name$_header.detail();
-    $check_optional_detail_annotations(ctx=ctx, object=bitset)$
-    QualifiedTypeName $bitset.name$_$relation_name$_detail_type_name = $bitset.name$_$relation_name$_detail.type_name();
-    ASSERT_EQ("$bitset.scopedname$", $bitset.name$_$relation_name$_detail_type_name);
-    $else$
-    //MinimalTypeDetail detail;// Empty. Available for future extension
-    $endif$
-
-    $relation_capname$BitfieldSeq $bitset.name$_$relation_name$_bitfieldseq = $bitset.name$_$relation_name$_bitset.field_seq();
-    $bitset.members:{ bitfield | $check_bitfield_type(ctx=ctx, bitfield=bitfield, relation=true, relation_name="complete", relation_capname="Complete")$ };separator="\n"$
-    ASSERT_EQ(bitfieldId, $bitset.name$_complete_bitfieldseq.size());
+ReturnCode_t ret_code;
+TypeIdentifierPair type_ids;
+$get_type_identifier(typename=bitset.scopedname, result=["type_ids"])$
+$check_direct_hash_type_identifier(typeid=["type_ids"])$
+TypeObjectPair type_objects;
+$get_type_object(typename=bitset.scopedname, result=["type_objects"])$
+EXPECT_EQ(TK_BITSET, type_objects.minimal_type_object._d());
+EXPECT_EQ(TK_BITSET, type_objects.complete_type_object._d());
+EXPECT_EQ(0u, type_objects.minimal_type_object.bitset_type().bitset_flags());
+EXPECT_EQ(0u, type_objects.complete_type_object.bitset_type().bitset_flags());
+EXPECT_EQ($bitset.scopedname$, type_objects.complete_type_object.bitset_type().header().detail().type_name());
+$check_type_detail_annotations(object=bitset)$
+$bitset.members: { member | $check_bitfield(bitfield=member)$}; separator="\n"$
+ASSERT_EQ($bitset.membersSize$, type_objects.minimal_type_object.bitset_type().member_seq().size());
+ASSERT_EQ($bitset.membersSize$, type_objects.complete_type_object.bitset_type().member_seq().size());
+$check_bitset_member_seq(bitset=bitset)$
 >>
 
-check_bitfield_type(ctx, bitfield, relation, relation_name, relation_capname) ::= <<
+check_bitfield(bitfield) ::= <<
     //=====check_bitfield_type - $relation_name$ - $bitfield.name$=====
     $relation_capname$Bitfield field_$bitset.name$_$relation_name$_$bitfield.name$ = $bitset.name$_$relation_name$_bitfieldseq.at(bitfieldId);
     CommonBitfield $bitset.name$_$relation_name$_common_$bitfield.name$_bitset_bitfield = field_$bitset.name$_$relation_name$_$bitfield.name$.common();
@@ -581,6 +570,8 @@ check_bitfield_type(ctx, bitfield, relation, relation_name, relation_capname) ::
 
     bitfieldId++;
 >>
+
+check_bitset_member_seq(bitset) ::= <<>>
 
 check_annotation_type(annotation) ::= <<
     //=====check_annotation_type - $relation_name$ - $annotation.name$=====
