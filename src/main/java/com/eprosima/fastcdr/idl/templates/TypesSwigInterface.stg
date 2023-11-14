@@ -155,6 +155,9 @@ $endif$
 
 member_getters(struct_name, member) ::= <<
 $if(member.annotationOptional)$
+#if FASTCDR_VERSION_MAJOR == 1
+%ignore $struct_name$::$member.name$($member.typecode.cppTypename$&&);
+#else
 %ignore eprosima::fastcdr::optional::value;
 %ignore eprosima::fastcdr::optional::reset;
 %template($member.typecode.noScopedCppTypename$Opt) eprosima::fastcdr::optional<$member.typecode.cppTypename$>;
@@ -167,9 +170,12 @@ $if(member.annotationOptional)$
       *\$self = value;
   }
 }
+%ignore $struct_name$::$member.name$(eprosima::fastcdr::optional<$member.typecode.cppTypename$>&&);
+#endif
+$else$
+%ignore $struct_name$::$member.name$($member.typecode.cppTypename$&&);
 $endif$
 
-%ignore $struct_name$::$member.name$($member.typecode.cppTypename$&&);
 
 // Overloaded getter methods shadow each other and are equivalent in python
 // Const accesors produced constant enums instead of arrays/dictionaries when used
