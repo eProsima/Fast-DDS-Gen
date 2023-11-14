@@ -90,7 +90,7 @@ jobs:
       - name: Build workspace
         run: |
           cmake --version
-          colcon build --event-handlers=console_direct+ --mixin rel-with-deb-info ccache
+          colcon build --event-handlers=console_direct+ --mixin rel-with-deb-info ccache --metas src/fastddsgen/.github/fastddsgen.meta
 
       - name: Test fastddsgen with fastcdr v1
         if: startsWith(matrix.fastcdr_version, '1')

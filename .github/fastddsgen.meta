@@ -1,0 +1,10 @@
+{
+    "names":
+    {
+        "fastdds_python": {
+            "cmake-args": [
+                "-DBUILD_TESTING=ON"
+            ]
+        }
+    }
+}

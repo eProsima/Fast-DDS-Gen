@@ -67,6 +67,9 @@ $definitions; separator="\n"$
 
 // Include the class interfaces
 %include "$ctx.filename$.h"
+$if(ctx.cdr_both)$
+%include "$ctx.filename$v1.h"
+$endif$
 
 // Include the corresponding TopicDataType
 %include "$ctx.filename$PubSubTypes.i"
@@ -155,6 +158,9 @@ $endif$
 
 member_getters(struct_name, member) ::= <<
 $if(member.annotationOptional)$
+#if FASTCDR_VERSION_MAJOR == 1
+%ignore $struct_name$::$member.name$($member.typecode.cppTypename$&&);
+#else
 %ignore eprosima::fastcdr::optional::value;
 %ignore eprosima::fastcdr::optional::reset;
 %template($member.typecode.noScopedCppTypename$Opt) eprosima::fastcdr::optional<$member.typecode.cppTypename$>;
@@ -167,9 +173,12 @@ $if(member.annotationOptional)$
       *\$self = value;
   }
 }
+%ignore $struct_name$::$member.name$(eprosima::fastcdr::optional<$member.typecode.cppTypename$>&&);
+#endif
+$else$
+%ignore $struct_name$::$member.name$($member.typecode.cppTypename$&&);
 $endif$
 
-%ignore $struct_name$::$member.name$($member.typecode.cppTypename$&&);
 
 // Overloaded getter methods shadow each other and are equivalent in python
 // Const accesors produced constant enums instead of arrays/dictionaries when used
@@ -182,9 +191,9 @@ $elseif(member.typecode.isMapType)$
 %template($member.typecode.keyTypeCode.name$_$member.typecode.valueTypeCode.cppTypename$_map) std::map<$if(member.typecode.keyTypeCode.isEnumType)$enum $endif$$member.typecode.keyTypeCode.cppTypename$,$if(member.typecode.valueTypeCode.isEnumType)$enum $endif$$member.typecode.valueTypeCode.cppTypename$>;
 $elseif(member.typecode.isType_f)$
 %ignore $struct_name$::$member.name$() const;
-%template($member.typecode.contentTypeCode.noScopedCppTypename$_$member.typecode.evaluatedDimensions$_array) std::array<$if(member.typecode.contentTypeCode.isEnumType)$enum $endif$$member.typecode.contentTypeCode.cppTypename$,$member.typecode.dimensions$>;
+%template($member.typecode.contentTypeCode.noScopedCppTypename$_$member.typecode.evaluatedDimensions$_array) std::array<$if(member.typecode.contentTypeCode.isEnumType)$enum $endif$$member.typecode.contentTypeCode.cppTypename$,$member.typecode.evaluatedDimensions$>;
 $if(member.typecode.contentTypeCode.primitive)$
-%extend std::array<$if(member.typecode.contentTypeCode.isEnumType)$enum $endif$$member.typecode.contentTypeCode.cppTypename$, $member.typecode.dimensions$>
+%extend std::array<$if(member.typecode.contentTypeCode.isEnumType)$enum $endif$$member.typecode.contentTypeCode.cppTypename$, $member.typecode.evaluatedDimensions$>
 {
     const $if(member.typecode.contentTypeCode.isEnumType)$enum $endif$$member.typecode.contentTypeCode.cppTypename$* get_buffer() const
     {
