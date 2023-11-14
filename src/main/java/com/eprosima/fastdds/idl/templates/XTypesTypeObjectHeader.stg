@@ -14,91 +14,142 @@
 
 group XTypesTypeObjectHeader;
 
+import "eprosima.stg"
+
 main(ctx, definitions) ::= <<
+$fileHeader(ctx=ctx, file=[ctx.filename, "TypeObject.h"], description=["Header file containing the API required to register the TypeObject representation of the described types in the IDL file"])$
+
+#ifndef _FAST_DDS_GENERATED_$ctx.headerGuardName$_TYPE_OBJECT_H_
+#define _FAST_DDS_GENERATED_$ctx.headerGuardName$_TYPE_OBJECT_H_
+
+$ctx.directIncludeDependencies : { include | #include "$include$TypeObject.h"}; separator="\n"$
+
+#if defined(_WIN32)
+#if defined(EPROSIMA_USER_DLL_EXPORT)
+#define eProsima_user_DllExport __declspec( dllexport )
+#else
+#define eProsima_user_DllExport
+#endif  // EPROSIMA_USER_DLL_EXPORT
+#else
+#define eProsima_user_DllExport
+#endif  // _WIN32
+
+/**
+ * @brief Register every TypeObject representation defined in the IDL file in Fast DDS TypeObjectRegistry.
+ */
+eProsima_user_DllExport void register$ctx.filename$Types();
+
+#ifndef DOXYGEN_SHOULD_SKIP_THIS_PUBLIC
 
 $definitions; separator="\n"$
+
+#endif // DOXYGEN_SHOULD_SKIP_THIS_PUBLIC
+
+#endif // _FAST_DDS_GENERATED_$ctx.headerGuardName$_TYPE_OBJECT_H_
 
 >>
 
 module(ctx, parent, module, definition_list) ::= <<
-
+namespace $module.name$ {
 $definition_list$
-
+} // namespace $module.name$
 >>
 
 definition_list(definitions) ::= <<
-
 $definitions; separator="\n"$
-
 >>
 
-annotation(ctx, annotation) ::= <<>>
+annotation(ctx, annotation) ::= <<
+$if(annotation.enums || annotation.typeDefs)$
+namespace $annotation.name$ {
+    $annotation.enums : { it | $enum_type(ctx=ctx, parent=annotation, enum=it)$}; separator="\n"$
+    $annotation.typeDefs : { it | $typedef_decl(ctx=ctx, parent=annotation, typedefs=it)$}; separator="\n"$
+} // namespace $annotation.name$
+$endif$
+>>
 
 const_decl(ctx, parent, const, const_type) ::= <<
-
 $const_type$
-
 >>
 
 typedef_decl(ctx, parent, typedefs, typedefs_type, declarator_type) ::= <<
-
 $declarator_type$
 $typedefs_type$
-
+$register_type_identifier(typename=typedefs.name)$
 >>
 
 fwd_decl(ctx, parent, type) ::= <<>>
 
 struct_type(ctx, parent, struct, member_list) ::= <<
-
 $member_list$
-
+$register_type_identifier(typename=struct.name)$
 >>
 
 member_type(ctx, member, type_member, declarators) ::= <<
-
 $type_member$
 $declarators$
-
 >>
 
 union_type(ctx, parent, union, extensions, switch_type) ::= <<
-
 $switch_type$
-
+$register_type_identifier(typename=union.name)$
 >>
 
 element_type(ctx, element, type_element, declarator) ::= <<
-
 $type_element$
 $declarator$
-
 >>
 
-bitset_type(ctx, parent, bitset, extensions) ::= <<>>
+bitset_type(ctx, parent, bitset, extensions) ::= <<
+$register_type_identifier(typename=bitset.name)$
+>>
 
-enum_type(ctx, parent, enum) ::= <<>>
+enum_type(ctx, parent, enum) ::= <<
+$register_type_identifier(typename=enum.name)$
+>>
 
-bitmask_type(ctx, parent, bitmask) ::= <<>>
+bitmask_type(ctx, parent, bitmask) ::= <<
+$register_type_identifier(typename=bitmask.name)$
+>>
 
 sequence_type(ctx, sequence, type_sequence) ::= <<
-
 $type_sequence$
-
+$if(sequence.unbound)$
+$register_type_identifier(typename=["anonymous_sequence_", sequence.contentTypeCode.cppTypename, "_4294967295"])$
+$else$
+$register_type_identifier(typename=["anonymous_sequence_", sequence.contentTypeCode.cppTypename, "_", sequence.evaluatedMaxsize])$
+$endif$
 >>
 
 map_type(ctx, map, key_type, value_type) ::= <<
-
 $key_type$
 $value_type$
-
+$if(map.isBounded)$
+$register_type_identifier(typename=["anonymous_map_", map.keyTypeCode.cppTypename, "_", map.valueTypeCode.cppTypename, "_", map.evaluatedMaxsize])$
+$else$
+$register_type_identifier(typename=["anonymous_map_", map.keyTypeCode.cppTypename, "_", map.valueTypeCode.cppTypename, "_4294967295"])$
+$endif$
 >>
 
-string_type(ctx, string) ::= <<>>
+string_type(ctx, string) ::= <<
+$if(string.isBounded)$
+$register_type_identifier(typename=["anonymous_string_", string.evaluatedMaxsize])$
+$else$
+$register_type_identifier(typename=["anonymous_string_4294967295"])$
+$endif$
+>>
 
-wide_string_type(ctx, wstring) ::= <<>>
+wide_string_type(ctx, wstring) ::= <<
+$if(wstring.isBounded)$
+$register_type_identifier(typename=["anonymous_wstring_", wstring.evaluatedMaxsize])$
+$else$
+$register_type_identifier(typename=["anonymous_wstring_4294967295"])$
+$endif$
+>>
 
-array_declarator(ctx, array, array_type) ::= <<>>
+array_declarator(ctx, array, array_type) ::= <<
+$register_type_identifier(typename=["anonymous_array_", array_type, array.evaluatedDimensions:{dimension|_$dimension$}])$
+>>
 
 interface(ctx, parent, interface, export_list) ::= <<>>
 
@@ -107,16 +158,24 @@ export_list(exports) ::= <<>>
 exception(ctx, parent, exception) ::= <<>>
 
 operation(ctx, parent, operation, param_list, operation_type) ::= <<
-
 $operation_type$
 $param_list$
-
 >>
 
 param_list(parameters) ::= <<>>
 
 param(parameter, parameter_type) ::= <<
-
 $parameter_type$
+>>
+
+/***** Utils *****/
+register_type_identifier(typename) ::= <<
+/**
+ * @brief Register $typename$ related TypeIdentifier.
+ *        Fully-descriptive TypeIdentifiers are directly registered.
+ *        Hash TypeIdentifiers require to fill the TypeObject information and hash it, consequently, the TypeObject is
+ *        indirectly registered as well.
+ */
+void register_$typename$_type_identifier();
 
 >>
