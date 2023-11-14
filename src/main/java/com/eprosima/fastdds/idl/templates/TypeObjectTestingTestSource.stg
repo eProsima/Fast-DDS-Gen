@@ -718,12 +718,6 @@ check_annotation_parameter_type(ctx, parameter, relation, relation_name, relatio
     memberId++;
 >>
 
-check_const_type(ctx, const, relation, relation_name, relation_capname) ::= <<
-    //=====check_const_type - $relation_name$ - $const.name$=====
-    $get_type_identifier(typename=const.scopedname)$
-    ASSERT_EQ($const.name$_$relation_name$_type_identifier->_d(), $const.name$_$relation_name$_type_identifier->_d());
->>
-
 check_array_type(ctx, array, relation, relation_name, relation_capname) ::= <<
     //=====check_array_type - $relation_name$ - $array.name$=====
     $get_type_identifier(typename=array.scopedname)$
@@ -1032,18 +1026,6 @@ TEST(TypeObjectTests, TestAnnotationTypeObject_$annotation.name$)
 }
 >>
 
-test_const(ctx, parent, const) ::= <<
-TEST(TypeObjectTests, TestConstTypeObject_$const.name$)
-{
-    //Minimal
-    $check_const_type(ctx=ctx, const=const, relation=false, relation_name="minimal", relation_capname="Minimal")$ 
-
-    //Complete
-    $check_const_type(ctx=ctx, const=const, relation=true, relation_name="complete", relation_capname="Complete")$ 
-}
->>
-
-
 fwd_decl(ctx, parent, type) ::= <<>>
 
 typedef_decl(ctx, parent, typedefs, typedefs_type, declarator_type) ::= <<
@@ -1082,10 +1064,7 @@ definition_list(definitions) ::= <<
 $definitions;separator="\n"$
 >>
 
-const_decl(ctx, parent, const) ::= <<
-$test_const(ctx=ctx, parent=parent, const=const)$
->>
-
+const_decl(ctx, parent, const) ::= <<>>
 
 member_type(ctx, member, type_member, declarators) ::= <<>>
 element_type(ctx, element, type_element, declarator) ::= <<>>
