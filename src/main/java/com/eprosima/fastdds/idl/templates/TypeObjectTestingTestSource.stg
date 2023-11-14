@@ -1,4 +1,4 @@
-// Copyright 2016 Proyectos y Sistemas de Mantenimiento SL (eProsima).
+// Copyright 2023 Proyectos y Sistemas de Mantenimiento SL (eProsima).
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,22 +19,13 @@ import "eprosima.stg"
 main(ctx, definitions) ::= <<
 $fileHeader(ctx=ctx,  file=[ctx.filename, "TypeObjectTestingTest.cpp"], description=["This file contains TypeObject test code."])$
 
+#include <fastdds/dds/domain/DomainParticipantFactory.hpp>
+#include <fastrtps/utils/md5.h>
 #include <gtest/gtest.h>
 
-#include "iostream"
 #include "$ctx.filename$TypeObject.h"
-#include <fastrtps/utils/md5.h>
 
-#include <fastdds/dds/domain/DomainParticipantFactory.hpp>
-
-#include <stdint.h>
-#include <inttypes.h>
-#include <string.h>
-#include <functional>
-#include <vector>
-
-$definitions;separator="\n\n"$
-
+$definitions;separator="\n"$
 
 int main(
         int argc,
@@ -47,8 +38,6 @@ int main(
     return RUN_ALL_TESTS();
 }
 >>
-
-
 
 get_type_identifier(ctx, type, relation, relation_name, var_name) ::= <<
     const TypeIdentifier* $type.name$_$relation_name$_$var_name$ = 
