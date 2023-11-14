@@ -22,6 +22,7 @@ $fileHeader(ctx=ctx,  file=[ctx.filename, "TypeObjectTestingTest.cpp"], descript
 #include <fastdds/dds/domain/DomainParticipantFactory.hpp>
 #include <fastdds/dds/xtypes/type_representation/TypeObject.h>
 #include <fastdds/dds/xtypes/type_representation/TypeObjectRegistry.hpp>
+#include <fastdds/dds/xtypes/type_representation/TypeObjectUtils.hpp>
 #include <fastrtps/types/TypesBase.h>
 #include <fastrtps/utils/md5.h>
 #include <gtest/gtest.h>
@@ -45,21 +46,21 @@ int main(
 }
 >>
 
-get_type_identifier(typename) ::= <<
-    TypeIdentifierPair type_ids;
-    ret_code =
-        eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->type_object_registry().get_type_identifiers(
-        "$typename$", type_ids);
+get_type_identifier(typename, result) ::= <<
+ret_code =
+    eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->type_object_registry().get_type_identifiers(
+    "$typename$", $result$);
+ASSERT_EQ(ReturnCode_t::RETCODE_OK, ret_code);
 >>
 
-get_type_object(typename) ::= <<
-    TypeObjectPair type_objects;
-    ret_code =
-        eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->type_object_registry().get_type_objects(
-        "$typename$", type_objects);
+get_type_object(typename, result) ::= <<
+ret_code =
+    eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->type_object_registry().get_type_objects(
+    "$typename$", $result$);
+ASSERT_EQ(ReturnCode_t::RETCODE_OK, ret_code);
 >>
 
-check_optional_detail_annotations(ctx, object) ::= <<
+check_type_detail_annotations(object) ::= <<
     $if(object.annotationList)$
     $object.annotationList: { annotation |
     $if(annotation.isVerbatim)$
@@ -140,55 +141,49 @@ check_optional_detail_annotations(ctx, object) ::= <<
     $endif$
 >>
 
-check_member_flags(ctx, object, flags_var_name) ::= <<
-    //=====check_member_flags - $flags_var_name$=====
-    MemberFlag $flags_var_name$_expected_flags;
-    $if(object.annotationTryConstruct)$
-    $if(object.annotationDiscard)$
-    $flags_var_name$_expected_flags |= MemberFlagBits::TRY_CONSTRUCT1
-    $elseif(object.annotationUseDefault)$
-    $flags_var_name$_expected_flags |= MemberFlagBits::TRY_CONSTRUCT2;
-    $elseif(object.annotationTrim)$
-    $flags_var_name$_expected_flags |= MemberFlagBits::TRY_CONSTRUCT1 | MemberFlagBits::TRY_CONSTRUCT2;
-    $endif$
-    $else$
-    $flags_var_name$_expected_flags |= MemberFlagBits::TRY_CONSTRUCT1;
-    $endif$
+check_member_detail_annotations(member) ::= <<>>
 
-    $if(object.annotationExternal)$
-    $flags_var_name$_expected_flags |= MemberFlagBits::IS_EXTERNAL;
-    $endif$
-
-    $if(object.annotationOptional)$
-    $flags_var_name$_expected_flags |= MemberFlagBits::IS_OPTIONAL;
-    $endif$
-    $if(object.annotationMustUnderstand)$
-    $flags_var_name$_expected_flags |= MemberFlagBits::IS_MUST_UNDERSTAND;
-    $endif$
-    $if(object.annotationKey)$
-    $flags_var_name$_expected_flags |= MemberFlagBits::IS_KEY;
-    $endif$
-    $if(object.annotationDefaultLiteral)$
-    $flags_var_name$_expected_flags |= MemberFlagBits::IS_DEFAULT;
-    $endif$
+expected_member_flags(object) ::= <<
+MemberFlag $object.name$_expected_flags;
+$if(object.annotationDiscard)$
+$object.name$_expected_flags |= MemberFlagBits::TRY_CONSTRUCT1
+$elseif(object.annotationUseDefault)$
+$object.name$_expected_flags |= MemberFlagBits::TRY_CONSTRUCT2;
+$elseif(object.annotationTrim)$
+$object.name$_expected_flags |= MemberFlagBits::TRY_CONSTRUCT1 | MemberFlagBits::TRY_CONSTRUCT2;
+$endif$
+$if(object.annotationExternal)$
+$object.name$_expected_flags |= MemberFlagBits::IS_EXTERNAL;
+$endif$
+$if(object.annotationOptional)$
+$object.name$_expected_flags |= MemberFlagBits::IS_OPTIONAL;
+$endif$
+$if(object.annotationMustUnderstand)$
+$object.name$_expected_flags |= MemberFlagBits::IS_MUST_UNDERSTAND;
+$endif$
+$if(object.annotationKey)$
+$object.name$_expected_flags |= MemberFlagBits::IS_KEY;
+$endif$
+$if(object.annotationDefaultLiteral)$
+$object.name$_expected_flags |= MemberFlagBits::IS_DEFAULT;
+$endif$
 >>
 
-check_type_flags(ctx, object, flags_var_name) ::= <<
-    //=====check_type_flags - $flags_var_name$=====
-    TypeFlag $flags_var_name$_expected_flags;
-    $if(object.annotationFinal)$
-    $flags_var_name$_expected_flags |= TypeFlagBits::IS_FINAL;
-    $elseif(object.annotationAppendable)$
-    $flags_var_name$_expected_flags |= TypeFlagBits::IS_APPENDABLE;
-    $elseif(object.annotationMutable)$
-    $flags_var_name$_expected_flags |= TypeFlagBits::IS_MUTABLE;
-    $endif$
-    $if(object.annotationNested)$
-    $flags_var_name$_expected_flags |= TypeFlagBits::IS_NESTED;
-    $endif$
-    $if(object.annotationAutoidHash)$
-    $flags_var_name$_expected_flags |= TypeFlagBits::IS_AUTOID_HASH;
-    $endif$
+expected_type_flags(object) ::= <<
+TypeFlag $object.name$_expected_flags;
+$if(object.annotationFinal)$
+$object.name$_expected_flags |= TypeFlagBits::IS_FINAL;
+$elseif(object.annotationAppendable)$
+$object.name$_expected_flags |= TypeFlagBits::IS_APPENDABLE;
+$elseif(object.annotationMutable)$
+$object.name$_expected_flags |= TypeFlagBits::IS_MUTABLE;
+$endif$
+$if(object.annotationNested)$
+$object.name$_expected_flags |= TypeFlagBits::IS_NESTED;
+$endif$
+$if(object.annotationAutoidHash)$
+$object.name$_expected_flags |= TypeFlagBits::IS_AUTOID_HASH;
+$endif$
 >>
 
 
@@ -230,124 +225,84 @@ check_alias_type(typedefs) ::= <<
 >>
 
 check_struct_type(struct) ::= <<
-    //=====check_struct_type - $relation_name$ - $struct.name$=====
-    $get_type_identifier(typename=struct.scopedname)$
-    ASSERT_EQ(eprosima::fastrtps::types::EK_$if(relation)$COMPLETE$else$MINIMAL$endif$, $struct.name$_$relation_name$_type_identifier->_d());
-    $get_type_object(typename=struct.scopedname)$
-    ASSERT_EQ(eprosima::fastrtps::types::EK_$if(relation)$COMPLETE$else$MINIMAL$endif$, $struct.name$_$relation_name$_typeobject->_d());
-    $relation_capname$TypeObject $struct.name$_$relation_name$_object = $struct.name$_$relation_name$_typeobject->$relation_name$();
-    ASSERT_EQ(TK_STRUCTURE, $struct.name$_$relation_name$_object._d());
-    $relation_capname$StructType $struct.name$_$relation_name$_struct = $struct.name$_$relation_name$_object.struct_type();
-    {
-    $check_type_flags(ctx=ctx, object=struct, flags_var_name=["struct"])$
-    ASSERT_TRUE(struct_expected_flags == $struct.name$_$relation_name$_struct.struct_flags());
-    }
-    $relation_capname$StructHeader $struct.name$_$relation_name$_header = $struct.name$_$relation_name$_struct.header();
-
-    $if(struct.inheritance)$
-    $get_type_identifier(typename=struct.inheritance.scopedname)$
-    ASSERT_EQ($struct.inheritance.name$_$relation_name$_inheritance_type_id->_d(), $struct.name$_$relation_name$_header.base_type()._d());
-    $endif$
-    $if(relation)$
-    CompleteTypeDetail $struct.name$_$relation_name$_detail = $struct.name$_$relation_name$_header.detail();
-    $check_optional_detail_annotations(ctx=ctx, object=struct)$
-    QualifiedTypeName $struct.name$_$relation_name$_detail_type_name = $struct.name$_$relation_name$_detail.type_name();
-    ASSERT_EQ("$struct.scopedname$", $struct.name$_$relation_name$_detail_type_name);
-    $else$
-    //MinimalTypeDetail detail;// Empty. Available for future extension
-    $endif$
-
-    $relation_capname$StructMemberSeq $struct.name$_$relation_name$_memberseq = $struct.name$_$relation_name$_struct.member_seq();
-    $struct.allMembers:{ member | $check_struct_member_type(ctx=ctx, member=member, relation=true, relation_name="complete", relation_capname="Complete")$ };separator="\n"$
-    ASSERT_EQ(memberId, $struct.name$_complete_memberseq.size());
+ReturnCode_t ret_code;
+TypeIdentifierPair type_ids;
+$get_type_identifier(typename=struct.scopedname, result=["type_ids"])$
+$check_direct_hash_type_identifier(typeid=["type_ids"])$
+TypeObjectPair type_objects;
+$get_type_object(typename=struct.scopedname, result=["type_objects"])$
+EXPECT_EQ(TK_STRUCTURE, type_objects.minimal_type_object._d());
+EXPECT_EQ(TK_STRUCTURE, type_objects.complete_type_object._d());
+$expected_type_flags(object=struct)$
+EXPECT_EQ($struct.name$_expected_flags, type_objects.minimal_type_object.struct_type().struct_flags());
+EXPECT_EQ($struct.name$_expected_flags, type_objects.complete_type_object.struct_type().struct_flags());
+$if(struct.inheritance)$
+TypeIdentifierPair base_type_ids;
+$get_type_identifier(typename=struct.inheritance.scopedname, result=["base_type_ids"])$
+$check_direct_hash_type_identifier(typeid=["base_type_ids"])$
+EXPECT_TRUE(base_type_ids.type_identifier1() == type_objects.minimal_type_object.struct_type().header().base_type() ||
+    base_type_ids.type_identifier1() == type_objects.complete_type_object.struct_type().header().base_type());
+EXPECT_TRUE(base_type_ids.type_identifier2() == type_objects.minimal_type_object.struct_type().header().base_type() ||
+    base_type_ids.type_identifier2() == type_objects.complete_type_object.struct_type().header().base_type());
+$else$
+TypeIdentifier invalid_type_id;
+EXPECT_EQ(invalid_type_id, type_objects.minimal_type_object.struct_type().header().base_type());
+EXPECT_EQ(invalid_type_id, type_objects.complete_type_object.struct_type().header().base_type());
+$endif$
+EXPECT_EQ($struct.scopedname$, type_objects.complete_type_object.struct_type().header().detail().type_name());
+$check_type_detail_annotations(object=struct)$
+$struct.members: { member | $check_struct_member(member=member, parent=struct)$}; separator="\n"$
+ASSERT_EQ($struct.membersSize$, type_objects.minimal_type_object.struct_type().member_seq().size());
+ASSERT_EQ($struct.membersSize$, type_objects.complete_type_object.struct_type().member_seq().size());
+$check_struct_member_seq(struct=struct)$
 >>
 
-check_struct_member_type(ctx, member, relation, relation_name, relation_capname) ::= <<
-    //=====check_struct_member_type - $relation_name$ - $member.name$=====
-    $relation_capname$StructMember $struct.name$_$relation_name$_$member.name$ = $struct.name$_$relation_name$_memberseq.at(memberId);
-    CommonStructMember $struct.name$_$relation_name$_common_$member.name$_struct_member = $struct.name$_$relation_name$_$member.name$.common();
-
-    MemberId $struct.name$_$relation_name$_common_$member.name$_struct_member_member_id = $struct.name$_$relation_name$_common_$member.name$_struct_member.member_id();
-    ASSERT_EQ(memberId, $struct.name$_$relation_name$_common_$member.name$_struct_member.member_id());
-    StructMemberFlag $struct.name$_$relation_name$_common_$member.name$_struct_member_member_flags = $struct.name$_$relation_name$_common_$member.name$_struct_member.member_flags();
+check_struct_member(member, parent) ::= <<
+{
+    size_t pos = 0;
+    bool found = false;
+    for (; pos < type_objects.complete_type_object.struct_type().member_seq().size(); ++pos)
     {
-    $check_member_flags(ctx=ctx, object=member, flags_var_name=["struct_member"])$
-    ASSERT_TRUE(struct_member_expected_flags & $struct.name$_$relation_name$_common_$member.name$_struct_member_member_flags);
-    }
-    TypeIdentifier $member.name$_$relation_name$_common_struct_member_member_type_id = $struct.name$_$relation_name$_common_$member.name$_struct_member.member_type_id();
-    $get_type_identifier(typename=member.scopedname)$
-    ASSERT_EQ($member.name$_$relation_name$_common_struct_member_type_id->_d(), $member.name$_$relation_name$_common_struct_member_member_type_id._d());
-    $if(relation)$
-    {    
-    CompleteMemberDetail $member.name$_$relation_name$_detail = $struct.name$_$relation_name$_$member.name$.detail();
-    $check_optional_detail_annotations(ctx=ctx, object=member)$
-    MemberName $struct.name$_$relation_name$_common_$member.name$_struct_member_name = $member.name$_$relation_name$_detail.name();
-    ASSERT_EQ("$member.name$", $struct.name$_$relation_name$_common_$member.name$_struct_member_name);
-    }
-    $else$
-    {
-    MinimalMemberDetail $member.name$_$relation_name$_detail = $struct.name$_$relation_name$_$member.name$.detail();
-    NameHash $struct.name$_$relation_name$_common_$member.name$_struct_member_name_hash = $member.name$_$relation_name$_detail.name_hash();
-    MD5 $struct.name$_$relation_name$_common_$member.name$_name_hash("$member.name$");
-    for(int i = 0;i < 4;++i)
-    {
-        ASSERT_EQ($struct.name$_$relation_name$_common_$member.name$_name_hash.digest[i], $struct.name$_$relation_name$_common_$member.name$_struct_member_name_hash[i]);
-    }
-    }
-    $endif$
-
-    $if (member.typecode.isAliasType)$
-        //=====member.typecode.isAliasType=====
-        $check_alias_related_type(typedefs=member.typecode, relation=relation, relation_name=relation_name, relation_capname=relation_capname)$
-    $elseif (member.typecode.PrimitiveType)$
-        //=====member.typecode.PrimitiveType=====
-        $get_type_identifier(typename=member.scopedname)$
-        ASSERT_EQ($member.name$_$relation_name$_member_type->_d(), $struct.name$_$relation_name$_common_$member.name$_struct_member.member_type_id()._d());
-    $elseif (member.typecode.isStringType)$
-        //=====member.typecode.isStringType=====
-        $get_type_identifier(typename=member.scopedname)$
-        ASSERT_EQ($member.name$_$relation_name$_member_type->_d(), $struct.name$_$relation_name$_common_$member.name$_struct_member.member_type_id()._d());
-
-        if($member.typecode.maxsize$ <= 255){
-            ASSERT_EQ($member.typecode.maxsize$, $struct.name$_$relation_name$_$member.name$_content_type.string_sdefn().bound());
-        }else{
-            ASSERT_EQ($member.typecode.maxsize$, $struct.name$_$relation_name$_$member.name$_content_type.string_ldefn().bound());
+        if ($member.name$ == type_objects.complete_type_object.struct_type().member_seq[pos].detail().name())
+        {
+            found = true;
+            break;
         }
-    $elseif (member.typecode.isWStringType)$
-        //=====member.typecode.isWStringType=====
-        $get_type_identifier(typename=member.scopedname)$
-        ASSERT_EQ($member.name$_$relation_name$_member_type->_d(), $struct.name$_$relation_name$_common_$member.name$_struct_member.member_type_id()._d());
-
-        if($member.typecode.maxsize$ <= 255){
-            ASSERT_EQ($member.typecode.maxsize$, $struct.name$_$relation_name$_$member.name$_content_type.string_sdefn().bound());
-        }else{
-            ASSERT_EQ($member.typecode.maxsize$, $struct.name$_$relation_name$_$member.name$_content_type.string_ldefn());
-        }
-    $elseif (member.typecode.isStructType)$
-        //=====member.typecode.isStructType=====
-        $check_struct_type(ctx=ctx, struct=member, relation=relation, relation_name=relation_name, relation_capname=relation_capname)$
-    $elseif (member.typecode.isArrayType)$
-        //=====member.typecode.isArrayType=====
-        $check_array_type(ctx=ctx, array=member, relation=relation, relation_name=relation_name, relation_capname=relation_capname)$
-    $elseif (member.typecode.isSequenceType)$
-        //=====member.typecode.isSequenceType=====
-        $check_sequence_type(ctx=ctx, sequence=member, relation=relation, relation_name=relation_name, relation_capname=relation_capname)$
-    $elseif (member.typecode.isMapType)$
-        //=====member.typecode.isSequenceType=====
-        $check_map_type(ctx=ctx, map=member, relation=relation, relation_name=relation_name, relation_capname=relation_capname)$
-    $elseif (member.typecode.isUnionType)$
-        //=====member.typecode.isUnionType=====
-        $check_union_type(ctx=ctx, union=member, relation=relation, relation_name=relation_name, relation_capname=relation_capname)$
-
-    $else$
-        //check_struct_member_type UKNOWN TYPE
-        std::cout << std::endl << "======================================== Testing struct: $member.typecode$ ========================================" << std::endl;
-    memberId = 99;
-
+    }
+    ASSERT_TRUE(found);
+    EXPECT_EQ($member.name$, type_objects.complete_type_object.struct_type().member_seq[pos].detail().name());
+    $check_member_detail_annotations(member=member)$
+    NameHash member_name_hashed = TypeObjectUtils::name_hash($member.name$);
+    EXPECT_EQ(member_name_hashed, type_objects.minimal_type_object.struct_type().member_seq[pos].detail().name_hash());
+    $if(member.annotationId)$
+    EXPECT_EQ($member.annotationIdValue$, type_objects.minimal_type_object.struct_type().member_seq[pos].common().member_id());
+    EXPECT_EQ($member.annotationIdValue$, type_objects.complete_type_object.struct_type().member_seq[pos].common().member_id());
+    $elseif(member.annotationHashid && member.annotationHashidValue)$
+    EXPECT_EQ($member.annotationHashidValue$, type_objects.minimal_type_object.struct_type().member_seq[pos].common().member_id());
+    EXPECT_EQ($member.annotationHashidValue$, type_objects.complete_type_object.struct_type().member_seq[pos].common().member_id());
+    $elseif(struct.annotationAutoidHash || member.annotationHashid)$
+    MemberId member_id = (member_name_hashed[3] << 24 | member_name_hashed[2] << 16 | member_name_hashed[1] << 8 |
+        member_name_hashed[0]) & 0x0FFFFFFF;
+    EXPECT_EQ(member_id, type_objects.minimal_type_object.struct_type().member_seq[pos].common().member_id());
+    EXPECT_EQ(member_id, type_objects.complete_type_object.struct_type().member_seq[pos].common().member_id());
     $endif$
-
-    memberId++;
+    $expected_member_flags(member)$
+    EXPECT_EQ($member.name$_expected_flags, type_objects.minimal_type_object.struct_type().member_seq[pos].common().member_flags());
+    EXPECT_EQ($member.name$_expected_flags, type_objects.complete_type_object.struct_type().member_seq[pos].common().member_flags());
+    TypeIdentifierPair member_type_ids;
+    $if(member.typecode.primitive)$
+    $get_type_identifier(typename=member.typecode.cppTypename, result=["member_type_ids"])$
+    $else$
+    $get_type_identifier(typename=member.typecode.scopedname, result=["member_type_ids"])$
+    $endif$
+    EXPECT_TRUE(member_type_ids.type_identifier1() == type_objects.minimal_type_object.struct_type().header().base_type() ||
+        member_type_ids.type_identifier1() == type_objects.complete_type_object.struct_type().header().base_type());
+    EXPECT_TRUE(member_type_ids.type_identifier2() == type_objects.minimal_type_object.struct_type().header().base_type() ||
+        member_type_ids.type_identifier2() == type_objects.complete_type_object.struct_type().header().base_type());
+}
 >>
+
+check_struct_member_seq(struct) ::= <<>>
 
 check_union_type(union) ::= <<
     //=====check_union_type - $relation_name$ - $union.name$=====
@@ -1076,4 +1031,9 @@ anonymous_string_$if(string.isBounded)$$string.evaluatedMaxsize$$else$4294967295
 
 wstring_name(wstring) ::= <<
 anonymous_wstring_$if(wstring.isBounded)$$wstring.evaluatedMaxsize$$else$4294967295$endif$
+>>
+
+check_direct_hash_type_identifier(typeid) ::= <<
+EXPECT_TRUE(($typeid$.type_identifier1()._d() == EK_MINIMAL && $typeid$.type_identifier2()._d() == EK_COMPLETE) ||
+    ($typeid$.type_identifier2()._d() == EK_MINIMAL && $typeid$.type_identifier1()._d() == EK_COMPLETE));
 >>
