@@ -899,7 +899,7 @@ check_map_type(ctx, map, relation, relation_name, relation_capname) ::= <<
 >>
 
 
-test_typedef(ctx, parent, typedefs) ::= <<
+test_typedef(ctx, typedefs) ::= <<
 TEST(TypeObjectTests, TestTypedefTypeObject_$typedefs.name$)
 {
     //Minimal
@@ -912,7 +912,7 @@ TEST(TypeObjectTests, TestTypedefTypeObject_$typedefs.name$)
 }
 >>
 
-test_structure(ctx, parent, struct) ::= <<
+test_structure(ctx, struct) ::= <<
 TEST(TypeObjectTests, TestStructureTypeObject_$struct.name$)
 {
     MemberId memberId;
@@ -931,7 +931,7 @@ TEST(TypeObjectTests, TestStructureTypeObject_$struct.name$)
 }
 >>
 
-test_union(ctx, parent, union) ::= <<
+test_union(ctx, union) ::= <<
 TEST(TypeObjectTests, TestUnionTypeObject_$union.name$)
 {
     MemberId memberId;
@@ -950,7 +950,7 @@ TEST(TypeObjectTests, TestUnionTypeObject_$union.name$)
 }
 >>
 
-test_enum(ctx, parent, enum) ::= <<
+test_enum(ctx, enum) ::= <<
 TEST(TypeObjectTests, TestEnumTypeObject_$enum.name$)
 {
     int literalId;
@@ -969,7 +969,7 @@ TEST(TypeObjectTests, TestEnumTypeObject_$enum.name$)
 }
 >>
 
-test_bitmask(ctx, parent, bitmask) ::= <<
+test_bitmask(ctx, bitmask) ::= <<
 TEST(TypeObjectTests, TestBitmaskTypeObject_$bitmask.name$)
 {
     unsigned short flagId;
@@ -988,7 +988,7 @@ TEST(TypeObjectTests, TestBitmaskTypeObject_$bitmask.name$)
 }
 >>
 
-test_bitset(ctx, parent, bitset) ::= <<
+test_bitset(ctx, bitset) ::= <<
 TEST(TypeObjectTests, TestBitsetTypeObject_$bitset.name$)
 {
     unsigned short bitfieldId;
@@ -1007,7 +1007,7 @@ TEST(TypeObjectTests, TestBitsetTypeObject_$bitset.name$)
 }
 >>
 
-test_annotation(ctx, parent, annotation) ::= <<
+test_annotation(ctx, annotation) ::= <<
 TEST(TypeObjectTests, TestAnnotationTypeObject_$annotation.name$)
 {
     MemberId memberId;
@@ -1029,31 +1029,35 @@ TEST(TypeObjectTests, TestAnnotationTypeObject_$annotation.name$)
 fwd_decl(ctx, parent, type) ::= <<>>
 
 typedef_decl(ctx, parent, typedefs, typedefs_type, declarator_type) ::= <<
-$test_typedef(ctx=ctx, parent=parent, typedefs=typedefs)$
+$declarator_type$
+$typedefs_type$
+$test_typedef(ctx=ctx, typedefs=typedefs)$
 >>
 
 struct_type(ctx, parent, struct, member_list) ::= <<
-$test_structure(ctx=ctx, parent=parent, struct=struct)$
+$member_list$
+$test_structure(ctx=ctx, struct=struct)$
 >>
 
 union_type(ctx, parent, union, switch_type) ::= <<
-$test_union(ctx=ctx, parent=parent, union=union)$
+$switch_type$
+$test_union(ctx=ctx, union=union)$
 >>
 
 enum_type(ctx, parent, enum) ::= <<
-$test_enum(ctx=ctx, parent=parent, enum=enum)$
+$test_enum(ctx=ctx, enum=enum)$
 >>
 
 bitmask_type(ctx, parent, bitmask) ::= <<
-$test_bitmask(ctx=ctx, parent=parent, bitmask=bitmask)$
+$test_bitmask(ctx=ctx, bitmask=bitmask)$
 >>
 
-bitset_type(ctx, parent, bitset) ::= <<
-$test_bitset(ctx=ctx, parent=parent, bitset=bitset)$
+bitset_type(ctx, parent, bitset, extensions) ::= <<
+$test_bitset(ctx=ctx, bitset=bitset)$
 >>
 
-annotation(ctx, parent, annotation) ::= <<
-$test_annotation(ctx=ctx, parent=parent, annotation=annotation)$
+annotation(ctx, annotation) ::= <<
+$test_annotation(ctx=ctx, annotation=annotation)$
 >>
 
 module(ctx, parent, module, definition_list) ::= <<
@@ -1064,12 +1068,28 @@ definition_list(definitions) ::= <<
 $definitions;separator="\n"$
 >>
 
-const_decl(ctx, parent, const) ::= <<>>
+const_decl(ctx, parent, const, const_type) ::= <<
+$const_type$
+>>
 
-member_type(ctx, member, type_member, declarators) ::= <<>>
+member_type(ctx, member, type_member, declarators) ::= <<
+$type_member$
+$declarators$
+>>
+
 element_type(ctx, element, type_element, declarator) ::= <<>>
-sequence_type(ctx, sequence, type_sequence) ::= <<>>
-map_type(ctx, map, key_type, value_type) ::= <<>>
+
+sequence_type(ctx, sequence, type_sequence) ::= <<
+$type_sequence$
+>>
+
+map_type(ctx, map, key_type, value_type) ::= <<
+$key_type$
+$value_type$
+>>
+
 string_type(ctx, string) ::= <<>>
+
 wide_string_type(ctx, wstring) ::= <<>>
+
 array_declarator(ctx, array, array_type) ::= <<>>
