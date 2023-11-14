@@ -192,7 +192,7 @@ check_type_flags(ctx, object, flags_var_name) ::= <<
 >>
 
 
-check_alias_type(ctx, typedefs, relation, relation_name, relation_capname) ::= <<
+check_alias_type(typedefs) ::= <<
     //=====check_alias_type - $relation_name$ - $typedefs.name$=====
     $get_type_identifier(typename=typedefs.scopedname)$
     ASSERT_EQ(eprosima::fastrtps::types::EK_$if(relation)$COMPLETE$else$MINIMAL$endif$, $typedefs.name$_$relation_name$_type_identifier->_d());
@@ -229,20 +229,7 @@ check_alias_type(ctx, typedefs, relation, relation_name, relation_capname) ::= <
     $endif$
 >>
 
-check_alias_related_type(ctx, typedefs, relation, relation_name, relation_capname) ::= <<
-    //=====check_alias_related_type - $relation_name$ - $typedefs.name$=====
-    $if (typedefs.typedefContentTypeCode.isAliasType)$
-    //=====typedefs.typedefContentTypeCode.isAliasType=====
-    $check_alias_related_type(ctx=ctx, typedefs=typedefs.typedefContentTypeCode, relation=relation, relation_name=relation_name, relation_capname=relation_capname)$
-    $else$
-    {
-    $get_type_identifier(typename=typedefs.scopedname)$
-    TypeIdentifier $typedefs.name$_$relation_name$_related_type = $typedefs.name$_$relation_name$_common_alias_body.related_type();
-    ASSERT_EQ($typedefs.name$_$relation_name$_content_type->_d(), $typedefs.name$_$relation_name$_related_type._d());}
-    $endif$
->>
-
-check_struct_type(ctx, struct, relation, relation_name, relation_capname) ::= <<
+check_struct_type(struct) ::= <<
     //=====check_struct_type - $relation_name$ - $struct.name$=====
     $get_type_identifier(typename=struct.scopedname)$
     ASSERT_EQ(eprosima::fastrtps::types::EK_$if(relation)$COMPLETE$else$MINIMAL$endif$, $struct.name$_$relation_name$_type_identifier->_d());
@@ -271,6 +258,8 @@ check_struct_type(ctx, struct, relation, relation_name, relation_capname) ::= <<
     $endif$
 
     $relation_capname$StructMemberSeq $struct.name$_$relation_name$_memberseq = $struct.name$_$relation_name$_struct.member_seq();
+    $struct.allMembers:{ member | $check_struct_member_type(ctx=ctx, member=member, relation=true, relation_name="complete", relation_capname="Complete")$ };separator="\n"$
+    ASSERT_EQ(memberId, $struct.name$_complete_memberseq.size());
 >>
 
 check_struct_member_type(ctx, member, relation, relation_name, relation_capname) ::= <<
@@ -360,7 +349,7 @@ check_struct_member_type(ctx, member, relation, relation_name, relation_capname)
     memberId++;
 >>
 
-check_union_type(ctx, union, relation, relation_name, relation_capname) ::= <<
+check_union_type(union) ::= <<
     //=====check_union_type - $relation_name$ - $union.name$=====
     $get_type_identifier(typename=union.scopedname)$
     ASSERT_EQ(eprosima::fastrtps::types::EK_$if(relation)$COMPLETE$else$MINIMAL$endif$, $union.name$_$relation_name$_type_identifier->_d());
@@ -407,6 +396,8 @@ check_union_type(ctx, union, relation, relation_name, relation_capname) ::= <<
     $endif$
 
     $relation_capname$UnionMemberSeq $union.name$_$relation_name$_memberseq = $union.name$_$relation_name$_union.member_seq();
+    $union.members:{ member | $check_union_member_type(ctx=ctx, member=member, relation=true, relation_name="complete", relation_capname="Complete")$ };separator="\n"$
+    ASSERT_EQ(memberId, $union.name$_complete_memberseq.size());
 >>
 
 check_union_member_type(ctx, member, relation, relation_name, relation_capname) ::= <<
@@ -457,7 +448,7 @@ check_union_member_type(ctx, member, relation, relation_name, relation_capname) 
     memberId++;
 >>
 
-check_enum_type(ctx, enum, relation, relation_name, relation_capname) ::= <<
+check_enum_type(enum) ::= <<
     //=====check_enum_type - $relation_name$ - $enum.name$=====
     $get_type_identifier(typename=enum.scopedname)$
     ASSERT_EQ(eprosima::fastrtps::types::EK_$if(relation)$COMPLETE$else$MINIMAL$endif$, $enum.name$_$relation_name$_type_identifier->_d());
@@ -485,6 +476,8 @@ check_enum_type(ctx, enum, relation, relation_name, relation_capname) ::= <<
     $endif$
 
     $relation_capname$EnumeratedLiteralSeq $enum.name$_$relation_name$_literalseq = $enum.name$_$relation_name$_enum.literal_seq();
+    $enum.members:{ literal | $check_enum_literal_type(ctx=ctx, literal=literal, relation=true, relation_name="complete", relation_capname="Complete")$ };separator="\n"$
+    ASSERT_EQ(literalId, $enum.name$_complete_literalseq.size());
 >>
 
 check_enum_literal_type(ctx, literal, relation, relation_name, relation_capname) ::= <<
@@ -512,7 +505,7 @@ check_enum_literal_type(ctx, literal, relation, relation_name, relation_capname)
     literalId++;
 >>
 
-check_bitmask_type(ctx, bitmask, relation, relation_name, relation_capname) ::= <<
+check_bitmask_type(bitmask) ::= <<
     //=====check_bitmask_type - $relation_name$ - $bitmask.name$=====
     $get_type_identifier(typename=bitmask.scopedname)$
     ASSERT_EQ(eprosima::fastrtps::types::EK_$if(relation)$COMPLETE$else$MINIMAL$endif$, $bitmask.name$_$relation_name$_type_identifier->_d());
@@ -533,6 +526,8 @@ check_bitmask_type(ctx, bitmask, relation, relation_name, relation_capname) ::= 
     ASSERT_EQ($bitmask.bitBound$, $bitmask.name$_$relation_name$_commonheader_bit_bound);
 
     $relation_capname$BitflagSeq $bitmask.name$_$relation_name$_flagseq = $bitmask.name$_$relation_name$_bitmask.flag_seq();
+    $bitmask.members:{ flag | $check_bitmask_flag_type(ctx=ctx, flag=flag, relation=true, relation_name="complete", relation_capname="Complete")$ };separator="\n"$
+    ASSERT_EQ(flagId, $bitmask.name$_complete_flagseq.size());
 >>
 
 check_bitmask_flag_type(ctx, flag, relation, relation_name, relation_capname) ::= <<
@@ -567,7 +562,7 @@ check_bitmask_flag_type(ctx, flag, relation, relation_name, relation_capname) ::
     flagId++;
 >>
 
-check_bitset_type(ctx, bitset, relation, relation_name, relation_capname) ::= <<
+check_bitset_type(bitset) ::= <<
     //=====check_bitset_type - $relation_name$ - $bitset.name$=====
     $get_type_identifier(typename=bitset.scopedname)$
     ASSERT_EQ(eprosima::fastrtps::types::EK_$if(relation)$COMPLETE$else$MINIMAL$endif$, $bitset.name$_$relation_name$_type_identifier->_d());
@@ -593,6 +588,8 @@ check_bitset_type(ctx, bitset, relation, relation_name, relation_capname) ::= <<
     $endif$
 
     $relation_capname$BitfieldSeq $bitset.name$_$relation_name$_bitfieldseq = $bitset.name$_$relation_name$_bitset.field_seq();
+    $bitset.members:{ bitfield | $check_bitfield_type(ctx=ctx, bitfield=bitfield, relation=true, relation_name="complete", relation_capname="Complete")$ };separator="\n"$
+    ASSERT_EQ(bitfieldId, $bitset.name$_complete_bitfieldseq.size());
 >>
 
 check_bitfield_type(ctx, bitfield, relation, relation_name, relation_capname) ::= <<
@@ -630,7 +627,7 @@ check_bitfield_type(ctx, bitfield, relation, relation_name, relation_capname) ::
     bitfieldId++;
 >>
 
-check_annotation_type(ctx, annotation, relation, relation_name, relation_capname) ::= <<
+check_annotation_type(annotation) ::= <<
     //=====check_annotation_type - $relation_name$ - $annotation.name$=====
     $get_type_identifier(typename=annotation.scopedname)$
     ASSERT_EQ(eprosima::fastrtps::types::EK_$if(relation)$COMPLETE$else$MINIMAL$endif$, $annotation.name$_$relation_name$_type_identifier->_d());
@@ -651,6 +648,8 @@ check_annotation_type(ctx, annotation, relation, relation_name, relation_capname
     $endif$
 
     $relation_capname$AnnotationParameterSeq $annotation.name$_$relation_name$_memberseq = $annotation.name$_$relation_name$_annotation.member_seq();
+    $annotation.members:{ parameter | $check_annotation_parameter_type(ctx=ctx, parameter=parameter, relation=false, relation_name="minimal", relation_capname="Minimal")$ };separator="\n"$
+    ASSERT_EQ(memberId, $annotation.name$_minimal_memberseq.size());
 >>
 
 check_annotation_parameter_type(ctx, parameter, relation, relation_name, relation_capname) ::= <<
@@ -899,130 +898,87 @@ check_map_type(ctx, map, relation, relation_name, relation_capname) ::= <<
 >>
 
 
-test_typedef(ctx, typedefs) ::= <<
+test_typedef(typedefs) ::= <<
 TEST(TypeObjectTests, TestTypedefTypeObject_$typedefs.name$)
 {
-    //Minimal
-    $check_alias_type(ctx=ctx, typedefs=typedefs, relation=false, relation_name="minimal", relation_capname="Minimal")$
-    $check_alias_related_type(ctx=ctx, typedefs=typedefs, relation=false, relation_name="minimal", relation_capname="Minimal")$
-
-    //Complete
-    $check_alias_type(ctx=ctx, typedefs=typedefs, relation=true, relation_name="complete", relation_capname="Complete")$
-    $check_alias_related_type(ctx=ctx, typedefs=typedefs, relation=true, relation_name="complete", relation_capname="Complete")$
+    $check_alias_type(typedefs=typedefs)$
 }
 >>
 
-test_structure(ctx, struct) ::= <<
+test_structure(struct) ::= <<
 TEST(TypeObjectTests, TestStructureTypeObject_$struct.name$)
 {
-    MemberId memberId;
-
-    //Minimal
-    $check_struct_type(ctx=ctx, struct=struct, relation=false, relation=false, relation_name="minimal", relation_capname="Minimal")$ 
-    memberId = 0;
-    $struct.allMembers:{ member | $check_struct_member_type(ctx=ctx, member=member, relation=false, relation_name="minimal", relation_capname="Minimal")$ };separator="\n"$
-    ASSERT_EQ(memberId, $struct.name$_minimal_memberseq.size());
-
-    //Complete
-    $check_struct_type(ctx=ctx, struct=struct, relation=true, relation_name="complete", relation_capname="Complete")$ 
-    memberId = 0;
-    $struct.allMembers:{ member | $check_struct_member_type(ctx=ctx, member=member, relation=true, relation_name="complete", relation_capname="Complete")$ };separator="\n"$
-    ASSERT_EQ(memberId, $struct.name$_complete_memberseq.size());
+    $check_struct_type(struct=struct)$ 
 }
 >>
 
-test_union(ctx, union) ::= <<
+test_union(union) ::= <<
 TEST(TypeObjectTests, TestUnionTypeObject_$union.name$)
 {
-    MemberId memberId;
-
-    //Minimal
-    $check_union_type(ctx=ctx, union=union, relation=false, relation=false, relation_name="minimal", relation_capname="Minimal")$ 
-    memberId = 0;
-    $union.members:{ member | $check_union_member_type(ctx=ctx, member=member, relation=false, relation=false, relation_name="minimal", relation_capname="Minimal")$ };separator="\n"$
-    ASSERT_EQ(memberId, $union.name$_minimal_memberseq.size());
-
-    //Complete
-    $check_union_type(ctx=ctx, union=union, relation=true, relation_name="complete", relation_capname="Complete")$ 
-    memberId = 0;
-    $union.members:{ member | $check_union_member_type(ctx=ctx, member=member, relation=true, relation_name="complete", relation_capname="Complete")$ };separator="\n"$
-    ASSERT_EQ(memberId, $union.name$_complete_memberseq.size());
+    $check_union_type(union=union)$ 
 }
 >>
 
-test_enum(ctx, enum) ::= <<
+test_enum(enum) ::= <<
 TEST(TypeObjectTests, TestEnumTypeObject_$enum.name$)
 {
-    int literalId;
-
-    //Minimal
-    $check_enum_type(ctx=ctx, enum=enum, relation=false, relation_name="minimal", relation_capname="Minimal")$ 
-    literalId = 0;
-    $enum.members:{ literal | $check_enum_literal_type(ctx=ctx, literal=literal, relation=false, relation_name="minimal", relation_capname="Minimal")$ };separator="\n"$
-    ASSERT_EQ(literalId, $enum.name$_minimal_literalseq.size());
-
-    //Complete
-    $check_enum_type(ctx=ctx, enum=enum, relation=true, relation_name="complete", relation_capname="Complete")$ 
-    literalId = 0;
-    $enum.members:{ literal | $check_enum_literal_type(ctx=ctx, literal=literal, relation=true, relation_name="complete", relation_capname="Complete")$ };separator="\n"$
-    ASSERT_EQ(literalId, $enum.name$_complete_literalseq.size());
+    $check_enum_type(enum=enum)$ 
 }
 >>
 
-test_bitmask(ctx, bitmask) ::= <<
+test_bitmask(bitmask) ::= <<
 TEST(TypeObjectTests, TestBitmaskTypeObject_$bitmask.name$)
 {
-    unsigned short flagId;
-
-    //Minimal
-    $check_bitmask_type(ctx=ctx, bitmask=bitmask, relation=false, relation_name="minimal", relation_capname="Minimal")$ 
-    flagId = 0;
-    $bitmask.members:{ flag | $check_bitmask_flag_type(ctx=ctx, flag=flag, relation=false, relation_name="minimal", relation_capname="Minimal")$ };separator="\n"$
-    ASSERT_EQ(flagId, $bitmask.name$_minimal_flagseq.size());
-
-    //Complete
-    $check_bitmask_type(ctx=ctx, bitmask=bitmask, relation=true, relation_name="complete", relation_capname="Complete")$ 
-    flagId = 0;
-    $bitmask.members:{ flag | $check_bitmask_flag_type(ctx=ctx, flag=flag, relation=true, relation_name="complete", relation_capname="Complete")$ };separator="\n"$
-    ASSERT_EQ(flagId, $bitmask.name$_complete_flagseq.size());
+    $check_bitmask_type(bitmask=bitmask)$ 
 }
 >>
 
-test_bitset(ctx, bitset) ::= <<
+test_bitset(bitset) ::= <<
 TEST(TypeObjectTests, TestBitsetTypeObject_$bitset.name$)
 {
-    unsigned short bitfieldId;
-
-    //Minimal
-    $check_bitset_type(ctx=ctx, bitset=bitset, relation=false, relation_name="minimal", relation_capname="Minimal")$ 
-    bitfieldId = 0;
-    $bitset.members:{ bitfield | $check_bitfield_type(ctx=ctx, bitfield=bitfield, relation=false, relation_name="minimal", relation_capname="Minimal")$ };separator="\n"$
-    ASSERT_EQ(bitfieldId, $bitset.name$_minimal_bitfieldseq.size());
-
-    //Complete
-    $check_bitset_type(ctx=ctx, bitset=bitset, relation=true, relation_name="complete", relation_capname="Complete")$ 
-    bitfieldId = 0;
-    $bitset.members:{ bitfield | $check_bitfield_type(ctx=ctx, bitfield=bitfield, relation=true, relation_name="complete", relation_capname="Complete")$ };separator="\n"$
-    ASSERT_EQ(bitfieldId, $bitset.name$_complete_bitfieldseq.size());
+    $check_bitset_type(bitset=bitset)$ 
 }
 >>
 
-test_annotation(ctx, annotation) ::= <<
+test_annotation(annotation) ::= <<
 TEST(TypeObjectTests, TestAnnotationTypeObject_$annotation.name$)
 {
-    MemberId memberId;
+    $check_annotation_type(annotation=annotation)$
+}
+>>
 
-    //Minimal
-    $check_annotation_type(ctx=ctx, annotation=annotation, relation=false, relation_name="minimal", relation_capname="Minimal")$ 
-    memberId = 0;
-    $annotation.members:{ parameter | $check_annotation_parameter_type(ctx=ctx, parameter=parameter, relation=false, relation_name="minimal", relation_capname="Minimal")$ };separator="\n"$
-    ASSERT_EQ(memberId, $annotation.name$_minimal_memberseq.size());
+test_sequence(sequence) ::= <<
+TEST(TypeObjectTests, TestSequenceTypeObject_$sequence_name(sequence)$)
+{
+    $check_sequence_type(sequence=sequence)$
+}
+>>
 
-    //Complete
-    $check_annotation_type(ctx=ctx, annotation=annotation, relation=true, relation_name="complete", relation_capname="Complete")$ 
-    memberId = 0;
-    $annotation.members:{ parameter | $check_annotation_parameter_type(ctx=ctx, parameter=parameter, relation=true, relation_name="complete", relation_capname="Complete")$ };separator="\n"$
-    ASSERT_EQ(memberId, $annotation.name$_complete_memberseq.size());
+test_map(map) ::= <<
+TEST(TypeObjectTests, TestMapTypeObject_$map_name(map)$)
+{
+    $check_map_type(map=map)$
+}
+>>
+
+test_array(array) ::= <<
+TEST(TypeObjectTests, TestArrayTypeObject_$array_name(array)$)
+{
+    $check_array_type(array=array)$
+}
+>>
+
+test_string(string) ::= <<
+TEST(TypeObjectTests, TestStringTypeObject_$string_name(name)$)
+{
+    $check_string_type(string=string)$
+}
+>>
+
+test_wstring(wstring) ::= <<
+TEST(TypeObjectTests, TestWstringTypeObject_$wstring_name(wstring)$)
+{
+    $check_wstring_type(wstring=wstring)$
 }
 >>
 
@@ -1031,33 +987,33 @@ fwd_decl(ctx, parent, type) ::= <<>>
 typedef_decl(ctx, parent, typedefs, typedefs_type, declarator_type) ::= <<
 $declarator_type$
 $typedefs_type$
-$test_typedef(ctx=ctx, typedefs=typedefs)$
+$test_typedef(typedefs=typedefs)$
 >>
 
 struct_type(ctx, parent, struct, member_list) ::= <<
 $member_list$
-$test_structure(ctx=ctx, struct=struct)$
+$test_structure(struct=struct)$
 >>
 
 union_type(ctx, parent, union, switch_type) ::= <<
 $switch_type$
-$test_union(ctx=ctx, union=union)$
+$test_union(union=union)$
 >>
 
 enum_type(ctx, parent, enum) ::= <<
-$test_enum(ctx=ctx, enum=enum)$
+$test_enum(enum=enum)$
 >>
 
 bitmask_type(ctx, parent, bitmask) ::= <<
-$test_bitmask(ctx=ctx, bitmask=bitmask)$
+$test_bitmask(bitmask=bitmask)$
 >>
 
 bitset_type(ctx, parent, bitset, extensions) ::= <<
-$test_bitset(ctx=ctx, bitset=bitset)$
+$test_bitset(bitset=bitset)$
 >>
 
 annotation(ctx, annotation) ::= <<
-$test_annotation(ctx=ctx, annotation=annotation)$
+$test_annotation(annotation=annotation)$
 >>
 
 module(ctx, parent, module, definition_list) ::= <<
@@ -1081,15 +1037,43 @@ element_type(ctx, element, type_element, declarator) ::= <<>>
 
 sequence_type(ctx, sequence, type_sequence) ::= <<
 $type_sequence$
+$test_sequence(sequence=sequence)$
 >>
 
 map_type(ctx, map, key_type, value_type) ::= <<
 $key_type$
 $value_type$
+$test_map(map=map)$
 >>
 
-string_type(ctx, string) ::= <<>>
+string_type(ctx, string) ::= <<
+$test_string(string=string)$
+>>
 
-wide_string_type(ctx, wstring) ::= <<>>
+wide_string_type(ctx, wstring) ::= <<
+$test_wstring(wstring=wstring)$
+>>
 
-array_declarator(ctx, array, array_type) ::= <<>>
+array_declarator(ctx, array, array_type) ::= <<
+$test_array(array=array)$
+>>
+
+sequence_name(sequence) ::= <<
+anonymous_sequence_$sequence.contentTypeCode.cppTypename$_$if(sequence.unbound)$4294967295$else$$sequence.evaluatedMaxsize$$endif$
+>>
+
+map_name(map) ::= <<
+anonymous_map_$map.keyTypeCode.cppTypename$_$map.valueTypeCode.cppTypename$_$if(map.isBounded)$$map.evaluatedMaxsize$$else$4294967295$endif$
+>>
+
+array_name(array, array_type) ::= <<
+anonymous_array_$array_type$$array.evaluatedDimensions : { dimension | _$dimension$}$
+>>
+
+string_name(string) ::= <<
+anonymous_string_$if(string.isBounded)$$string.evaluatedMaxsize$$else$4294967295$endif$
+>>
+
+wstring_name(wstring) ::= <<
+anonymous_wstring_$if(wstring.isBounded)$$wstring.evaluatedMaxsize$$else$4294967295$endif$
+>>
