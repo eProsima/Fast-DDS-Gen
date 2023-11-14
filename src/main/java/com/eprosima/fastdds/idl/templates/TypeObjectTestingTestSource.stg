@@ -20,10 +20,15 @@ main(ctx, definitions) ::= <<
 $fileHeader(ctx=ctx,  file=[ctx.filename, "TypeObjectTestingTest.cpp"], description=["This file contains TypeObject test code."])$
 
 #include <fastdds/dds/domain/DomainParticipantFactory.hpp>
+#include <fastdds/dds/xtypes/type_representation/TypeObject.h>
+#include <fastrtps/types/TypesBase.h>
 #include <fastrtps/utils/md5.h>
 #include <gtest/gtest.h>
 
 #include "$ctx.filename$TypeObject.h"
+
+using ReturnCode_t = eprosima::fastrtps::rtps::types::ReturnCode_t;
+using namespace eprosima::fastdds::dds::xtypes1_3;
 
 $definitions;separator="\n"$
 
@@ -39,11 +44,11 @@ int main(
 }
 >>
 
-get_type_identifier(ctx, type, relation, relation_name, var_name) ::= <<
-    const TypeIdentifier* $type.name$_$relation_name$_$var_name$ = 
-    DomainParticipantFactory::get_instance()->type_object_registry()->get_type_identifier(
-        "$if(ctx.GenerateTypesROS2)$$type.ROS2Scopedname$$else$$type.scopedname$$endif$",
-        $if(type.primitive)$false$else$$relation$$endif$);
+get_type_identifier(typename) ::= <<
+    TypeIdentifierPair type_ids;
+    ret_code =
+        eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->type_object_registry().get_type_identifiers(
+        "$typename$", type_ids);
 >>
 
 get_type_object(ctx, type, relation, relation_name, var_name) ::= <<
@@ -73,7 +78,7 @@ check_optional_detail_annotations(ctx, object) ::= <<
     for(int i = 0;i < $object.name$_$relation_name$_annotation_seq.size();i++)
     {
         AppliedAnnotation $object.name$_$relation_name$_applied_annotation = $object.name$_$relation_name$_annotation_seq.at(i);
-        $get_type_identifier(ctx=ctx, type=object, relation=relation, relation_name=relation_name, var_name=["annotation_type_id"])$
+        $get_type_identifier(typename=object.scopedname)$
         ASSERT_EQ($object.name$_$relation_name$_annotation_type_id->_d(), $object.name$_$relation_name$_applied_annotation.annotation_typeid()._d());
 
         AppliedAnnotationParameterSeq $object.name$_$relation_name$_annotation_param_seq = $object.name$_$relation_name$_applied_annotation.param_seq();
@@ -188,7 +193,7 @@ check_type_flags(ctx, object, flags_var_name) ::= <<
 
 check_alias_type(ctx, typedefs, relation, relation_name, relation_capname) ::= <<
     //=====check_alias_type - $relation_name$ - $typedefs.name$=====
-    $get_type_identifier(ctx=ctx, type=typedefs, relation=relation, relation_name=relation_name, var_name=["type_identifier"])$
+    $get_type_identifier(typename=typedefs.scopedname)$
     ASSERT_EQ(eprosima::fastrtps::types::EK_$if(relation)$COMPLETE$else$MINIMAL$endif$, $typedefs.name$_$relation_name$_type_identifier->_d());
 
     $get_type_object(ctx=ctx, type=typedefs, relation=relation, relation_name=relation_name, var_name=["typeobject"])$
@@ -214,7 +219,7 @@ check_alias_type(ctx, typedefs, relation, relation_name, relation_capname) ::= <
     CommonAliasBody $typedefs.name$_$relation_name$_common_alias_body = $typedefs.name$_$relation_name$_body.common();
     //AliasMemberFlag related_flags;// Unused. No flags apply
 
-    $get_type_identifier(ctx=ctx, type=typedefs.typedefContentTypeCode, relation=relation, relation_name=relation_name, var_name=["content_type_identifier"])$
+    $get_type_identifier(typename=typedefs.typedefContentTypeCode.scopedname)$
     ASSERT_EQ($typedefs.typedefContentTypeCode.name$_$relation_name$_content_type_identifier->_d(), $typedefs.name$_$relation_name$_common_alias_body.related_type()._d());
 
     $if(relation)$
@@ -230,7 +235,7 @@ check_alias_related_type(ctx, typedefs, relation, relation_name, relation_capnam
     $check_alias_related_type(ctx=ctx, typedefs=typedefs.typedefContentTypeCode, relation=relation, relation_name=relation_name, relation_capname=relation_capname)$
     $else$
     {
-    $get_type_identifier(ctx=ctx, type=typedefs, relation=relation, relation_name=relation_name, var_name=["content_type"])$
+    $get_type_identifier(typename=typedefs.scopedname)$
     TypeIdentifier $typedefs.name$_$relation_name$_related_type = $typedefs.name$_$relation_name$_common_alias_body.related_type();
     ASSERT_EQ($typedefs.name$_$relation_name$_content_type->_d(), $typedefs.name$_$relation_name$_related_type._d());}
     $endif$
@@ -238,7 +243,7 @@ check_alias_related_type(ctx, typedefs, relation, relation_name, relation_capnam
 
 check_struct_type(ctx, struct, relation, relation_name, relation_capname) ::= <<
     //=====check_struct_type - $relation_name$ - $struct.name$=====
-    $get_type_identifier(ctx=ctx, type=struct, relation=relation, relation_name=relation_name, var_name=["type_identifier"])$
+    $get_type_identifier(typename=struct.scopedname)$
     ASSERT_EQ(eprosima::fastrtps::types::EK_$if(relation)$COMPLETE$else$MINIMAL$endif$, $struct.name$_$relation_name$_type_identifier->_d());
     $get_type_object(ctx=ctx, type=struct, relation=relation, relation_name=relation_name, var_name=["typeobject"])$
     ASSERT_EQ(eprosima::fastrtps::types::EK_$if(relation)$COMPLETE$else$MINIMAL$endif$, $struct.name$_$relation_name$_typeobject->_d());
@@ -252,7 +257,7 @@ check_struct_type(ctx, struct, relation, relation_name, relation_capname) ::= <<
     $relation_capname$StructHeader $struct.name$_$relation_name$_header = $struct.name$_$relation_name$_struct.header();
 
     $if(struct.inheritance)$
-    $get_type_identifier(ctx=ctx, type=struct.inheritance, relation=relation, relation_name=relation_name, var_name=["inheritance_type_id"])$
+    $get_type_identifier(typename=struct.inheritance.scopedname)$
     ASSERT_EQ($struct.inheritance.name$_$relation_name$_inheritance_type_id->_d(), $struct.name$_$relation_name$_header.base_type()._d());
     $endif$
     $if(relation)$
@@ -280,7 +285,7 @@ check_struct_member_type(ctx, member, relation, relation_name, relation_capname)
     ASSERT_TRUE(struct_member_expected_flags & $struct.name$_$relation_name$_common_$member.name$_struct_member_member_flags);
     }
     TypeIdentifier $member.name$_$relation_name$_common_struct_member_member_type_id = $struct.name$_$relation_name$_common_$member.name$_struct_member.member_type_id();
-    $get_type_identifier(ctx=ctx, type=member, relation=relation, relation_name=relation_name, var_name=["common_struct_member_type_id"])$
+    $get_type_identifier(typename=member.scopedname)$
     ASSERT_EQ($member.name$_$relation_name$_common_struct_member_type_id->_d(), $member.name$_$relation_name$_common_struct_member_member_type_id._d());
     $if(relation)$
     {    
@@ -303,14 +308,14 @@ check_struct_member_type(ctx, member, relation, relation_name, relation_capname)
 
     $if (member.typecode.isAliasType)$
         //=====member.typecode.isAliasType=====
-        $check_alias_related_type(ctx=ctx, typedefs=member.typecode, relation=relation, relation_name=relation_name, relation_capname=relation_capname)$
+        $check_alias_related_type(typedefs=member.typecode, relation=relation, relation_name=relation_name, relation_capname=relation_capname)$
     $elseif (member.typecode.PrimitiveType)$
         //=====member.typecode.PrimitiveType=====
-        $get_type_identifier(ctx=ctx, type=member, relation=relation, relation_name=relation_name, var_name=["member_type"])$
+        $get_type_identifier(typename=member.scopedname)$
         ASSERT_EQ($member.name$_$relation_name$_member_type->_d(), $struct.name$_$relation_name$_common_$member.name$_struct_member.member_type_id()._d());
     $elseif (member.typecode.isStringType)$
         //=====member.typecode.isStringType=====
-        $get_type_identifier(ctx=ctx, type=member, relation=relation, relation_name=relation_name, var_name=["member_type"])$
+        $get_type_identifier(typename=member.scopedname)$
         ASSERT_EQ($member.name$_$relation_name$_member_type->_d(), $struct.name$_$relation_name$_common_$member.name$_struct_member.member_type_id()._d());
 
         if($member.typecode.maxsize$ <= 255){
@@ -320,7 +325,7 @@ check_struct_member_type(ctx, member, relation, relation_name, relation_capname)
         }
     $elseif (member.typecode.isWStringType)$
         //=====member.typecode.isWStringType=====
-        $get_type_identifier(ctx=ctx, type=member, relation=relation, relation_name=relation_name, var_name=["member_type"])$
+        $get_type_identifier(typename=member.scopedname)$
         ASSERT_EQ($member.name$_$relation_name$_member_type->_d(), $struct.name$_$relation_name$_common_$member.name$_struct_member.member_type_id()._d());
 
         if($member.typecode.maxsize$ <= 255){
@@ -356,7 +361,7 @@ check_struct_member_type(ctx, member, relation, relation_name, relation_capname)
 
 check_union_type(ctx, union, relation, relation_name, relation_capname) ::= <<
     //=====check_union_type - $relation_name$ - $union.name$=====
-    $get_type_identifier(ctx=ctx, type=union, relation=relation, relation_name=relation_name, var_name=["type_identifier"])$
+    $get_type_identifier(typename=union.scopedname)$
     ASSERT_EQ(eprosima::fastrtps::types::EK_$if(relation)$COMPLETE$else$MINIMAL$endif$, $union.name$_$relation_name$_type_identifier->_d());
 
     $get_type_object(ctx=ctx, type=union, relation=relation, relation_name=relation_name, var_name=["typeobject"])$
@@ -393,7 +398,7 @@ check_union_type(ctx, union, relation, relation_name, relation_capname) ::= <<
     ASSERT_TRUE(union_discriminator_expected_flags & $union.name$_$relation_name$_discriminator_common_member_flags);
     }
     TypeIdentifier $union.name$_$relation_name$_discriminator_common_type_id = $union.name$_$relation_name$_discriminator_common.type_id();
-    $get_type_identifier(ctx=ctx, type=union, relation=relation, relation_name=relation_name, var_name=["discriminator_common_factory_type_id"])$  
+    $get_type_identifier(typename=union.scopedname)$  
     ASSERT_EQ($union.name$_$relation_name$_discriminator_common_factory_type_id->_d(), $union.name$_$relation_name$_discriminator_common.type_id()._d());
     $if(relation)$
     CompleteDiscriminatorMember $union.name$_$relation_name$_detail = $union.name$_$relation_name$_union.discriminator();
@@ -418,7 +423,7 @@ check_union_member_type(ctx, member, relation, relation_name, relation_capname) 
     }
 
     TypeIdentifier $union.name$_$relation_name$_common_$member.name$_member_typeid = $union.name$_$relation_name$_common_$member.name$_common.type_id();
-    $get_type_identifier(ctx=ctx, type=member, relation=relation, relation_name=relation_name, var_name=["common_member_factory_type_id"])$  
+    $get_type_identifier(typename=member.scopedname)$  
     ASSERT_EQ($member.name$_$relation_name$_common_member_factory_type_id->_d(), $union.name$_$relation_name$_common_$member.name$_member_typeid._d());
 
     UnionCaseLabelSeq $union.name$_$relation_name$_common_$member.name$_member_labelseq = $union.name$_$relation_name$_common_$member.name$_common.label_seq();
@@ -453,7 +458,7 @@ check_union_member_type(ctx, member, relation, relation_name, relation_capname) 
 
 check_enum_type(ctx, enum, relation, relation_name, relation_capname) ::= <<
     //=====check_enum_type - $relation_name$ - $enum.name$=====
-    $get_type_identifier(ctx=ctx, type=enum, relation=relation, relation_name=relation_name, var_name=["type_identifier"])$
+    $get_type_identifier(typename=enum.scopedname)$
     ASSERT_EQ(eprosima::fastrtps::types::EK_$if(relation)$COMPLETE$else$MINIMAL$endif$, $enum.name$_$relation_name$_type_identifier->_d());
 
     $get_type_object(ctx=ctx, type=enum, relation=relation, relation_name=relation_name, var_name=["typeobject"])$
@@ -508,7 +513,7 @@ check_enum_literal_type(ctx, literal, relation, relation_name, relation_capname)
 
 check_bitmask_type(ctx, bitmask, relation, relation_name, relation_capname) ::= <<
     //=====check_bitmask_type - $relation_name$ - $bitmask.name$=====
-    $get_type_identifier(ctx=ctx, type=bitmask, relation=relation, relation_name=relation_name, var_name=["type_identifier"])$
+    $get_type_identifier(typename=bitmask.scopedname)$
     ASSERT_EQ(eprosima::fastrtps::types::EK_$if(relation)$COMPLETE$else$MINIMAL$endif$, $bitmask.name$_$relation_name$_type_identifier->_d());
 
     $get_type_object(ctx=ctx, type=bitmask, relation=relation, relation_name=relation_name, var_name=["typeobject"])$
@@ -563,7 +568,7 @@ check_bitmask_flag_type(ctx, flag, relation, relation_name, relation_capname) ::
 
 check_bitset_type(ctx, bitset, relation, relation_name, relation_capname) ::= <<
     //=====check_bitset_type - $relation_name$ - $bitset.name$=====
-    $get_type_identifier(ctx=ctx, type=bitset, relation=relation, relation_name=relation_name, var_name=["type_identifier"])$
+    $get_type_identifier(typename=bitset.scopedname)$
     ASSERT_EQ(eprosima::fastrtps::types::EK_$if(relation)$COMPLETE$else$MINIMAL$endif$, $bitset.name$_$relation_name$_type_identifier->_d());
 
     $get_type_object(ctx=ctx, type=bitset, relation=relation, relation_name=relation_name, var_name=["typeobject"])$
@@ -626,7 +631,7 @@ check_bitfield_type(ctx, bitfield, relation, relation_name, relation_capname) ::
 
 check_annotation_type(ctx, annotation, relation, relation_name, relation_capname) ::= <<
     //=====check_annotation_type - $relation_name$ - $annotation.name$=====
-    $get_type_identifier(ctx=ctx, type=annotation, relation=relation, relation_name=relation_name, var_name=["type_identifier"])$
+    $get_type_identifier(typename=annotation.scopedname)$
     ASSERT_EQ(eprosima::fastrtps::types::EK_$if(relation)$COMPLETE$else$MINIMAL$endif$, $annotation.name$_$relation_name$_type_identifier->_d());
 
     $get_type_object(ctx=ctx, type=annotation, relation=relation, relation_name=relation_name, var_name=["typeobject"])$
@@ -714,16 +719,16 @@ check_annotation_parameter_type(ctx, parameter, relation, relation_name, relatio
 
 check_const_type(ctx, const, relation, relation_name, relation_capname) ::= <<
     //=====check_const_type - $relation_name$ - $const.name$=====
-    $get_type_identifier(ctx=ctx, type=const, relation=relation, relation_name=relation_name, var_name=["type_identifier"])$
+    $get_type_identifier(typename=const.scopedname)$
     ASSERT_EQ($const.name$_$relation_name$_type_identifier->_d(), $const.name$_$relation_name$_type_identifier->_d());
 >>
 
 check_array_type(ctx, array, relation, relation_name, relation_capname) ::= <<
     //=====check_array_type - $relation_name$ - $array.name$=====
-    $get_type_identifier(ctx=ctx, type=array, relation=relation, relation_name=relation_name, var_name=["type_identifier"])$
+    $get_type_identifier(typename=array.scopedname)$
     ASSERT_EQ(eprosima::fastrtps::types::EK_$if(relation)$COMPLETE$else$MINIMAL$endif$, $array.name$_$relation_name$_type_identifier->_d());
 
-    $get_type_identifier(ctx=ctx, type=array, relation=relation, relation_name=relation_name, var_name=["typeobject"])$
+    $get_type_identifier(typename=array.scopedname)$
     ASSERT_EQ(eprosima::fastrtps::types::EK_$if(relation)$COMPLETE$else$MINIMAL$endif$, $array.name$_$relation_name$_typeobject->_d());
 
     $relation_capname$TypeObject $array.name$_$relation_name$_object = $array.name$_$relation_name$_typeobject->$relation_name$();
@@ -757,7 +762,7 @@ check_array_type(ctx, array, relation, relation_name, relation_capname) ::= <<
     $check_member_flags(ctx=ctx, object=array, flags_var_name=["array"])$
     ASSERT_TRUE(array_expected_flags & $map.name$_$relation_name$_array);
     }
-    $get_type_identifier(ctx=ctx, type=array, relation=relation, relation_name=relation_name, var_name=["common_element_id"])$
+    $get_type_identifier(typename=array.scopedname)$
     ASSERT_EQ($array.name$_$relation_name$_common_element_id->_d(), $array.name$_$relation_name$_common_element.type()._d());
 
     $if(relation)$
@@ -782,10 +787,10 @@ check_array_type(ctx, array, relation, relation_name, relation_capname) ::= <<
 
 check_sequence_type(ctx, sequence, relation, relation_name, relation_capname) ::= <<
     //=====check_sequence_type - $relation_name$ - $sequence.name$=====
-    $get_type_identifier(ctx=ctx, type=sequence, relation=relation, relation_name=relation_name, var_name=["type_identifier"])$
+    $get_type_identifier(typename=sequence.scopedname)$
     ASSERT_EQ(eprosima::fastrtps::types::EK_$if(relation)$COMPLETE$else$MINIMAL$endif$, $sequence.name$_$relation_name$_type_identifier._d());
 
-    $get_type_identifier(ctx=ctx, type=sequence, relation=relation, relation_name=relation_name, var_name=["typeobject"])$
+    $get_type_identifier(typename=sequence.scopedname)$
     ASSERT_EQ(eprosima::fastrtps::types::EK_$if(relation)$COMPLETE$else$MINIMAL$endif$, $sequence.name$_$relation_name$_typeobject->_d());
 
     $relation_capname$TypeObject $sequence.name$_$relation_name$_object = $sequence.name$_$relation_name$_typeobject->$relation_name$();
@@ -814,7 +819,7 @@ check_sequence_type(ctx, sequence, relation, relation_name, relation_capname) ::
     ASSERT_TRUE(sequence_expected_flags & $sequence.name$_$relation_name$_common_element_flags);
     }
 
-    $get_type_identifier(ctx=ctx, type=sequence, relation=relation, relation_name=relation_name, var_name=["common_element_id"])$
+    $get_type_identifier(typename=sequence.scopedname)$
     ASSERT_EQ($sequence.name$_$relation_name$_common_element_id->_d(), $sequence.name$_$relation_name$_type_identifier._d());
        
     $if(relation)$
@@ -833,10 +838,10 @@ check_sequence_type(ctx, sequence, relation, relation_name, relation_capname) ::
 
 check_map_type(ctx, map, relation, relation_name, relation_capname) ::= <<
     //=====check_map_type - $relation_name$ - $map.name$=====
-    $get_type_identifier(ctx=ctx, type=map, relation=relation, relation_name=relation_name, var_name=["type_identifier"])$
+    $get_type_identifier(typename=map.scopedname)$
     ASSERT_EQ(eprosima::fastrtps::types::EK_$if(relation)$COMPLETE$else$MINIMAL$endif$, $map.name$_$relation_name$_type_identifier._d());
 
-    $get_type_identifier(ctx=ctx, type=map, relation=relation, relation_name=relation_name, var_name=["typeobject"])$
+    $get_type_identifier(typename=map.scopedname)$
     ASSERT_EQ(eprosima::fastrtps::types::EK_$if(relation)$COMPLETE$else$MINIMAL$endif$, $map.name$_$relation_name$_typeobject->_d());
 
     $relation_capname$TypeObject $map.name$_$relation_name$_object = $map.name$_$relation_name$_typeobject->$relation_name$();
@@ -864,7 +869,7 @@ check_map_type(ctx, map, relation, relation_name, relation_capname) ::= <<
     $check_member_flags(ctx=ctx, object=map.key, flags_var_name=["key_common_element"])$
     ASSERT_TRUE(key_common_element_expected_flags & $map.name$_$relation_name$_key_common_element_flags);
     }
-    $get_type_identifier(ctx=ctx, type=map.key.typecode, relation=relation, relation_name=relation_name, var_name=["key_common_element_type_id"])$
+    $get_type_identifier(typename=map.key.typecode.scopedname)$
     ASSERT_EQ($map.key.typecode.name$_$relation_name$_key_common_element_type_id->_d(), $map.name$_$relation_name$_key_common_element.type()._d());
       
     $if(relation)$
@@ -881,7 +886,7 @@ check_map_type(ctx, map, relation, relation_name, relation_capname) ::= <<
     $check_member_flags(ctx=ctx, object=map.element, flags_var_name=["element_common_element"])$
     ASSERT_TRUE(element_common_element_expected_flags & $map.name$_$relation_name$_element_common_element_flags);
     }
-    $get_type_identifier(ctx=ctx, type=map.element.typecode, relation=relation, relation_name=relation_name, var_name=["element_common_element_type_id"])$
+    $get_type_identifier(typename=map.element.typecode.scopedname)$
     ASSERT_EQ($map.element.typecode.name$_$relation_name$_element_common_element_type_id->_d(), $map.name$_$relation_name$_element_common_element.type()._d());
 
     $if(relation)$
