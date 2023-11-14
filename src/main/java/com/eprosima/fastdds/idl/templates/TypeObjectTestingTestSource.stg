@@ -21,6 +21,7 @@ $fileHeader(ctx=ctx,  file=[ctx.filename, "TypeObjectTestingTest.cpp"], descript
 
 #include <fastdds/dds/domain/DomainParticipantFactory.hpp>
 #include <fastdds/dds/xtypes/type_representation/TypeObject.h>
+#include <fastdds/dds/xtypes/type_representation/TypeObjectRegistry.hpp>
 #include <fastrtps/types/TypesBase.h>
 #include <fastrtps/utils/md5.h>
 #include <gtest/gtest.h>
@@ -51,11 +52,11 @@ get_type_identifier(typename) ::= <<
         "$typename$", type_ids);
 >>
 
-get_type_object(ctx, type, relation, relation_name, var_name) ::= <<
-    const TypeObject* $type.name$_$relation_name$_$var_name$ = 
-    DomainParticipantFactory::get_instance()->type_object_registry()->get_type_object(
-        "$if(ctx.GenerateTypesROS2)$$type.ROS2Scopedname$$else$$type.scopedname$$endif$",
-        $if(type.primitive)$false$else$$relation$$endif$);
+get_type_object(typename) ::= <<
+    TypeObjectPair type_objects;
+    ret_code =
+        eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->type_object_registry().get_type_objects(
+        "$typename$", type_objects);
 >>
 
 check_optional_detail_annotations(ctx, object) ::= <<
@@ -196,7 +197,7 @@ check_alias_type(ctx, typedefs, relation, relation_name, relation_capname) ::= <
     $get_type_identifier(typename=typedefs.scopedname)$
     ASSERT_EQ(eprosima::fastrtps::types::EK_$if(relation)$COMPLETE$else$MINIMAL$endif$, $typedefs.name$_$relation_name$_type_identifier->_d());
 
-    $get_type_object(ctx=ctx, type=typedefs, relation=relation, relation_name=relation_name, var_name=["typeobject"])$
+    $get_type_object(type=typedefs.scopedname)$
     ASSERT_EQ(eprosima::fastrtps::types::EK_$if(relation)$COMPLETE$else$MINIMAL$endif$, $typedefs.name$_$relation_name$_typeobject->_d());
 
     $relation_capname$TypeObject $typedefs.name$_$relation_name$_object = $typedefs.name$_$relation_name$_typeobject->$relation_name$();
@@ -245,7 +246,7 @@ check_struct_type(ctx, struct, relation, relation_name, relation_capname) ::= <<
     //=====check_struct_type - $relation_name$ - $struct.name$=====
     $get_type_identifier(typename=struct.scopedname)$
     ASSERT_EQ(eprosima::fastrtps::types::EK_$if(relation)$COMPLETE$else$MINIMAL$endif$, $struct.name$_$relation_name$_type_identifier->_d());
-    $get_type_object(ctx=ctx, type=struct, relation=relation, relation_name=relation_name, var_name=["typeobject"])$
+    $get_type_object(typename=struct.scopedname)$
     ASSERT_EQ(eprosima::fastrtps::types::EK_$if(relation)$COMPLETE$else$MINIMAL$endif$, $struct.name$_$relation_name$_typeobject->_d());
     $relation_capname$TypeObject $struct.name$_$relation_name$_object = $struct.name$_$relation_name$_typeobject->$relation_name$();
     ASSERT_EQ(TK_STRUCTURE, $struct.name$_$relation_name$_object._d());
@@ -364,7 +365,7 @@ check_union_type(ctx, union, relation, relation_name, relation_capname) ::= <<
     $get_type_identifier(typename=union.scopedname)$
     ASSERT_EQ(eprosima::fastrtps::types::EK_$if(relation)$COMPLETE$else$MINIMAL$endif$, $union.name$_$relation_name$_type_identifier->_d());
 
-    $get_type_object(ctx=ctx, type=union, relation=relation, relation_name=relation_name, var_name=["typeobject"])$
+    $get_type_object(typename=union.scopedname)$
     ASSERT_EQ(eprosima::fastrtps::types::EK_$if(relation)$COMPLETE$else$MINIMAL$endif$, $union.name$_$relation_name$_typeobject->_d());
 
     $relation_capname$TypeObject $union.name$_$relation_name$_object = $union.name$_$relation_name$_typeobject->$relation_name$();
@@ -461,7 +462,7 @@ check_enum_type(ctx, enum, relation, relation_name, relation_capname) ::= <<
     $get_type_identifier(typename=enum.scopedname)$
     ASSERT_EQ(eprosima::fastrtps::types::EK_$if(relation)$COMPLETE$else$MINIMAL$endif$, $enum.name$_$relation_name$_type_identifier->_d());
 
-    $get_type_object(ctx=ctx, type=enum, relation=relation, relation_name=relation_name, var_name=["typeobject"])$
+    $get_type_object(typename=enum.scopedname)$
     ASSERT_EQ(eprosima::fastrtps::types::EK_$if(relation)$COMPLETE$else$MINIMAL$endif$, $enum.name$_$relation_name$_typeobject->_d());
 
     $relation_capname$TypeObject $enum.name$_$relation_name$_object = $enum.name$_$relation_name$_typeobject->$relation_name$();
@@ -516,7 +517,7 @@ check_bitmask_type(ctx, bitmask, relation, relation_name, relation_capname) ::= 
     $get_type_identifier(typename=bitmask.scopedname)$
     ASSERT_EQ(eprosima::fastrtps::types::EK_$if(relation)$COMPLETE$else$MINIMAL$endif$, $bitmask.name$_$relation_name$_type_identifier->_d());
 
-    $get_type_object(ctx=ctx, type=bitmask, relation=relation, relation_name=relation_name, var_name=["typeobject"])$
+    $get_type_object(typename=bitmask.scopedname)$
     ASSERT_EQ(eprosima::fastrtps::types::EK_$if(relation)$COMPLETE$else$MINIMAL$endif$, $bitmask.name$_$relation_name$_typeobject->_d());
 
     $relation_capname$TypeObject $bitmask.name$_$relation_name$_object = $bitmask.name$_$relation_name$_typeobject->$relation_name$();
@@ -571,7 +572,7 @@ check_bitset_type(ctx, bitset, relation, relation_name, relation_capname) ::= <<
     $get_type_identifier(typename=bitset.scopedname)$
     ASSERT_EQ(eprosima::fastrtps::types::EK_$if(relation)$COMPLETE$else$MINIMAL$endif$, $bitset.name$_$relation_name$_type_identifier->_d());
 
-    $get_type_object(ctx=ctx, type=bitset, relation=relation, relation_name=relation_name, var_name=["typeobject"])$
+    $get_type_object(typename=bitset.scopedname)$
     ASSERT_EQ(eprosima::fastrtps::types::EK_$if(relation)$COMPLETE$else$MINIMAL$endif$, $bitset.name$_$relation_name$_typeobject->_d());
 
     $relation_capname$TypeObject $bitset.name$_$relation_name$_object = $bitset.name$_$relation_name$_typeobject->$relation_name$();
@@ -634,7 +635,7 @@ check_annotation_type(ctx, annotation, relation, relation_name, relation_capname
     $get_type_identifier(typename=annotation.scopedname)$
     ASSERT_EQ(eprosima::fastrtps::types::EK_$if(relation)$COMPLETE$else$MINIMAL$endif$, $annotation.name$_$relation_name$_type_identifier->_d());
 
-    $get_type_object(ctx=ctx, type=annotation, relation=relation, relation_name=relation_name, var_name=["typeobject"])$
+    $get_type_object(typename=annotation.scopedname)$
     ASSERT_EQ(eprosima::fastrtps::types::EK_$if(relation)$COMPLETE$else$MINIMAL$endif$, $annotation.name$_$relation_name$_typeobject->_d());
 
     $relation_capname$TypeObject $annotation.name$_$relation_name$_object = $annotation.name$_$relation_name$_typeobject->$relation_name$();
