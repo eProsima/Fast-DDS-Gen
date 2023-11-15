@@ -537,38 +537,35 @@ $check_bitset_member_seq(bitset=bitset)$
 >>
 
 check_bitfield(bitfield) ::= <<
-    //=====check_bitfield_type - $relation_name$ - $bitfield.name$=====
-    $relation_capname$Bitfield field_$bitset.name$_$relation_name$_$bitfield.name$ = $bitset.name$_$relation_name$_bitfieldseq.at(bitfieldId);
-    CommonBitfield $bitset.name$_$relation_name$_common_$bitfield.name$_bitset_bitfield = field_$bitset.name$_$relation_name$_$bitfield.name$.common();
-    
-    unsigned short $bitset.name$_$relation_name$_common_$bitfield.name$_bitset_bitfield_position = $bitset.name$_$relation_name$_common_$bitfield.name$_bitset_bitfield.position();
-    ASSERT_EQ(bitfieldId, $bitset.name$_$relation_name$_common_$bitfield.name$_bitset_bitfield_position);
-    //BitsetMemberFlag flags;// Unused. No flags apply
-    octet $bitset.name$_$relation_name$_common_$bitfield.name$_bitset_bitfield_bitcount = $bitset.name$_$relation_name$_common_$bitfield.name$_bitset_bitfield.bitcount();
-    ASSERT_EQ($bitfield.spec.bitSize$, $bitset.name$_$relation_name$_common_$bitfield.name$_bitset_bitfield_bitcount);
-    TypeKind $bitset.name$_$relation_name$_common_$bitfield.name$_bitset_bitfield_holder_type = $bitset.name$_$relation_name$_common_$bitfield.name$_bitset_bitfield.holder_type();// Must be primitive integer type
-    ASSERT_EQ($bitfield.spec.typecode.typeIdentifier$, $bitset.name$_$relation_name$_common_$bitfield.name$_bitset_bitfield_holder_type);
-
-    //Bitfieldbitfield bitfields;// Unused. No bitfields apply
-
-    $if(relation)$
+{
+    size_t pos = 0;
+    bool found = false;
+    for (; pos < type_objects.complete_type_object.bitset_type().field_seq().size(); ++pos)
     {
-    CompleteMemberDetail $bitfield.name$_$relation_name$_detail = field_$bitset.name$_$relation_name$_$bitfield.name$.detail();
-    MemberName $bitfield.name$_$relation_name$_detail_bitfield_name = $bitfield.name$_$relation_name$_detail.name();
-    ASSERT_EQ("$bitfield.name$", $bitfield.name$_$relation_name$_detail_bitfield_name);
+        if ($bitfield.basePosition$ == type_objects.complete_type_object.bitset_type().field_seq[pos].common().position())
+        {
+            found = true;
+            break;
+        }
     }
+    ASSERT_TRUE(found);
+    EXPECT_EQ($bitfield.basePosition$, type_objects.complete_type_object.bitset_type().field_seq[pos].common().position());
+    EXPECT_EQ($bitfield.basePosition$, type_objects.minimal_type_object.bitset_type().field_seq[pos].common().position());
+    EXPECT_EQ(0u, type_objects.complete_type_object.bitset_type().field_seq[pos].common().flags());
+    EXPECT_EQ(0u, type_objects.minimal_type_object.bitset_type().field_seq[pos].common().flags());
+    EXPECT_EQ($bitfield.spec.bitSize$, type_objects.complete_type_object.bitset_type().field_seq[pos].common().bitcount());
+    EXPECT_EQ($bitfield.spec.bitSize$, type_objects.minimal_type_object.bitset_type().field_seq[pos].common().bitcount());
+    EXPECT_EQ($bitfield.spec.typecode.typeIdentifier$, type_objects.complete_type_object.bitset_type().field_seq[pos].common().holder_type());
+    EXPECT_EQ($bitfield.spec.typecode.typeIdentifier$, type_objects.minimal_type_object.bitset_type().field_seq[pos].common().holder_type());
+    $if(bitfield.name)$
+    EXPECT_EQ($bitfield.name$, type_objects.complete_type_object.bitset_type().field_seq[pos].detail().name());
+    EXPECT_EQ(TypeObjectUtils::name_hash($bitfield.name$), type_objects.minimal_type_object.bitset_type().field_seq[pos].name_hash());
     $else$
-    {
-    NameHash field_$bitset.name$_$relation_name$_$bitfield.name$_name_hash = field_$bitset.name$_$relation_name$_$bitfield.name$.name_hash();
-    MD5 minimal_field_$bitset.name$_$relation_name$_$bitfield.name$_name_hash("$bitfield.name$");
-    for(int i = 0;i < 4;++i)
-    {
-        ASSERT_EQ(minimal_field_$bitset.name$_$relation_name$_$bitfield.name$_name_hash.digest[i], field_$bitset.name$_$relation_name$_$bitfield.name$_name_hash[i]);
-    }
-    }
+    EXPECT_EQ("", type_objects.complete_type_object.bitset_type().field_seq[pos].detail().name());
+    EXPECT_EQ("", type_objects.minimal_type_object.bitset_type().field_seq[pos].name_hash());
     $endif$
-
-    bitfieldId++;
+    $check_member_detail_annotations(member=bitfield)$
+}
 >>
 
 check_bitset_member_seq(bitset) ::= <<>>
