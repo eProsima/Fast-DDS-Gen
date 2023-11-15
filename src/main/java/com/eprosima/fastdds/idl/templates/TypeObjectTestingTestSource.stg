@@ -459,31 +459,27 @@ check_enum_literal(literal) ::= <<
 check_enum_literal_seq(enum) ::= <<>>
 
 check_bitmask_type(bitmask) ::= <<
-    //=====check_bitmask_type - $relation_name$ - $bitmask.name$=====
-    $get_type_identifier(typename=bitmask.scopedname)$
-    ASSERT_EQ(eprosima::fastrtps::types::EK_$if(relation)$COMPLETE$else$MINIMAL$endif$, $bitmask.name$_$relation_name$_type_identifier->_d());
-
-    $get_type_object(typename=bitmask.scopedname)$
-    ASSERT_EQ(eprosima::fastrtps::types::EK_$if(relation)$COMPLETE$else$MINIMAL$endif$, $bitmask.name$_$relation_name$_typeobject->_d());
-
-    $relation_capname$TypeObject $bitmask.name$_$relation_name$_object = $bitmask.name$_$relation_name$_typeobject->$relation_name$();
-    ASSERT_EQ(TK_BITMASK, $bitmask.name$_$relation_name$_object._d());
-
-    $relation_capname$BitmaskType $bitmask.name$_$relation_name$_bitmask = $bitmask.name$_$relation_name$_object.bitmask_type();
-    //BitmaskTypeFlag flags;// Unused. No flags apply
-
-    $relation_capname$BitmaskHeader $bitmask.name$_$relation_name$_header = $bitmask.name$_$relation_name$_bitmask.header();
-    CommonBitmaskHeader $bitmask.name$_$relation_name$_commonheader = $bitmask.name$_$relation_name$_header.common();
-
-    BitBound $bitmask.name$_$relation_name$_commonheader_bit_bound = $bitmask.name$_$relation_name$_commonheader.bit_bound();
-    ASSERT_EQ($bitmask.bitBound$, $bitmask.name$_$relation_name$_commonheader_bit_bound);
-
-    $relation_capname$BitflagSeq $bitmask.name$_$relation_name$_flagseq = $bitmask.name$_$relation_name$_bitmask.flag_seq();
-    $bitmask.members:{ flag | $check_bitmask_flag_type(ctx=ctx, flag=flag, relation=true, relation_name="complete", relation_capname="Complete")$ };separator="\n"$
-    ASSERT_EQ(flagId, $bitmask.name$_complete_flagseq.size());
+ReturnCode ret_code;
+TypeIdentifierPair type_ids;
+$get_type_identifier(typename=bitmask.scopedname, result=["type_ids"])$
+$check_direct_hash_type_identifier(typeid=["type_ids"])$
+TypeObjectPair type_objects;
+$get_type_object(typename=bitmask.scopedname, result=["type_objects"])$
+EXPECT_EQ(TK_BITMASK, type_objects.minimal_type_object._d());
+EXPECT_EQ(TK_BITMASK, type_objects.complete_type_object._d());
+EXPECT_EQ(0u, type_objects.minimal_type_object.bitmask_type().bitset_flags());
+EXPECT_EQ(0u, type_objects.complete_type_object.bitmask_type().bitset_flags());
+EXPECT_EQ($bitmask.bitBound$, type_objects.minimal_type_object.bitmask_type().header().common().bit_bound());
+EXPECT_EQ($bitmask.bitBound$, type_objects.complete_type_object.bitmask_type().header().common().bit_bound());
+EXPECT_EQ($bitmask.scopedname$, type_objects.complete_type_object.bitmask_type().header().detail().type_name());
+$check_type_detail_annotations(object=bitmask)$
+$bitmask.members: { member | $check_bitmask_flag(bitflag=member)$}; separator="\n"$
+ASSERT_EQ($bitmask.membersSize$, type_objects.minimal_type_object.bitmask_type().flag_seq().size());
+ASSERT_EQ($bitmask.membersSize$, type_objects.complete_type_object.bitmask_type().flag_seq().size());
+$check_bitmask_bitflag_seq(bitmask=bitmask)$
 >>
 
-check_bitmask_flag_type(ctx, flag, relation, relation_name, relation_capname) ::= <<
+check_bitmask_flag(bitflag) ::= <<
     //=====check_bitmask_flag_type - $relation_name$ - $flag.name$=====
     $relation_capname$Bitflag $bitmask.name$_$relation_name$_$flag.name$ = $bitmask.name$_$relation_name$_flagseq.at(flagId);
     CommonBitflag $bitmask.name$_$relation_name$_common_$flag.name$_bitmask_flag = $bitmask.name$_$relation_name$_$flag.name$.common();
@@ -514,6 +510,8 @@ check_bitmask_flag_type(ctx, flag, relation, relation_name, relation_capname) ::
 
     flagId++;
 >>
+
+check_bitmask_bitflag_seq(bitmask) ::= <<>>
 
 check_bitset_type(bitset) ::= <<
 ReturnCode_t ret_code;
