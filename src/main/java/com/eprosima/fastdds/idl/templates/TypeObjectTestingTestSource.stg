@@ -234,40 +234,31 @@ $endif$
 
 
 check_alias_type(typedefs) ::= <<
-    //=====check_alias_type - $relation_name$ - $typedefs.name$=====
-    $get_type_identifier(typename=typedefs.scopedname)$
-    ASSERT_EQ(eprosima::fastrtps::types::EK_$if(relation)$COMPLETE$else$MINIMAL$endif$, $typedefs.name$_$relation_name$_type_identifier->_d());
-
-    $get_type_object(type=typedefs.scopedname)$
-    ASSERT_EQ(eprosima::fastrtps::types::EK_$if(relation)$COMPLETE$else$MINIMAL$endif$, $typedefs.name$_$relation_name$_typeobject->_d());
-
-    $relation_capname$TypeObject $typedefs.name$_$relation_name$_object = $typedefs.name$_$relation_name$_typeobject->$relation_name$();
-    ASSERT_EQ(TK_ALIAS, $typedefs.name$_$relation_name$_object._d());
-
-    $relation_capname$AliasType $typedefs.name$_$relation_name$_typedefs = $typedefs.name$_$relation_name$_object.alias_type();
-    //AliasTypeFlag alias_flags;// Unused. No flags apply
-    
-    $relation_capname$AliasHeader $typedefs.name$_$relation_name$_header = $typedefs.name$_$relation_name$_typedefs.header();
-
-    $if(relation)$
-    CompleteTypeDetail $typedefs.name$_$relation_name$_header_detail = $typedefs.name$_$relation_name$_header.detail();// not present for anonymous
-    $check_optional_detail_annotations(ctx=ctx, object=typedefs)$
-    QualifiedTypeName $typedefs.name$_$relation_name$_header_detail_type_name = $typedefs.name$_$relation_name$_header_detail.type_name();
-    ASSERT_EQ("$typedefs.scopedname$", $typedefs.name$_$relation_name$_header_detail_type_name);
-
-    $endif$
-
-    $relation_capname$AliasBody $typedefs.name$_$relation_name$_body = $typedefs.name$_$relation_name$_typedefs.body();
-    CommonAliasBody $typedefs.name$_$relation_name$_common_alias_body = $typedefs.name$_$relation_name$_body.common();
-    //AliasMemberFlag related_flags;// Unused. No flags apply
-
-    $get_type_identifier(typename=typedefs.typedefContentTypeCode.scopedname)$
-    ASSERT_EQ($typedefs.typedefContentTypeCode.name$_$relation_name$_content_type_identifier->_d(), $typedefs.name$_$relation_name$_common_alias_body.related_type()._d());
-
-    $if(relation)$
-    CompleteAliasBody $typedefs.name$_$relation_name$_detail = $typedefs.name$_$relation_name$_typedefs.body();
-    $check_optional_detail_annotations(ctx=ctx, object=typedefs)$
-    $endif$
+ReturnCode_t ret_code;
+TypeIdentifierPair type_ids;
+$get_type_identifier(typename=typedefs.scopedname, result="type_ids")$
+$check_direct_hash_type_identifier(typeid="type_ids")$
+TypeObjectPair type_objects;
+$get_type_object(typename=typedefs.scopedname, result="type_ids")$
+EXPECT_EQ(TK_ALIAS, type_objects.minimal_type_object._d());
+EXPECT_EQ(TK_ALIAS, type_objects.complete_type_object._d());
+EXPECT_EQ(0u, type_objects.minimal_type_object.alias_type().alias_flags());
+EXPECT_EQ(0u, type_objects.complete_type_object.alias_type().alias_flags());
+EXPECT_EQ($typedefs.scopedname$, type_objects.complete_type_object.alias_type().header().detail().type_name());
+$check_type_detail_annotations(object=typedefs, type="alias_type")$
+EXPECT_EQ(0u, type_objects.minimal_type_object.alias_type().body().common().related_flags());
+EXPECT_EQ(0u, type_objects.complete_type_object.alias_type().body().common().related_flags());
+TypeIdentifierPair related_type_ids;
+$if (typedefs.typedefContentTypeCode.primitive)$
+$get_type_identifier(typename=typedefs.typedefContentTypeCode.cppTypename, result="related_type_ids")$
+$else$
+$get_type_identifier(typename=typedefs.typedefContentTypeCode.scopedname, result="related_type_ids")$
+$endif$
+EXPECT_TRUE(related_type_ids.type_identifier1() == type_objects.minimal_type_object.alias_type().body().common().related_type() ||
+    related_type_ids.type_identifier2() == type_objects.minimal_type_object.alias_type().body().common().related_type());
+EXPECT_TRUE(related_type_ids.type_identifier1() == type_objects.complete_type_object.alias_type().body().common().related_type() ||
+    related_type_ids.type_identifier2() == type_objects.complete_type_object.alias_type().body().common().related_type());
+$check_member_detail_annotations(member=typedefs)$
 >>
 
 check_struct_type(struct) ::= <<
