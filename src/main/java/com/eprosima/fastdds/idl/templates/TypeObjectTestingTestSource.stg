@@ -64,15 +64,15 @@ check_type_detail_annotations(object, type) ::= <<
 $if(object.annotationList)$
 $object.annotationList: { annotation |
 $if(annotation.isVerbatim)$
-ASSERT_TRUE(type_objects.complete_type_object.$type$().header().detail().ann_builtin().has_value());
-ASSERT_TRUE(type_objects.complete_type_object.$type$().header().detail().ann_builtin().value().verbatim().has_value());
+ASSERT_TRUE(type_objects.complete_type_object.$type$.ann_builtin().has_value());
+ASSERT_TRUE(type_objects.complete_type_object.$type$.ann_builtin().value().verbatim().has_value());
 $annotation.valueList : { verbatim_param |
 $if(verbatim_param.isVerbatimPlacement)$
-EXPECT_EQ($verbatim_param.enumStringValue$, type_objects.complete_type_object.$type$().header().detail().ann_builtin().value().verbatim.value().placement());
+EXPECT_EQ($verbatim_param.enumStringValue$, type_objects.complete_type_object.$type$.ann_builtin().value().verbatim.value().placement());
 $elseif(verbatim_param.isVerbatimLanguage)$
-EXPECT_EQ($verbatim_param.value$, type_objects.complete_type_object.$type$().header().detail().ann_builtin().value().verbatim.value().language());
+EXPECT_EQ($verbatim_param.value$, type_objects.complete_type_object.$type$.ann_builtin().value().verbatim.value().language());
 $elseif(verbatim_param.isVerbatimText)$
-EXPECT_EQ($verbatim_param.value$, type_objects.complete_type_object.$type$().header().detail().ann_builtin().value().verbatim.value().text());
+EXPECT_EQ($verbatim_param.value$, type_objects.complete_type_object.$type$.ann_builtin().value().verbatim.value().text());
 $endif$
 }; separator="\n"$
 $elseif(!annotation.isBuiltin)$
@@ -86,25 +86,25 @@ check_applied_custom_annotations(object, type) ::= <<
 TypeIdentifierPair annotation_type_ids;
 $get_type_identifier(typename=annotation.scopedname, result="annotation_type_ids")$
 $check_direct_hash_type_identifier(typeid="annotation_type_ids")$
-ASSERT_TRUE(type_objects.complete_type_object.$type$().header().detail().ann_custom().has_value());
+ASSERT_TRUE(type_objects.complete_type_object.$type$.ann_custom().has_value());
 {
     size_t pos = 0;
     bool found = false;
-    for(; pos < type_objects.complete_type_object.$type$().header().detail().ann_custom().value().size())
+    for(; pos < type_objects.complete_type_object.$type$.ann_custom().value().size())
     {
-        if (annotation_type_ids.type_identifier1() == type_objects.complete_type_object.$type$().header().detail().ann_custom().value()[pos].annotation_typeid() ||
-            annotation_type_ids.type_identifier2() == type_objects.complete_type_object.$type$().header().detail().ann_custom().value()[pos].annotation_typeid())
+        if (annotation_type_ids.type_identifier1() == type_objects.complete_type_object.$type$.ann_custom().value()[pos].annotation_typeid() ||
+            annotation_type_ids.type_identifier2() == type_objects.complete_type_object.$type$.ann_custom().value()[pos].annotation_typeid())
         {
             found = true;
             break;
         }
     }
     ASSERT_TRUE(found);
-    EXPECT_TRUE(annotation_type_ids.type_identifier1() == type_objects.complete_type_object.$type$().header().detail().ann_custom().value()[pos].annotation_typeid() ||
-            annotation_type_ids.type_identifier2() == type_objects.complete_type_object.$type$().header().detail().ann_custom().value()[pos].annotation_typeid());
+    EXPECT_TRUE(annotation_type_ids.type_identifier1() == type_objects.complete_type_object.$type$.ann_custom().value()[pos].annotation_typeid() ||
+            annotation_type_ids.type_identifier2() == type_objects.complete_type_object.$type$.ann_custom().value()[pos].annotation_typeid());
     $if (annotation.valueList)$
-    ASSERT_TRUE(type_objects.complete_type_object.$type$().header().detail().ann_custom().value()[pos].param_seq().has_value());
-    EXPECT_EQ($annotation.valuesSize$, type_objects.complete_type_object.$type$().header().detail().ann_custom().value()[pos].param_seq().value().size());
+    ASSERT_TRUE(type_objects.complete_type_object.$type$.ann_custom().value()[pos].param_seq().has_value());
+    EXPECT_EQ($annotation.valuesSize$, type_objects.complete_type_object.$type$.ann_custom().value()[pos].param_seq().value().size());
     $annotation.valueList : { annotation_parameter |
     $check_annotation_parameter(param=annotation_parameter, type=type)$
     }; separator="\n"$
@@ -117,77 +117,77 @@ check_annotation_parameter(param, type) ::= <<
     NameHash param_name_hash = TypeObjectUtils::name_hash($param.name$);
     size_t pos_ = 0;
     bool found_ = false;
-    for (; pos_ < type_objects.complete_type_object.$type$().header().detail().ann_custom().value()[pos].param_seq().value().size(); ++pos_)
+    for (; pos_ < type_objects.complete_type_object.$type$.ann_custom().value()[pos].param_seq().value().size(); ++pos_)
     {
-        if (param_name_hash == type_objects.complete_type_object.$type$().header().detail().ann_custom().value()[pos].param_seq().value()[pos_].paramname_hash())
+        if (param_name_hash == type_objects.complete_type_object.$type$.ann_custom().value()[pos].param_seq().value()[pos_].paramname_hash())
         {
             found_ = true;
             break;
         }
     }
     ASSERT_TRUE(found_);
-    EXPECT_EQ(param_name_hash, type_objects.complete_type_object.$type$().header().detail().ann_custom().value()[pos].param_seq().value()[pos_].paramname_hash());
+    EXPECT_EQ(param_name_hash, type_objects.complete_type_object.$type$.ann_custom().value()[pos].param_seq().value()[pos_].paramname_hash());
     $if (param.typecode.primitiveType)$
     $if (param.typecode.isBooleanType)$
-    EXPECT_EQ(TK_BOOLEAN, type_objects.complete_type_object.$type$().header().detail().ann_custom().value()[pos].param_seq().value()[pos_].value()._d());
-    EXPECT_EQ($param.value$, type_objects.complete_type_object.$type$().header().detail().ann_custom().value()[pos].param_seq().value()[pos_].value().boolean_value());
+    EXPECT_EQ(TK_BOOLEAN, type_objects.complete_type_object.$type$.ann_custom().value()[pos].param_seq().value()[pos_].value()._d());
+    EXPECT_EQ($param.value$, type_objects.complete_type_object.$type$.ann_custom().value()[pos].param_seq().value()[pos_].value().boolean_value());
     $elseif (param.typecode.isByteType)$
-    EXPECT_EQ(TK_BYTE, type_objects.complete_type_object.$type$().header().detail().ann_custom().value()[pos].param_seq().value()[pos_].value()._d());
-    EXPECT_EQ($param.value$, type_objects.complete_type_object.$type$().header().detail().ann_custom().value()[pos].param_seq().value()[pos_].value().byte_value());
+    EXPECT_EQ(TK_BYTE, type_objects.complete_type_object.$type$.ann_custom().value()[pos].param_seq().value()[pos_].value()._d());
+    EXPECT_EQ($param.value$, type_objects.complete_type_object.$type$.ann_custom().value()[pos].param_seq().value()[pos_].value().byte_value());
     $elseif (param.typecode.isInt8Type)$
-    EXPECT_EQ(TK_INT8, type_objects.complete_type_object.$type$().header().detail().ann_custom().value()[pos].param_seq().value()[pos_].value()._d());
-    EXPECT_EQ($param.value$, type_objects.complete_type_object.$type$().header().detail().ann_custom().value()[pos].param_seq().value()[pos_].value().int8_value());
+    EXPECT_EQ(TK_INT8, type_objects.complete_type_object.$type$.ann_custom().value()[pos].param_seq().value()[pos_].value()._d());
+    EXPECT_EQ($param.value$, type_objects.complete_type_object.$type$.ann_custom().value()[pos].param_seq().value()[pos_].value().int8_value());
     $elseif (param.typecode.isUint8Type)$
-    EXPECT_EQ(TK_UINT8, type_objects.complete_type_object.$type$().header().detail().ann_custom().value()[pos].param_seq().value()[pos_].value()._d());
-    EXPECT_EQ($param.value$, type_objects.complete_type_object.$type$().header().detail().ann_custom().value()[pos].param_seq().value()[pos_].value().uint8_value());
+    EXPECT_EQ(TK_UINT8, type_objects.complete_type_object.$type$.ann_custom().value()[pos].param_seq().value()[pos_].value()._d());
+    EXPECT_EQ($param.value$, type_objects.complete_type_object.$type$.ann_custom().value()[pos].param_seq().value()[pos_].value().uint8_value());
     $elseif (param.typecode.isInt16Type)$
-    EXPECT_EQ(TK_INT16, type_objects.complete_type_object.$type$().header().detail().ann_custom().value()[pos].param_seq().value()[pos_].value()._d());
-    EXPECT_EQ($param.value$, type_objects.complete_type_object.$type$().header().detail().ann_custom().value()[pos].param_seq().value()[pos_].value().int16_value());
+    EXPECT_EQ(TK_INT16, type_objects.complete_type_object.$type$.ann_custom().value()[pos].param_seq().value()[pos_].value()._d());
+    EXPECT_EQ($param.value$, type_objects.complete_type_object.$type$.ann_custom().value()[pos].param_seq().value()[pos_].value().int16_value());
     $elseif (param.typecode.isUint16Type)$
-    EXPECT_EQ(TK_UINT16, type_objects.complete_type_object.$type$().header().detail().ann_custom().value()[pos].param_seq().value()[pos_].value()._d());
-    EXPECT_EQ($param.value$, type_objects.complete_type_object.$type$().header().detail().ann_custom().value()[pos].param_seq().value()[pos_].value().uint_16_value());
+    EXPECT_EQ(TK_UINT16, type_objects.complete_type_object.$type$.ann_custom().value()[pos].param_seq().value()[pos_].value()._d());
+    EXPECT_EQ($param.value$, type_objects.complete_type_object.$type$.ann_custom().value()[pos].param_seq().value()[pos_].value().uint_16_value());
     $elseif (param.typecode.isInt32Type)$
-    EXPECT_EQ(TK_INT32, type_objects.complete_type_object.$type$().header().detail().ann_custom().value()[pos].param_seq().value()[pos_].value()._d());
-    EXPECT_EQ($param.value$, type_objects.complete_type_object.$type$().header().detail().ann_custom().value()[pos].param_seq().value()[pos_].value().int32_value());
+    EXPECT_EQ(TK_INT32, type_objects.complete_type_object.$type$.ann_custom().value()[pos].param_seq().value()[pos_].value()._d());
+    EXPECT_EQ($param.value$, type_objects.complete_type_object.$type$.ann_custom().value()[pos].param_seq().value()[pos_].value().int32_value());
     $elseif (param.typecode.isUint32Type)$
-    EXPECT_EQ(TK_UINT32, type_objects.complete_type_object.$type$().header().detail().ann_custom().value()[pos].param_seq().value()[pos_].value()._d());
-    EXPECT_EQ($param.value$, type_objects.complete_type_object.$type$().header().detail().ann_custom().value()[pos].param_seq().value()[pos_].value().uint32_value());
+    EXPECT_EQ(TK_UINT32, type_objects.complete_type_object.$type$.ann_custom().value()[pos].param_seq().value()[pos_].value()._d());
+    EXPECT_EQ($param.value$, type_objects.complete_type_object.$type$.ann_custom().value()[pos].param_seq().value()[pos_].value().uint32_value());
     $elseif (param.typecode.isInt64Type)$
-    EXPECT_EQ(TK_INT64, type_objects.complete_type_object.$type$().header().detail().ann_custom().value()[pos].param_seq().value()[pos_].value()._d());
-    EXPECT_EQ($param.value$, type_objects.complete_type_object.$type$().header().detail().ann_custom().value()[pos].param_seq().value()[pos_].value().int64_value());
+    EXPECT_EQ(TK_INT64, type_objects.complete_type_object.$type$.ann_custom().value()[pos].param_seq().value()[pos_].value()._d());
+    EXPECT_EQ($param.value$, type_objects.complete_type_object.$type$.ann_custom().value()[pos].param_seq().value()[pos_].value().int64_value());
     $elseif (param.typecode.isUint64Type)$
-    EXPECT_EQ(TK_UINT64, type_objects.complete_type_object.$type$().header().detail().ann_custom().value()[pos].param_seq().value()[pos_].value()._d());
-    EXPECT_EQ($param.value$, type_objects.complete_type_object.$type$().header().detail().ann_custom().value()[pos].param_seq().value()[pos_].value().uint64_value());
+    EXPECT_EQ(TK_UINT64, type_objects.complete_type_object.$type$.ann_custom().value()[pos].param_seq().value()[pos_].value()._d());
+    EXPECT_EQ($param.value$, type_objects.complete_type_object.$type$.ann_custom().value()[pos].param_seq().value()[pos_].value().uint64_value());
     $elseif (param.typecode.isFloat32Type)$
-    EXPECT_EQ(TK_FLOAT32, type_objects.complete_type_object.$type$().header().detail().ann_custom().value()[pos].param_seq().value()[pos_].value()._d());
-    EXPECT_EQ($param.value$, type_objects.complete_type_object.$type$().header().detail().ann_custom().value()[pos].param_seq().value()[pos_].value().float32_value());
+    EXPECT_EQ(TK_FLOAT32, type_objects.complete_type_object.$type$.ann_custom().value()[pos].param_seq().value()[pos_].value()._d());
+    EXPECT_EQ($param.value$, type_objects.complete_type_object.$type$.ann_custom().value()[pos].param_seq().value()[pos_].value().float32_value());
     $elseif (param.typecode.isFloat64Type)$
-    EXPECT_EQ(TK_FLOAT64, type_objects.complete_type_object.$type$().header().detail().ann_custom().value()[pos].param_seq().value()[pos_].value()._d());
-    EXPECT_EQ($param.value$, type_objects.complete_type_object.$type$().header().detail().ann_custom().value()[pos].param_seq().value()[pos_].value().float64_value());
+    EXPECT_EQ(TK_FLOAT64, type_objects.complete_type_object.$type$.ann_custom().value()[pos].param_seq().value()[pos_].value()._d());
+    EXPECT_EQ($param.value$, type_objects.complete_type_object.$type$.ann_custom().value()[pos].param_seq().value()[pos_].value().float64_value());
     $elseif (param.typecode.isFloat128Type)$
-    EXPECT_EQ(TK_FLOAT128, type_objects.complete_type_object.$type$().header().detail().ann_custom().value()[pos].param_seq().value()[pos_].value()._d());
-    EXPECT_EQ($param.value$, type_objects.complete_type_object.$type$().header().detail().ann_custom().value()[pos].param_seq().value()[pos_].value().float128_value());
+    EXPECT_EQ(TK_FLOAT128, type_objects.complete_type_object.$type$.ann_custom().value()[pos].param_seq().value()[pos_].value()._d());
+    EXPECT_EQ($param.value$, type_objects.complete_type_object.$type$.ann_custom().value()[pos].param_seq().value()[pos_].value().float128_value());
     $elseif (param.typecode.isCharType)$
-    EXPECT_EQ(TK_CHAR8, type_objects.complete_type_object.$type$().header().detail().ann_custom().value()[pos].param_seq().value()[pos_].value()._d());
-    EXPECT_EQ($param.value$, type_objects.complete_type_object.$type$().header().detail().ann_custom().value()[pos].param_seq().value()[pos_].value().char_value());
+    EXPECT_EQ(TK_CHAR8, type_objects.complete_type_object.$type$.ann_custom().value()[pos].param_seq().value()[pos_].value()._d());
+    EXPECT_EQ($param.value$, type_objects.complete_type_object.$type$.ann_custom().value()[pos].param_seq().value()[pos_].value().char_value());
     $elseif (param.typecode.isWCharType)$
-    EXPECT_EQ(TK_CHAR16, type_objects.complete_type_object.$type$().header().detail().ann_custom().value()[pos].param_seq().value()[pos_].value()._d());
-    EXPECT_EQ($param.value$, type_objects.complete_type_object.$type$().header().detail().ann_custom().value()[pos].param_seq().value()[pos_].value().wchar_value());
+    EXPECT_EQ(TK_CHAR16, type_objects.complete_type_object.$type$.ann_custom().value()[pos].param_seq().value()[pos_].value()._d());
+    EXPECT_EQ($param.value$, type_objects.complete_type_object.$type$.ann_custom().value()[pos].param_seq().value()[pos_].value().wchar_value());
     $endif$
     $elseif (param.typecode.isEnumType)$
-    EXPECT_EQ(TK_ENUM, type_objects.complete_type_object.$type$().header().detail().ann_custom().value()[pos].param_seq().value()[pos_].value()._d());
-    EXPECT_EQ($param.value$, type_objects.complete_type_object.$type$().header().detail().ann_custom().value()[pos].param_seq().value()[pos_].value().enumerated_value());
+    EXPECT_EQ(TK_ENUM, type_objects.complete_type_object.$type$.ann_custom().value()[pos].param_seq().value()[pos_].value()._d());
+    EXPECT_EQ($param.value$, type_objects.complete_type_object.$type$.ann_custom().value()[pos].param_seq().value()[pos_].value().enumerated_value());
     $elseif (param.typecode.isStringType)$
-    EXPECT_EQ(TK_STRING8, type_objects.complete_type_object.$type$().header().detail().ann_custom().value()[pos].param_seq().value()[pos_].value()._d());
-    EXPECT_EQ($param.value$, type_objects.complete_type_object.$type$().header().detail().ann_custom().value()[pos].param_seq().value()[pos_].value().string8_value());
+    EXPECT_EQ(TK_STRING8, type_objects.complete_type_object.$type$.ann_custom().value()[pos].param_seq().value()[pos_].value()._d());
+    EXPECT_EQ($param.value$, type_objects.complete_type_object.$type$.ann_custom().value()[pos].param_seq().value()[pos_].value().string8_value());
     $elseif (param.typecode.isWStringType)$
-    EXPECT_EQ(TK_STRING16, type_objects.complete_type_object.$type$().header().detail().ann_custom().value()[pos].param_seq().value()[pos_].value()._d());
-    EXPECT_EQ($param.value$, type_objects.complete_type_object.$type$().header().detail().ann_custom().value()[pos].param_seq().value()[pos_].value().string16_value());
+    EXPECT_EQ(TK_STRING16, type_objects.complete_type_object.$type$.ann_custom().value()[pos].param_seq().value()[pos_].value()._d());
+    EXPECT_EQ($param.value$, type_objects.complete_type_object.$type$.ann_custom().value()[pos].param_seq().value()[pos_].value().string16_value());
     $endif$
 }
 >>
 
-check_member_detail_annotations(member) ::= <<>>
+check_member_detail_annotations(member, type) ::= <<>>
 
 expected_member_flags(object) ::= <<
 MemberFlag $object.name$_expected_flags;
@@ -245,7 +245,7 @@ EXPECT_EQ(TK_ALIAS, type_objects.complete_type_object._d());
 EXPECT_EQ(0u, type_objects.minimal_type_object.alias_type().alias_flags());
 EXPECT_EQ(0u, type_objects.complete_type_object.alias_type().alias_flags());
 EXPECT_EQ($typedefs.scopedname$, type_objects.complete_type_object.alias_type().header().detail().type_name());
-$check_type_detail_annotations(object=typedefs, type="alias_type")$
+$check_type_detail_annotations(object=typedefs, type="alias_type().header().detail()")$
 EXPECT_EQ(0u, type_objects.minimal_type_object.alias_type().body().common().related_flags());
 EXPECT_EQ(0u, type_objects.complete_type_object.alias_type().body().common().related_flags());
 TypeIdentifierPair related_type_ids;
@@ -258,7 +258,7 @@ EXPECT_TRUE(related_type_ids.type_identifier1() == type_objects.minimal_type_obj
     related_type_ids.type_identifier2() == type_objects.minimal_type_object.alias_type().body().common().related_type());
 EXPECT_TRUE(related_type_ids.type_identifier1() == type_objects.complete_type_object.alias_type().body().common().related_type() ||
     related_type_ids.type_identifier2() == type_objects.complete_type_object.alias_type().body().common().related_type());
-$check_member_detail_annotations(member=typedefs)$
+$check_member_detail_annotations(member=typedefs, type="alias_type().body()")$
 >>
 
 check_struct_type(struct) ::= <<
@@ -287,14 +287,14 @@ EXPECT_EQ(invalid_type_id, type_objects.minimal_type_object.struct_type().header
 EXPECT_EQ(invalid_type_id, type_objects.complete_type_object.struct_type().header().base_type());
 $endif$
 EXPECT_EQ($struct.scopedname$, type_objects.complete_type_object.struct_type().header().detail().type_name());
-$check_type_detail_annotations(object=struct, type="struct_type")$
-$struct.members: { member | $check_struct_member(member=member, parent=struct)$}; separator="\n"$
+$check_type_detail_annotations(object=struct, type="struct_type().header().detail()")$
+$struct.members: { member | $check_struct_member(member=member)$}; separator="\n"$
 ASSERT_EQ($struct.membersSize$, type_objects.minimal_type_object.struct_type().member_seq().size());
 ASSERT_EQ($struct.membersSize$, type_objects.complete_type_object.struct_type().member_seq().size());
 $check_struct_member_seq(struct=struct)$
 >>
 
-check_struct_member(member, parent) ::= <<
+check_struct_member(member) ::= <<
 {
     size_t pos = 0;
     bool found = false;
@@ -308,7 +308,7 @@ check_struct_member(member, parent) ::= <<
     }
     ASSERT_TRUE(found);
     EXPECT_EQ($member.name$, type_objects.complete_type_object.struct_type().member_seq()[pos].detail().name());
-    $check_member_detail_annotations(member=member)$
+    $check_member_detail_annotations(member=member, type="struct_type().member_seq()[pos].detail()")$
     NameHash member_name_hashed = TypeObjectUtils::name_hash($member.name$);
     EXPECT_EQ(member_name_hashed, type_objects.minimal_type_object.struct_type().member_seq()[pos].detail().name_hash());
     $if(member.annotationId)$
@@ -323,7 +323,7 @@ check_struct_member(member, parent) ::= <<
     EXPECT_EQ(member_id, type_objects.minimal_type_object.struct_type().member_seq()[pos].common().member_id());
     EXPECT_EQ(member_id, type_objects.complete_type_object.struct_type().member_seq()[pos].common().member_id());
     $endif$
-    $expected_member_flags(member)$
+    $expected_member_flags(object=member)$
     EXPECT_EQ($member.name$_expected_flags, type_objects.minimal_type_object.struct_type().member_seq()[pos].common().member_flags());
     EXPECT_EQ($member.name$_expected_flags, type_objects.complete_type_object.struct_type().member_seq()[pos].common().member_flags());
     TypeIdentifierPair member_type_ids;
@@ -342,57 +342,40 @@ check_struct_member(member, parent) ::= <<
 check_struct_member_seq(struct) ::= <<>>
 
 check_union_type(union) ::= <<
-    //=====check_union_type - $relation_name$ - $union.name$=====
-    $get_type_identifier(typename=union.scopedname)$
-    ASSERT_EQ(eprosima::fastrtps::types::EK_$if(relation)$COMPLETE$else$MINIMAL$endif$, $union.name$_$relation_name$_type_identifier->_d());
-
-    $get_type_object(typename=union.scopedname)$
-    ASSERT_EQ(eprosima::fastrtps::types::EK_$if(relation)$COMPLETE$else$MINIMAL$endif$, $union.name$_$relation_name$_typeobject->_d());
-
-    $relation_capname$TypeObject $union.name$_$relation_name$_object = $union.name$_$relation_name$_typeobject->$relation_name$();
-    ASSERT_EQ(TK_UNION, $union.name$_$relation_name$_object._d());
-
-    $relation_capname$UnionType $union.name$_$relation_name$_union = $union.name$_$relation_name$_object.union_type();
-
-    UnionTypeFlag $union.name$_$relation_name$_union_flags = $union.name$_$relation_name$_union.union_flags();
-    {
-    $check_type_flags(ctx=ctx, object=union, flags_var_name=["union"])$
-    ASSERT_TRUE(union_expected_flags & $union.name$_$relation_name$_union_flags);
-    }
-    $relation_capname$UnionHeader $union.name$_$relation_name$_header = $union.name$_$relation_name$_union.header();
-    $if(relation)$
-    {
-    CompleteTypeDetail $union.name$_$relation_name$_detail = $union.name$_$relation_name$_header.detail();
-    $check_optional_detail_annotations(ctx=ctx, object=union)$
-    QualifiedTypeName $union.name$_$relation_name$_detail_type_name = $union.name$_$relation_name$_detail.type_name();
-    ASSERT_EQ("$union.scopedname$", $union.name$_$relation_name$_detail_type_name);
-    }
-    $else$
-    //MinimalTypeDetail detail;// Empty. Available for future extension
-    $endif$
-
-    $relation_capname$DiscriminatorMember $union.name$_$relation_name$_discriminator = $union.name$_$relation_name$_union.discriminator();
-
-    CommonDiscriminatorMember $union.name$_$relation_name$_discriminator_common = $union.name$_$relation_name$_discriminator.common();
-    UnionDiscriminatorFlag $union.name$_$relation_name$_discriminator_common_member_flags = $union.name$_$relation_name$_discriminator_common.member_flags();
-    {
-    $check_member_flags(ctx=ctx, object=union.discriminator, flags_var_name=["union_discriminator"])$
-    ASSERT_TRUE(union_discriminator_expected_flags & $union.name$_$relation_name$_discriminator_common_member_flags);
-    }
-    TypeIdentifier $union.name$_$relation_name$_discriminator_common_type_id = $union.name$_$relation_name$_discriminator_common.type_id();
-    $get_type_identifier(typename=union.scopedname)$  
-    ASSERT_EQ($union.name$_$relation_name$_discriminator_common_factory_type_id->_d(), $union.name$_$relation_name$_discriminator_common.type_id()._d());
-    $if(relation)$
-    CompleteDiscriminatorMember $union.name$_$relation_name$_detail = $union.name$_$relation_name$_union.discriminator();
-    $check_optional_detail_annotations(ctx=ctx, object=union)$
-    $endif$
-
-    $relation_capname$UnionMemberSeq $union.name$_$relation_name$_memberseq = $union.name$_$relation_name$_union.member_seq();
-    $union.members:{ member | $check_union_member_type(ctx=ctx, member=member, relation=true, relation_name="complete", relation_capname="Complete")$ };separator="\n"$
-    ASSERT_EQ(memberId, $union.name$_complete_memberseq.size());
+ReturnCode_t ret_code;
+TypeIdentifierPair type_ids;
+$get_type_identifier(typename=union.scopedname, result="type_ids")$
+$check_direct_hash_type_identifier(typeid="type_ids")$
+TypeObjectPair type_objects;
+$get_type_object(typename=union.scopedname, result="type_objects")$
+EXPECT_EQ(TK_UNION, type_objects.minimal_type_object._d());
+EXPECT_EQ(TK_UNION, type_objects.complete_type_object._d());
+$expected_type_flags(object=union)$
+EXPECT_EQ($union.name$_expected_flags, type_objects.minimal_type_object.union_type().union_flags());
+EXPECT_EQ($union.name$_expected_flags, type_objects.complete_type_object.union_type().union_flags());
+EXPECT_EQ($union.scopedname$, type_objects.complete_type_object.union_type().header().detail().type_name());
+$check_type_detail_annotations(object=union, type="union_type().header().detail()")$
+$expected_member_flags(object=union.discriminatorMember)$
+EXPECT_EQ($union.discriminatorMember.name$_expected_flags, type_objects.minimal_type_object.union_type().discriminator().common().member_flags());
+EXPECT_EQ($union.discriminatorMember.name$_expected_flags, type_objects.complete_type_object.union_type().discriminator().common().member_flags());
+TypeIdentifierPair discriminator_type_ids;
+$if(union.discriminator.primitive)$
+$get_type_identifier(typename=union.discriminator.cppTypename, result="discriminator_type_ids")$
+$else$
+$get_type_identifier(typename=union.discriminator.scopedname, result="discriminator_type_ids")$
+$endif$
+EXPECT_TRUE(discriminator_type_ids.type_identifier1() == type_objects.minimal_type_object.union_type().discriminator().common().type_id() ||
+    discriminator_type_ids.type_identifier1() == type_objects.complete_type_object.union_type().discriminator().common().type_id());
+EXPECT_TRUE(discriminator_type_ids.type_identifier2() == type_objects.minimal_type_object.union_type().discriminator().common().type_id() ||
+    discriminator_type_ids.type_identifier2() == type_objects.complete_type_object.union_type().discriminator().common().type_id());
+$check_type_detail_annotations(object=union.discriminator, type="union_type().discriminator()")$
+$union.members: { member | $check_union_member(member=member)$}; separator="\n"$
+ASSERT_EQ($union.membersSize$, type_objects.minimal_type_object.union_type().member_seq().size());
+ASSERT_EQ($union.membersSize$, type_objects.complete_type_object.union_type().member_seq().size());
+$check_union_member_seq(union=union)$
 >>
 
-check_union_member_type(ctx, member, relation, relation_name, relation_capname) ::= <<
+check_union_member(member) ::= <<
     //=====check_union_member_type - $relation_name$ - $member.name$=====
     $relation_capname$UnionMember $union.name$_$relation_name$_$member.name$_member = $union.name$_$relation_name$_memberseq.at(memberId);
     CommonUnionMember $union.name$_$relation_name$_common_$member.name$_common = $union.name$_$relation_name$_$member.name$_member.common();
@@ -440,6 +423,8 @@ check_union_member_type(ctx, member, relation, relation_name, relation_capname) 
     memberId++;
 >>
 
+check_union_member_seq(union) ::= <<>>
+
 check_enum_type(enum) ::= <<
 ReturnCode_t ret_code;
 TypeIdentifierPair type_ids;
@@ -454,7 +439,7 @@ EXPECT_EQ(0u, type_objects.complete_type_object.enumerated_type().enum_flags());
 EXPECT_EQ($enum.bitBound$, type_objects.minimal_type_object.enumerated_type().header().common().bit_bound());
 EXPECT_EQ($enum.bitBound$, type_objects.complete_type_object.enumerated_type().header().common().bit_bound());
 EXPECT_EQ($enum.scopedname$, type_objects.complete_type_object.enumerated_type().header().detail().type_name());
-$check_type_detail_annotations(object=enum, type="enumerated_type")$
+$check_type_detail_annotations(object=enum, type="enumerated_type().header().detail()")$
 int32_t enum_literal_id = 0;
 $enum.members: { member | $check_enum_literal(literal=member)$}; separator="\n"$
 ASSERT_EQ($enum.membersSize$, type_objects.minimal_type_object.enumerated_type().literal_seq().size());
@@ -476,7 +461,7 @@ check_enum_literal(literal) ::= <<
     }
     ASSERT_TRUE(found);
     EXPECT_EQ($literal.name$, type_objects.complete_type_object.enumerated_type().literal_seq()[pos].detail().name());
-    $check_member_detail_annotations(member=literal)$
+    $check_member_detail_annotations(member=literal, type="enumerated_type().literal_seq()[pos].detail()")$
     EXPECT_EQ(TypeObjectUtils::name_hash($literal.name$), type_objects.minimal_type_object.enumerated_type().literal_seq()[pos].detail().name_hash());
     $if (literal.annotationValue)$
     EXPECT_EQ($literal.annotationValueValue$, type_objects.complete_type_object.enumerated_type().literal_seq()[pos].common().value());
@@ -509,7 +494,7 @@ EXPECT_EQ(0u, type_objects.complete_type_object.bitmask_type().bitset_flags());
 EXPECT_EQ($bitmask.bitBound$, type_objects.minimal_type_object.bitmask_type().header().common().bit_bound());
 EXPECT_EQ($bitmask.bitBound$, type_objects.complete_type_object.bitmask_type().header().common().bit_bound());
 EXPECT_EQ($bitmask.scopedname$, type_objects.complete_type_object.bitmask_type().header().detail().type_name());
-$check_type_detail_annotations(object=bitmask, type="bitmask_type")$
+$check_type_detail_annotations(object=bitmask, type="bitmask_type().header().detail()")$
 $bitmask.members: { member | $check_bitmask_flag(bitflag=member)$}; separator="\n"$
 ASSERT_EQ($bitmask.membersSize$, type_objects.minimal_type_object.bitmask_type().flag_seq().size());
 ASSERT_EQ($bitmask.membersSize$, type_objects.complete_type_object.bitmask_type().flag_seq().size());
@@ -530,7 +515,7 @@ check_bitmask_flag(bitflag) ::= <<
     }
     ASSERT_TRUE(found);
     EXPECT_EQ($bitflag.name$, type_objects.complete_type_object.bitmask_type().flag_seq()[pos].detail().name());
-    $check_member_detail_annotations(member=bitflag)$
+    $check_member_detail_annotations(member=bitflag, type="bitmask_type().flag_seq()[pos].detail()")$
     EXPECT_EQ(TypeObjectUtils::name_hash($bitflag.name$), type_objects.minimal_type_object.bitmask_type().flag_seq()[pos].detail().name_hash());
     EXPECT_EQ($bitflag.position$, type_objects.minimal_type_object.bitmask_type().flag_seq()[pos].common().position());
     EXPECT_EQ($bitflag.position$, type_objects.complete_type_object.bitmask_type().flag_seq()[pos].common().position());
@@ -553,7 +538,7 @@ EXPECT_EQ(TK_BITSET, type_objects.complete_type_object._d());
 EXPECT_EQ(0u, type_objects.minimal_type_object.bitset_type().bitset_flags());
 EXPECT_EQ(0u, type_objects.complete_type_object.bitset_type().bitset_flags());
 EXPECT_EQ($bitset.scopedname$, type_objects.complete_type_object.bitset_type().header().detail().type_name());
-$check_type_detail_annotations(object=bitset, type="bitset_type")$
+$check_type_detail_annotations(object=bitset, type="bitset_type().header().detail()")$
 $bitset.members: { member | $check_bitfield(bitfield=member)$}; separator="\n"$
 ASSERT_EQ($bitset.membersSize$, type_objects.minimal_type_object.bitset_type().field_seq().size());
 ASSERT_EQ($bitset.membersSize$, type_objects.complete_type_object.bitset_type().field_seq().size());
@@ -588,7 +573,7 @@ check_bitfield(bitfield) ::= <<
     EXPECT_EQ("", type_objects.complete_type_object.bitset_type().field_seq()[pos].detail().name());
     EXPECT_EQ("", type_objects.minimal_type_object.bitset_type().field_seq()[pos].name_hash());
     $endif$
-    $check_member_detail_annotations(member=bitfield)$
+    $check_member_detail_annotations(member=bitfield, type="bitset_type().field_seq()[pos].detail()")$
 }
 >>
 
