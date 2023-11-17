@@ -52,3 +52,17 @@ bitset_inherit_copy_init(parent) ::= <<$parent.scopedname$(x)>>
 bitset_inherit_move_init(parent) ::= <<$parent.scopedname$(std::move(x))>>
 
 indexName(name, loopvar) ::= <<$name$[$loopvar$]>>
+
+//{ Fast DDS-Gen extensions
+module_conversion(ctx, parent, modules, definition_list) ::= <<
+$modules : { module |
+namespace $module.name$ {
+}; separator="\n"$
+
+$definition_list$
+
+$reverse(modules) : { module |
+\} // namespace $module.name$
+}; separator="\n"$
+>>
+//}
