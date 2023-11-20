@@ -111,10 +111,6 @@ namespace $module.name$ {
 } // namespace $module.name$
 >>
 
-definition_list(definitions) ::= <<
-$definitions; separator="\n"$
->>
-
 annotation(ctx, annotation) ::= <<
 const TypeIdentifier* Get$annotation.name$Identifier(bool complete)
 {
@@ -296,18 +292,6 @@ $endif$
 type_object->complete().annotation_type().member_seq().emplace_back(cam_$object.name$);
 
 >>
-
-interface(ctx, parent, interface, export_list) ::= <<>>
-
-export_list(exports) ::= <<>>
-
-const_decl(ctx, parent, const, const_type) ::= <<
-
-$const_type$
-
->>
-
-fwd_decl(ctx, parent, type) ::= <<>>
 
 typedef_decl(ctx, parent, typedefs, typedefs_type, declarator_type) ::= <<
 $declarator_type$
@@ -1342,13 +1326,6 @@ type_object->complete().union_type().member_seq().emplace_back(cst_$object.name$
 
 >>
 
-element_type(ctx, element, type_element, declarator) ::= <<
-
-$type_element$
-$declarator$
-
->>
-
 bitmask_type(ctx, parent, bitmask) ::= <<
 const TypeIdentifier* Get$bitmask.name$Identifier(bool complete)
 {
@@ -1890,23 +1867,16 @@ complete_bitset_inheritance(parent) ::= <<
 type_object->complete().bitset_type().header().base_type(*Get$parent.name$Identifier(true));
 >>
 
-sequence_type(ctx, sequence, type_sequence) ::= <<
+//{ Fast DDS-Gen extensions
+module_conversion(ctx, parent, modules, definition_list) ::= <<
+$modules : { module |
+namespace $module.name$ {
+}; separator="\n"$
 
-$type_sequence$
+$definition_list$
 
+$reverse(modules) : { module |
+\} // namespace $module.name$
+}; separator="\n"$
 >>
-
-map_type(ctx, map, key_type, value_type) ::= <<
-
-$key_type$
-$value_type$
-
->>
-
-string_type(ctx, string) ::= <<>>
-
-wide_string_type(ctx, wstring) ::= <<>>
-
-array_declarator(ctx, array, array_type) ::= <<>>
-
-/***** Utils *****/
+//}

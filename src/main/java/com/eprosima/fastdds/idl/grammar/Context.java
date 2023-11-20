@@ -27,7 +27,11 @@ import com.eprosima.fastdds.idl.parser.typecode.SetTypeCode;
 import com.eprosima.fastdds.idl.parser.typecode.StringTypeCode;
 import com.eprosima.fastdds.idl.parser.typecode.StructTypeCode;
 import com.eprosima.fastdds.idl.parser.typecode.UnionTypeCode;
+import com.eprosima.idl.generator.manager.TemplateGroup;
+import com.eprosima.idl.generator.manager.TemplateManager;
 import com.eprosima.idl.parser.tree.Annotation;
+import com.eprosima.idl.parser.tree.AnnotationDeclaration;
+import com.eprosima.idl.parser.tree.AnnotationMember;
 import com.eprosima.idl.parser.tree.Interface;
 import com.eprosima.idl.parser.tree.TypeDeclaration;
 import com.eprosima.idl.parser.typecode.Kind;
@@ -35,16 +39,24 @@ import com.eprosima.idl.parser.typecode.TypeCode;
 import com.eprosima.idl.parser.typecode.Member;
 import com.eprosima.idl.parser.typecode.MemberedTypeCode;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.AbstractMap;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.Stack;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import org.antlr.v4.runtime.Token;
 
 
 public class Context extends com.eprosima.idl.context.Context implements com.eprosima.fastcdr.idl.context.Context
 {
     // TODO Remove middleware parameter. It is temporal while cdr and rest don't have async functions.
     public Context(
+            TemplateManager tmanager,
             String file,
             ArrayList<String> includePaths,
             boolean subscribercode,
@@ -53,10 +65,11 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
             boolean generate_type_object,
             boolean generate_typesc,
             boolean generate_type_ros2,
-            CdrVersion.Select cdr_version
+            CdrVersion.Select cdr_version,
+            boolean is_generating_api
             )
     {
-        super(file, includePaths);
+        super(tmanager, file, includePaths, generate_typesc);
         m_fileNameUpper = getFilename().toUpperCase();
         m_subscribercode = subscribercode;
         m_publishercode = publishercode;
@@ -68,9 +81,14 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
         //m_ddstypes = ddstypes;
 
         m_type_object = generate_type_object;
-        m_typesc = generate_typesc;
         m_type_ros2 = generate_type_ros2;
         cdr_version_ = cdr_version;
+        is_generating_api_ = is_generating_api;
+
+        // Create default @Key annotation.
+        AnnotationDeclaration keyann = this.createAnnotationDeclaration("Key", null);
+        keyann.addMember(new AnnotationMember("value", new PrimitiveTypeCode(Kind.KIND_BOOLEAN), "true"));
+
     }
 
     public void setTypelimitation(
@@ -82,6 +100,58 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
     public String getTypelimitation()
     {
         return m_typelimitation;
+    }
+
+    @Override
+    public TemplateGroup addModule(
+            com.eprosima.idl.parser.tree.Module module)
+    {
+        if (!is_generating_api_)
+        {
+            return super.addModule(module);
+        }
+        else
+        {
+            List<String> new_modules = modules_conversion.get(module.getName());
+
+            if (null ==  new_modules)
+            {
+                return super.addModule(module);
+            }
+            else
+            {
+                com.eprosima.idl.parser.tree.Module last_module = null;
+                TemplateGroup module_template = null;
+                ArrayList<com.eprosima.idl.parser.tree.Module> module_list = new ArrayList<com.eprosima.idl.parser.tree.Module>();
+                for(String new_module : new_modules)
+                {
+                    if (null == last_module)
+                    {
+                        last_module = createModule(module.getScopeFile(), module.isInScope(),
+                                module.getScope(), new_module, module.getToken());
+                    }
+                    else
+                    {
+                        last_module = createModule(last_module.getScopeFile(), last_module.isInScope(), last_module.getScope(),
+                                new_module, last_module.getToken());
+                    }
+
+                    super.addModule(last_module);
+                    module_list.add(last_module);
+                }
+
+                if(isInScopedFile() || isScopeLimitToAll()) {
+                    if(tmanager_ != null) {
+                        module_template = tmanager_.createTemplateGroup("module_conversion");
+                        module_template.setAttribute("ctx", this);
+                        // Set the module object to the TemplateGroup of the module.
+                        module_template.setAttribute("modules", module_list);
+                    }
+                }
+
+                return module_template;
+            }
+        }
     }
 
     @Override
@@ -432,20 +502,12 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
 
     private boolean m_type_object = false;
 
-    private boolean m_typesc = false;
-
     private boolean m_type_ros2 = false;
 
     @Override
     public boolean isGenerateTypeObject()
     {
         return m_type_object;
-    }
-
-    @Override
-    public boolean isGenerateTypesC()
-    {
-        return m_typesc;
     }
 
     @Override
@@ -573,6 +635,27 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
         return cdr_v1_templates;
     }
 
+    @Override
+    public TypeCode getTypeCode(
+            String name)
+    {
+        if (!is_generating_api_)
+        {
+            return super.getTypeCode(name);
+        }
+        else
+        {
+            String current_name = name;
+
+            for(Map.Entry<String, List<String>> entry : modules_conversion.entrySet())
+            {
+                current_name = current_name.replace(entry.getKey() + "::", String.join("::", entry.getValue()) + "::");
+            }
+
+            return super.getTypeCode(current_name);
+        }
+    }
+
     //// Java block ////
     // Java package name.
     private String m_package = "";
@@ -586,4 +669,10 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
 
     private boolean cdr_v1_templates = false;
 
+    private boolean is_generating_api_ = false;
+
+    private Map<String, List<String>> modules_conversion = Stream.of(
+            new AbstractMap.SimpleEntry<>("DDS", Arrays.asList("eprosima", "fastdds", "dds")),
+            new AbstractMap.SimpleEntry<>("XTypes", Arrays.asList("xtypes")))
+        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 }
