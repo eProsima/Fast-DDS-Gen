@@ -46,7 +46,6 @@ $endif$
 #include <fastcdr/exceptions/BadParamException.h>
 using namespace eprosima::fastcdr::exception;
 
-#include <utility>
 
 $extensions : { extension | $extension$}; separator="\n"$
 
@@ -55,10 +54,6 @@ $ctx.typeCodesToDefine : { type | $sequences_definition(type.value)$ }; separato
 $endif$
 
 $definitions; separator="\n"$
-$if(ctx.thereIsStructOrUnion)$
-// Include auxiliary functions like for serializing/deserializing.
-#include "$ctx.filename$CdrAux.ipp"
-$endif$
 
 >>
 

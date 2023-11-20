@@ -674,7 +674,6 @@ public class fastddsgen
 
             // Load common types template
             tmanager.addGroup("com/eprosima/fastcdr/idl/templates/TypesHeader.stg");
-            tmanager.addGroup("com/eprosima/fastcdr/idl/templates/TypesSource.stg");
             if (m_type_object_files)
             {
                 tmanager.addGroup("com/eprosima/fastdds/idl/templates/TypeObjectHeader.stg");
@@ -805,15 +804,14 @@ public class fastddsgen
 
                 System.out.println("Generating Type definition files...");
                 if ((returnedValue) &&
-                        (returnedValue = Utils.writeFile(output_dir + ctx.getFilename() + ".h",
+                        (returnedValue = Utils.writeFile(output_dir + ctx.getFilename() + ".hpp",
                         maintemplates.getTemplate("com/eprosima/fastcdr/idl/templates/TypesHeader.stg"),
                         m_replace)))
                 {
                     if (returnedValue = Utils.writeFile(output_dir + ctx.getFilename() + ".cxx",
                                     maintemplates.getTemplate("com/eprosima/fastcdr/idl/templates/TypesSource.stg"), m_replace))
                     {
-                        project.addCommonIncludeFile(relative_dir + ctx.getFilename() + ".h");
-                        project.addCommonSrcFile(relative_dir + ctx.getFilename() + ".cxx");
+                        project.addCommonIncludeFile(relative_dir + ctx.getFilename() + ".hpp");
 
                         if (m_type_object_files)
                         {
@@ -860,7 +858,6 @@ public class fastddsgen
                     String fileNameH = output_dir + ctx.getFilename() + "Serialization.h";
                     returnedValue =
                             Utils.writeFile(fileNameH, maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/SerializationHeader.stg"), m_replace);
-                    project.addCommonTestingFile(relative_dir + ctx.getFilename() + "PubSubTypes.cxx");
 
                     for (String element : project.getFullDependencies())
                     {
@@ -885,7 +882,7 @@ public class fastddsgen
                 returnedValue &=
                         Utils.writeFile(output_dir + ctx.getFilename() + "PubSubTypes.h",
                             maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/DDSPubSubTypeHeader.stg"), m_replace);
-                project.addProjectIncludeFile(relative_dir + ctx.getFilename() + "PubSubTypes.h");
+                project.addCommonIncludeFile(relative_dir + ctx.getFilename() + "PubSubTypes.h");
                 if (ctx.existsLastStructure())
                 {
                     m_atLeastOneStructure = true;
@@ -895,7 +892,7 @@ public class fastddsgen
                             Utils.writeFile(output_dir + ctx.getFilename() + "PubSubTypes.cxx",
                                 maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/DDSPubSubTypeSource.stg"), m_replace))
                     {
-                        project.addProjectSrcFile(relative_dir + ctx.getFilename() + "PubSubTypes.cxx");
+                        project.addCommonSrcFile(relative_dir + ctx.getFilename() + "PubSubTypes.cxx");
                         if (m_python)
                         {
                             System.out.println("Generating Swig interface files...");
