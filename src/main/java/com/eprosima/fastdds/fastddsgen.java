@@ -27,8 +27,6 @@ import com.eprosima.idl.generator.manager.TemplateManager;
 import com.eprosima.idl.parser.grammar.IDLLexer;
 import com.eprosima.idl.parser.grammar.IDLParser;
 import com.eprosima.idl.parser.tree.Annotation;
-import com.eprosima.idl.parser.tree.AnnotationDeclaration;
-import com.eprosima.idl.parser.tree.AnnotationMember;
 import com.eprosima.idl.parser.tree.Specification;
 import com.eprosima.idl.parser.typecode.Kind;
 import com.eprosima.idl.parser.typecode.PrimitiveTypeCode;

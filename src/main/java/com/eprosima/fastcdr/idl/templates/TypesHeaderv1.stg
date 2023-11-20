@@ -110,10 +110,6 @@ namespace $module.name$ {
 } // namespace $module.name$
 >>
 
-definition_list(definitions) ::= <<
-$definitions; separator="\n"$
->>
-
 annotation(ctx, annotation) ::= <<
 namespace $annotation.name$ {
     $annotation.enums : { enum | $enum_type(ctx=ctx, parent=annotation, enum=enum)$}; separator="\n"$
@@ -136,10 +132,6 @@ public:
 
     $export_list$
 };
->>
-
-export_list(exports) ::= <<
-$exports; separator="\n"$
 >>
 
 exception(ctx, parent, exception) ::= <<
@@ -209,10 +201,6 @@ virtual $paramRetType(operation.rettype)$ $operation.name$($paramDeclarations(pa
 
 $endif$
 >>
-
-param_list(parameters) ::= <<>>
-
-param(parameter) ::= <<>>
 
 const_decl(ctx, parent, const, const_type) ::= <<
 $ctx.setCdrv1Templates$
@@ -554,39 +542,6 @@ enum $bitmask.name$Bits$bitmask.boundType$
     $bitmask.members:{ member | $member.name$ = 0x01ull << $member.position$}; separator=",\n"$
 };
 typedef $bitmask.castingType$ $bitmask.name$;
->>
-
-sequence_type(ctx, sequence, type_sequence) ::= <<
-
-$type_sequence$
-
->>
-
-map_type(ctx, map, key_type, value_type) ::= <<
-
-$key_type$
-$value_type$
-
->>
-
-string_type(ctx, string) ::= <<>>
-
-wide_string_type(ctx, wstring) ::= <<>>
-
-array_declarator(ctx, array, array_type) ::= <<>>
-
-member_type(ctx, member, type_member, declarators) ::= <<
-
-$type_member$
-$declarators$
-
->>
-
-element_type(ctx, element, type_element, declarator) ::= <<
-
-$type_element$
-$declarator$
-
 >>
 
 /***** Utils *****/
@@ -950,3 +905,17 @@ private:
     void free_memory();
 };
 >>
+
+//{ Fast DDS-Gen extensions
+module_conversion(ctx, parent, modules, definition_list) ::= <<
+$modules : { module |
+namespace $module.name$ {
+}; separator="\n"$
+
+$definition_list$
+
+$reverse(modules) : { module |
+\} // namespace $module.name$
+}; separator="\n"$
+>>
+//}

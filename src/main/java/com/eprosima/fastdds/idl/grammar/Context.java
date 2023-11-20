@@ -30,6 +30,8 @@ import com.eprosima.fastdds.idl.parser.typecode.UnionTypeCode;
 import com.eprosima.idl.generator.manager.TemplateGroup;
 import com.eprosima.idl.generator.manager.TemplateManager;
 import com.eprosima.idl.parser.tree.Annotation;
+import com.eprosima.idl.parser.tree.AnnotationDeclaration;
+import com.eprosima.idl.parser.tree.AnnotationMember;
 import com.eprosima.idl.parser.tree.Interface;
 import com.eprosima.idl.parser.tree.TypeDeclaration;
 import com.eprosima.idl.parser.typecode.Kind;
@@ -84,7 +86,7 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
         is_generating_api_ = is_generating_api;
 
         // Create default @Key annotation.
-        AnnotationDeclaration keyann = ctx.createAnnotationDeclaration("Key", null);
+        AnnotationDeclaration keyann = this.createAnnotationDeclaration("Key", null);
         keyann.addMember(new AnnotationMember("value", new PrimitiveTypeCode(Kind.KIND_BOOLEAN), "true"));
 
     }

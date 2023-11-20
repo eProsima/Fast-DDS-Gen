@@ -77,39 +77,6 @@ $definition_list$
 } // namespace $module.name$
 >>
 
-definition_list(definitions) ::= <<
-$definitions; separator="\n"$
-
->>
-
-annotation(ctx, annotation) ::= <<>>
-
-interface(ctx, parent, interface, export_list) ::= <<
-$export_list$
->>
-
-export_list(exports) ::= <<
-$exports; separator="\n"$
-
->>
-
-exception(ctx, parent, exception) ::= <<>>
-
-operation(ctx, parent, operation, param_list, operation_type) ::= <<
-
-$operation_type$
-$param_list$
-
->>
-
-param_list(parameters) ::= <<>>
-
-param(parameter, parameter_type) ::= <<
-
-$parameter_type$
-
->>
-
 const_decl(ctx, parent, const, const_type) ::= <<
 $const_type$
 $if(const.parent)$
@@ -122,8 +89,6 @@ $endif$
 $endif$
 $endif$
 >>
-
-fwd_decl(ctx, parent, type) ::= <<>>
 
 typedef_decl(ctx, parent, typedefs, typedefs_type, declarator_type) ::= <<
 $declarator_type$
@@ -255,13 +220,6 @@ void $struct.name$::deserialize(
 $endif$
 $struct.members:{ member | $public_member_declaration(class=struct.name, member=member)$}; separator="\n"$
 $extensions : { extension | $extension$}; separator="\n"$
->>
-
-member_type(ctx, member, type_member, declarators) ::= <<
-
-$type_member$
-$declarators$
-
 >>
 
 bitset_type(ctx, parent, bitset) ::= <<
@@ -570,36 +528,6 @@ void $union.name$::deserialize(
 }
 $endif$
 >>
-
-element_type(ctx, element, type_element, declarator) ::= <<
-
-$type_element$
-$declarator$
-
->>
-
-enum_type(ctx, parent, enum) ::= <<>>
-
-bitmask_type(ctx, parent, bitmask) ::= <<>>
-
-sequence_type(ctx, sequence, type_sequence) ::= <<
-
-$type_sequence$
-
->>
-
-map_type(ctx, map, key_type, value_type) ::= <<
-
-$key_type$
-$value_type$
-
->>
-
-string_type(ctx, string) ::= <<>>
-
-wide_string_type(ctx, wstring) ::= <<>>
-
-array_declarator(ctx, array, array_type) ::= <<>>
 
 /***** Utils *****/
 
