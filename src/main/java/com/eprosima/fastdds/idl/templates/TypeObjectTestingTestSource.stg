@@ -288,13 +288,13 @@ EXPECT_EQ(invalid_type_id, type_objects.complete_type_object.struct_type().heade
 $endif$
 EXPECT_EQ($struct.scopedname$, type_objects.complete_type_object.struct_type().header().detail().type_name());
 $check_type_detail_annotations(object=struct, type="struct_type().header().detail()")$
-$struct.members: { member | $check_struct_member(member=member)$}; separator="\n"$
+$struct.members: { member | $check_struct_member(member=member, parent=struct)$}; separator="\n"$
 ASSERT_EQ($struct.membersSize$, type_objects.minimal_type_object.struct_type().member_seq().size());
 ASSERT_EQ($struct.membersSize$, type_objects.complete_type_object.struct_type().member_seq().size());
 $check_struct_member_seq(struct=struct)$
 >>
 
-check_struct_member(member) ::= <<
+check_struct_member(member, parent) ::= <<
 {
     size_t pos = 0;
     bool found = false;
@@ -317,7 +317,7 @@ check_struct_member(member) ::= <<
     $elseif(member.annotationHashid && member.annotationHashidValue)$
     EXPECT_EQ($member.annotationHashidValue$, type_objects.minimal_type_object.struct_type().member_seq()[pos].common().member_id());
     EXPECT_EQ($member.annotationHashidValue$, type_objects.complete_type_object.struct_type().member_seq()[pos].common().member_id());
-    $elseif(struct.annotationAutoidHash || member.annotationHashid)$
+    $elseif(parent.annotationAutoidHash || member.annotationHashid)$
     MemberId member_id = (member_name_hashed[3] << 24 | member_name_hashed[2] << 16 | member_name_hashed[1] << 8 |
         member_name_hashed[0]) & 0x0FFFFFFF;
     EXPECT_EQ(member_id, type_objects.minimal_type_object.struct_type().member_seq()[pos].common().member_id());
@@ -332,10 +332,10 @@ check_struct_member(member) ::= <<
     $else$
     $get_type_identifier(typename=member.typecode.scopedname, result="member_type_ids")$
     $endif$
-    EXPECT_TRUE(member_type_ids.type_identifier1() == type_objects.minimal_type_object.struct_type().header().base_type() ||
-        member_type_ids.type_identifier1() == type_objects.complete_type_object.struct_type().header().base_type());
-    EXPECT_TRUE(member_type_ids.type_identifier2() == type_objects.minimal_type_object.struct_type().header().base_type() ||
-        member_type_ids.type_identifier2() == type_objects.complete_type_object.struct_type().header().base_type());
+    EXPECT_TRUE(member_type_ids.type_identifier1() == type_objects.minimal_type_object.struct_type().member_seq()[pos].common().member_type_id() ||
+        member_type_ids.type_identifier1() == type_objects.complete_type_object.struct_type().member_seq()[pos].common().member_type_id());
+    EXPECT_TRUE(member_type_ids.type_identifier2() == type_objects.minimal_type_object.struct_type().member_seq()[pos].common().member_type_id() ||
+        member_type_ids.type_identifier2() == type_objects.complete_type_object.struct_type().member_seq()[pos].common().member_type_id());
 }
 >>
 
@@ -369,61 +369,66 @@ EXPECT_TRUE(discriminator_type_ids.type_identifier1() == type_objects.minimal_ty
 EXPECT_TRUE(discriminator_type_ids.type_identifier2() == type_objects.minimal_type_object.union_type().discriminator().common().type_id() ||
     discriminator_type_ids.type_identifier2() == type_objects.complete_type_object.union_type().discriminator().common().type_id());
 $check_type_detail_annotations(object=union.discriminator, type="union_type().discriminator()")$
-$union.members: { member | $check_union_member(member=member)$}; separator="\n"$
+$union.members: { member | $check_union_member(member=member, parent=union)$}; separator="\n"$
 ASSERT_EQ($union.membersSize$, type_objects.minimal_type_object.union_type().member_seq().size());
 ASSERT_EQ($union.membersSize$, type_objects.complete_type_object.union_type().member_seq().size());
 $check_union_member_seq(union=union)$
 >>
 
-check_union_member(member) ::= <<
-    //=====check_union_member_type - $relation_name$ - $member.name$=====
-    $relation_capname$UnionMember $union.name$_$relation_name$_$member.name$_member = $union.name$_$relation_name$_memberseq.at(memberId);
-    CommonUnionMember $union.name$_$relation_name$_common_$member.name$_common = $union.name$_$relation_name$_$member.name$_member.common();
-
-    MemberId $union.name$_$relation_name$_common_$member.name$_memberid = $union.name$_$relation_name$_common_$member.name$_common.member_id();
-    ASSERT_EQ(memberId, $union.name$_$relation_name$_common_$member.name$_memberid);
-
-    UnionMemberFlag $union.name$_$relation_name$_common_$member.name$_memberflags = $union.name$_$relation_name$_common_$member.name$_common.member_flags();
+check_union_member(member, parent) ::= <<
+{
+    size_t pos = 0;
+    bool found = false;
+    for (; pos < type_objects.complete_type_object.union_type().member_seq().size(); ++pos)
     {
-    $check_member_flags(ctx=ctx, object=union.member, flags_var_name=["union_member"])$
-    ASSERT_TRUE(union_member_expected_flags & $union.name$_$relation_name$_common_$member.name$_memberflags);
+        if ($member.name$ == type_objects.complete_type_object.union_type().member_seq()[pos].detail().name())
+        {
+            found = true;
+            break;
+        }
     }
-
-    TypeIdentifier $union.name$_$relation_name$_common_$member.name$_member_typeid = $union.name$_$relation_name$_common_$member.name$_common.type_id();
-    $get_type_identifier(typename=member.scopedname)$  
-    ASSERT_EQ($member.name$_$relation_name$_common_member_factory_type_id->_d(), $union.name$_$relation_name$_common_$member.name$_member_typeid._d());
-
-    UnionCaseLabelSeq $union.name$_$relation_name$_common_$member.name$_member_labelseq = $union.name$_$relation_name$_common_$member.name$_common.label_seq();
-    {
-    int $union.name$_label_index = 0;
-    $member.labels:{ label |
-    ASSERT_EQ($label$, $union.name$_$relation_name$_common_$member.name$_member_labelseq.at($union.name$_label_index));
-    $union.name$_label_index++;
-    };separator="\n"$
-    }
-    $if(relation)$
-    {    
-    CompleteMemberDetail $member.name$_$relation_name$_detail = $union.name$_$relation_name$_$member.name$_member.detail();
-    $check_optional_detail_annotations(ctx=ctx, object=member)$
-    MemberName $member.name$_$relation_name$_common_$member.name$_union_member_name = $member.name$_$relation_name$_detail.name();
-    ASSERT_EQ("$member.name$", $member.name$_$relation_name$_common_$member.name$_union_member_name);
-    }
-    $else$
-    {
-    MinimalMemberDetail $member.name$_$relation_name$_detail = $union.name$_$relation_name$_$member.name$_member.detail();
-    NameHash $member.name$_$relation_name$_union_member_name_hash = $member.name$_$relation_name$_detail.name_hash();
-    MD5 $member.name$_$relation_name$_name_hash("$member.name$");
-    for(int i = 0;i < 4;++i)
-    {
-        ASSERT_EQ($member.name$_$relation_name$_name_hash.digest[i], $member.name$_$relation_name$_union_member_name_hash[i]);
-    }
-    }
+    ASSERT_TRUE(found);
+    EXPECT_EQ($member.name$, type_objects.complete_type_object.union_type().member_seq()[pos].detail().name());
+    $check_member_detail_annotations(member=member, type="union_type().member_seq()[pos].detail()")$
+    NameHash member_name_hashed = TypeObjectUtils::name_hash($member.name$);
+    EXPECT_EQ(member_name_hashed, type_objects.minimal_type_object.union_type().member_seq()[pos].detail().name_hash());
+    $if(member.annotationId)$
+    EXPECT_EQ($member.annotationIdValue$, type_objects.minimal_type_object.union_type().member_seq()[pos].common().member_id());
+    EXPECT_EQ($member.annotationIdValue$, type_objects.complete_type_object.union_type().member_seq()[pos].common().member_id());
+    $elseif(member.annotationHashid && member.annotationHashidValue)$
+    EXPECT_EQ($member.annotationHashidValue$, type_objects.minimal_type_object.union_type().member_seq()[pos].common().member_id());
+    EXPECT_EQ($member.annotationHashidValue$, type_objects.complete_type_object.union_type().member_seq()[pos].common().member_id());
+    $elseif(parent.annotationAutoidHash || member.annotationHashid)$
+    MemberId member_id = (member_name_hashed[3] << 24 | member_name_hashed[2] << 16 | member_name_hashed[1] << 8 |
+        member_name_hashed[0]) & 0x0FFFFFFF;
+    EXPECT_EQ(member_id, type_objects.minimal_type_object.union_type().member_seq()[pos].common().member_id());
+    EXPECT_EQ(member_id, type_objects.complete_type_object.union_type().member_seq()[pos].common().member_id());
     $endif$
-
-    memberId++;
+    $expected_member_flags(object=member)$
+    EXPECT_EQ($member.name$_expected_flags, type_objects.minimal_type_object.union_type().member_seq()[pos].common().member_flags());
+    EXPECT_EQ($member.name$_expected_flags, type_objects.complete_type_object.union_type().member_seq()[pos].common().member_flags());
+    TypeIdentifierPair member_type_ids;
+    $if(member.typecode.primitive)$
+    $get_type_identifier(typename=member.typecode.cppTypename, result="member_type_ids")$
+    $else$
+    $get_type_identifier(typename=member.typecode.scopedname, result="member_type_ids")$
+    $endif$
+    EXPECT_TRUE(member_type_ids.type_identifier1() == type_objects.minimal_type_object.union_type().member_seq()[pos].common().type_id() ||
+        member_type_ids.type_identifier1() == type_objects.complete_type_object.union_type().member_seq()[pos].common().type_id());
+    EXPECT_TRUE(member_type_ids.type_identifier2() == type_objects.minimal_type_object.union_type().member_seq()[pos].common().type_id() ||
+        member_type_ids.type_identifier2() == type_objects.complete_type_object.union_type().member_seq()[pos].common().type_id());
+    $member.labels: { label | $check_label(label=label)$}; separator="\n"$
+    ASSERT_EQ($member.labelsSize$, type_objects.minimal_type_object.union_type().member_seq()[pos].common().label_seq().size());
+    ASSERT_EQ($member.labelsSize$, type_objects.complete_type_object.union_type().member_seq()[pos].common().label_seq().size());
+    $check_case_label_seq(sequence=member.labels)$
+}
 >>
 
+check_label(label) ::= <<>>
+
 check_union_member_seq(union) ::= <<>>
+
+check_case_label_seq(sequence) ::= <<>>
 
 check_enum_type(enum) ::= <<
 ReturnCode_t ret_code;
