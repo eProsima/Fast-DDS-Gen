@@ -44,12 +44,11 @@ $definitions; separator="\n"$
 $"\n"$
 >>
 
-// TODO name -> module
 module(ctx, parent, module, definition_list) ::= <<
 namespace $module.name$
 {
     $definition_list$
-}
+} // namespace $module.name$
 >>
 
 typedef_decl(ctx, parent, typedefs, typedefs_type, declarator_type) ::= <<

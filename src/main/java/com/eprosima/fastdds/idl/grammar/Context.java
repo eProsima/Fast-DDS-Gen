@@ -232,7 +232,6 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
     public StructTypeCode createStructTypeCode(
             String name)
     {
-        System.out.println("struct " + getScope());
         return new StructTypeCode(getScope(), name);
     }
 
@@ -647,14 +646,12 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
         else
         {
             String current_name = name;
-            System.out.println(current_name);
 
             for(Map.Entry<String, List<String>> entry : modules_conversion.entrySet())
             {
                 current_name = current_name.replace(entry.getKey() + "::", String.join("::", entry.getValue()) + "::");
             }
 
-            System.out.println("->" + current_name);
             return super.getTypeCode(current_name);
         }
     }

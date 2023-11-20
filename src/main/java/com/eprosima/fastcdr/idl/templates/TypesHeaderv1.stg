@@ -103,7 +103,6 @@ $if(ctx.cdr_both)$
 $endif$
 >>
 
-// TODO name -> module
 module(ctx, parent, module, definition_list) ::= <<
 namespace $module.name$ {
     $definition_list$
