@@ -126,22 +126,6 @@ $definition_list$
 } // namespace $module.name$
 >>
 
-definition_list(definitions) ::= <<
-$definitions; separator="\n"$
-
->>
-
-annotation(ctx, annotation) ::= <<>>
-
-interface(ctx, parent, interface, export_list) ::= <<
-$export_list$
->>
-
-export_list(exports) ::= <<
-$exports; separator="\n"$
-
->>
-
 exception(ctx, parent, exception) ::= <<
 $if(ctx.printexception)$
 $exception.name$::$exception.name$()
@@ -238,12 +222,6 @@ $endif$
 $endif$
 >>
 
-operation(ctx, parent, operation, param_list) ::= <<>>
-
-param_list(parameters) ::= <<>>
-
-param(parameter) ::= <<>>
-
 const_decl(ctx, parent, const, const_type) ::= <<
 $ctx.setCdrv1Templates$
 $const_type$
@@ -258,8 +236,6 @@ $endif$
 $endif$
 $ctx.unsetCdrv1Templates$
 >>
-
-fwd_decl(ctx, parent, type) ::= <<>>
 
 typedef_decl(ctx, parent, typedefs, typedefs_type, declarator_type) ::= <<
 $ctx.setCdrv1Templates$
@@ -896,43 +872,6 @@ void $union.name$::deserialize(
 $endif$
 
 $ctx.unsetCdrv1Templates$
->>
-
-enum_type(ctx, parent, enum) ::= <<>>
-
-bitmask_type(ctx, parent, bitmask) ::= <<>>
-
-sequence_type(ctx, sequence, type_sequence) ::= <<
-
-$type_sequence$
-
->>
-
-map_type(ctx, map, key_type, value_type) ::= <<
-
-$key_type$
-$value_type$
-
->>
-
-string_type(ctx, string) ::= <<>>
-
-wide_string_type(ctx, wstring) ::= <<>>
-
-array_declarator(ctx, array, array_type) ::= <<>>
-
-member_type(ctx, member, type_member, declarators) ::= <<
-
-$type_member$
-$declarators$
-
->>
-
-element_type(ctx, element, type_element, declarator) ::= <<
-
-$type_element$
-$declarator$
-
 >>
 
 /***** Utils *****/
@@ -2339,3 +2278,17 @@ member_array_default_cstring_init(ctx, name, loopvar, dims) ::= <<$if(rest(dims)
 indexName(name, loopvar) ::= <<$name$[$loopvar$]>>
 
 memberName(name) ::= <<m_$name$>>
+
+//{ Fast DDS-Gen extensions
+module_conversion(ctx, parent, modules, definition_list) ::= <<
+$modules : { module |
+namespace $module.name$ {
+}; separator="\n"$
+
+$definition_list$
+
+$reverse(modules) : { module |
+\} // namespace $module.name$
+}; separator="\n"$
+>>
+//}

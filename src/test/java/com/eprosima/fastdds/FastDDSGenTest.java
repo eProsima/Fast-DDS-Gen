@@ -2,6 +2,8 @@ package test.com.eprosima.fastdds;
 
 import org.junit.jupiter.api.Test;
 
+import com.eprosima.idl.generator.manager.TemplateManager;
+
 import com.eprosima.integration.Command;
 
 import com.eprosima.integration.TestManager;
@@ -37,63 +39,63 @@ public class FastDDSGenTest
 
         {
             com.eprosima.idl.context.Context ctx = new com.eprosima.idl.context.Context(
-                    "Prueba.idl", new ArrayList<String>());
+                    new TemplateManager(), "Prueba.idl", new ArrayList<String>(), false);
 
             assertEquals("", ctx.getRelativeDir(null));
         }
 
         {
             com.eprosima.idl.context.Context ctx = new com.eprosima.idl.context.Context(
-                    "dir/Prueba.idl", new ArrayList<String>());
+                    new TemplateManager(), "dir/Prueba.idl", new ArrayList<String>(), false);
 
             assertEquals("dir/", ctx.getRelativeDir(null));
         }
 
         {
             com.eprosima.idl.context.Context ctx = new com.eprosima.idl.context.Context(
-                    "../../dir/Prueba.idl", new ArrayList<String>());
+                    new TemplateManager(), "../../dir/Prueba.idl", new ArrayList<String>(), false);
 
             assertEquals("../../dir/", ctx.getRelativeDir(null));
         }
 
         {
             com.eprosima.idl.context.Context ctx = new com.eprosima.idl.context.Context(
-                    System.getProperty("user.dir") + "Prueba.idl", new ArrayList<String>());
+                    new TemplateManager(), System.getProperty("user.dir") + "Prueba.idl", new ArrayList<String>(), false);
 
             assertEquals("", ctx.getRelativeDir(null));
         }
 
         {
             com.eprosima.idl.context.Context ctx = new com.eprosima.idl.context.Context(
-                    System.getProperty("user.dir") + "dir/Prueba.idl", new ArrayList<String>());
+                    new TemplateManager(), System.getProperty("user.dir") + "dir/Prueba.idl", new ArrayList<String>(), false);
 
             assertEquals("dir/", ctx.getRelativeDir(null));
         }
 
         {
             com.eprosima.idl.context.Context ctx = new com.eprosima.idl.context.Context(
-                    System.getProperty("user.dir") + "../../dir/Prueba.idl", new ArrayList<String>());
+                    new TemplateManager(), System.getProperty("user.dir") + "../../dir/Prueba.idl", new ArrayList<String>(), false);
 
             assertEquals("../../dir/", ctx.getRelativeDir(null));
         }
 
         {
             com.eprosima.idl.context.Context ctx = new com.eprosima.idl.context.Context(
-                    absolute_idl_dir, new ArrayList<String>());
+                    new TemplateManager(), absolute_idl_dir, new ArrayList<String>(), false);
 
             assertEquals("", ctx.getRelativeDir(null));
         }
 
         {
             com.eprosima.idl.context.Context ctx = new com.eprosima.idl.context.Context(
-                    absolute_idl_dir, new ArrayList<String>());
+                    new TemplateManager(), absolute_idl_dir, new ArrayList<String>(), false);
 
             assertEquals("", ctx.getRelativeDir(absolute_dir));
         }
 
         {
             com.eprosima.idl.context.Context ctx = new com.eprosima.idl.context.Context(
-                    absolute_idl_dir, new ArrayList<String>());
+                    new TemplateManager(), absolute_idl_dir, new ArrayList<String>(), false);
 
             assertEquals("testing/", ctx.getRelativeDir(absolute_root_dir));
         }

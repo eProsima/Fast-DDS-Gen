@@ -55,13 +55,6 @@ $struct.name$ createKey$struct.name$(
 
 >>
 
-member_type(ctx, member, type_member, declarators) ::= <<
-
-$type_member$
-$declarators$
-
->>
-
 union_type(ctx, parent, union, switch_type) ::= <<
 $switch_type$
 void print$union.name$(
@@ -73,22 +66,6 @@ void initialize$union.name$(
 int compare$union.name$(
         $union.name$* a,
         $union.name$* b);
-
->>
-
-element_type(ctx, element, type_element, declarator) ::= <<
-
-$type_element$
-$declarator$
-
->>
-
-enum_type(ctx, parent, enum) ::= <<>>
-
-typedef_decl(ctx, parent, typedefs, typedefs_type, declarator_type) ::= <<
-
-$declarator_type$
-$typedefs_type$
 
 >>
 
@@ -118,41 +95,8 @@ int compare$bitset.name$(
 
 >>
 
-annotation(ctx, annotation) ::= <<>>
-
 module(ctx, parent, module, definition_list) ::= <<
 namespace $module.name$ {
     $definition_list$
 }  // namespace $module.name$
 >>
-
-definition_list(definitions) ::= <<
-$definitions; separator="\n"$
->>
-
-fwd_decl(ctx, parent, type) ::= <<>>
-
-const_decl(ctx, parent, const, const_type) ::= <<
-
-$const_type$
-
->>
-
-sequence_type(ctx, sequence, type_sequence) ::= <<
-
-$type_sequence$
-
->>
-
-map_type(ctx, map, key_type, value_type) ::= <<
-
-$key_type$
-$value_type$
-
->>
-
-string_type(ctx, string) ::= <<>>
-
-wide_string_type(ctx, wstring) ::= <<>>
-
-array_declarator(ctx, array, array_type) ::= <<>>
