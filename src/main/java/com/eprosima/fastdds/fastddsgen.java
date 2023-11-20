@@ -27,8 +27,6 @@ import com.eprosima.idl.generator.manager.TemplateManager;
 import com.eprosima.idl.parser.grammar.IDLLexer;
 import com.eprosima.idl.parser.grammar.IDLParser;
 import com.eprosima.idl.parser.tree.Annotation;
-import com.eprosima.idl.parser.tree.AnnotationDeclaration;
-import com.eprosima.idl.parser.tree.AnnotationMember;
 import com.eprosima.idl.parser.tree.Specification;
 import com.eprosima.idl.parser.typecode.Kind;
 import com.eprosima.idl.parser.typecode.PrimitiveTypeCode;
@@ -127,6 +125,9 @@ public class fastddsgen
     // ignoring the relative dir of the input files
     private boolean m_flat_output_dir = false;
 
+    // Generating internal API
+    private boolean gen_api_ = false;
+
     // Use to know the programming language
     public enum LANGUAGE
     {
@@ -166,6 +167,75 @@ public class fastddsgen
             {
                 m_idlFiles.add(arg);
             }
+            else if (arg.equals("-cdr"))
+            {
+                if (count < args.length)
+                {
+                    String cdr_version_str = args[count++];
+                    if (cdr_version_str.equals(CdrVersion.v1_str))
+                    {
+                        cdr_version_ = CdrVersion.Select.V1;
+                    }
+                    else if (cdr_version_str.equals(CdrVersion.v2_str))
+                    {
+                        cdr_version_ = CdrVersion.Select.V2;
+                    }
+                    else if (cdr_version_str.equals(CdrVersion.both_str))
+                    {
+                        cdr_version_ = CdrVersion.Select.BOTH;
+                    }
+                    else
+                    {
+                        throw new BadArgumentException("CDR version value " + cdr_version_str + " is not valid");
+                    }
+                }
+                else
+                {
+                    throw new BadArgumentException("No CDR version value after -cdr argument");
+                }
+            }
+            else if (arg.equals("-cs"))
+            {
+                m_case_sensitive = true;
+            }
+            else if (arg.equals("-d"))
+            {
+                if (count < args.length)
+                {
+                    m_outputDir = Utils.addFileSeparator(args[count++]);
+                }
+                else
+                {
+                    throw new BadArgumentException("No URL specified after -d argument");
+                }
+            }
+            else if (arg.equals("-de") || arg.equals("-default_extensibility"))
+            {
+                if (count < args.length)
+                {
+                    String extensibility = args[count++];
+                    if (extensibility.equals(Annotation.final_str))
+                    {
+                        TypeCode.default_extensibility = TypeCode.ExtensibilityKind.FINAL;
+                    }
+                    else if (extensibility.equals(Annotation.appendable_str))
+                    {
+                        TypeCode.default_extensibility = TypeCode.ExtensibilityKind.APPENDABLE;
+                    }
+                    else if (extensibility.equals(Annotation.mutable_str))
+                    {
+                        TypeCode.default_extensibility = TypeCode.ExtensibilityKind.MUTABLE;
+                    }
+                    else
+                    {
+                        throw new BadArgumentException("Extensibility value " + extensibility + " is not valid");
+                    }
+                }
+                else
+                {
+                    throw new BadArgumentException("No extensibility value after -default_extensibility argument");
+                }
+            }
             else if (arg.equals("-example"))
             {
                 if (count < args.length)
@@ -179,6 +249,46 @@ public class fastddsgen
                 else
                 {
                     throw new BadArgumentException("No architecture speficied after -example argument");
+                }
+            }
+            else if (arg.equals("-extrastg"))
+            {
+                if (count + 1 < args.length)
+                {
+                    m_customStgOutput.put(args[count++], args[count++]);
+                }
+                else
+                {
+                    throw new BadArgumentException("Missing arguments for -extrastg");
+                }
+            }
+            else if (arg.equals("-flat-output-dir"))
+            {
+                m_flat_output_dir = true;
+            }
+            else if (arg.equals("-genapi"))
+            {
+                gen_api_ = true;
+            }
+            else if (arg.equals("-help"))
+            {
+                printHelp();
+                System.exit(0);
+            }
+            else if (arg.equals("-help+"))
+            {
+                printEnhacedHelp();
+                System.exit(0);
+            }
+            else if (arg.equals("-I"))
+            {
+                if (count < args.length)
+                {
+                    m_includePaths.add("-I".concat(args[count++]));
+                }
+                else
+                {
+                    throw new BadArgumentException("No include directory specified after -I argument");
                 }
             }
             else if (arg.equals("-language"))
@@ -216,6 +326,10 @@ public class fastddsgen
                     throw new BadArgumentException("No package after -package argument");
                 }
             }
+            else if (arg.equals("-ppDisable"))
+            {
+                m_ppDisable = true;
+            }
             else if (arg.equals("-ppPath"))
             {
                 if (count < args.length)
@@ -227,35 +341,13 @@ public class fastddsgen
                     throw new BadArgumentException("No URL specified after -ppPath argument");
                 }
             }
-            else if (arg.equals("-extrastg"))
+            else if (arg.equals("-python"))
             {
-                if (count + 1 < args.length)
-                {
-                    m_customStgOutput.put(args[count++], args[count++]);
-                }
-                else
-                {
-                    throw new BadArgumentException("Missing arguments for -extrastg");
-                }
-            }
-            else if (arg.equals("-ppDisable"))
-            {
-                m_ppDisable = true;
+                m_python = true;
             }
             else if (arg.equals("-replace"))
             {
                 m_replace = true;
-            }
-            else if (arg.equals("-d"))
-            {
-                if (count < args.length)
-                {
-                    m_outputDir = Utils.addFileSeparator(args[count++]);
-                }
-                else
-                {
-                    throw new BadArgumentException("No URL specified after -d argument");
-                }
             }
             else if (arg.equals("-t"))
             {
@@ -268,112 +360,30 @@ public class fastddsgen
                     throw new BadArgumentException("No temporary directory specified after -t argument");
                 }
             }
-            else if (arg.equals("-version"))
+            else if (arg.equals("-test"))
             {
-                showVersion();
-                System.exit(0);
-            }
-            else if (arg.equals("-help"))
-            {
-                printHelp();
-                System.exit(0);
-            }
-            else if (arg.equals("-fusion"))
-            {
-                fusion_ = true;
-            }
-            else if (arg.equals("-typeros2"))
-            {
-                m_type_ros2 = true;
+                m_test = true;
             }
             else if (arg.equals("-typeobject"))
             {
                 m_type_object_files = true;
             }
+            else if (arg.equals("-typeros2"))
+            {
+                m_type_ros2 = true;
+            }
             else if (arg.equals("-typesc"))
             {
                 m_typesc = true;
             }
-            else if (arg.equals("-python"))
+            else if (arg.equals("-version"))
             {
-                m_python = true;
+                showVersion();
+                System.exit(0);
             }
-            else if (arg.equals("-test"))
+            else if (arg.equals("-fusion"))
             {
-                m_test = true;
-            }
-            else if (arg.equals("-flat-output-dir"))
-            {
-                m_flat_output_dir = true;
-            }
-            else if (arg.equals("-I"))
-            {
-                if (count < args.length)
-                {
-                    m_includePaths.add("-I".concat(args[count++]));
-                }
-                else
-                {
-                    throw new BadArgumentException("No include directory specified after -I argument");
-                }
-            }
-            else if (arg.equals("-cs"))
-            {
-                m_case_sensitive = true;
-            }
-            else if (arg.equals("-de") || arg.equals("-default_extensibility"))
-            {
-                if (count < args.length)
-                {
-                    String extensibility = args[count++];
-                    if (extensibility.equals(Annotation.final_str))
-                    {
-                        TypeCode.default_extensibility = TypeCode.ExtensibilityKind.FINAL;
-                    }
-                    else if (extensibility.equals(Annotation.appendable_str))
-                    {
-                        TypeCode.default_extensibility = TypeCode.ExtensibilityKind.APPENDABLE;
-                    }
-                    else if (extensibility.equals(Annotation.mutable_str))
-                    {
-                        TypeCode.default_extensibility = TypeCode.ExtensibilityKind.MUTABLE;
-                    }
-                    else
-                    {
-                        throw new BadArgumentException("Extensibility value " + extensibility + " is not valid");
-                    }
-                }
-                else
-                {
-                    throw new BadArgumentException("No extensibility value after -default_extensibility argument");
-                }
-            }
-            else if (arg.equals("-cdr"))
-            {
-                if (count < args.length)
-                {
-                    String cdr_version_str = args[count++];
-                    if (cdr_version_str.equals(CdrVersion.v1_str))
-                    {
-                        cdr_version_ = CdrVersion.Select.V1;
-                    }
-                    else if (cdr_version_str.equals(CdrVersion.v2_str))
-                    {
-                        cdr_version_ = CdrVersion.Select.V2;
-                    }
-                    else if (cdr_version_str.equals(CdrVersion.both_str))
-                    {
-                        cdr_version_ = CdrVersion.Select.BOTH;
-                    }
-                    else
-                    {
-                        throw new BadArgumentException("CDR version value " + cdr_version_str + " is not valid");
-                    }
-                }
-                else
-                {
-                    throw new BadArgumentException("No CDR version value after -cdr argument");
-                }
+                fusion_ = true;
             }
             else   // TODO: More options: -rpm, -debug
             {
@@ -556,8 +566,19 @@ public class fastddsgen
         System.out.println(m_appName + " usage:");
         System.out.println("\t" + m_appName + " [options] <file> [<file> ...]");
         System.out.println("\twhere the options are:");
-        System.out.println("\t\t-help: shows this help");
-        System.out.println("\t\t-version: shows the current version of eProsima Fast DDS gen.");
+        System.out.println("\t\t-cdr <version>: sets the CDR version used to generate types source code.");
+        System.out.println("\t\t Values:");
+        System.out.println("\t\t\t* " + CdrVersion.v1_str);
+        System.out.println("\t\t\t* " + CdrVersion.v2_str + " (default)");
+        System.out.println("\t\t\t* " + CdrVersion.both_str);
+        System.out.println("\t\t-cs: IDL grammar apply case sensitive matching.");
+        System.out.println("\t\t-d <path>: sets an output directory for generated files.");
+        System.out.print("\t\t-default_extensibility | -de <ext>: sets the default extensibility for types without");
+        System.out.println(" the @extensibility annotation.");
+        System.out.println("\t\t Values:");
+        System.out.println("\t\t\t* " + Annotation.final_str);
+        System.out.println("\t\t\t* " + Annotation.appendable_str + " (default)");
+        System.out.println("\t\t\t* " + Annotation.mutable_str);
         System.out.println(
             "\t\t-example <platform>: Generates a solution for a specific platform (example: x64Win64VS2019)");
         System.out.println("\t\t\tSupported platforms:");
@@ -565,35 +586,30 @@ public class fastddsgen
         {
             System.out.println("\t\t\t * " + m_platforms.get(count));
         }
-        //System.out.println("\t\t-language <C++>: Programming language (default: C++).");
-        System.out.println("\t\t-replace: replaces existing generated files.");
+        System.out.println("\t\t-extrastg <template file> <output file name>: specifies a custom template, template location must be in classpath.");
+        System.out.println("\t\t-flat-output-dir: ignore input files relative paths and place all generated files in the specified output directory.");
+        System.out.println("\t\t-help: shows this help");
+        System.out.println("\t\t-I <path>: add directory to preprocessor include paths.");
         System.out.println("\t\t-ppDisable: disables the preprocessor.");
         System.out.println("\t\t-ppPath: specifies the preprocessor path.");
-        System.out.println("\t\t-extrastg <template file> <output file name>: specifies a custom template, template location must be in classpath.");
-        System.out.println("\t\t-typeros2: generates type naming compatible with ROS2.");
-        System.out.println("\t\t-I <path>: add directory to preprocessor include paths.");
-        System.out.println("\t\t-d <path>: sets an output directory for generated files.");
-        System.out.println("\t\t-flat-output-dir: ignore input files relative paths and place all generated files in the specified output directory.");
+        System.out.println("\t\t-python: generates python bindings for the generated types.");
+        System.out.println("\t\t-replace: replaces existing generated files.");
         System.out.println("\t\t-t <temp dir>: sets a specific directory as a temporary directory.");
         System.out.print("\t\t-typeobject: generates TypeObject files to automatically register the types as");
         System.out.println(" dynamic.");
-        System.out.println("\t\t-cs: IDL grammar apply case sensitive matching.");
-        System.out.println("\t\t-test: executes FastDDSGen tests.");
-        System.out.println("\t\t-python: generates python bindings for the generated types.");
-        System.out.print("\t\t-default_extensibility | -de <ext>: sets the default extensibility for types without");
-        System.out.println(" the @extensibility annotation.");
-        System.out.println("\t\t Values:");
-        System.out.println("\t\t\t* " + Annotation.final_str);
-        System.out.println("\t\t\t* " + Annotation.appendable_str + " (default)");
-        System.out.println("\t\t\t* " + Annotation.mutable_str);
-        System.out.println("\t\t-cdr <version>: sets the CDR version used to generate types source code.");
-        System.out.println("\t\t Values:");
-        System.out.println("\t\t\t* " + CdrVersion.v1_str);
-        System.out.println("\t\t\t* " + CdrVersion.v2_str + " (default)");
-        System.out.println("\t\t\t* " + CdrVersion.both_str);
+        System.out.println("\t\t-typeros2: generates type naming compatible with ROS2.");
+        System.out.println("\t\t-version: shows the current version of eProsima Fast DDS gen.");
         System.out.println("\tand the supported input files are:");
         System.out.println("\t* IDL files.");
 
+    }
+
+    public static void printEnhacedHelp()
+    {
+        printHelp();
+        System.out.println("\tand the extra developer options are:");
+        System.out.println("\t\t-genapi: apply rules to generate internal API.");
+        System.out.println("\t\t-test: executes FastDDSGen tests.");
     }
 
     public boolean globalInit()
@@ -669,8 +685,11 @@ public class fastddsgen
 
         if (idlParseFileName != null)
         {
-            Context ctx = new Context(idlFilename, m_includePaths, m_subscribercode, m_publishercode,
-                            m_localAppProduct, m_type_object_files, m_typesc, m_type_ros2, cdr_version_);
+            // Create template manager
+            TemplateManager tmanager = new TemplateManager();
+
+            Context ctx = new Context(tmanager, idlFilename, m_includePaths, m_subscribercode, m_publishercode,
+                            m_localAppProduct, m_type_object_files, m_typesc, m_type_ros2, cdr_version_, gen_api_);
 
             String relative_dir = ctx.getRelativeDir(dependant_idl_dir);
             String output_dir;
@@ -705,17 +724,6 @@ public class fastddsgen
             {
                 ctx.setActivateFusion(true);
             }
-
-            // Create default @Key annotation.
-            AnnotationDeclaration keyann = ctx.createAnnotationDeclaration("Key", null);
-            keyann.addMember(new AnnotationMember("value", new PrimitiveTypeCode(Kind.KIND_BOOLEAN), "true"));
-
-            // Create default @Topic annotation.
-            AnnotationDeclaration topicann = ctx.createAnnotationDeclaration("Topic", null);
-            topicann.addMember(new AnnotationMember("value", new PrimitiveTypeCode(Kind.KIND_BOOLEAN), "true"));
-
-            // Create template manager
-            TemplateManager tmanager = new TemplateManager("FastCdrCommon:eprosima:Common", ctx, m_typesc);
 
             // Load common types template
             if(CdrVersion.Select.V1 != cdr_version_)
