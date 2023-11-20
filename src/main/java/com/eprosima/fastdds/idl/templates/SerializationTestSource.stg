@@ -96,8 +96,6 @@ TEST_P($struct.formatedCppTypename$Test, encoding)
 }
 >>
 
-fwd_decl(ctx, parent, type) ::= <<>>
-
 struct_type(ctx, parent, struct, member_list) ::= <<
 $member_list$
 $if(!struct.annotationNested)$
@@ -133,70 +131,6 @@ INSTANTIATE_TEST_SUITE_P(
 
 $endif$
 >>
-
-member_type(ctx, member, type_member, declarators) ::= <<
-
-$type_member$
-$declarators$
-
->>
-
-union_type(ctx, parent, union, switch_type) ::= <<
-
-$switch_type$
-
->>
-
-element_type(ctx, element, type_element, declarator) ::= <<
-
-$type_element$
-$declarator$
-
->>
-
-enum_type(ctx, parent, enum) ::= <<>>
-
-typedef_decl(ctx, parent, typedefs, typedefs_type, declarator_type) ::= <<
-
-$declarator_type$
-$typedefs_type$
-
->>
-
-bitmask_type(ctx, parent, bitmask) ::= <<>>
-
-bitset_type(ctx, parent, bitset) ::= <<>>
-
-annotation(ctx, annotation) ::= <<>>
-
-module(ctx, parent, module, definition_list) ::= <<>>
-
-definition_list(definitions) ::= <<>>
-
-const_decl(ctx, parent, const, const_type) ::= <<
-
-$const_type$
-
->>
-
-sequence_type(ctx, sequence, type_sequence) ::= <<
-
-$type_sequence$
-
->>
-
-map_type(ctx, map, key_type, value_type) ::= <<
-
-$key_type$
-$value_type$
-
->>
-
-string_type(ctx, string) ::= <<>>
-
-wide_string_type(ctx, wstring) ::= <<>>
-
-array_declarator(ctx, array, array_type) ::= <<>>
 
 /// Auxiliary templates
 
