@@ -41,8 +41,6 @@ public interface Context
 
     public boolean isGenerateTypeObject();
 
-    public boolean isGenerateTypesC();
-
     public boolean isGenerateTypesROS2();
 
     public boolean isCdr();
