@@ -232,6 +232,12 @@ $object.name$_expected_flags |= TypeFlagBits::IS_AUTOID_HASH;
 $endif$
 >>
 
+test_typedef(typedefs) ::= <<
+TEST(TypeObjectTests, TestTypedefTypeObject_$typedefs.name$)
+{
+    $check_alias_type(typedefs=typedefs)$
+}
+>>
 
 check_alias_type(typedefs) ::= <<
 ReturnCode_t ret_code;
@@ -251,6 +257,10 @@ EXPECT_EQ(0u, type_objects.complete_type_object.alias_type().body().common().rel
 TypeIdentifierPair related_type_ids;
 $if (typedefs.typedefContentTypeCode.primitive)$
 $get_type_identifier(typename=typedefs.typedefContentTypeCode.cppTypename, result="related_type_ids")$
+$elseif (typedefs.typedefContentTypeCode.isStringType)$
+$get_type_identifier(typename=string_name(string=typedefs.typedefContentTypeCode), result="related_type_ids")$
+$elseif (typedefs.typedefContentTypeCode.isWStringType)$
+$get_type_identifier(typename=wstring_name(wstring=typedefs.typedefContentTypeCode), result="related_type_ids")$
 $else$
 $get_type_identifier(typename=typedefs.typedefContentTypeCode.scopedname, result="related_type_ids")$
 $endif$
@@ -259,6 +269,13 @@ EXPECT_TRUE(related_type_ids.type_identifier1() == type_objects.minimal_type_obj
 EXPECT_TRUE(related_type_ids.type_identifier1() == type_objects.complete_type_object.alias_type().body().common().related_type() ||
     related_type_ids.type_identifier2() == type_objects.complete_type_object.alias_type().body().common().related_type());
 $check_member_detail_annotations(member=typedefs, type="alias_type().body()")$
+>>
+
+test_structure(struct) ::= <<
+TEST(TypeObjectTests, TestStructureTypeObject_$struct.name$)
+{
+    $check_struct_type(struct=struct)$ 
+}
 >>
 
 check_struct_type(struct) ::= <<
@@ -329,6 +346,10 @@ check_struct_member(member, parent) ::= <<
     TypeIdentifierPair member_type_ids;
     $if(member.typecode.primitive)$
     $get_type_identifier(typename=member.typecode.cppTypename, result="member_type_ids")$
+    $elseif (member.typecode.isStringType)$
+    $get_type_identifier(typename=string_name(string=member.typecode), result="member_type_ids")$
+    $elseif (member.typecode.isWStringType)$
+    $get_type_identifier(typename=wstring_name(wstring=member.typecode), result="member_type_ids")$
     $else$
     $get_type_identifier(typename=member.typecode.scopedname, result="member_type_ids")$
     $endif$
@@ -340,6 +361,13 @@ check_struct_member(member, parent) ::= <<
 >>
 
 check_struct_member_seq(struct) ::= <<>>
+
+test_union(union) ::= <<
+TEST(TypeObjectTests, TestUnionTypeObject_$union.name$)
+{
+    $check_union_type(union=union)$ 
+}
+>>
 
 check_union_type(union) ::= <<
 ReturnCode_t ret_code;
@@ -410,6 +438,10 @@ check_union_member(member, parent) ::= <<
     TypeIdentifierPair member_type_ids;
     $if(member.typecode.primitive)$
     $get_type_identifier(typename=member.typecode.cppTypename, result="member_type_ids")$
+    $elseif (member.typecode.isStringType)$
+    $get_type_identifier(typename=string_name(string=member.typecode), result="member_type_ids")$
+    $elseif (member.typecode.isWStringType)$
+    $get_type_identifier(typename=wstring_name(wstring=member.typecode), result="member_type_ids")$
     $else$
     $get_type_identifier(typename=member.typecode.scopedname, result="member_type_ids")$
     $endif$
@@ -429,6 +461,13 @@ check_label(label) ::= <<>>
 check_union_member_seq(union) ::= <<>>
 
 check_case_label_seq(sequence) ::= <<>>
+
+test_enum(enum) ::= <<
+TEST(TypeObjectTests, TestEnumTypeObject_$enum.name$)
+{
+    $check_enum_type(enum=enum)$ 
+}
+>>
 
 check_enum_type(enum) ::= <<
 ReturnCode_t ret_code;
@@ -485,6 +524,13 @@ check_enum_literal(literal) ::= <<
 
 check_enum_literal_seq(enum) ::= <<>>
 
+test_bitmask(bitmask) ::= <<
+TEST(TypeObjectTests, TestBitmaskTypeObject_$bitmask.name$)
+{
+    $check_bitmask_type(bitmask=bitmask)$ 
+}
+>>
+
 check_bitmask_type(bitmask) ::= <<
 ReturnCode ret_code;
 TypeIdentifierPair type_ids;
@@ -530,6 +576,13 @@ check_bitmask_flag(bitflag) ::= <<
 >>
 
 check_bitmask_bitflag_seq(bitmask) ::= <<>>
+
+test_bitset(bitset) ::= <<
+TEST(TypeObjectTests, TestBitsetTypeObject_$bitset.name$)
+{
+    $check_bitset_type(bitset=bitset)$ 
+}
+>>
 
 check_bitset_type(bitset) ::= <<
 ReturnCode_t ret_code;
@@ -583,6 +636,13 @@ check_bitfield(bitfield) ::= <<
 >>
 
 check_bitset_member_seq(bitset) ::= <<>>
+
+test_annotation(annotation) ::= <<
+TEST(TypeObjectTests, TestAnnotationTypeObject_$annotation.name$)
+{
+    $check_annotation_type(annotation=annotation)$
+}
+>>
 
 check_annotation_type(annotation) ::= <<
     //=====check_annotation_type - $relation_name$ - $annotation.name$=====
@@ -674,6 +734,13 @@ check_annotation_parameter_type(ctx, parameter, relation, relation_name, relatio
     memberId++;
 >>
 
+test_array(array) ::= <<
+TEST(TypeObjectTests, TestArrayTypeObject_$array_name(array)$)
+{
+    $check_array_type(array=array)$
+}
+>>
+
 check_array_type(ctx, array, relation, relation_name, relation_capname) ::= <<
     //=====check_array_type - $relation_name$ - $array.name$=====
     $get_type_identifier(typename=array.scopedname)$
@@ -736,6 +803,13 @@ check_array_type(ctx, array, relation, relation_name, relation_capname) ::= <<
     }
 >>
 
+test_sequence(sequence) ::= <<
+TEST(TypeObjectTests, TestSequenceTypeObject_$sequence_name(sequence)$)
+{
+    $check_sequence_type(sequence=sequence)$
+}
+>>
+
 check_sequence_type(ctx, sequence, relation, relation_name, relation_capname) ::= <<
     //=====check_sequence_type - $relation_name$ - $sequence.name$=====
     $get_type_identifier(typename=sequence.scopedname)$
@@ -785,6 +859,13 @@ check_sequence_type(ctx, sequence, relation, relation_name, relation_capname) ::
     }else{
         ASSERT_EQ($sequence.typecode.maxsize$, $sequence.name$_$relation_name$_type_identifier.seq_ldefn().bound());
     }
+>>
+
+test_map(map) ::= <<
+TEST(TypeObjectTests, TestMapTypeObject_$map_name(map)$)
+{
+    $check_map_type(map=map)$
+}
 >>
 
 check_map_type(ctx, map, relation, relation_name, relation_capname) ::= <<
@@ -854,90 +935,23 @@ check_map_type(ctx, map, relation, relation_name, relation_capname) ::= <<
     }
 >>
 
-
-test_typedef(typedefs) ::= <<
-TEST(TypeObjectTests, TestTypedefTypeObject_$typedefs.name$)
-{
-    $check_alias_type(typedefs=typedefs)$
-}
->>
-
-test_structure(struct) ::= <<
-TEST(TypeObjectTests, TestStructureTypeObject_$struct.name$)
-{
-    $check_struct_type(struct=struct)$ 
-}
->>
-
-test_union(union) ::= <<
-TEST(TypeObjectTests, TestUnionTypeObject_$union.name$)
-{
-    $check_union_type(union=union)$ 
-}
->>
-
-test_enum(enum) ::= <<
-TEST(TypeObjectTests, TestEnumTypeObject_$enum.name$)
-{
-    $check_enum_type(enum=enum)$ 
-}
->>
-
-test_bitmask(bitmask) ::= <<
-TEST(TypeObjectTests, TestBitmaskTypeObject_$bitmask.name$)
-{
-    $check_bitmask_type(bitmask=bitmask)$ 
-}
->>
-
-test_bitset(bitset) ::= <<
-TEST(TypeObjectTests, TestBitsetTypeObject_$bitset.name$)
-{
-    $check_bitset_type(bitset=bitset)$ 
-}
->>
-
-test_annotation(annotation) ::= <<
-TEST(TypeObjectTests, TestAnnotationTypeObject_$annotation.name$)
-{
-    $check_annotation_type(annotation=annotation)$
-}
->>
-
-test_sequence(sequence) ::= <<
-TEST(TypeObjectTests, TestSequenceTypeObject_$sequence_name(sequence)$)
-{
-    $check_sequence_type(sequence=sequence)$
-}
->>
-
-test_map(map) ::= <<
-TEST(TypeObjectTests, TestMapTypeObject_$map_name(map)$)
-{
-    $check_map_type(map=map)$
-}
->>
-
-test_array(array) ::= <<
-TEST(TypeObjectTests, TestArrayTypeObject_$array_name(array)$)
-{
-    $check_array_type(array=array)$
-}
->>
-
 test_string(string) ::= <<
-TEST(TypeObjectTests, TestStringTypeObject_$string_name(name)$)
+TEST(TypeObjectTests, TestStringTypeObject_$string_name(string=string)$)
 {
     $check_string_type(string=string)$
 }
 >>
 
+check_string_type(string) ::= <<>>
+
 test_wstring(wstring) ::= <<
-TEST(TypeObjectTests, TestWstringTypeObject_$wstring_name(wstring)$)
+TEST(TypeObjectTests, TestWstringTypeObject_$wstring_name(wstring=wstring)$)
 {
     $check_wstring_type(wstring=wstring)$
 }
 >>
+
+check_wstring_type(wstring) ::= <<>>
 
 fwd_decl(ctx, parent, type) ::= <<>>
 
