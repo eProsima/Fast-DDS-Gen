@@ -76,15 +76,6 @@ $endif$
 $"\n"$
 >>
 
-module(ctx, parent, module, definition_list) ::= <<
-$definition_list$
->>
-
-definition_list(definitions) ::= <<
-$definitions; separator="\n"$
-
->>
-
 fast_macro_declarations() ::= <<
 // Macro declarations
 // Any macro used on the Fast DDS header files will give an error if it is not redefined here
@@ -120,13 +111,6 @@ $struct.members : { member | $member_getters(struct_name=struct.scopedname, memb
         return (*self)[i];
     }
 }
-
->>
-
-member_type(ctx, member, type_member, declarators) ::= <<
-
-$type_member$
-$declarators$
 
 >>
 
@@ -226,13 +210,6 @@ $union.members : { member | $member_getters(struct_name=union.name, member=membe
 
 >>
 
-element_type(ctx, element, type_element, declarator) ::= <<
-
-$type_element$
-$declarator$
-
->>
-
 bitset_type(ctx, parent, bitset, extensions) ::= <<
 ////////////////////////////////////////////////////////
 // Binding for class $bitset.name$
@@ -248,48 +225,3 @@ bitset_type(ctx, parent, bitset, extensions) ::= <<
 enum_type(ctx, parent, enum) ::= <<
 %traits_penumn(enum $enum.cppTypename$);
 >>
-
-// bitmasks are implemented as enums. Therefore, are ported as constants in the target language
-bitmask_type(ctx, parent, bitmask) ::= <<>>
-
-sequence_type(ctx, sequence, type_sequence) ::= <<
-
-$type_sequence$
-
->>
-
-map_type(ctx, map, key_type, value_type) ::= <<
-
-$key_type$
-$value_type$
-
->>
-
-string_type(ctx, string) ::= <<>>
-
-wide_string_type(ctx, wstring) ::= <<>>
-
-array_declarator(ctx, array, array_type) ::= <<>>
-
-const_decl(ctx, parent, const, const_type) ::= <<
-
-$const_type$
-
->>
-
-annotation(ctx, parent, annotation) ::= <<>>
-
-typedef_decl(ctx, parent, typedefs, typedefs_type, declarator_type) ::= <<
-
-$declarator_type$
-$typedefs_type$
-
->>
-
-fwd_decl(ctx, parent, type) ::= <<>>
-
-annotation(ctx, annotation) ::= <<>>
-
-interface(ctx, parent, interface, export_list) ::= <<>>
-
-exception(ctx, parent, exception) ::= <<>>
