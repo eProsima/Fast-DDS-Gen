@@ -189,29 +189,29 @@ check_annotation_parameter(param, type) ::= <<
 
 check_member_detail_annotations(member, type) ::= <<>>
 
-expected_member_flags(object) ::= <<
-MemberFlag $object.name$_expected_flags;
+expected_member_flags(object, typename) ::= <<
+MemberFlag $typename$_expected_flags;
 $if(object.annotationDiscard)$
-$object.name$_expected_flags |= MemberFlagBits::TRY_CONSTRUCT1
+$typename$_expected_flags |= MemberFlagBits::TRY_CONSTRUCT1
 $elseif(object.annotationUseDefault)$
-$object.name$_expected_flags |= MemberFlagBits::TRY_CONSTRUCT2;
+$typename$_expected_flags |= MemberFlagBits::TRY_CONSTRUCT2;
 $elseif(object.annotationTrim)$
-$object.name$_expected_flags |= MemberFlagBits::TRY_CONSTRUCT1 | MemberFlagBits::TRY_CONSTRUCT2;
+$typename$_expected_flags |= MemberFlagBits::TRY_CONSTRUCT1 | MemberFlagBits::TRY_CONSTRUCT2;
 $endif$
 $if(object.annotationExternal)$
-$object.name$_expected_flags |= MemberFlagBits::IS_EXTERNAL;
+$typename$_expected_flags |= MemberFlagBits::IS_EXTERNAL;
 $endif$
 $if(object.annotationOptional)$
-$object.name$_expected_flags |= MemberFlagBits::IS_OPTIONAL;
+$typename$_expected_flags |= MemberFlagBits::IS_OPTIONAL;
 $endif$
 $if(object.annotationMustUnderstand)$
-$object.name$_expected_flags |= MemberFlagBits::IS_MUST_UNDERSTAND;
+$typename$_expected_flags |= MemberFlagBits::IS_MUST_UNDERSTAND;
 $endif$
 $if(object.annotationKey)$
-$object.name$_expected_flags |= MemberFlagBits::IS_KEY;
+$typename$_expected_flags |= MemberFlagBits::IS_KEY;
 $endif$
 $if(object.annotationDefaultLiteral)$
-$object.name$_expected_flags |= MemberFlagBits::IS_DEFAULT;
+$typename$_expected_flags |= MemberFlagBits::IS_DEFAULT;
 $endif$
 >>
 
@@ -261,6 +261,8 @@ $elseif (typedefs.typedefContentTypeCode.isStringType)$
 $get_type_identifier(typename=string_name(string=typedefs.typedefContentTypeCode), result="related_type_ids")$
 $elseif (typedefs.typedefContentTypeCode.isWStringType)$
 $get_type_identifier(typename=wstring_name(wstring=typedefs.typedefContentTypeCode), result="related_type_ids")$
+$elseif (typedefs.typedefContentTypeCode.isArrayType)$
+$get_type_identifier(typename=array_name(array=typedefs.typedefContentTypeCode, array_type=""), result="related_type_ids")$
 $else$
 $get_type_identifier(typename=typedefs.typedefContentTypeCode.scopedname, result="related_type_ids")$
 $endif$
@@ -340,7 +342,7 @@ check_struct_member(member, parent) ::= <<
     EXPECT_EQ(member_id, type_objects.minimal_type_object.struct_type().member_seq()[pos].common().member_id());
     EXPECT_EQ(member_id, type_objects.complete_type_object.struct_type().member_seq()[pos].common().member_id());
     $endif$
-    $expected_member_flags(object=member)$
+    $expected_member_flags(object=member, typename=member.name)$
     EXPECT_EQ($member.name$_expected_flags, type_objects.minimal_type_object.struct_type().member_seq()[pos].common().member_flags());
     EXPECT_EQ($member.name$_expected_flags, type_objects.complete_type_object.struct_type().member_seq()[pos].common().member_flags());
     TypeIdentifierPair member_type_ids;
@@ -350,6 +352,8 @@ check_struct_member(member, parent) ::= <<
     $get_type_identifier(typename=string_name(string=member.typecode), result="member_type_ids")$
     $elseif (member.typecode.isWStringType)$
     $get_type_identifier(typename=wstring_name(wstring=member.typecode), result="member_type_ids")$
+    $elseif (member.typecode.isArrayType)$
+    $get_type_identifier(typename=array_name(array=member.typecode, array_type=""), result="member_type_ids")$
     $else$
     $get_type_identifier(typename=member.typecode.scopedname, result="member_type_ids")$
     $endif$
@@ -383,7 +387,7 @@ EXPECT_EQ($union.name$_expected_flags, type_objects.minimal_type_object.union_ty
 EXPECT_EQ($union.name$_expected_flags, type_objects.complete_type_object.union_type().union_flags());
 EXPECT_EQ($union.scopedname$, type_objects.complete_type_object.union_type().header().detail().type_name());
 $check_type_detail_annotations(object=union, type="union_type().header().detail()")$
-$expected_member_flags(object=union.discriminator)$
+$expected_member_flags(object=union.discriminator, typename=union.discriminator.name)$
 EXPECT_EQ($union.discriminator.name$_expected_flags, type_objects.minimal_type_object.union_type().discriminator().common().member_flags());
 EXPECT_EQ($union.discriminator.name$_expected_flags, type_objects.complete_type_object.union_type().discriminator().common().member_flags());
 TypeIdentifierPair discriminator_type_ids;
@@ -432,7 +436,7 @@ check_union_member(member, parent) ::= <<
     EXPECT_EQ(member_id, type_objects.minimal_type_object.union_type().member_seq()[pos].common().member_id());
     EXPECT_EQ(member_id, type_objects.complete_type_object.union_type().member_seq()[pos].common().member_id());
     $endif$
-    $expected_member_flags(object=member)$
+    $expected_member_flags(object=member, typename=member.name)$
     EXPECT_EQ($member.name$_expected_flags, type_objects.minimal_type_object.union_type().member_seq()[pos].common().member_flags());
     EXPECT_EQ($member.name$_expected_flags, type_objects.complete_type_object.union_type().member_seq()[pos].common().member_flags());
     TypeIdentifierPair member_type_ids;
@@ -442,6 +446,8 @@ check_union_member(member, parent) ::= <<
     $get_type_identifier(typename=string_name(string=member.typecode), result="member_type_ids")$
     $elseif (member.typecode.isWStringType)$
     $get_type_identifier(typename=wstring_name(wstring=member.typecode), result="member_type_ids")$
+    $elseif (member.typecode.isArrayType)$
+    $get_type_identifier(typename=array_name(array=member.typecode, array_type=""), result="member_type_ids")$
     $else$
     $get_type_identifier(typename=member.typecode.scopedname, result="member_type_ids")$
     $endif$
@@ -515,7 +521,7 @@ check_enum_literal(literal) ::= <<
     EXPECT_EQ(enum_literal_id, type_objects.complete_type_object.enumerated_type().literal_seq()[pos].common().value());
     EXPECT_EQ(enum_literal_id, type_objects.minimal_type_object.enumerated_type().literal_seq()[pos].common().value());
     $endif$
-    $expected_member_flags(literal)$
+    $expected_member_flags(object=literal, typename=literal.name)$
     EXPECT_EQ($literal.name$_expected_flags, type_objects.minimal_type_object.enumerated_type().literal_seq()[pos].common().flags());
     EXPECT_EQ($literal.name$_expected_flags, type_objects.complete_type_object.enumerated_type().literal_seq()[pos].common().flags());
     enum_literal_id++;
@@ -744,29 +750,71 @@ TEST(TypeObjectTests, TestArrayTypeObject_$array_name(array, array_type)$)
 check_array_type(array, array_type) ::= <<
 ReturnCode_t ret_code;
 TypeIdentifierPair type_ids;
-$get_type_identifier(typename=array_name(array, array_type))$
+$get_type_identifier(typename=array_name(array, array_type), result="type_ids")$
 EXPECT_TRUE(type_ids.type_identifier1()._d() == TI_PLAIN_ARRAY_SMALL ||
     type_ids.type_identifier1()._d() == TI_PLAIN_ARRAY_LARGE);
 EXPECT_TRUE(type_ids.type_identifier2()._d() == TI_PLAIN_ARRAY_SMALL ||
     type_ids.type_identifier2()._d() == TI_PLAIN_ARRAY_LARGE || type_ids.type_identifier2()._d() == TK_NONE);
 EXPECT_EQ(type_ids.type_identifier1()._d(), type_ids.type_identifier2());
+$if(!array.contentTypeCode.primitive)$
+$expected_member_flags(object=array.contentTypeCode, typename=array_name(array, array_type))$
+$endif$
 if (type_ids.type_identifier2()._d() == TK_NONE)
 {
     EXPECT_TRUE((type_ids.type_identifier1()._d() == TI_PLAIN_ARRAY_SMALL &&
         type_ids.type_identifier1().array_sdefn().header().equiv_kind() == EK_BOTH) ||
         (type_ids.type_identifier1()._d() == TI_PLAIN_ARRAY_LARGE &&
         type_ids.type_identifier1().array_ldefn().header().equiv_kind() == EK_BOTH));
+    if (type_ids.type_identifier1()._d() == TI_PLAIN_ARRAY_SMALL)
+    {
+        EXPECT_EQ($array_name(array=array, array_type=array_type)$_expected_flags, type_ids.type_identifier1().array_sdefn().header().element_flags());
+    }
+    else
+    {
+        EXPECT_EQ($array_name(array=array, array_type=array_type)$_expected_flags, type_ids.type_identifier1().array_ldefn().header().element_flags());
+    }
 }
 else
 {
     TypeObjectPair type_objects;
     $get_type_object(typename=array_name(array, array_type), result="type_objects")$
+    EXPECT_EQ(TK_ARRAY, type_objects.minimal_type_object._d());
+    EXPECT_EQ(TK_ARRAY, type_objects.complete_type_object._d());
+    EXPECT_EQ(0u, type_objects.complete_type_object.array_type().collection_flag());
+    EXPECT_EQ(0u, type_objects.minimal_type_object.array_type().collection_flag());
+    $array.evaluatedDimensions: {dimension | $check_array_dimension(dimension)$}; separator="\n"$
+    EXPECT_EQ(type_objects.complete_type_object.array_type().header().common().bound_seq().size(), $array.evaluatedDimensionsSize$);
+    EXPECT_EQ("", type_objects.complete_type_object.array_type().header().detail().type_name());
+    $check_type_detail_annotations(object=array, type="array_type().header().detail()")$
+    EXPECT_EQ($array_name(array=array, array_type=array_type)$_expected_flags, type_objects.complete_type_object.array_type().element().common().element_flags());
+    EXPECT_EQ($array_name(array=array, array_type=array_type)$_expected_flags, type_objects.minimal_type_object.array_type().element().common().element_flags());
+    TypeIdentifierPair element_type_ids;
+    $if(array.contentTypeCode.primitive)$
+    $get_type_identifier(typename=array.contentTypeCode.cppTypename, result="element_type_ids")$
+    $elseif (array.contentTypeCode.isStringType)$
+    $get_type_identifier(typename=string_name(string=array.contentTypeCode), result="element_type_ids")$
+    $elseif (array.contentTypeCode.isWStringType)$
+    $get_type_identifier(typename=wstring_name(wstring=array.contentTypeCode), result="element_type_ids")$
+    $elseif (array.contentTypeCode.isArrayType)$
+    $get_type_identifier(typename=array_name(array=array.contentTypeCode, array_type=""), result="member_type_ids")$
+    $else$
+    $get_type_identifier(typename=array.contentTypeCode.scopedname, result="element_type_ids")$
+    $endif$
+    EXPECT_TRUE(element_type_ids.type_identifier1() == type_objects.minimal_type_object.array_type().element().common().type() ||
+        element_type_ids.type_identifier1() == type_objects.complete_type_object.array_type().element().common().type());
+    EXPECT_TRUE(element_type_ids.type_identifier2() == type_objects.minimal_type_object.array_type().element().common().type() ||
+        element_type_ids.type_identifier2() == type_objects.complete_type_object.array_type().element().common().type());
+    $check_member_detail_annotations(member=array.contentTypeCode, type="array_type().element().detail()")$
     if (type_ids.type_identifier1()._d() == TI_PLAIN_ARRAY_SMALL)
     {
         EXPECT_TRUE((type_ids.type_identifier1().array_sdefn().header().equiv_kind() == EK_COMPLETE &&
             type_ids.type_identifier2().array_sdefn().header().equiv_kind() == EK_MINIMAL) ||
             (type_ids.type_identifier1().array_sdefn().header().equiv_kind() == EK_MINIMAL &&
             type_ids.type_identifier2().array_sdefn().header().equiv_kind() == EK_COMPLETE));
+        EXPECT_EQ(type_objects.complete_type_object.array_type().element().common().element_flags(), type_ids.type_identifier1().array_sdefn().header().element_flags());
+        EXPECT_EQ(type_objects.complete_type_object.array_type().header().common().bound_seq(), type_ids.type_identifier1().array_sdefn().array_bound_seq());
+        EXPECT_TRUE(type_objects.complete_type_object.array_type().element().common().type() == type_ids.type_identifier1().array_sdefn().element_identifier() ||
+            type_objects.minimal_type_object.array_type().element().common().type() == type_ids.type_identifier1().array_sdefn().element_identifier());
     }
     else
     {
@@ -774,69 +822,30 @@ else
             type_ids.type_identifier2().array_ldefn().header().equiv_kind() == EK_MINIMAL) ||
             (type_ids.type_identifier1().array_ldefn().header().equiv_kind() == EK_MINIMAL &&
             type_ids.type_identifier2().array_ldefn().header().equiv_kind() == EK_COMPLETE));
+        EXPECT_EQ(type_objects.complete_type_object.array_type().element().common().element_flags(), type_ids.type_identifier1().array_ldefn().header().element_flags());
+        EXPECT_EQ(type_objects.complete_type_object.array_type().header().common().bound_seq(), type_ids.type_identifier1().array_ldefn().array_bound_seq());
+        EXPECT_TRUE(type_objects.complete_type_object.array_type().element().common().type() == type_ids.type_identifier1().array_ldefn().element_identifier() ||
+            type_objects.minimal_type_object.array_type().element().common().type() == type_ids.type_identifier1().array_ldefn().element_identifier());
     }
 }
+>>
 
-
-    //=====check_array_type - $relation_name$ - $array.name$=====
-    $get_type_identifier(typename=array.scopedname)$
-    ASSERT_EQ(eprosima::fastrtps::types::EK_$if(relation)$COMPLETE$else$MINIMAL$endif$, $array.name$_$relation_name$_type_identifier->_d());
-
-    $get_type_identifier(typename=array.scopedname)$
-    ASSERT_EQ(eprosima::fastrtps::types::EK_$if(relation)$COMPLETE$else$MINIMAL$endif$, $array.name$_$relation_name$_typeobject->_d());
-
-    $relation_capname$TypeObject $array.name$_$relation_name$_object = $array.name$_$relation_name$_typeobject->$relation_name$();
-    ASSERT_EQ(TK_ARRAY, $array.name$_$relation_name$_object._d());
-
-    $relation_capname$ArrayType $array.name$_$relation_name$_array = $array.name$_$relation_name$_object.array_type();
-    //CollectionTypeFlag collection_flag;// Unused. No flags apply
-    
-    $relation_capname$ArrayHeader $array.name$_$relation_name$_header = $array.name$_$relation_name$_array.header();
-    $if(relation)$
-    CompleteTypeDetail $array.name$_$relation_name$_detail = $array.name$_$relation_name$_header.detail();
-    $check_optional_detail_annotations(ctx=ctx, object=array)$
-    QualifiedTypeName $array.name$_$relation_name$_detail_type_name = $array.name$_$relation_name$_detail.type_name();
-    ASSERT_EQ("$array.scopedname$", $array.name$_$relation_name$_detail_type_name);
-    $endif$
-
-    CommonArrayHeader $array.name$_$relation_name$_header_common = $array.name$_$relation_name$_header.common();
-    LBoundSeq $array.name$_$relation_name$_header_common_bound_seq = $array.name$_$relation_name$_header_common.bound_seq();
-
-    int dimension_bound_index = 0;
-    $array.typecode.dimensions:{ dimension_bound |
-    ASSERT_EQ($dimension_bound$, $array.name$_$relation_name$_header_common_bound_seq.at(dimension_bound_index));
-    dimension_bound_index++;
-    };separator="\n"$
-
-    $relation_capname$CollectionElement $array.name$_$relation_name$_collection_element = $array.name$_$relation_name$_array.element();
-    CommonCollectionElement $array.name$_$relation_name$_common_element = $array.name$_$relation_name$_collection_element.common();
-
-    CollectionElementFlag $array.name$_$relation_name$_common_element_flags = $array.name$_$relation_name$_common_element.element_flags();
-    {
-    $check_member_flags(ctx=ctx, object=array, flags_var_name=["array"])$
-    ASSERT_TRUE(array_expected_flags & $map.name$_$relation_name$_array);
-    }
-    $get_type_identifier(typename=array.scopedname)$
-    ASSERT_EQ($array.name$_$relation_name$_common_element_id->_d(), $array.name$_$relation_name$_common_element.type()._d());
-
-    $if(relation)$
+check_array_dimension(dimension) ::= <<
 {
-    CompleteElementDetail $array.name$_$relation_name$_detail = $array.name$_$relation_name$_collection_element.detail();
-    $check_optional_detail_annotations(ctx=ctx, object=array)$
-}
-    $endif$
-
-    int $array.name$_$relation_name$_totalsize = $member.typecode.dimensions:{ dim | $dim$};separator=" + "$;
-    
-    if($array.name$_$relation_name$_totalsize <= 100){
-        SBoundSeq $array.name$_$relation_name$_s_bound_seq;
-        $member.typecode.dimensions:{ dim | $array.name$_$relation_name$_s_bound_seq.push_back($dim$);};separator="\n"$
-        ASSERT_EQ($array.name$_$relation_name$_s_bound_seq, $array.name$_$relation_name$_type_identifier.array_sdefn().array_bound_seq());
-    }else{
-        LBoundSeq $array.name$_$relation_name$_l_bound_seq;
-        $member.typecode.dimensions:{ dim | $array.name$_$relation_name$_l_bound_seq.push_back($dim$);};separator="\n"$
-        ASSERT_EQ($array.name$_$relation_name$_l_bound_seq, $array.name$_$relation_name$_type_identifier.array_ldefn().array_bound_seq());
+    size_t pos = 0;
+    bool found = false;
+    for (; pos < type_objects.complete_type_object.array_type().header().common().bound_seq().size(); ++pos)
+    {
+        if ($dimension$ == type_objects.complete_type_object.array_type().header().common().bound_seq()[pos])
+        {
+            found = true;
+            break;
+        }
     }
+    ASSERT_TRUE(found);
+    EXPECT_EQ($dimension$, type_objects.complete_type_object.array_type().header().common().bound_seq()[pos]);
+    EXPECT_EQ($dimension$, type_objects.minimal_type_object.array_type().header().common().bound_seq()[pos]);
+}
 >>
 
 test_sequence(sequence) ::= <<
