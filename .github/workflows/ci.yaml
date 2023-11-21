@@ -7,10 +7,10 @@ on:
         description: 'foonathan_memory_vendor branch to be used'
         required: false
         default: 'master'
-      fastcdr_versions:
-        description: 'Fast-CDR branches to be used'
+      fastcdr_branch:
+        description: 'Fast-CDR branch to be used'
         required: false
-        default: '["1.1.x", "master"]'
+        default: 'master'
       fastdds_branch:
         description: 'Fast-DDS branch to be used'
         required: false
@@ -31,7 +31,6 @@ jobs:
     runs-on: ubuntu-22.04
     strategy:
       matrix:
-        fastcdr_version: ${{ fromJson(github.event.inputs.fastcdr_versions || '["1.1.x", "master"]') }}
         java_version: ['openjdk-11-jdk', 'openjdk-19-jdk']
 
     steps:
@@ -56,7 +55,7 @@ jobs:
       - uses: ./src/fastddsgen/.github/actions/fetch-fastddsgen-repos
         with:
           foonathan-memory-vendor-branch: ${{ github.event.inputs.foonathan_memory_vendor_branch || 'master' }}
-          fastcdr-branch: ${{ matrix.fastcdr_version }}
+          fastcdr-branch: ${{ github.event.inputs.fastcdr_branch || 'master' }}
           fastdds-branch: ${{ github.event.inputs.fastdds_branch || 'master' }}
           fastdds-python-branch: ${{ github.event.inputs.fastdds_python_branch || 'main' }}
 
@@ -83,22 +82,14 @@ jobs:
           ./generate.sh
           cd -
           cd src/Fast-DDS-python/fastdds_python_examples/HelloWorldExample
-          fastddsgen -cdr both -python -replace HelloWorld.idl
+          fastddsgen -python -replace HelloWorld.idl
 
       - name: Build workspace
         run: |
           cmake --version
           colcon build --event-handlers=console_direct+ --mixin rel-with-deb-info ccache --metas src/fastddsgen/.github/fastddsgen.meta
 
-      - name: Test fastddsgen with fastcdr v1
-        if: startsWith(matrix.fastcdr_version, '1')
-        run: |
-          source install/local_setup.bash
-          cd src/fastddsgen
-          ./gradlew test -Dcdr_version=v1 -Dblacklist_tests=external,optional
-
-      - name: Test fastddsgen with fastcdr v2
-        if: ${{ ! startsWith(matrix.fastcdr_version, '1') }}
+      - name: Test fastddsgen
         run: |
           source install/local_setup.bash
           cd src/fastddsgen
