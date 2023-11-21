@@ -532,7 +532,7 @@ TEST(TypeObjectTests, TestBitmaskTypeObject_$bitmask.name$)
 >>
 
 check_bitmask_type(bitmask) ::= <<
-ReturnCode ret_code;
+ReturnCode_t ret_code;
 TypeIdentifierPair type_ids;
 $get_type_identifier(typename=bitmask.scopedname, result="type_ids")$
 $check_direct_hash_type_identifier(typeid="type_ids")$
@@ -734,14 +734,50 @@ check_annotation_parameter_type(ctx, parameter, relation, relation_name, relatio
     memberId++;
 >>
 
-test_array(array) ::= <<
-TEST(TypeObjectTests, TestArrayTypeObject_$array_name(array)$)
+test_array(array, array_type) ::= <<
+TEST(TypeObjectTests, TestArrayTypeObject_$array_name(array, array_type)$)
 {
-    $check_array_type(array=array)$
+    $check_array_type(array=array, array_type=array_type)$
 }
 >>
 
-check_array_type(ctx, array, relation, relation_name, relation_capname) ::= <<
+check_array_type(array, array_type) ::= <<
+ReturnCode_t ret_code;
+TypeIdentifierPair type_ids;
+$get_type_identifier(typename=array_name(array, array_type))$
+EXPECT_TRUE(type_ids.type_identifier1()._d() == TI_PLAIN_ARRAY_SMALL ||
+    type_ids.type_identifier1()._d() == TI_PLAIN_ARRAY_LARGE);
+EXPECT_TRUE(type_ids.type_identifier2()._d() == TI_PLAIN_ARRAY_SMALL ||
+    type_ids.type_identifier2()._d() == TI_PLAIN_ARRAY_LARGE || type_ids.type_identifier2()._d() == TK_NONE);
+EXPECT_EQ(type_ids.type_identifier1()._d(), type_ids.type_identifier2());
+if (type_ids.type_identifier2()._d() == TK_NONE)
+{
+    EXPECT_TRUE((type_ids.type_identifier1()._d() == TI_PLAIN_ARRAY_SMALL &&
+        type_ids.type_identifier1().array_sdefn().header().equiv_kind() == EK_BOTH) ||
+        (type_ids.type_identifier1()._d() == TI_PLAIN_ARRAY_LARGE &&
+        type_ids.type_identifier1().array_ldefn().header().equiv_kind() == EK_BOTH));
+}
+else
+{
+    TypeObjectPair type_objects;
+    $get_type_object(typename=array_name(array, array_type), result="type_objects")$
+    if (type_ids.type_identifier1()._d() == TI_PLAIN_ARRAY_SMALL)
+    {
+        EXPECT_TRUE((type_ids.type_identifier1().array_sdefn().header().equiv_kind() == EK_COMPLETE &&
+            type_ids.type_identifier2().array_sdefn().header().equiv_kind() == EK_MINIMAL) ||
+            (type_ids.type_identifier1().array_sdefn().header().equiv_kind() == EK_MINIMAL &&
+            type_ids.type_identifier2().array_sdefn().header().equiv_kind() == EK_COMPLETE));
+    }
+    else
+    {
+        EXPECT_TRUE((type_ids.type_identifier1().array_ldefn().header().equiv_kind() == EK_COMPLETE &&
+            type_ids.type_identifier2().array_ldefn().header().equiv_kind() == EK_MINIMAL) ||
+            (type_ids.type_identifier1().array_ldefn().header().equiv_kind() == EK_MINIMAL &&
+            type_ids.type_identifier2().array_ldefn().header().equiv_kind() == EK_COMPLETE));
+    }
+}
+
+
     //=====check_array_type - $relation_name$ - $array.name$=====
     $get_type_identifier(typename=array.scopedname)$
     ASSERT_EQ(eprosima::fastrtps::types::EK_$if(relation)$COMPLETE$else$MINIMAL$endif$, $array.name$_$relation_name$_type_identifier->_d());
@@ -1026,7 +1062,7 @@ $test_wstring(wstring=wstring)$
 >>
 
 array_declarator(ctx, array, array_type) ::= <<
-$test_array(array=array)$
+$test_array(array=array, array_type=array_type)$
 >>
 
 sequence_name(sequence) ::= <<
