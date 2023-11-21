@@ -383,14 +383,14 @@ EXPECT_EQ($union.name$_expected_flags, type_objects.minimal_type_object.union_ty
 EXPECT_EQ($union.name$_expected_flags, type_objects.complete_type_object.union_type().union_flags());
 EXPECT_EQ($union.scopedname$, type_objects.complete_type_object.union_type().header().detail().type_name());
 $check_type_detail_annotations(object=union, type="union_type().header().detail()")$
-$expected_member_flags(object=union.discriminatorMember)$
-EXPECT_EQ($union.discriminatorMember.name$_expected_flags, type_objects.minimal_type_object.union_type().discriminator().common().member_flags());
-EXPECT_EQ($union.discriminatorMember.name$_expected_flags, type_objects.complete_type_object.union_type().discriminator().common().member_flags());
+$expected_member_flags(object=union.discriminator)$
+EXPECT_EQ($union.discriminator.name$_expected_flags, type_objects.minimal_type_object.union_type().discriminator().common().member_flags());
+EXPECT_EQ($union.discriminator.name$_expected_flags, type_objects.complete_type_object.union_type().discriminator().common().member_flags());
 TypeIdentifierPair discriminator_type_ids;
-$if(union.discriminator.primitive)$
-$get_type_identifier(typename=union.discriminator.cppTypename, result="discriminator_type_ids")$
+$if(union.discriminator.typecode.primitive)$
+$get_type_identifier(typename=union.discriminator.typecode.cppTypename, result="discriminator_type_ids")$
 $else$
-$get_type_identifier(typename=union.discriminator.scopedname, result="discriminator_type_ids")$
+$get_type_identifier(typename=union.discriminator.typecode.scopedname, result="discriminator_type_ids")$
 $endif$
 EXPECT_TRUE(discriminator_type_ids.type_identifier1() == type_objects.minimal_type_object.union_type().discriminator().common().type_id() ||
     discriminator_type_ids.type_identifier1() == type_objects.complete_type_object.union_type().discriminator().common().type_id());
