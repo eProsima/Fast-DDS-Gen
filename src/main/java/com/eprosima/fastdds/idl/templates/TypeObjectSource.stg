@@ -1071,10 +1071,10 @@ const TypeObject* GetMinimal$union.name$Object()
     type_object->minimal().union_type().discriminator().common().member_flags().IS_KEY(false); // Unsupported
     type_object->minimal().union_type().discriminator().common().member_flags().IS_DEFAULT(false); // Doesn't apply
 
-    type_object->minimal().union_type().discriminator().common().type_id(*$get_type_identifier(ctx=ctx, type=union.discriminator, ek="false")$);
+    type_object->minimal().union_type().discriminator().common().type_id(*$get_type_identifier(ctx=ctx, type=union.discriminator.typecode, ek="false")$);
 
     MemberId memberId = 0;
-    $union.members:{ member | $minimal_union_member_object_type(ctx=ctx, object=member, discriminator=union.discriminator)$}; separator="\n"$
+    $union.members:{ member | $minimal_union_member_object_type(ctx=ctx, object=member, discriminator=union.discriminator.typecode)$}; separator="\n"$
 
     // Header
     //type_object->minimal().union_type().header().detail()... // Empty
@@ -1139,10 +1139,10 @@ const TypeObject* GetComplete$union.name$Object()
     type_object->complete().union_type().discriminator().common().member_flags().IS_KEY(false); // Unsupported
     type_object->complete().union_type().discriminator().common().member_flags().IS_DEFAULT(false); // Doesn't apply
 
-    type_object->complete().union_type().discriminator().common().type_id(*$get_type_identifier(ctx=ctx, type=union.discriminator, ek="true")$);
+    type_object->complete().union_type().discriminator().common().type_id(*$get_type_identifier(ctx=ctx, type=union.discriminator.typecode, ek="true")$);
 
-    $if(union.discriminator.annotationList)$
-    $union.discriminator.annotationList:{ ann |
+    $if(union.discriminator.typecode.annotationList)$
+    $union.discriminator.typecode.annotationList:{ ann |
 {
     AppliedAnnotation ann;
     //ann.annotation_typeid(Get$ann.name$Identifier(true));
@@ -1170,7 +1170,7 @@ const TypeObject* GetComplete$union.name$Object()
     $endif$
 
     MemberId memberId = 0;
-    $union.members:{ member | $complete_union_member_object_type(ctx=ctx, object=member, discriminator=union.discriminator)$}; separator="\n"$
+    $union.members:{ member | $complete_union_member_object_type(ctx=ctx, object=member, discriminator=union.discriminator.typecode)$}; separator="\n"$
 
     // Header
     type_object->complete().union_type().header().detail().type_name("$union.name$");
