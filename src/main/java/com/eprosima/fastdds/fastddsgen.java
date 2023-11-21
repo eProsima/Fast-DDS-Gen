@@ -822,36 +822,32 @@ public class fastddsgen
                         maintemplates.getTemplate("com/eprosima/fastcdr/idl/templates/TypesHeader.stg"),
                         m_replace)))
                 {
-                    if (returnedValue = Utils.writeFile(output_dir + ctx.getFilename() + ".cxx",
-                                    maintemplates.getTemplate("com/eprosima/fastcdr/idl/templates/TypesSource.stg"), m_replace))
-                    {
-                        project.addCommonIncludeFile(relative_dir + ctx.getFilename() + ".hpp");
+                   project.addCommonIncludeFile(relative_dir + ctx.getFilename() + ".hpp");
 
-                        if (m_type_object_files)
-                        {
-                            System.out.println("Generating TypeObject files...");
-                            if (returnedValue = Utils.writeFile(output_dir + ctx.getFilename() + "TypeObject.h",
-                                        maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/TypeObjectHeader.stg"), m_replace))
-                            {
-                                if (returnedValue = Utils.writeFile(output_dir + ctx.getFilename() + "TypeObject.cxx",
-                                            maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/TypeObjectSource.stg"), m_replace))
-                                {
-                                    project.addCommonIncludeFile(relative_dir + ctx.getFilename() + "TypeObject.h");
-                                    project.addCommonSrcFile(relative_dir + ctx.getFilename() + "TypeObject.cxx");
-                                }
-                            }
-                        }
-                        if (m_python)
-                        {
-                            System.out.println("Generating Swig interface files...");
-                            if (returnedValue =
-                                    Utils.writeFile(output_dir + ctx.getFilename() + ".i",
-                                        maintemplates.getTemplate("com/eprosima/fastcdr/idl/templates/TypesSwigInterface.stg"), m_replace))
-                            {
+                   if (m_type_object_files)
+                   {
+                       System.out.println("Generating TypeObject files...");
+                       if (returnedValue = Utils.writeFile(output_dir + ctx.getFilename() + "TypeObject.h",
+                                   maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/TypeObjectHeader.stg"), m_replace))
+                       {
+                           if (returnedValue = Utils.writeFile(output_dir + ctx.getFilename() + "TypeObject.cxx",
+                                       maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/TypeObjectSource.stg"), m_replace))
+                           {
+                               project.addCommonIncludeFile(relative_dir + ctx.getFilename() + "TypeObject.h");
+                               project.addCommonSrcFile(relative_dir + ctx.getFilename() + "TypeObject.cxx");
+                           }
+                       }
+                   }
+                   if (m_python)
+                   {
+                       System.out.println("Generating Swig interface files...");
+                       if (returnedValue =
+                               Utils.writeFile(output_dir + ctx.getFilename() + ".i",
+                                   maintemplates.getTemplate("com/eprosima/fastcdr/idl/templates/TypesSwigInterface.stg"), m_replace))
+                       {
 
-                            }
-                        }
-                    }
+                       }
+                   }
                 }
 
                 if (m_test)
