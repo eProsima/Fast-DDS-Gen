@@ -15,7 +15,6 @@
 package com.eprosima.fastdds;
 
 import com.eprosima.fastcdr.idl.generator.TypesGenerator;
-import com.eprosima.fastcdr.idl.util.CdrVersion;
 import com.eprosima.fastdds.exceptions.BadArgumentException;
 import com.eprosima.fastdds.idl.grammar.Context;
 import com.eprosima.fastdds.solution.Project;
@@ -137,8 +136,6 @@ public class fastddsgen
 
     private LANGUAGE m_languageOption = LANGUAGE.CPP; // Default language -> CPP
 
-    private CdrVersion.Select cdr_version_ = CdrVersion.Select.V2;
-
     /*
      * ----------------------------------------------------------------------------------------
      *
@@ -166,33 +163,6 @@ public class fastddsgen
             if (!arg.startsWith("-"))
             {
                 m_idlFiles.add(arg);
-            }
-            else if (arg.equals("-cdr"))
-            {
-                if (count < args.length)
-                {
-                    String cdr_version_str = args[count++];
-                    if (cdr_version_str.equals(CdrVersion.v1_str))
-                    {
-                        cdr_version_ = CdrVersion.Select.V1;
-                    }
-                    else if (cdr_version_str.equals(CdrVersion.v2_str))
-                    {
-                        cdr_version_ = CdrVersion.Select.V2;
-                    }
-                    else if (cdr_version_str.equals(CdrVersion.both_str))
-                    {
-                        cdr_version_ = CdrVersion.Select.BOTH;
-                    }
-                    else
-                    {
-                        throw new BadArgumentException("CDR version value " + cdr_version_str + " is not valid");
-                    }
-                }
-                else
-                {
-                    throw new BadArgumentException("No CDR version value after -cdr argument");
-                }
             }
             else if (arg.equals("-cs"))
             {
@@ -564,11 +534,6 @@ public class fastddsgen
         System.out.println(m_appName + " usage:");
         System.out.println("\t" + m_appName + " [options] <file> [<file> ...]");
         System.out.println("\twhere the options are:");
-        System.out.println("\t\t-cdr <version>: sets the CDR version used to generate types source code.");
-        System.out.println("\t\t Values:");
-        System.out.println("\t\t\t* " + CdrVersion.v1_str);
-        System.out.println("\t\t\t* " + CdrVersion.v2_str + " (default)");
-        System.out.println("\t\t\t* " + CdrVersion.both_str);
         System.out.println("\t\t-cs: IDL grammar apply case sensitive matching.");
         System.out.println("\t\t-d <path>: sets an output directory for generated files.");
         System.out.print("\t\t-default_extensibility | -de <ext>: sets the default extensibility for types without");
@@ -687,7 +652,7 @@ public class fastddsgen
             TemplateManager tmanager = new TemplateManager();
 
             Context ctx = new Context(tmanager, idlFilename, m_includePaths, m_subscribercode, m_publishercode,
-                            m_localAppProduct, m_type_object_files, m_typesc, m_type_ros2, cdr_version_, gen_api_);
+                            m_localAppProduct, m_type_object_files, m_typesc, m_type_ros2, gen_api_);
 
             String relative_dir = ctx.getRelativeDir(dependant_idl_dir);
             String output_dir;
@@ -724,21 +689,14 @@ public class fastddsgen
             }
 
             // Load common types template
-            if(CdrVersion.Select.V1 != cdr_version_)
-            {
-                tmanager.addGroup("com/eprosima/fastcdr/idl/templates/TypesHeader.stg");
-                tmanager.addGroup("com/eprosima/fastcdr/idl/templates/TypesSource.stg");
-            }
-            if(CdrVersion.Select.V2 != cdr_version_)
-            {
-                tmanager.addGroup("com/eprosima/fastcdr/idl/templates/TypesHeaderv1.stg");
-                tmanager.addGroup("com/eprosima/fastcdr/idl/templates/TypesSourcev1.stg");
-            }
+            tmanager.addGroup("com/eprosima/fastcdr/idl/templates/TypesHeader.stg");
+            tmanager.addGroup("com/eprosima/fastcdr/idl/templates/TypesSource.stg");
             if (m_type_object_files)
             {
                 tmanager.addGroup("com/eprosima/fastdds/idl/templates/TypeObjectHeader.stg");
                 tmanager.addGroup("com/eprosima/fastdds/idl/templates/TypeObjectSource.stg");
             }
+
             // Load Types common templates
             tmanager.addGroup("com/eprosima/fastdds/idl/templates/TypesCdrAuxHeader.stg");
             tmanager.addGroup("com/eprosima/fastdds/idl/templates/TypesCdrAuxHeaderImpl.stg");
@@ -863,55 +821,38 @@ public class fastddsgen
 
                 System.out.println("Generating Type definition files...");
                 if ((returnedValue) &&
-                        (CdrVersion.Select.V1 == cdr_version_ || (returnedValue =
-                        Utils.writeFile(output_dir + ctx.getFilename() + ".h",
+                        (returnedValue = Utils.writeFile(output_dir + ctx.getFilename() + ".h",
                         maintemplates.getTemplate("com/eprosima/fastcdr/idl/templates/TypesHeader.stg"),
-                        m_replace))))
+                        m_replace)))
                 {
-                    if (CdrVersion.Select.V2 == cdr_version_ || (returnedValue =
-                            Utils.writeFile(output_dir + ctx.getFilename() + (CdrVersion.Select.BOTH == cdr_version_ ? "v1" : "") + ".h",
-                            maintemplates.getTemplate("com/eprosima/fastcdr/idl/templates/TypesHeaderv1.stg"), m_replace)))
+                    if (returnedValue = Utils.writeFile(output_dir + ctx.getFilename() + ".cxx",
+                                    maintemplates.getTemplate("com/eprosima/fastcdr/idl/templates/TypesSource.stg"), m_replace))
                     {
-                        if (CdrVersion.Select.V1 == cdr_version_ || (returnedValue =
-                                    Utils.writeFile(output_dir + ctx.getFilename() + ".cxx",
-                                        maintemplates.getTemplate("com/eprosima/fastcdr/idl/templates/TypesSource.stg"), m_replace)))
+                        project.addCommonIncludeFile(relative_dir + ctx.getFilename() + ".h");
+                        project.addCommonSrcFile(relative_dir + ctx.getFilename() + ".cxx");
+
+                        if (m_type_object_files)
                         {
-                            if (CdrVersion.Select.V2 == cdr_version_ || (returnedValue =
-                                        Utils.writeFile(output_dir + ctx.getFilename() + (CdrVersion.Select.BOTH == cdr_version_ ? "v1" : "") + ".cxx",
-                                            maintemplates.getTemplate("com/eprosima/fastcdr/idl/templates/TypesSourcev1.stg"), m_replace)))
+                            System.out.println("Generating TypeObject files...");
+                            if (returnedValue = Utils.writeFile(output_dir + ctx.getFilename() + "TypeObject.h",
+                                        maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/TypeObjectHeader.stg"), m_replace))
                             {
-                                project.addCommonIncludeFile(relative_dir + ctx.getFilename() + ".h");
-                                project.addCommonSrcFile(relative_dir + ctx.getFilename() + ".cxx");
-                                if (CdrVersion.Select.BOTH == cdr_version_)
+                                if (returnedValue = Utils.writeFile(output_dir + ctx.getFilename() + "TypeObject.cxx",
+                                            maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/TypeObjectSource.stg"), m_replace))
                                 {
-                                    project.addCommonIncludeFile(relative_dir + ctx.getFilename() + "v1.h");
-                                    project.addCommonSrcFile(relative_dir + ctx.getFilename() + "v1.cxx");
+                                    project.addCommonIncludeFile(relative_dir + ctx.getFilename() + "TypeObject.h");
+                                    project.addCommonSrcFile(relative_dir + ctx.getFilename() + "TypeObject.cxx");
                                 }
+                            }
+                        }
+                        if (m_python)
+                        {
+                            System.out.println("Generating Swig interface files...");
+                            if (returnedValue =
+                                    Utils.writeFile(output_dir + ctx.getFilename() + ".i",
+                                        maintemplates.getTemplate("com/eprosima/fastcdr/idl/templates/TypesSwigInterface.stg"), m_replace))
+                            {
 
-                                if (m_type_object_files)
-                                {
-                                    System.out.println("Generating TypeObject files...");
-                                    if (returnedValue = Utils.writeFile(output_dir + ctx.getFilename() + "TypeObject.h",
-                                                maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/TypeObjectHeader.stg"), m_replace))
-                                    {
-                                        if (returnedValue = Utils.writeFile(output_dir + ctx.getFilename() + "TypeObject.cxx",
-                                                    maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/TypeObjectSource.stg"), m_replace))
-                                        {
-                                            project.addCommonIncludeFile(relative_dir + ctx.getFilename() + "TypeObject.h");
-                                            project.addCommonSrcFile(relative_dir + ctx.getFilename() + "TypeObject.cxx");
-                                        }
-                                    }
-                                }
-                                if (m_python)
-                                {
-                                    System.out.println("Generating Swig interface files...");
-                                    if (returnedValue =
-                                            Utils.writeFile(output_dir + ctx.getFilename() + ".i",
-                                                maintemplates.getTemplate("com/eprosima/fastcdr/idl/templates/TypesSwigInterface.stg"), m_replace))
-                                    {
-
-                                    }
-                                }
                             }
                         }
                     }

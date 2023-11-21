@@ -14,7 +14,6 @@
 
 package com.eprosima.fastdds.idl.grammar;
 
-import com.eprosima.fastcdr.idl.util.CdrVersion;
 import com.eprosima.fastdds.idl.parser.typecode.AliasTypeCode;
 import com.eprosima.fastdds.idl.parser.typecode.ArrayTypeCode;
 import com.eprosima.fastdds.idl.parser.typecode.BitmaskTypeCode;
@@ -65,7 +64,6 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
             boolean generate_type_object,
             boolean generate_typesc,
             boolean generate_type_ros2,
-            CdrVersion.Select cdr_version,
             boolean is_generating_api
             )
     {
@@ -82,7 +80,6 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
 
         m_type_object = generate_type_object;
         m_type_ros2 = generate_type_ros2;
-        cdr_version_ = cdr_version;
         is_generating_api_ = is_generating_api;
 
         // Create default @Key annotation.
@@ -600,42 +597,6 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
     }
 
     @Override
-    public boolean isCdr_v1()
-    {
-        return CdrVersion.Select.V2 != cdr_version_;
-    }
-
-    @Override
-    public boolean isCdr_v2()
-    {
-        return CdrVersion.Select.V1 != cdr_version_;
-    }
-
-    @Override
-    public boolean isCdr_both()
-    {
-        return CdrVersion.Select.BOTH == cdr_version_;
-    }
-
-    @Override
-    public void isSetCdrv1Templates()
-    {
-        cdr_v1_templates = true;
-    }
-
-    @Override
-    public void isUnsetCdrv1Templates()
-    {
-        cdr_v1_templates = false;
-    }
-
-    @Override
-    public boolean isCdrv1TemplatesEnabled()
-    {
-        return cdr_v1_templates;
-    }
-
-    @Override
     public TypeCode getTypeCode(
             String name)
     {
@@ -664,8 +625,6 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
     private String m_packageDir = "";
     private boolean activateFusion_ = false;
     //// End Java block
-
-    private CdrVersion.Select cdr_version_ = CdrVersion.Select.V2;
 
     private boolean cdr_v1_templates = false;
 
