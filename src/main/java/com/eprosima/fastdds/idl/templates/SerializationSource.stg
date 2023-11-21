@@ -163,12 +163,12 @@ void $if(union.hasScope)$$union.scope$::$endif$print$union.name$(
     printf("$union.name$: { \n");
     $if(union.members)$
     $if(last(union.members).labels)$
-    topic->_d(static_cast<$union.discriminator.cppTypename$>($first(last(union.members).labels)$));
+    topic->_d(static_cast<$union.discriminator.typecode.cppTypename$>($first(last(union.members).labels)$));
     $member_print(ctx=ctx, typecode=last(union.members).typecode, name=last(union.members).name,
             originName=last(union.members).name, optional=last(union.members).annotationOptional,
             external=last(union.members).annotationExternal)$
     $else$
-    topic->_d(static_cast<$union.discriminator.cppTypename$>($first(first(union.members).labels)$));
+    topic->_d(static_cast<$union.discriminator.typecode.cppTypename$>($first(first(union.members).labels)$));
     $member_print(ctx=ctx, typecode=first(union.members).typecode, name=first(union.members).name,
             originName=first(union.members).name, optional=first(union.members).annotationOptional,
             external=first(union.members).annotationExternal)$
@@ -199,14 +199,14 @@ int $if(union.hasScope)$$union.scope$::$endif$compare$union.name$(
 {
     $if(union.members)$
     $if(last(union.members).labels)$
-    topic_a->_d(static_cast<$union.discriminator.cppTypename$>($first(last(union.members).labels)$));
-    topic_b->_d(static_cast<$union.discriminator.cppTypename$>($first(last(union.members).labels)$));
+    topic_a->_d(static_cast<$union.discriminator.typecode.cppTypename$>($first(last(union.members).labels)$));
+    topic_b->_d(static_cast<$union.discriminator.typecode.cppTypename$>($first(last(union.members).labels)$));
     $member_comparision(ctx=ctx, typecode=last(union.members).typecode, name=last(union.members).name,
             originName=last(union.members).name, optional=last(union.members).annotationOptional,
             external=last(union.members).annotationExternal)$
     $else$
-    topic_a->_d(static_cast<$union.discriminator.cppTypename$>($first(first(union.members).labels)$));
-    topic_b->_d(static_cast<$union.discriminator.cppTypename$>($first(first(union.members).labels)$));
+    topic_a->_d(static_cast<$union.discriminator.typecode.cppTypename$>($first(first(union.members).labels)$));
+    topic_b->_d(static_cast<$union.discriminator.typecode.cppTypename$>($first(first(union.members).labels)$));
     $member_comparision(ctx=ctx, typecode=first(union.members).typecode, name=first(union.members).name,
             originName=first(union.members).name, optional=first(union.members).annotationOptional,
             external=first(union.members).annotationExternal)$
