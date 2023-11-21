@@ -301,26 +301,26 @@ public:
      * @exception eprosima::fastcdr::BadParamException This exception is thrown if the new value doesn't correspond to the selected union member.
      */
     eProsima_user_DllExport void _d(
-            $union.discriminator.cppTypename$ __d);
+            $union.discriminator.typecode.cppTypename$ __d);
 
     /*!
      * @brief This function returns the value of the discriminator.
      * @return Value of the discriminator
      */
-    eProsima_user_DllExport $union.discriminator.cppTypename$ _d() const;
+    eProsima_user_DllExport $union.discriminator.typecode.cppTypename$ _d() const;
 
     /*!
      * @brief This function returns a reference to the discriminator.
      * @return Reference to the discriminator.
      */
-    eProsima_user_DllExport $union.discriminator.cppTypename$& _d();
+    eProsima_user_DllExport $union.discriminator.typecode.cppTypename$& _d();
 
     $union.members:{ member | $public_unionmember_declaration(member)$}; separator="\n"$
     $serialization_functions(union)$
     $extensions : {extension | $extension$}; separator="\n"$
 private:
 
-    $union.discriminator.cppTypename$ m__d;
+    $union.discriminator.typecode.cppTypename$ m__d;
 
     $union.members:{ member | $private_member_declaration(member=member)$}; separator="\n"$
 };

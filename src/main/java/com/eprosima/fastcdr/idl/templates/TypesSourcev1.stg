@@ -766,7 +766,7 @@ bool $union.name$::operator !=(
 }
 
 void $union.name$::_d(
-        $union.discriminator.cppTypename$ __d)
+        $union.discriminator.typecode.cppTypename$ __d)
 {
     bool b = false;
 
@@ -783,12 +783,12 @@ void $union.name$::_d(
     m__d = __d;
 }
 
-$union.discriminator.cppTypename$ $union.name$::_d() const
+$union.discriminator.typecode.cppTypename$ $union.name$::_d() const
 {
     return m__d;
 }
 
-$union.discriminator.cppTypename$& $union.name$::_d()
+$union.discriminator.typecode.cppTypename$& $union.name$::_d()
 {
     return m__d;
 }
@@ -804,7 +804,7 @@ size_t $union.name$::getCdrSerializedSize(
     (void)data;
     size_t initial_alignment = current_alignment;
 
-    $serialized_size_type(ctx=ctx, typecode=union.discriminator, var="current_alignment")$
+    $serialized_size_type(ctx=ctx, typecode=union.discriminator.typecode, var="current_alignment")$
 
     switch(data.m__d)
     {
@@ -821,7 +821,7 @@ $if(ctx.cdr)$
 void $union.name$::serialize(
         eprosima::fastcdr::Cdr& scdr) const
 {
-    scdr << $serializeCasting(typecode=union.discriminator)$m__d;
+    scdr << $serializeCasting(typecode=union.discriminator.typecode)$m__d;
 
     switch(m__d)
     {
@@ -833,7 +833,7 @@ void $union.name$::serialize(
 void $union.name$::deserialize(
         eprosima::fastcdr::Cdr& dcdr)
 {
-    $deserializePossibleEnum(typecode=union.discriminator, name="m__d", preffix="")$
+    $deserializePossibleEnum(typecode=union.discriminator.typecode, name="m__d", preffix="")$
 
     switch(m__d)
     {
@@ -848,7 +848,7 @@ $if(ctx.fastcdr)$
 void $union.name$::serialize(
         eprosima::fastcdr::FastCdr& scdr) const
 {
-    scdr << $serializeCasting(typecode=union.discriminator)$m__d;
+    scdr << $serializeCasting(typecode=union.discriminator.typecode)$m__d;
 
     switch(m__d)
     {
@@ -860,7 +860,7 @@ void $union.name$::serialize(
 void $union.name$::deserialize(
         eprosima::fastcdr::FastCdr& dcdr)
 {
-    $deserializePossibleEnum(typecode=union.discriminator, name="m__d", preffix="")$
+    $deserializePossibleEnum(typecode=union.discriminator.typecode, name="m__d", preffix="")$
 
     switch(m__d)
     {

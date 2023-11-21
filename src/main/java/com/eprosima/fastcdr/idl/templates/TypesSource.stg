@@ -470,7 +470,7 @@ bool $union.name$::operator !=(
 }
 
 void $union.name$::_d(
-        $union.discriminator.cppTypename$ __d)
+        $union.discriminator.typecode.cppTypename$ __d)
 {
     bool b = false;
 
@@ -491,12 +491,12 @@ void $union.name$::_d(
     m__d = __d;
 }
 
-$union.discriminator.cppTypename$ $union.name$::_d() const
+$union.discriminator.typecode.cppTypename$ $union.name$::_d() const
 {
     return m__d;
 }
 
-$union.discriminator.cppTypename$& $union.name$::_d()
+$union.discriminator.typecode.cppTypename$& $union.name$::_d()
 {
     return m__d;
 }
