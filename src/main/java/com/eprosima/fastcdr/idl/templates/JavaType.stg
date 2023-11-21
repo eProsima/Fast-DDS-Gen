@@ -109,7 +109,7 @@ public class $union.name$
         }; separator="\n"$
     }
 
-    public $union.discriminator.javaTypename$ getDiscriminator()
+    public $union.discriminator.typecode.javaTypename$ getDiscriminator()
     {
         return d__;
     }
@@ -127,7 +127,7 @@ public class $union.name$
         $endif$
     }
 
-    public void set$member.javaName$($union.discriminator.javaTypename$ discriminator, $member.typecode.javaTypename$ $member.name$)
+    public void set$member.javaName$($union.discriminator.typecode.javaTypename$ discriminator, $member.typecode.javaTypename$ $member.name$)
         throws Exception
     {
         $if(member.default)$
@@ -188,7 +188,7 @@ public class $union.name$
         return false;
     }
 
-    $union.discriminator.javaTypename$ d__;
+    $union.discriminator.typecode.javaTypename$ d__;
 
     $union.members : { member |private $member.typecode.javaTypename$ $member.name$_; }; separator="\n"$
 
