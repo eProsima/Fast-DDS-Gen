@@ -23,6 +23,7 @@ import com.eprosima.fastdds.util.Utils;
 import com.eprosima.fastdds.util.VSConfiguration;
 import com.eprosima.idl.generator.manager.TemplateGroup;
 import com.eprosima.idl.generator.manager.TemplateManager;
+import com.eprosima.idl.generator.manager.TemplateST;
 import com.eprosima.idl.parser.grammar.IDLLexer;
 import com.eprosima.idl.parser.grammar.IDLParser;
 import com.eprosima.idl.parser.tree.Annotation;
@@ -680,7 +681,7 @@ public class fastddsgen
             }
 
             // Load common types template
-            tmanager.addGroup("com/eprosima/fastcdr/idl/templates/TypesHeader.stg");
+            tmanager.addGroup("com/eprosima/fastcdr/idl/templates/TypesHeader.stg").enable_using_explicitly_modules();
             if (m_type_object_files)
             {
                 tmanager.addGroup("com/eprosima/fastdds/idl/templates/TypeObjectHeader.stg");
@@ -1016,7 +1017,7 @@ public class fastddsgen
                     return null;
                 }
 
-                ST jnisourceTemplate = maintemplates.getTemplate("JNISource");
+                TemplateST jnisourceTemplate = maintemplates.getTemplate("JNISource");
                 if (Utils.writeFile(output_dir + ctx.getFilename() + "PubSubJNI.cxx", jnisourceTemplate, m_replace))
                 {
                     project.addJniSrcFile(relative_dir + ctx.getFilename() + "PubSubJNI.cxx");
