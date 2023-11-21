@@ -968,71 +968,121 @@ TEST(TypeObjectTests, TestMapTypeObject_$map_name(map)$)
 }
 >>
 
-check_map_type(ctx, map, relation, relation_name, relation_capname) ::= <<
-    //=====check_map_type - $relation_name$ - $map.name$=====
-    $get_type_identifier(typename=map.scopedname)$
-    ASSERT_EQ(eprosima::fastrtps::types::EK_$if(relation)$COMPLETE$else$MINIMAL$endif$, $map.name$_$relation_name$_type_identifier._d());
+check_map_type(map) ::= <<
+ReturnCode_t ret_code;
+TypeIdentifierPair type_ids;
+$get_type_identifier(typename=map_name(map=map), result="type_ids")$
+EXPECT_TRUE(type_ids.type_identifier1()._d() == TI_PLAIN_MAP_SMALL ||
+    type_ids.type_identifier1()._d() == TI_PLAIN_MAP_LARGE);
+EXPECT_TRUE(type_ids.type_identifier2()._d() == TI_PLAIN_MAP_SMALL ||
+    type_ids.type_identifier2()._d() == TI_PLAIN_MAP_LARGE || type_ids.type_identifier2()._d() == TK_NONE);
+EXPECT_EQ(type_ids.type_identifier1()._d(), type_ids.type_identifier2());
+$if(!map.valueTypeCode.primitive)$
+$expected_member_flags(object=map.valueTypeCode, typename=map_name(map=map))$
+$expected_member_flags(object=map.keyTypeCode, typename=["key_", map_name(map=map)])$
+$endif$
+if (type_ids.type_identifier2()._d() == TK_NONE)
+{
+    EXPECT_TRUE((type_ids.type_identifier1()._d() == TI_PLAIN_MAP_SMALL &&
+        type_ids.type_identifier1().map_sdefn().header().equiv_kind() == EK_BOTH) ||
+        (type_ids.type_identifier1()._d() == TI_PLAIN_MAP_LARGE &&
+        type_ids.type_identifier1().map_ldefn().header().equiv_kind() == EK_BOTH));
+    if (type_ids.type_identifier1()._d() == TI_PLAIN_MAP_SMALL)
+    {
+        EXPECT_EQ($map_name(map=map)$_expected_flags, type_ids.type_identifier1().map_sdefn().header().element_flags());
+    }
+    else
+    {
+        EXPECT_EQ($map_name(map=map)$_expected_flags, type_ids.type_identifier1().map_ldefn().header().element_flags());
+    }
+}
+else
+{
+    TypeObjectPair type_objects;
+    $get_type_object(typename=map_name(map = map), result="type_objects")$
+    EXPECT_EQ(TK_MAP, type_objects.minimal_type_object._d());
+    EXPECT_EQ(TK_MAP, type_objects.complete_type_object._d());
+    EXPECT_EQ(0u, type_objects.complete_type_object.map_type().collection_flag());
+    EXPECT_EQ(0u, type_objects.minimal_type_object.map_type().collection_flag());
+    EXPECT_EQ($map.evaluatedMaxsize$, type_objects.complete_type_object.map_type().header().common().bound());
+    EXPECT_EQ($map.evaluatedMaxsize$, type_objects.minimal_type_object.map_type().header().common().bound());
+    if (type_objects.complete_type_object.map_type().header().detail().has_value())
+    {
+        EXPECT_EQ("", type_objects.complete_type_object.map_type().header().detail().value().type_name());
+        $check_type_detail_annotations(object=map, type="map_type().header().detail().value()")$
+    }
 
-    $get_type_identifier(typename=map.scopedname)$
-    ASSERT_EQ(eprosima::fastrtps::types::EK_$if(relation)$COMPLETE$else$MINIMAL$endif$, $map.name$_$relation_name$_typeobject->_d());
 
-    $relation_capname$TypeObject $map.name$_$relation_name$_object = $map.name$_$relation_name$_typeobject->$relation_name$();
-    ASSERT_EQ(TK_MAP, $map.name$_$relation_name$_object._d());
 
-    $relation_capname$MapType $map.name$_$relation_name$_map = $map.name$_$relation_name$_object.map_type();
-    //CollectionTypeFlag collection_flag;// Unused. No flags apply
-    
-    //$relation_capname$CollectionHeader header;// Empty. Available for future extension
-
-    CommonCollectionHeader $map.name$_$relation_name$_commonheader = $map.name$_$relation_name$_header.common();
-    ASSERT_EQ($map.typecode.maxsize$, $map.name$_$relation_name$_commonheader.bound());
-
-    $if(relation)$
-    CompleteTypeDetail $map.name$_$relation_name$_detail = $map.name$_$relation_name$_header.detail();// not present for anonymous
-    $check_optional_detail_annotations(ctx=ctx, object=map)$
-    QualifiedTypeName $map.name$_$relation_name$_detail_type_name = $map.name$_$relation_name$_detail.type_name();
-    ASSERT_EQ("$map.scopedname$", $map.name$_$relation_name$_detail_type_name);
+    EXPECT_EQ(key_$map_name(map=map)$_expected_flags, type_objects.complete_type_object.map_type().key().common().element_flags());
+    EXPECT_EQ(key_$map_name(map=map)$_expected_flags, type_objects.minimal_type_object.map_type().key().common().element_flags());
+    TypeIdentifierPair key_type_ids;
+    $if(map.keyTypeCode.primitive)$
+    $get_type_identifier(typename=map.keyTypeCode.cppTypename, result="key_type_ids")$
+    $elseif (map.keyTypeCode.isStringType)$
+    $get_type_identifier(typename=string_name(string=map.keyTypeCode), result="key_type_ids")$
+    $elseif (map.keyTypeCode.isWStringType)$
+    $get_type_identifier(typename=wstring_name(wstring=map.keyTypeCode), result="key_type_ids")$
+    $elseif (map.keyTypeCode.isArrayType)$
+    $get_type_identifier(typename=array_name(array=map.keyTypeCode, array_type=""), result="key_type_ids")$
+    $elseif (map.keyTypeCode.isSequenceType)$
+    $get_type_identifier(typename=sequence_name(sequence=map.keyTypeCode), result="key_type_ids")$
+    $elseif (map.keyTypeCode.isMapType)$
+    $get_type_identifier(typename=map_name(map=map.keyTypeCode), result="key_type_ids")$
+    $else$
+    $get_type_identifier(typename=map.keyTypeCode.scopedname, result="key_type_ids")$
     $endif$
-
-    $relation_capname$CollectionElement $map.name$_$relation_name$_collection_key_element = $map.name$_$relation_name$_map.key();
-    CommonCollectionElement $map.name$_$relation_name$_key_common_element = $map.name$_$relation_name$_collection_key_element.common();
-    CollectionElementFlag $map.name$_$relation_name$_key_common_element_flags = $map.name$_$relation_name$_key_common_element.element_flags();
-    {
-    $check_member_flags(ctx=ctx, object=map.key, flags_var_name=["key_common_element"])$
-    ASSERT_TRUE(key_common_element_expected_flags & $map.name$_$relation_name$_key_common_element_flags);
-    }
-    $get_type_identifier(typename=map.key.typecode.scopedname)$
-    ASSERT_EQ($map.key.typecode.name$_$relation_name$_key_common_element_type_id->_d(), $map.name$_$relation_name$_key_common_element.type()._d());
-      
-    $if(relation)$
-    {
-    CompleteElementDetail $map.name$_$relation_name$_detail = $map.name$_$relation_name$_collection_key_element.detail();
-    $check_optional_detail_annotations(ctx=ctx, object=map)$
-    }
+    EXPECT_TRUE(key_type_ids.type_identifier1() == type_objects.minimal_type_object.map_type().key().common().type() ||
+        key_type_ids.type_identifier1() == type_objects.complete_type_object.map_type().key().common().type());
+    EXPECT_TRUE(key_type_ids.type_identifier2() == type_objects.minimal_type_object.map_type().key().common().type() ||
+        key_type_ids.type_identifier2() == type_objects.complete_type_object.map_type().key().common().type());
+    $check_member_detail_annotations(member=map.keyTypeCode, type="map_type().key().detail()")$
+    EXPECT_EQ($map_name(map=map)$_expected_flags, type_objects.complete_type_object.map_type().element().common().element_flags());
+    EXPECT_EQ($map_name(map=map)$_expected_flags, type_objects.minimal_type_object.map_type().element().common().element_flags());
+    TypeIdentifierPair element_type_ids;
+    $if(map.valueTypeCode.primitive)$
+    $get_type_identifier(typename=map.valueTypeCode.cppTypename, result="element_type_ids")$
+    $elseif (map.valueTypeCode.isStringType)$
+    $get_type_identifier(typename=string_name(string=map.valueTypeCode), result="element_type_ids")$
+    $elseif (map.valueTypeCode.isWStringType)$
+    $get_type_identifier(typename=wstring_name(wstring=map.valueTypeCode), result="element_type_ids")$
+    $elseif (map.valueTypeCode.isArrayType)$
+    $get_type_identifier(typename=array_name(array=map.valueTypeCode, array_type=""), result="element_type_ids")$
+    $elseif (map.valueTypeCode.isSequenceType)$
+    $get_type_identifier(typename=sequence_name(sequence=map.valueTypeCode), result="element_type_ids")$
+    $elseif (map.valueTypeCode.isMapType)$
+    $get_type_identifier(typename=map_name(map=map.valueTypeCode), result="element_type_ids")$
+    $else$
+    $get_type_identifier(typename=map.valueTypeCode.scopedname, result="element_type_ids")$
     $endif$
-
-    $relation_capname$CollectionElement $map.name$_$relation_name$_element_collection_element = $map.name$_$relation_name$_map.element();
-    CommonCollectionElement $map.name$_$relation_name$_element_common_element = $map.name$_$relation_name$_element_collection_element.common();
-    CollectionElementFlag $map.name$_$relation_name$_element_common_element_flags = $map.name$_$relation_name$_element_common_element.element_flags();
+    EXPECT_TRUE(element_type_ids.type_identifier1() == type_objects.minimal_type_object.map_type().element().common().type() ||
+        element_type_ids.type_identifier1() == type_objects.complete_type_object.map_type().element().common().type());
+    EXPECT_TRUE(element_type_ids.type_identifier2() == type_objects.minimal_type_object.map_type().element().common().type() ||
+        element_type_ids.type_identifier2() == type_objects.complete_type_object.map_type().element().common().type());
+    $check_member_detail_annotations(member=map.valueTypeCode, type="map_type().element().detail()")$
+    if (type_ids.type_identifier1()._d() == TI_PLAIN_MAP_SMALL)
     {
-    $check_member_flags(ctx=ctx, object=map.element, flags_var_name=["element_common_element"])$
-    ASSERT_TRUE(element_common_element_expected_flags & $map.name$_$relation_name$_element_common_element_flags);
+        EXPECT_TRUE((type_ids.type_identifier1().map_sdefn().header().equiv_kind() == EK_COMPLETE &&
+            type_ids.type_identifier2().map_sdefn().header().equiv_kind() == EK_MINIMAL) ||
+            (type_ids.type_identifier1().map_sdefn().header().equiv_kind() == EK_MINIMAL &&
+            type_ids.type_identifier2().map_sdefn().header().equiv_kind() == EK_COMPLETE));
+        EXPECT_EQ(type_objects.complete_type_object.sequence_type().element().common().element_flags(), type_ids.type_identifier1().map_sdefn().header().element_flags());
+        EXPECT_EQ(type_objects.complete_type_object.sequence_type().header().common().bound_seq(), type_ids.type_identifier1().map_sdefn().bound());
+        EXPECT_TRUE(type_objects.complete_type_object.sequence_type().element().common().type() == type_ids.type_identifier1().map_sdefn().element_identifier() ||
+            type_objects.minimal_type_object.sequence_type().element().common().type() == type_ids.type_identifier1().map_sdefn().element_identifier());
     }
-    $get_type_identifier(typename=map.element.typecode.scopedname)$
-    ASSERT_EQ($map.element.typecode.name$_$relation_name$_element_common_element_type_id->_d(), $map.name$_$relation_name$_element_common_element.type()._d());
-
-    $if(relation)$
+    else
     {
-    CompleteElementDetail $map.name$_$relation_name$_detail = $map.name$_$relation_name$_element_collection_element.detail();
-    $check_optional_detail_annotations(ctx=ctx, object=map)$
+        EXPECT_TRUE((type_ids.type_identifier1().map_ldefn().header().equiv_kind() == EK_COMPLETE &&
+            type_ids.type_identifier2().map_ldefn().header().equiv_kind() == EK_MINIMAL) ||
+            (type_ids.type_identifier1().map_ldefn().header().equiv_kind() == EK_MINIMAL &&
+            type_ids.type_identifier2().map_ldefn().header().equiv_kind() == EK_COMPLETE));
+        EXPECT_EQ(type_objects.complete_type_object.sequence_type().element().common().element_flags(), type_ids.type_identifier1().map_ldefn().header().element_flags());
+        EXPECT_EQ(type_objects.complete_type_object.sequence_type().header().common().bound_seq(), type_ids.type_identifier1().map_ldefn().bound());
+        EXPECT_TRUE(type_objects.complete_type_object.sequence_type().element().common().type() == type_ids.type_identifier1().map_ldefn().element_identifier() ||
+            type_objects.minimal_type_object.sequence_type().element().common().type() == type_ids.type_identifier1().map_ldefn().element_identifier());
     }
-    $endif$
-
-    if($map.typecode.maxsize$ <= 100){
-        ASSERT_EQ($map.typecode.maxsize$, $map.name$_$relation_name$_type_identifier.seq_sdefn().bound());
-    }else{
-        ASSERT_EQ($map.typecode.maxsize$, $map.name$_$relation_name$_type_identifier.seq_ldefn().bound());
-    }
+}
 >>
 
 test_string(string) ::= <<
