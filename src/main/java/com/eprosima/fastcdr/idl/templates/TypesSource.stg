@@ -29,10 +29,6 @@ char dummy;
 
 #include "$ctx.filename$.h"
 
-$if(ctx.cdr_both)$
-#if FASTCDR_VERSION_MAJOR > 1
-$endif$
-
 $if(ctx.generateTypeObject)$
 #include "$ctx.filename$TypeObject.h"
 $endif$
@@ -64,9 +60,6 @@ $if(ctx.thereIsStructOrUnion)$
 #include "$ctx.filename$CdrAux.ipp"
 $endif$
 
-$if(ctx.cdr_both)$
-#endif // FASTCDR_VERSION_MAJOR > 1
-$endif$
 >>
 
 module(ctx, parent, module, definition_list) ::= <<

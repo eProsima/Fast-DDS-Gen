@@ -67,9 +67,6 @@ $definitions; separator="\n"$
 
 // Include the class interfaces
 %include "$ctx.filename$.h"
-$if(ctx.cdr_both)$
-%include "$ctx.filename$v1.h"
-$endif$
 
 // Include the corresponding TopicDataType
 %include "$ctx.filename$PubSubTypes.i"

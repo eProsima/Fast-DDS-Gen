@@ -20,13 +20,6 @@ import "FastCdrCommon.stg"
 main(ctx, definitions) ::= <<
 $fileHeader(ctx=ctx, file=[ctx.filename, ".h"], description=["This header file contains the declaration of the described types in the IDL file."])$
 
-$if(ctx.cdr_both)$
-#include <fastcdr/config.h>
-#include "$ctx.filename$v1.h"
-
-#if FASTCDR_VERSION_MAJOR > 1
-$endif$
-
 #ifndef _FAST_DDS_GENERATED_$ctx.headerGuardName$_H_
 #define _FAST_DDS_GENERATED_$ctx.headerGuardName$_H_
 
@@ -105,9 +98,6 @@ $definitions; separator="\n"$
 #endif // _FAST_DDS_GENERATED_$ctx.headerGuardName$_H_
 $"\n"$
 
-$if(ctx.cdr_both)$
-#endif // FASTCDR_VERSION_MAJOR > 1
-$endif$
 >>
 
 module(ctx, parent, module, definition_list) ::= <<

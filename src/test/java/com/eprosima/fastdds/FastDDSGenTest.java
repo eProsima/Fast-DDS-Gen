@@ -126,13 +126,6 @@ public class FastDDSGenTest
             blacklist_tests = java.util.Arrays.asList(blacklist_tests_str.split(",", -1));
         }
 
-        String cdr_version = System.getProperty("cdr_version");
-        if (null == cdr_version)
-        {
-            cdr_version = "v2";
-        }
-
-
         //Configure idl tests
         TestManager tests = new TestManager(
                 TestLevel.RUN,
@@ -140,7 +133,6 @@ public class FastDDSGenTest
                 INPUT_PATH,
                 OUTPUT_PATH,
                 "CMake",
-                cdr_version,
                 list_tests,
                 blacklist_tests);
         tests.addCMakeArguments("-DCMAKE_BUILD_TYPE=Debug");
