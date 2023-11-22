@@ -382,7 +382,9 @@ public:
             $union.members:{ member | $unionmember_compare(member)$}; separator="\n"$
             $unionmemberdefault_compare(union.defaultMember)$
         }
+        $if(!union.defaultMember)$
         return false;
+        $endif$
     }
 
     /*!
