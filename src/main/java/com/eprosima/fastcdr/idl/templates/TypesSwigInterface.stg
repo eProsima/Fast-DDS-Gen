@@ -38,7 +38,7 @@ $fast_macro_declarations()$
 $ctx.directIncludeDependencies : {include | %include "$include$.i"}; separator="\n"$
 
 %{
-#include "$ctx.filename$.h"
+#include "$ctx.filename$.hpp"
 
 #include <fastdds/dds/core/LoanableSequence.hpp>
 %}
@@ -66,7 +66,7 @@ namespace swig {
 $definitions; separator="\n"$
 
 // Include the class interfaces
-%include "$ctx.filename$.h"
+%include "$ctx.filename$.hpp"
 
 // Include the corresponding TopicDataType
 %include "$ctx.filename$PubSubTypes.i"
