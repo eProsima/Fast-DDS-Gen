@@ -31,6 +31,11 @@ using DataRepresentationId_t = eprosima::fastdds::dds::DataRepresentationId_t;
 
 $definitions; separator="\n"$
 
+$if(ctx.thereIsStructOrUnion)$
+// Include auxiliary functions like for serializing/deserializing.
+#include "$ctx.filename$CdrAux.ipp"
+$endif$
+
 >>
 
 module(ctx, parent, module, definition_list) ::= <<
