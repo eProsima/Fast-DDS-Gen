@@ -29,7 +29,7 @@ $fileHeader(ctx=ctx,  file=[ctx.filename, "PubSubTypes.h"], description=["This h
 #include <fastdds/rtps/common/SerializedPayload.h>
 #include <fastdds/utils/md5.h>
 
-#include "$ctx.filename$.h"
+#include "$ctx.filename$.hpp"
 
 $ctx.directIncludeDependencies : {include | #include "$include$PubSubTypes.h"}; separator="\n"$
 

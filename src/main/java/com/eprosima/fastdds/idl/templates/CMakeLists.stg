@@ -48,13 +48,16 @@ $solution.projects : { project | $pub_sub_execs(project=project, libraries=solut
 pub_sub_execs(project, libraries, test) ::= <<
 
 message(STATUS "Configuring $project.name$...")
+$if(!project.commonSrcFiles.empty)$
 add_library($project.name$_lib $project.commonSrcFiles : { file | $file$}; separator=" "$)
 target_link_libraries($project.name$_lib $solution.libraries : { library | $library$}; separator=" "$)
+$endif$
 
 $if(!project.projectSrcFiles.empty)$
 add_executable($project.name$ $project.projectSrcFiles : { file | $file$}; separator=" "$)
 target_link_libraries($project.name$ $solution.libraries : { library | $library$}; separator=" "$
-        $project.name$_lib $project.dependencies : { dep | $dep$_lib}; separator=" "$)
+        $project.name$_lib $project.dependencies : { dep | $dep$_lib}; separator=" "$
+        )
 $endif$
 
 $if(test)$
@@ -75,7 +78,8 @@ add_executable($project.name$SerializationTest
 target_link_libraries($project.name$SerializationTest
         GTest::gtest_main
         $solution.libraries : { library | $library$}; separator=" "$
-        $project.name$_lib $project.dependencies : { dep | $dep$_lib}; separator=" "$)
+        $project.name$_lib $project.dependencies : { dep | $dep$_lib}; separator=" "$
+        )
 gtest_discover_tests($project.name$SerializationTest)
 
 $endif$
