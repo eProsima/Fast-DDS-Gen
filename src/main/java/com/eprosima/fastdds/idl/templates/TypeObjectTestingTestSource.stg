@@ -441,7 +441,6 @@ EXPECT_EQ("$struct.scopedname$", type_objects.complete_type_object.struct_type()
 $struct.members: { member | $check_struct_member(member=member, parent=struct)$}; separator="\n"$
 ASSERT_EQ($struct.membersSize$, type_objects.minimal_type_object.struct_type().member_seq().size());
 ASSERT_EQ($struct.membersSize$, type_objects.complete_type_object.struct_type().member_seq().size());
-$check_struct_member_seq(struct=struct)$
 >>
 
 check_struct_member(member, parent) ::= <<
@@ -499,8 +498,6 @@ check_struct_member(member, parent) ::= <<
 }
 >>
 
-check_struct_member_seq(struct) ::= <<>>
-
 test_union(union) ::= <<
 TEST(TypeObjectTests, TestUnionTypeObject_$union.name$)
 {
@@ -539,7 +536,6 @@ $check_type_detail_annotations(object=union.discriminator, type="union_type().di
 $union.members: { member | $check_union_member(member=member, parent=union)$}; separator="\n"$
 ASSERT_EQ($union.membersSize$, type_objects.minimal_type_object.union_type().member_seq().size());
 ASSERT_EQ($union.membersSize$, type_objects.complete_type_object.union_type().member_seq().size());
-$check_union_member_seq(union=union)$
 >>
 
 check_union_member(member, parent) ::= <<
@@ -594,7 +590,6 @@ check_union_member(member, parent) ::= <<
     $member.labels: { label | $check_label(label=label)$}; separator="\n"$
     ASSERT_EQ($member.labelsSize$, type_objects.minimal_type_object.union_type().member_seq()[pos].common().label_seq().size());
     ASSERT_EQ($member.labelsSize$, type_objects.complete_type_object.union_type().member_seq()[pos].common().label_seq().size());
-    $check_case_label_seq(sequence=member.labels)$
     EXPECT_EQ("$member.name$", type_objects.complete_type_object.union_type().member_seq()[pos].detail().name());
     EXPECT_EQ(member_name_hashed, type_objects.minimal_type_object.union_type().member_seq()[pos].detail().name_hash());
     $check_member_detail_annotations(member=member, type="union_type().member_seq()[pos].detail()")$
@@ -602,10 +597,6 @@ check_union_member(member, parent) ::= <<
 >>
 
 check_label(label) ::= <<>>
-
-check_union_member_seq(union) ::= <<>>
-
-check_case_label_seq(sequence) ::= <<>>
 
 test_enum(enum) ::= <<
 TEST(TypeObjectTests, TestEnumTypeObject_$enum.name$)
@@ -633,7 +624,6 @@ int32_t enum_literal_id = 0;
 $enum.members: { member | $check_enum_literal(literal=member)$}; separator="\n"$
 ASSERT_EQ($enum.membersSize$, type_objects.minimal_type_object.enumerated_type().literal_seq().size());
 ASSERT_EQ($enum.membersSize$, type_objects.complete_type_object.enumerated_type().literal_seq().size());
-$check_enum_literal_seq(enum=enum)$
 >>
 
 check_enum_literal(literal) ::= <<
@@ -667,8 +657,6 @@ check_enum_literal(literal) ::= <<
 }
 >>
 
-check_enum_literal_seq(enum) ::= <<>>
-
 test_bitmask(bitmask) ::= <<
 TEST(TypeObjectTests, TestBitmaskTypeObject_$bitmask.name$)
 {
@@ -694,7 +682,6 @@ EXPECT_EQ("$bitmask.scopedname$", type_objects.complete_type_object.bitmask_type
 $bitmask.members: { member | $check_bitmask_flag(bitflag=member)$}; separator="\n"$
 ASSERT_EQ($bitmask.membersSize$, type_objects.minimal_type_object.bitmask_type().flag_seq().size());
 ASSERT_EQ($bitmask.membersSize$, type_objects.complete_type_object.bitmask_type().flag_seq().size());
-$check_bitmask_bitflag_seq(bitmask=bitmask)$
 >>
 
 check_bitmask_flag(bitflag) ::= <<
@@ -720,8 +707,6 @@ check_bitmask_flag(bitflag) ::= <<
 }
 >>
 
-check_bitmask_bitflag_seq(bitmask) ::= <<>>
-
 test_bitset(bitset) ::= <<
 TEST(TypeObjectTests, TestBitsetTypeObject_$bitset.name$)
 {
@@ -745,7 +730,6 @@ EXPECT_EQ("$bitset.scopedname$", type_objects.complete_type_object.bitset_type()
 $bitset.members: { member | $check_bitfield(bitfield=member)$}; separator="\n"$
 ASSERT_EQ($bitset.membersSize$, type_objects.minimal_type_object.bitset_type().field_seq().size());
 ASSERT_EQ($bitset.membersSize$, type_objects.complete_type_object.bitset_type().field_seq().size());
-$check_bitset_member_seq(bitset=bitset)$
 >>
 
 check_bitfield(bitfield) ::= <<
@@ -780,8 +764,6 @@ check_bitfield(bitfield) ::= <<
     $check_member_detail_annotations(member=bitfield, type="bitset_type().field_seq()[pos].detail()")$
 }
 >>
-
-check_bitset_member_seq(bitset) ::= <<>>
 
 test_annotation(annotation) ::= <<
 TEST(TypeObjectTests, TestAnnotationTypeObject_$annotation.name$)
