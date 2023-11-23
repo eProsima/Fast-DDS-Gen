@@ -306,7 +306,7 @@ $get_type_identifier(typename=string_name(string=typedefs.typedefContentTypeCode
 $elseif (typedefs.typedefContentTypeCode.isWStringType)$
 $get_type_identifier(typename=wstring_name(wstring=typedefs.typedefContentTypeCode), result="related_type_ids")$
 $elseif (typedefs.typedefContentTypeCode.isArrayType)$
-$get_type_identifier(typename=array_name(array=typedefs.typedefContentTypeCode, array_type=""), result="related_type_ids")$
+$get_type_identifier(typename=array_name(array=typedefs.typedefContentTypeCode), result="related_type_ids")$
 $elseif (typedefs.typedefContentTypeCode.isSequenceType)$
 $get_type_identifier(typename=sequence_name(sequence=typedefs.typedefContentTypeCode), result="related_type_ids")$
 $elseif (typedefs.typedefContentTypeCode.isMapType)$
@@ -398,7 +398,7 @@ check_struct_member(member, parent) ::= <<
     $elseif (member.typecode.isWStringType)$
     $get_type_identifier(typename=wstring_name(wstring=member.typecode), result="member_type_ids")$
     $elseif (member.typecode.isArrayType)$
-    $get_type_identifier(typename=array_name(array=member.typecode, array_type=""), result="member_type_ids")$
+    $get_type_identifier(typename=array_name(array=member.typecode), result="member_type_ids")$
     $elseif (member.typecode.isSequenceType)$
     $get_type_identifier(typename=sequence_name(sequence=member.typecode), result="related_type_ids")$
     $elseif (member.typecode.isMapType)$
@@ -496,7 +496,7 @@ check_union_member(member, parent) ::= <<
     $elseif (member.typecode.isWStringType)$
     $get_type_identifier(typename=wstring_name(wstring=member.typecode), result="member_type_ids")$
     $elseif (member.typecode.isArrayType)$
-    $get_type_identifier(typename=array_name(array=member.typecode, array_type=""), result="member_type_ids")$
+    $get_type_identifier(typename=array_name(array=member.typecode), result="member_type_ids")$
     $elseif (member.typecode.isSequenceType)$
     $get_type_identifier(typename=sequence_name(sequence=member.typecode), result="member_type_ids")$
     $elseif (member.typecode.isMapType)$
@@ -797,25 +797,25 @@ check_annotation_parameter_type(ctx, parameter, relation, relation_name, relatio
     memberId++;
 >>
 
-test_array(array, array_type) ::= <<
-TEST(TypeObjectTests, TestArrayTypeObject_$array_name(array, array_type)$)
+test_array(array) ::= <<
+TEST(TypeObjectTests, TestArrayTypeObject_$array_name(array)$)
 {
-    $check_array_type(array=array, array_type=array_type)$
+    $check_array_type(array=array)$
 }
 >>
 
-check_array_type(array, array_type) ::= <<
+check_array_type(array) ::= <<
 ReturnCode_t ret_code;
 TypeIdentifierPair type_ids;
-$get_type_identifier(typename=array_name(array, array_type), result="type_ids")$
+$get_type_identifier(typename=array_name(array), result="type_ids")$
 EXPECT_TRUE(type_ids.type_identifier1()._d() == TI_PLAIN_ARRAY_SMALL ||
     type_ids.type_identifier1()._d() == TI_PLAIN_ARRAY_LARGE);
 EXPECT_TRUE(type_ids.type_identifier2()._d() == TI_PLAIN_ARRAY_SMALL ||
     type_ids.type_identifier2()._d() == TI_PLAIN_ARRAY_LARGE || type_ids.type_identifier2()._d() == TK_NONE);
 $if(!array.contentTypeCode.primitive)$
-$expected_member_flags(object=array.contentTypeCode, typename=array_name(array, array_type))$
+$expected_member_flags(object=array.contentTypeCode, typename=array_name(array))$
 $else$
-MemberFlag $array_name(array=array, array_type=array_type)$_expected_flags = 0;
+MemberFlag $array_name(array=array)$_expected_flags = 0;
 $endif$
 TypeIdentifierPair element_type_ids;
 $if(array.contentTypeCode.primitive)$
@@ -825,7 +825,7 @@ $get_type_identifier(typename=string_name(string=array.contentTypeCode), result=
 $elseif (array.contentTypeCode.isWStringType)$
 $get_type_identifier(typename=wstring_name(wstring=array.contentTypeCode), result="element_type_ids")$
 $elseif (array.contentTypeCode.isArrayType)$
-$get_type_identifier(typename=array_name(array=array.contentTypeCode, array_type=""), result="element_type_ids")$
+$get_type_identifier(typename=array_name(array=array.contentTypeCode), result="element_type_ids")$
 $elseif (array.contentTypeCode.isSequenceType)$
 $get_type_identifier(typename=sequence_name(sequence=array.contentTypeCode), result="element_type_ids")$
 $elseif (array.contentTypeCode.isMapType)$
@@ -841,7 +841,7 @@ if (type_ids.type_identifier2()._d() == TK_NONE)
         type_ids.type_identifier1().array_ldefn().header().equiv_kind() == EK_BOTH));
     if (type_ids.type_identifier1()._d() == TI_PLAIN_ARRAY_SMALL)
     {
-        EXPECT_EQ($array_name(array=array, array_type=array_type)$_expected_flags, type_ids.type_identifier1().array_sdefn().header().element_flags());
+        EXPECT_EQ($array_name(array=array)$_expected_flags, type_ids.type_identifier1().array_sdefn().header().element_flags());
         $array.evaluatedDimensions: {dimension |
         {
             size_t pos = 0;
@@ -854,7 +854,7 @@ if (type_ids.type_identifier2()._d() == TK_NONE)
     }
     else
     {
-        EXPECT_EQ($array_name(array=array, array_type=array_type)$_expected_flags, type_ids.type_identifier1().array_ldefn().header().element_flags());
+        EXPECT_EQ($array_name(array=array)$_expected_flags, type_ids.type_identifier1().array_ldefn().header().element_flags());
         $array.evaluatedDimensions: {dimension |
         {
             size_t pos = 0;
@@ -870,7 +870,7 @@ else
 {
     EXPECT_EQ(type_ids.type_identifier1()._d(), type_ids.type_identifier2()._d());
     TypeObjectPair type_objects;
-    $get_type_object(typename=array_name(array, array_type), result="type_objects")$
+    $get_type_object(typename=array_name(array), result="type_objects")$
     EXPECT_EQ(TK_ARRAY, type_objects.minimal_type_object._d());
     EXPECT_EQ(TK_ARRAY, type_objects.complete_type_object._d());
     EXPECT_EQ(0u, type_objects.complete_type_object.array_type().collection_flag());
@@ -886,8 +886,8 @@ else
     EXPECT_EQ(type_objects.minimal_type_object.array_type().header().common().bound_seq().size(), $array.evaluatedDimensionsSize$);
     $check_type_detail_annotations(object=array, type="array_type().header().detail()")$
     EXPECT_EQ("", type_objects.complete_type_object.array_type().header().detail().type_name());
-    EXPECT_EQ($array_name(array=array, array_type=array_type)$_expected_flags, type_objects.complete_type_object.array_type().element().common().element_flags());
-    EXPECT_EQ($array_name(array=array, array_type=array_type)$_expected_flags, type_objects.minimal_type_object.array_type().element().common().element_flags());
+    EXPECT_EQ($array_name(array=array)$_expected_flags, type_objects.complete_type_object.array_type().element().common().element_flags());
+    EXPECT_EQ($array_name(array=array)$_expected_flags, type_objects.minimal_type_object.array_type().element().common().element_flags());
     EXPECT_TRUE(element_type_ids.type_identifier1() == type_objects.minimal_type_object.array_type().element().common().type() ||
         element_type_ids.type_identifier1() == type_objects.complete_type_object.array_type().element().common().type());
     EXPECT_TRUE(element_type_ids.type_identifier2() == type_objects.minimal_type_object.array_type().element().common().type() ||
@@ -964,7 +964,7 @@ $get_type_identifier(typename=string_name(string=sequence.contentTypeCode), resu
 $elseif (sequence.contentTypeCode.isWStringType)$
 $get_type_identifier(typename=wstring_name(wstring=sequence.contentTypeCode), result="element_type_ids")$
 $elseif (sequence.contentTypeCode.isArrayType)$
-$get_type_identifier(typename=array_name(array=sequence.contentTypeCode, array_type=""), result="element_type_ids")$
+$get_type_identifier(typename=array_name(array=sequence.contentTypeCode), result="element_type_ids")$
 $elseif (sequence.contentTypeCode.isSequenceType)$
 $get_type_identifier(typename=sequence_name(sequence=sequence.contentTypeCode), result="element_type_ids")$
 $elseif (sequence.contentTypeCode.isMapType)$
@@ -1071,7 +1071,7 @@ $get_type_identifier(typename=string_name(string=map.keyTypeCode), result="key_t
 $elseif (map.keyTypeCode.isWStringType)$
 $get_type_identifier(typename=wstring_name(wstring=map.keyTypeCode), result="key_type_ids")$
 $elseif (map.keyTypeCode.isArrayType)$
-$get_type_identifier(typename=array_name(array=map.keyTypeCode, array_type=""), result="key_type_ids")$
+$get_type_identifier(typename=array_name(array=map.keyTypeCode), result="key_type_ids")$
 $elseif (map.keyTypeCode.isSequenceType)$
 $get_type_identifier(typename=sequence_name(sequence=map.keyTypeCode), result="key_type_ids")$
 $elseif (map.keyTypeCode.isMapType)$
@@ -1087,7 +1087,7 @@ $get_type_identifier(typename=string_name(string=map.valueTypeCode), result="ele
 $elseif (map.valueTypeCode.isWStringType)$
 $get_type_identifier(typename=wstring_name(wstring=map.valueTypeCode), result="element_type_ids")$
 $elseif (map.valueTypeCode.isArrayType)$
-$get_type_identifier(typename=array_name(array=map.valueTypeCode, array_type=""), result="element_type_ids")$
+$get_type_identifier(typename=array_name(array=map.valueTypeCode), result="element_type_ids")$
 $elseif (map.valueTypeCode.isSequenceType)$
 $get_type_identifier(typename=sequence_name(sequence=map.valueTypeCode), result="element_type_ids")$
 $elseif (map.valueTypeCode.isMapType)$
@@ -1267,8 +1267,8 @@ wide_string_type(ctx, wstring) ::= <<
 $test_wstring(wstring=wstring)$
 >>
 
-array_declarator(ctx, array, array_type) ::= <<
-$test_array(array=array, array_type=array_type)$
+array_declarator(ctx, array) ::= <<
+$test_array(array=array)$
 >>
 
 sequence_name(sequence) ::= <%
@@ -1331,7 +1331,7 @@ anonymous_map_$map.keyTypeCode.scopedname$_$map.valueTypeCode.scopedname$_$if(ma
 $endif$
 %>
 
-array_name(array, array_type) ::= <%
+array_name(array) ::= <%
 $if(array.contentTypeCode.primitive)$
 anonymous_array_$array.contentTypeCode.cppTypename$$array.evaluatedDimensions : { dimension | _$dimension$}$
 $elseif (array.contentTypeCode.isStringType)$
