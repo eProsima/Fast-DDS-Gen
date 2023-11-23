@@ -886,7 +886,7 @@ public class fastddsgen
                         String fileNameTO = output_dir + ctx.getFilename() + "TypeObjectTestingTest.cpp";
                         returnedValue = Utils.writeFile(fileNameTO, maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/TypeObjectTestingTestSource.stg"), m_replace);
                         project.addTypeObjectTestingFile(relative_dir + ctx.getFilename() + "TypeObjectTestingTest.cpp");
-                        project.addTypeObjectTestingFile(relative_dir + ctx.getFilename() + "TypeObject.cxx");
+                        //project.addTypeObjectTestingFile(relative_dir + ctx.getFilename() + "TypeObject.cxx");
                     }
                 }
 

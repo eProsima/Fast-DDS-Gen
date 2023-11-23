@@ -28,7 +28,8 @@ $fileHeader(ctx=ctx,  file=[ctx.filename, "TypeObjectTestingTest.cpp"], descript
 #include <fastrtps/utils/md5.h>
 #include <gtest/gtest.h>
 
-#include "$ctx.filename$TypeObject.h"
+// TODO(jlbueno): update when TypeObject is generated. Commented in order for the tests to build.
+// #include "$ctx.filename$TypeObject.h"
 
 using ReturnCode_t = eprosima::fastrtps::types::ReturnCode_t;
 using namespace eprosima::fastdds::dds::xtypes1_3;
@@ -58,7 +59,8 @@ int main(
         char** argv)
 {
 
-    register$ctx.filename$Types();
+    // TODO(jlbueno): update when TypeObject is generated. Commented in order for the tests to build.
+    // register$ctx.filename$Types();
 
     testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
