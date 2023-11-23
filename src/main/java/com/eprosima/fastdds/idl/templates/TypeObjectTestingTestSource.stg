@@ -20,6 +20,7 @@ main(ctx, definitions) ::= <<
 $fileHeader(ctx=ctx,  file=[ctx.filename, "TypeObjectTestingTest.cpp"], description=["This file contains TypeObject test code."])$
 
 #include <fastdds/dds/domain/DomainParticipantFactory.hpp>
+#include <fastdds/dds/xtypes/exception/Exception.hpp>
 #include <fastdds/dds/xtypes/type_representation/TypeObject.h>
 #include <fastdds/dds/xtypes/type_representation/TypeObjectRegistry.hpp>
 #include <fastdds/dds/xtypes/type_representation/TypeObjectUtils.hpp>
@@ -31,6 +32,24 @@ $fileHeader(ctx=ctx,  file=[ctx.filename, "TypeObjectTestingTest.cpp"], descript
 
 using ReturnCode_t = eprosima::fastrtps::types::ReturnCode_t;
 using namespace eprosima::fastdds::dds::xtypes1_3;
+
+class TypeObjectUtilsTest : public TypeObjectUtils
+{
+public:
+
+    static void type_identifier_consistency(
+            const TypeIdentifier& type_identifier)
+    {
+        TypeObjectUtils::type_identifier_consistency(type_identifier);
+    }
+
+    static void complete_type_object_consistency(
+            const CompleteTypeObject& complete_type_object)
+    {
+        TypeObjectUtils::complete_type_object_consistency(complete_type_object);
+    }
+
+};
 
 $definitions;separator="\n"$
 
@@ -51,6 +70,15 @@ ret_code =
     eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->type_object_registry().get_type_identifiers(
     "$typename$", $result$);
 ASSERT_EQ(ReturnCode_t::RETCODE_OK, ret_code);
+EXPECT_NO_THROW(TypeObjectUtilsTest::type_identifier_consistency($result$.type_identifier1()));
+if (TK_NONE != $result$.type_identifier2()._d())
+{
+    EXPECT_NO_THROW(TypeObjectUtilsTest::type_identifier_consistency($result$.type_identifier2()));
+}
+else
+{
+    EXPECT_THROW(TypeObjectUtilsTest::type_identifier_consistency($result$.type_identifier2()), InvalidArgumentError);
+}
 >>
 
 get_type_object(typename, result) ::= <<
@@ -58,6 +86,7 @@ ret_code =
     eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->type_object_registry().get_type_objects(
     "$typename$", $result$);
 ASSERT_EQ(ReturnCode_t::RETCODE_OK, ret_code);
+EXPECT_NO_THROW(TypeObjectUtilsTest::complete_type_object_consistency($result$.complete_type_object));
 >>
 
 check_type_detail_annotations(object, type) ::= <<
