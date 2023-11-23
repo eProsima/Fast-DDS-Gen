@@ -109,7 +109,7 @@ $endif$
 }; separator="\n"$
 $elseif(!annotation.isBuiltin)$
 custom_annotations = true;
-$check_applied_custom_annotations(object=annotation, type=type)$
+$check_applied_custom_annotations(annotation=annotation, type=type)$
 $endif$
 }; separator="\n"$
 if (!verbatim_annotation)
@@ -126,7 +126,7 @@ EXPECT_FALSE(type_objects.complete_type_object.$type$.ann_custom().has_value());
 $endif$
 >>
 
-check_applied_custom_annotations(object, type) ::= <<
+check_applied_custom_annotations(annotation, type) ::= <<
 TypeIdentifierPair annotation_type_ids;
 $get_type_identifier(typename=annotation.scopedname, result="annotation_type_ids")$
 $check_direct_hash_type_identifier(typeid="annotation_type_ids")$
@@ -171,67 +171,150 @@ check_annotation_parameter(param, type) ::= <<
     }
     ASSERT_TRUE(found_);
     EXPECT_EQ(param_name_hash, type_objects.complete_type_object.$type$.ann_custom().value()[pos].param_seq().value()[pos_].paramname_hash());
-    $if (param.typecode.primitiveType)$
-    $if (param.typecode.isBooleanType)$
-    EXPECT_EQ(TK_BOOLEAN, type_objects.complete_type_object.$type$.ann_custom().value()[pos].param_seq().value()[pos_].value()._d());
-    EXPECT_EQ($param.value$, type_objects.complete_type_object.$type$.ann_custom().value()[pos].param_seq().value()[pos_].value().boolean_value());
-    $elseif (param.typecode.isByteType)$
-    EXPECT_EQ(TK_BYTE, type_objects.complete_type_object.$type$.ann_custom().value()[pos].param_seq().value()[pos_].value()._d());
-    EXPECT_EQ($param.value$, type_objects.complete_type_object.$type$.ann_custom().value()[pos].param_seq().value()[pos_].value().byte_value());
-    $elseif (param.typecode.isInt8Type)$
-    EXPECT_EQ(TK_INT8, type_objects.complete_type_object.$type$.ann_custom().value()[pos].param_seq().value()[pos_].value()._d());
-    EXPECT_EQ($param.value$, type_objects.complete_type_object.$type$.ann_custom().value()[pos].param_seq().value()[pos_].value().int8_value());
-    $elseif (param.typecode.isUint8Type)$
-    EXPECT_EQ(TK_UINT8, type_objects.complete_type_object.$type$.ann_custom().value()[pos].param_seq().value()[pos_].value()._d());
-    EXPECT_EQ($param.value$, type_objects.complete_type_object.$type$.ann_custom().value()[pos].param_seq().value()[pos_].value().uint8_value());
-    $elseif (param.typecode.isInt16Type)$
-    EXPECT_EQ(TK_INT16, type_objects.complete_type_object.$type$.ann_custom().value()[pos].param_seq().value()[pos_].value()._d());
-    EXPECT_EQ($param.value$, type_objects.complete_type_object.$type$.ann_custom().value()[pos].param_seq().value()[pos_].value().int16_value());
-    $elseif (param.typecode.isUint16Type)$
-    EXPECT_EQ(TK_UINT16, type_objects.complete_type_object.$type$.ann_custom().value()[pos].param_seq().value()[pos_].value()._d());
-    EXPECT_EQ($param.value$, type_objects.complete_type_object.$type$.ann_custom().value()[pos].param_seq().value()[pos_].value().uint_16_value());
-    $elseif (param.typecode.isInt32Type)$
-    EXPECT_EQ(TK_INT32, type_objects.complete_type_object.$type$.ann_custom().value()[pos].param_seq().value()[pos_].value()._d());
-    EXPECT_EQ($param.value$, type_objects.complete_type_object.$type$.ann_custom().value()[pos].param_seq().value()[pos_].value().int32_value());
-    $elseif (param.typecode.isUint32Type)$
-    EXPECT_EQ(TK_UINT32, type_objects.complete_type_object.$type$.ann_custom().value()[pos].param_seq().value()[pos_].value()._d());
-    EXPECT_EQ($param.value$, type_objects.complete_type_object.$type$.ann_custom().value()[pos].param_seq().value()[pos_].value().uint32_value());
-    $elseif (param.typecode.isInt64Type)$
-    EXPECT_EQ(TK_INT64, type_objects.complete_type_object.$type$.ann_custom().value()[pos].param_seq().value()[pos_].value()._d());
-    EXPECT_EQ($param.value$, type_objects.complete_type_object.$type$.ann_custom().value()[pos].param_seq().value()[pos_].value().int64_value());
-    $elseif (param.typecode.isUint64Type)$
-    EXPECT_EQ(TK_UINT64, type_objects.complete_type_object.$type$.ann_custom().value()[pos].param_seq().value()[pos_].value()._d());
-    EXPECT_EQ($param.value$, type_objects.complete_type_object.$type$.ann_custom().value()[pos].param_seq().value()[pos_].value().uint64_value());
-    $elseif (param.typecode.isFloat32Type)$
-    EXPECT_EQ(TK_FLOAT32, type_objects.complete_type_object.$type$.ann_custom().value()[pos].param_seq().value()[pos_].value()._d());
-    EXPECT_EQ($param.value$, type_objects.complete_type_object.$type$.ann_custom().value()[pos].param_seq().value()[pos_].value().float32_value());
-    $elseif (param.typecode.isFloat64Type)$
-    EXPECT_EQ(TK_FLOAT64, type_objects.complete_type_object.$type$.ann_custom().value()[pos].param_seq().value()[pos_].value()._d());
-    EXPECT_EQ($param.value$, type_objects.complete_type_object.$type$.ann_custom().value()[pos].param_seq().value()[pos_].value().float64_value());
-    $elseif (param.typecode.isFloat128Type)$
-    EXPECT_EQ(TK_FLOAT128, type_objects.complete_type_object.$type$.ann_custom().value()[pos].param_seq().value()[pos_].value()._d());
-    EXPECT_EQ($param.value$, type_objects.complete_type_object.$type$.ann_custom().value()[pos].param_seq().value()[pos_].value().float128_value());
-    $elseif (param.typecode.isCharType)$
-    EXPECT_EQ(TK_CHAR8, type_objects.complete_type_object.$type$.ann_custom().value()[pos].param_seq().value()[pos_].value()._d());
-    EXPECT_EQ($param.value$, type_objects.complete_type_object.$type$.ann_custom().value()[pos].param_seq().value()[pos_].value().char_value());
-    $elseif (param.typecode.isWCharType)$
-    EXPECT_EQ(TK_CHAR16, type_objects.complete_type_object.$type$.ann_custom().value()[pos].param_seq().value()[pos_].value()._d());
-    EXPECT_EQ($param.value$, type_objects.complete_type_object.$type$.ann_custom().value()[pos].param_seq().value()[pos_].value().wchar_value());
-    $endif$
-    $elseif (param.typecode.isEnumType)$
-    EXPECT_EQ(TK_ENUM, type_objects.complete_type_object.$type$.ann_custom().value()[pos].param_seq().value()[pos_].value()._d());
-    EXPECT_EQ($param.value$, type_objects.complete_type_object.$type$.ann_custom().value()[pos].param_seq().value()[pos_].value().enumerated_value());
-    $elseif (param.typecode.isStringType)$
-    EXPECT_EQ(TK_STRING8, type_objects.complete_type_object.$type$.ann_custom().value()[pos].param_seq().value()[pos_].value()._d());
-    EXPECT_EQ($param.value$, type_objects.complete_type_object.$type$.ann_custom().value()[pos].param_seq().value()[pos_].value().string8_value());
-    $elseif (param.typecode.isWStringType)$
-    EXPECT_EQ(TK_STRING16, type_objects.complete_type_object.$type$.ann_custom().value()[pos].param_seq().value()[pos_].value()._d());
-    EXPECT_EQ($param.value$, type_objects.complete_type_object.$type$.ann_custom().value()[pos].param_seq().value()[pos_].value().string16_value());
-    $endif$
+    $check_annotation_parameter_value(param=param, type=[type, ".ann_custom().value()[pos].param_seq().value()[pos_].value()"])$
 }
 >>
 
-check_member_detail_annotations(member, type) ::= <<>>
+check_annotation_parameter_value(param, type) ::= <<
+$if (param.typecode.primitiveType)$
+$if (param.typecode.isBooleanType)$
+EXPECT_EQ(TK_BOOLEAN, type_objects.complete_type_object.$type$._d());
+EXPECT_EQ($param.value$, type_objects.complete_type_object.$type$.boolean_value());
+$elseif (param.typecode.isByteType)$
+EXPECT_EQ(TK_BYTE, type_objects.complete_type_object.$type$._d());
+EXPECT_EQ($param.value$, type_objects.complete_type_object.$type$.byte_value());
+$elseif (param.typecode.isInt8Type)$
+EXPECT_EQ(TK_INT8, type_objects.complete_type_object.$type$._d());
+EXPECT_EQ($param.value$, type_objects.complete_type_object.$type$.int8_value());
+$elseif (param.typecode.isUint8Type)$
+EXPECT_EQ(TK_UINT8, type_objects.complete_type_object.$type$._d());
+EXPECT_EQ($param.value$, type_objects.complete_type_object.$type$.uint8_value());
+$elseif (param.typecode.isInt16Type)$
+EXPECT_EQ(TK_INT16, type_objects.complete_type_object.$type$._d());
+EXPECT_EQ($param.value$, type_objects.complete_type_object.$type$.int16_value());
+$elseif (param.typecode.isUint16Type)$
+EXPECT_EQ(TK_UINT16, type_objects.complete_type_object.$type$._d());
+EXPECT_EQ($param.value$, type_objects.complete_type_object.$type$.uint_16_value());
+$elseif (param.typecode.isInt32Type)$
+EXPECT_EQ(TK_INT32, type_objects.complete_type_object.$type$._d());
+EXPECT_EQ($param.value$, type_objects.complete_type_object.$type$.int32_value());
+$elseif (param.typecode.isUint32Type)$
+EXPECT_EQ(TK_UINT32, type_objects.complete_type_object.$type$._d());
+EXPECT_EQ($param.value$, type_objects.complete_type_object.$type$.uint32_value());
+$elseif (param.typecode.isInt64Type)$
+EXPECT_EQ(TK_INT64, type_objects.complete_type_object.$type$._d());
+EXPECT_EQ($param.value$, type_objects.complete_type_object.$type$.int64_value());
+$elseif (param.typecode.isUint64Type)$
+EXPECT_EQ(TK_UINT64, type_objects.complete_type_object.$type$._d());
+EXPECT_EQ($param.value$, type_objects.complete_type_object.$type$.uint64_value());
+$elseif (param.typecode.isFloat32Type)$
+EXPECT_EQ(TK_FLOAT32, type_objects.complete_type_object.$type$._d());
+EXPECT_EQ($param.value$, type_objects.complete_type_object.$type$.float32_value());
+$elseif (param.typecode.isFloat64Type)$
+EXPECT_EQ(TK_FLOAT64, type_objects.complete_type_object.$type$._d());
+EXPECT_EQ($param.value$, type_objects.complete_type_object.$type$.float64_value());
+$elseif (param.typecode.isFloat128Type)$
+EXPECT_EQ(TK_FLOAT128, type_objects.complete_type_object.$type$._d());
+EXPECT_EQ($param.value$, type_objects.complete_type_object.$type$.float128_value());
+$elseif (param.typecode.isCharType)$
+EXPECT_EQ(TK_CHAR8, type_objects.complete_type_object.$type$._d());
+EXPECT_EQ($param.value$, type_objects.complete_type_object.$type$.char_value());
+$elseif (param.typecode.isWCharType)$
+EXPECT_EQ(TK_CHAR16, type_objects.complete_type_object.$type$._d());
+EXPECT_EQ($param.value$, type_objects.complete_type_object.$type$.wchar_value());
+$endif$
+$elseif (param.typecode.isEnumType)$
+EXPECT_EQ(TK_ENUM, type_objects.complete_type_object.$type$._d());
+EXPECT_EQ($param.value$, type_objects.complete_type_object.$type$.enumerated_value());
+$elseif (param.typecode.isStringType)$
+EXPECT_EQ(TK_STRING8, type_objects.complete_type_object.$type$._d());
+EXPECT_EQ($param.value$, type_objects.complete_type_object.$type$.string8_value());
+$elseif (param.typecode.isWStringType)$
+EXPECT_EQ(TK_STRING16, type_objects.complete_type_object.$type$._d());
+EXPECT_EQ($param.value$, type_objects.complete_type_object.$type$.string16_value());
+$endif$
+>>
+
+check_member_detail_annotations(member, type) ::= <<
+$if(member.annotationList)$
+bool unit_annotation = false;
+bool min_annotation = false;
+bool max_annotation = false;
+bool hash_id_annotation = false;
+bool custom_annotations = false;
+$member.annotationList : { annotation |
+$if(annotation.isUnit)$
+unit_annotation = true;
+ASSERT_TRUE(type_objects.complete_type_object.$type$.ann_builtin().has_value());
+ASSERT_TRUE(type_objects.complete_type_object.$type$.ann_builtin().value().unit().has_value());
+EXPECT_EQ($annotation.value$, type_objects.complete_type_object.$type$.ann_builtin().value().unit().value())
+$elseif(annotation.isMin)$
+EXPECT_FALSE(min_annotation);
+min_annotation = true;
+ASSERT_TRUE(type_objects.complete_type_object.$type$.ann_builtin().has_value());
+ASSERT_TRUE(type_objects.complete_type_object.$type$.ann_builtin().value().min().has_value());
+$check_annotation_parameter_value(param=annotation, type=[type, ".ann_builtin().value().min().value()"])$
+$elseif(annotation.isMax)$
+EXPECT_FALSE(max_annotation);
+max_annotation = true;
+ASSERT_TRUE(type_objects.complete_type_object.$type$.ann_builtin().has_value());
+ASSERT_TRUE(type_objects.complete_type_object.$type$.ann_builtin().value().max().has_value());
+$check_annotation_parameter_value(param=annotation, type=[type, ".ann_builtin().value().max().value()"])$
+$elseif(annotation.isRange)$
+$annotation.valueList : { range_param |
+$if(range_param.isMin)$
+EXPECT_FALSE(min_annotation);
+min_annotation = true;
+ASSERT_TRUE(type_objects.complete_type_object.$type$.ann_builtin().has_value());
+ASSERT_TRUE(type_objects.complete_type_object.$type$.ann_builtin().value().min().has_value());
+$check_annotation_parameter_value(param=range_param, type=[type, ".ann_builtin().value().min().value()"])$
+$elseif(range_param.isMax)$
+EXPECT_FALSE(max_annotation);
+max_annotation = true;
+ASSERT_TRUE(type_objects.complete_type_object.$type$.ann_builtin().has_value());
+ASSERT_TRUE(type_objects.complete_type_object.$type$.ann_builtin().value().max().has_value());
+$check_annotation_parameter_value(param=range_param, type=[type, ".ann_builtin().value().max().value()"])$
+$endif$
+}; separator=""$
+$elseif(annotation.isHashId)$
+hash_id_annotation = true;
+ASSERT_TRUE(type_objects.complete_type_object.$type$.ann_builtin().has_value());
+ASSERT_TRUE(type_objects.complete_type_object.$type$.ann_builtin().value().hash_id().has_value());
+EXPECT_EQ($annotation.value$, type_objects.complete_type_object.$type$.ann_builtin().value().hash_id().value())
+$elseif(!annotation.isBuiltin)$
+custom_annotations = true;
+$check_applied_custom_annotations(annotation=annotation, type=type)$
+$endif$
+}; separator="\n"$
+if (!unit_annotation && !max_annotation && !min_annotation && !hash_id_annotation)
+{
+    EXPECT_FALSE(type_objects.complete_type_object.$type$.ann_builtin().has_value());
+}
+if (!unit_annotation)
+{
+    EXPECT_FALSE(type_objects.complete_type_object.$type$.ann_builtin().value().unit().has_value());
+}
+if (!min_annotation)
+{
+    EXPECT_FALSE(type_objects.complete_type_object.$type$.ann_builtin().value().min().has_value());
+}
+if (!max_annotation)
+{
+    EXPECT_FALSE(type_objects.complete_type_object.$type$.ann_builtin().value().max().has_value());
+}
+if (!hash_id_annotation)
+{
+    EXPECT_FALSE(type_objects.complete_type_object.$type$.ann_builtin().value().hash_id().has_value());
+}
+if (!custom_annotations)
+{
+    EXPECT_FALSE(type_objects.complete_type_object.$type$.ann_custom().has_value());
+}
+$else$
+EXPECT_FALSE(type_objects.complete_type_object.$type$.ann_builtin().has_value());
+EXPECT_FALSE(type_objects.complete_type_object.$type$.ann_custom().has_value());
+$endif$
+>>
 
 expected_member_flags(object, typename) ::= <<
 MemberFlag $typename$_expected_flags;
