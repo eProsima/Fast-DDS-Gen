@@ -152,6 +152,8 @@ ASSERT_TRUE(type_objects.complete_type_object.$type$.ann_custom().has_value());
     $annotation.valueList : { annotation_parameter |
     $check_annotation_parameter(param=annotation_parameter, type=type)$
     }; separator="\n"$
+    $else$
+    EXPECT_FALSE(type_objects.complete_type_object.$type$.ann_custom().value()[pos].param_seq().has_value());
     $endif$
 }
 >>
@@ -596,7 +598,16 @@ check_union_member(member, parent) ::= <<
 }
 >>
 
-check_label(label) ::= <<>>
+check_label(label) ::= <<
+{
+    EXPECT_NE(std::find(type_objects.complete_type_object.union_type().member_seq()[pos].common().label_seq().begin(),
+        type_objects.complete_type_object.union_type().member_seq()[pos].common().label_seq().end(), $label$),
+        type_objects.complete_type_object.union_type().member_seq()[pos].common().label_seq().end());
+    EXPECT_NE(std::find(type_objects.minimal_type_object.union_type().member_seq()[pos].common().label_seq().begin(),
+        type_objects.minimal_type_object.union_type().member_seq()[pos].common().label_seq().end(), $label$),
+        type_objects.minimal_type_object.union_type().member_seq()[pos].common().label_seq().end());
+}
+>>
 
 test_enum(enum) ::= <<
 TEST(TypeObjectTests, TestEnumTypeObject_$enum.name$)
@@ -907,12 +918,7 @@ if (type_ids.type_identifier2()._d() == TK_NONE)
     if (type_ids.type_identifier1()._d() == TI_PLAIN_ARRAY_SMALL)
     {
         EXPECT_EQ($array_name(array=array)$_expected_flags, type_ids.type_identifier1().array_sdefn().header().element_flags());
-        $array.evaluatedDimensions: {dimension |
-        {
-            size_t pos = 0;
-            $check_array_dimension(dimension=dimension, type="type_ids.type_identifier1().array_sdefn().array_bound_seq()")$
-        \}
-        }; separator="\n"$
+        $array.evaluatedDimensions: {dimension | $check_array_dimension(dimension=dimension, type="type_ids.type_identifier1().array_sdefn().array_bound_seq()")$}; separator="\n"$
         EXPECT_EQ($array.evaluatedDimensionsSize$, type_ids.type_identifier1().array_sdefn().array_bound_seq().size());
         EXPECT_TRUE(element_type_ids.type_identifier1() == *type_ids.type_identifier1().array_sdefn().element_identifier() ||
             element_type_ids.type_identifier2() == *type_ids.type_identifier1().array_sdefn().element_identifier());
@@ -920,12 +926,7 @@ if (type_ids.type_identifier2()._d() == TK_NONE)
     else
     {
         EXPECT_EQ($array_name(array=array)$_expected_flags, type_ids.type_identifier1().array_ldefn().header().element_flags());
-        $array.evaluatedDimensions: {dimension |
-        {
-            size_t pos = 0;
-            $check_array_dimension(dimension=dimension, type="type_ids.type_identifier1().array_ldefn().array_bound_seq()")$
-        \}
-        }; separator="\n"$
+        $array.evaluatedDimensions: {dimension | $check_array_dimension(dimension=dimension, type="type_ids.type_identifier1().array_ldefn().array_bound_seq()")$}; separator="\n"$
         EXPECT_EQ($array.evaluatedDimensionsSize$, type_ids.type_identifier1().array_ldefn().array_bound_seq().size());
         EXPECT_TRUE(element_type_ids.type_identifier1() == *type_ids.type_identifier1().array_ldefn().element_identifier() ||
             element_type_ids.type_identifier2() == *type_ids.type_identifier1().array_ldefn().element_identifier());
@@ -941,11 +942,8 @@ else
     EXPECT_EQ(0u, type_objects.complete_type_object.array_type().collection_flag());
     EXPECT_EQ(0u, type_objects.minimal_type_object.array_type().collection_flag());
     $array.evaluatedDimensions: {dimension |
-    {
-        size_t pos = 0;
-        $check_array_dimension(dimension=dimension, type="type_objects.complete_type_object.array_type().header().common().bound_seq()")$
-        EXPECT_EQ($dimension$, type_objects.minimal_type_object.array_type().header().common().bound_seq()[pos]);
-    \}
+    $check_array_dimension(dimension=dimension, type="type_objects.complete_type_object.array_type().header().common().bound_seq()")$
+    $check_array_dimension(dimension=dimension, type="type_objects.minimal_type_object.array_type().header().common().bound_seq()")$
     }; separator="\n"$
     EXPECT_EQ(type_objects.complete_type_object.array_type().header().common().bound_seq().size(), $array.evaluatedDimensionsSize$);
     EXPECT_EQ(type_objects.minimal_type_object.array_type().header().common().bound_seq().size(), $array.evaluatedDimensionsSize$);
@@ -988,17 +986,7 @@ else
 >>
 
 check_array_dimension(dimension, type) ::= <<
-bool found = false;
-for (; pos < $type$.size(); ++pos)
-{
-    if ($dimension$ == $type$[pos])
-    {
-        found = true;
-        break;
-    }
-}
-ASSERT_TRUE(found);
-EXPECT_EQ($dimension$, $type$[pos]);
+EXPECT_NE(std::find($type$.begin(), $type$.end(), $dimension$), $type$.end());
 >>
 
 test_sequence(sequence) ::= <<
