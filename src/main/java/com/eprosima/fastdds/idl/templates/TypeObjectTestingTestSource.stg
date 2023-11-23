@@ -1112,7 +1112,21 @@ TEST(TypeObjectTests, TestStringTypeObject_$string_name(string=string)$)
 }
 >>
 
-check_string_type(string) ::= <<>>
+check_string_type(string) ::= <<
+ReturnCode_t ret_code;
+TypeIdentifierPair type_ids;
+$get_type_identifier_registry(typename=string_name(string), result="type_ids")$
+EXPECT_EQ(TK_NONE, type_ids.type_identifier2()._d());
+EXPECT_TRUE(TI_STRING8_SMALL == type_ids.type_identifier1()._d() || TI_STRING8_LARGE == type_ids.type_identifier1()._d());
+if (type_ids.type_identifier1()._d() == TI_STRING8_SMALL)
+{
+    EXPECT_EQ($if(string.isBounded)$$string.evaluatedMaxsize$$else$4294967295$endif$, type_ids.type_identifier1().string_sdefn().bound());
+}
+else
+{
+    EXPECT_EQ($if(string.isBounded)$$string.evaluatedMaxsize$$else$4294967295$endif$, type_ids.type_identifier1().string_ldefn().bound());
+}
+>>
 
 test_wstring(wstring) ::= <<
 TEST(TypeObjectTests, TestWstringTypeObject_$wstring_name(wstring=wstring)$)
@@ -1121,7 +1135,21 @@ TEST(TypeObjectTests, TestWstringTypeObject_$wstring_name(wstring=wstring)$)
 }
 >>
 
-check_wstring_type(wstring) ::= <<>>
+check_wstring_type(wstring) ::= <<
+ReturnCode_t ret_code;
+TypeIdentifierPair type_ids;
+$get_type_identifier_registry(typename=wstring_name(wstring), result="type_ids")$
+EXPECT_EQ(TK_NONE, type_ids.type_identifier2()._d());
+EXPECT_TRUE(TI_STRING8_SMALL == type_ids.type_identifier1()._d() || TI_STRING8_LARGE == type_ids.type_identifier1()._d());
+if (type_ids.type_identifier1()._d() == TI_STRING8_SMALL)
+{
+    EXPECT_EQ($if(wstring.isBounded)$$wstring.evaluatedMaxsize$$else$4294967295$endif$, type_ids.type_identifier1().string_sdefn().bound());
+}
+else
+{
+    EXPECT_EQ($if(wstring.isBounded)$$wstring.evaluatedMaxsize$$else$4294967295$endif$, type_ids.type_identifier1().string_ldefn().bound());
+}
+>>
 
 fwd_decl(ctx, parent, type) ::= <<>>
 
