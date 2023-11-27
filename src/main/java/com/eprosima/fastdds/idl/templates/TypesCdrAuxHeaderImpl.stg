@@ -121,12 +121,10 @@ eProsima_user_DllExport void deserialize(
             $if(struct.annotationFinal || struct.annotationAppendable)$eprosima::fastcdr::EncodingAlgorithmFlag::PLAIN_CDR$elseif(struct.annotationMutable)$eprosima::fastcdr::EncodingAlgorithmFlag::PL_CDR$endif$,
             [&data](eprosima::fastcdr::Cdr& dcdr, const eprosima::fastcdr::MemberId& mid) -> bool
             {
+                $if(struct.allIdentifiedMembers)$
                 bool ret_value = true;
                 switch (mid.id)
                 {
-                    $if(!struct.allIdentifiedMembers)$
-                    static_cast<void>(dcdr);
-                    $endif$
                     $struct.allIdentifiedMembers : { member |
                     case $member.key$:
                         $if(!member.value.annotationNonSerialized)$
@@ -139,6 +137,11 @@ eProsima_user_DllExport void deserialize(
                         break;
                 }
                 return ret_value;
+                $else$
+                static_cast<void>(dcdr);
+                static_cast<void>(mid);
+                return false;
+                $endif$
             });
 }
 
