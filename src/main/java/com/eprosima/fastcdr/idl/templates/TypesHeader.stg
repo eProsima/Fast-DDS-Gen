@@ -82,6 +82,7 @@ $definition_list$
 >>
 
 annotation(ctx, annotation) ::= <<
+$if(annotation.enums || annotation.typeDefs || annotation.constDecls)$
 namespace $annotation.name$ {
     $annotation.enums : { enum | $enum_type(ctx=ctx, parent=annotation, enum=enum)$}; separator="\n"$
 
@@ -90,6 +91,7 @@ namespace $annotation.name$ {
     $annotation.constDecls : { const | $const_decl(ctx=ctx, parent=annotation, const=const)$}; separator="\n"$
 
 } // namespace $annotation.name$
+$endif$
 >>
 
 interface(ctx, parent, interface, export_list) ::= <<
@@ -382,7 +384,9 @@ public:
             $union.members:{ member | $unionmember_compare(member)$}; separator="\n"$
             $unionmemberdefault_compare(union.defaultMember)$
         }
+        $if(!union.defaultMember)$
         return false;
+        $endif$
     }
 
     /*!
