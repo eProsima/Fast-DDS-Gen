@@ -38,6 +38,7 @@ $definitions; separator="\n"$
 >>
 
 test(ctx, parent, struct) ::= <<
+$if(struct.hasScope)$namespace $struct.scope$ {$endif$
 TEST_P($struct.formatedCppTypename$Test, encoding)
 {
     eprosima::fastdds::dds::DataRepresentationId_t cdr_version {std::get<0>(GetParam())};
@@ -49,7 +50,6 @@ TEST_P($struct.formatedCppTypename$Test, encoding)
             << " using encoding " << (eprosima::fastdds::dds::DataRepresentationId_t::XCDR_DATA_REPRESENTATION == cdr_version ? "XCDRv1" : "XCDRv2") <<
             " ========================================" << std::endl;
     using eprosima::fastrtps::rtps::SerializedPayload_t;
-    $if(struct.hasScope)$    using namespace $struct.scope$;$endif$
 
     $struct.name$PubSubType $struct.name$_type_support;
     $struct.name$ $struct.name$_serialization_topic;
@@ -94,6 +94,8 @@ TEST_P($struct.formatedCppTypename$Test, encoding)
     free_string$struct.name$(&$struct.name$_serialization_topic);
     $endif$
 }
+
+$if(struct.hasScope)$} // namespace $struct.scope$$endif$
 >>
 
 struct_type(ctx, parent, struct, member_list) ::= <<
