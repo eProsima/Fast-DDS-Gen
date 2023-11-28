@@ -146,3 +146,97 @@ module_conversion(ctx, parent, modules, definition_list) ::= <<
 $definition_list$
 >>
 //}
+
+//{ Anonymous collections generator name
+sequence_name(sequence) ::= <%
+$if(sequence.contentTypeCode.primitive)$
+anonymous_sequence_$sequence.contentTypeCode.cppTypenameForTypeId$_$if(sequence.unbound)$4294967295$else$$sequence.evaluatedMaxsize$$endif$
+$elseif (sequence.contentTypeCode.isStringType)$
+anonymous_sequence_$string_name(string=sequence.contentTypeCode)$_$if(sequence.unbound)$4294967295$else$$sequence.evaluatedMaxsize$$endif$
+$elseif (sequence.contentTypeCode.isWStringType)$
+anonymous_sequence_$wstring_name(wstring=sequence.contentTypeCode)$_$if(sequence.unbound)$4294967295$else$$sequence.evaluatedMaxsize$$endif$
+$elseif (sequence.contentTypeCode.isArrayType)$
+anonymous_sequence_$array_name(array=sequence.contentTypeCode)$_$if(sequence.unbound)$4294967295$else$$sequence.evaluatedMaxsize$$endif$
+$elseif (sequence.contentTypeCode.isSequenceType)$
+anonymous_sequence_$sequence_name(sequence=sequence.contentTypeCode)$_$if(sequence.unbound)$4294967295$else$$sequence.evaluatedMaxsize$$endif$
+$elseif (sequence.contentTypeCode.isMapType)$
+anonymous_sequence_$map_name(map=sequence.contentTypeCode)$_$if(sequence.unbound)$4294967295$else$$sequence.evaluatedMaxsize$$endif$
+$else$
+anonymous_sequence_$sequence.contentTypeCode.scopedname$_$if(sequence.unbound)$4294967295$else$$sequence.evaluatedMaxsize$$endif$
+$endif$
+%>
+
+map_name(map) ::= <%
+$if(map.keyTypeCode.primitive && map.valueTypeCode.primitive)$
+anonymous_map_$map.keyTypeCode.cppTypenameForTypeId$_$map.valueTypeCode.cppTypenameForTypeId$_$if(map.isBounded)$$map.evaluatedMaxsize$$else$4294967295$endif$
+$elseif (map.keyTypeCode.primitive && map.valueTypeCode.isStringType)$
+anonymous_map_$map.keyTypeCode.cppTypenameForTypeId$_$string_name(string=map.valueTypeCode)$_$if(map.isBounded)$$map.evaluatedMaxsize$$else$4294967295$endif$
+$elseif (map.keyTypeCode.primitive && map.valueTypeCode.isWStringType)$
+anonymous_map_$map.keyTypeCode.cppTypenameForTypeId$_$wstring_name(wstring=map.valueTypeCode)$_$if(map.isBounded)$$map.evaluatedMaxsize$$else$4294967295$endif$
+$elseif (map.keyTypeCode.primitive && map.valueTypeCode.isArrayType)$
+anonymous_map_$map.keyTypeCode.cppTypenameForTypeId$_$array_name(array=map.valueTypeCode)$_$if(map.isBounded)$$map.evaluatedMaxsize$$else$4294967295$endif$
+$elseif (map.keyTypeCode.primitive && map.valueTypeCode.isSequenceType)$
+anonymous_map_$map.keyTypeCode.cppTypenameForTypeId$_$sequence_name(sequence=map.valueTypeCode)$_$if(map.isBounded)$$map.evaluatedMaxsize$$else$4294967295$endif$
+$elseif (map.keyTypeCode.primitive && map.valueTypeCode.isMapType)$
+anonymous_map_$map.keyTypeCode.cppTypenameForTypeId$_$map_name(map=map.valueTypeCode)$_$if(map.isBounded)$$map.evaluatedMaxsize$$else$4294967295$endif$
+$elseif (map.keyTypeCode.primitive)$
+anonymous_map_$map.keyTypeCode.cppTypenameForTypeId$_$map.valueTypeCode.scopedname$_$if(map.isBounded)$$map.evaluatedMaxsize$$else$4294967295$endif$
+$elseif(map.keyTypeCode.isStringType && map.valueTypeCode.primitive)$
+anonymous_map_$string_name(string=map.keyTypeCode)$_$map.valueTypeCode.cppTypenameForTypeId$_$if(map.isBounded)$$map.evaluatedMaxsize$$else$4294967295$endif$
+$elseif (map.keyTypeCode.isStringType && map.valueTypeCode.isStringType)$
+anonymous_map_$string_name(string=map.keyTypeCode)$_$string_name(string=map.valueTypeCode)$_$if(map.isBounded)$$map.evaluatedMaxsize$$else$4294967295$endif$
+$elseif (map.keyTypeCode.isStringType && map.valueTypeCode.isWStringType)$
+anonymous_map_$string_name(string=map.keyTypeCode)$_$wstring_name(wstring=map.valueTypeCode)$_$if(map.isBounded)$$map.evaluatedMaxsize$$else$4294967295$endif$
+$elseif (map.keyTypeCode.isStringType && map.valueTypeCode.isArrayType)$
+anonymous_map_$string_name(string=map.keyTypeCode)$_$array_name(array=map.valueTypeCode)$_$if(map.isBounded)$$map.evaluatedMaxsize$$else$4294967295$endif$
+$elseif (map.keyTypeCode.isStringType && map.valueTypeCode.isSequenceType)$
+anonymous_map_$string_name(string=map.keyTypeCode)$_$sequence_name(sequence=map.valueTypeCode)$_$if(map.isBounded)$$map.evaluatedMaxsize$$else$4294967295$endif$
+$elseif (map.keyTypeCode.isStringType && map.valueTypeCode.isMapType)$
+anonymous_map_$string_name(string=map.keyTypeCode)$_$map_name(map=map.valueTypeCode)$_$if(map.isBounded)$$map.evaluatedMaxsize$$else$4294967295$endif$
+$elseif (map.keyTypeCode.isStringType)$
+anonymous_map_$string_name(string=map.keyTypeCode)$_$map.valueTypeCode.scopedname$_$if(map.isBounded)$$map.evaluatedMaxsize$$else$4294967295$endif$
+$elseif(map.keyTypeCode.isWStringType && map.valueTypeCode.primitive)$
+anonymous_map_$wstring_name(wstring=map.keyTypeCode)$_$map.valueTypeCode.cppTypenameForTypeId$_$if(map.isBounded)$$map.evaluatedMaxsize$$else$4294967295$endif$
+$elseif (map.keyTypeCode.isWStringType && map.valueTypeCode.isStringType)$
+anonymous_map_$wstring_name(wstring=map.keyTypeCode)$_$string_name(string=map.valueTypeCode)$_$if(map.isBounded)$$map.evaluatedMaxsize$$else$4294967295$endif$
+$elseif (map.keyTypeCode.isWStringType && map.valueTypeCode.isWStringType)$
+anonymous_map_$wstring_name(wstring=map.keyTypeCode)$_$wstring_name(wstring=map.valueTypeCode)$_$if(map.isBounded)$$map.evaluatedMaxsize$$else$4294967295$endif$
+$elseif (map.keyTypeCode.isWStringType && map.valueTypeCode.isArrayType)$
+anonymous_map_$wstring_name(wstring=map.keyTypeCode)$_$array_name(array=map.valueTypeCode)$_$if(map.isBounded)$$map.evaluatedMaxsize$$else$4294967295$endif$
+$elseif (map.keyTypeCode.isWStringType && map.valueTypeCode.isSequenceType)$
+anonymous_map_$wstring_name(wstring=map.keyTypeCode)$_$sequence_name(sequence=map.valueTypeCode)$_$if(map.isBounded)$$map.evaluatedMaxsize$$else$4294967295$endif$
+$elseif (map.keyTypeCode.isWStringType && map.valueTypeCode.isMapType)$
+anonymous_map_$wstring_name(wstring=map.keyTypeCode)$_$map_name(map=map.valueTypeCode)$_$if(map.isBounded)$$map.evaluatedMaxsize$$else$4294967295$endif$
+$elseif (map.keyTypeCode.isWStringType)$
+anonymous_map_$wstring_name(wstring=map.keyTypeCode)$_$map.valueTypeCode.scopedname$_$if(map.isBounded)$$map.evaluatedMaxsize$$else$4294967295$endif$
+$else$
+anonymous_map_$map.keyTypeCode.scopedname$_$map.valueTypeCode.scopedname$_$if(map.isBounded)$$map.evaluatedMaxsize$$else$4294967295$endif$
+$endif$
+%>
+
+array_name(array) ::= <%
+$if(array.contentTypeCode.primitive)$
+anonymous_array_$array.contentTypeCode.cppTypenameForTypeId$$array.evaluatedDimensions : { dimension | _$dimension$}$
+$elseif (array.contentTypeCode.isStringType)$
+anonymous_array_$string_name(string=array.contentTypeCode)$$array.evaluatedDimensions : { dimension | _$dimension$}$
+$elseif (array.contentTypeCode.isWStringType)$
+anonymous_array_$wstring_name(wstring=array.contentTypeCode)$$array.evaluatedDimensions : { dimension | _$dimension$}$
+$elseif (array.contentTypeCode.isArrayType)$
+anonymous_array_$array_name(array=array.contentTypeCode)$$array.evaluatedDimensions : { dimension | _$dimension$}$
+$elseif (array.contentTypeCode.isSequenceType)$
+anonymous_array_$sequence_name(sequence=array.contentTypeCode)$$array.evaluatedDimensions : { dimension | _$dimension$}$
+$elseif (array.contentTypeCode.isMapType)$
+anonymous_array_$map_name(map=array.contentTypeCode)$$array.evaluatedDimensions : { dimension | _$dimension$}$
+$else$
+anonymous_array_$array.contentTypeCode.scopedname$$array.evaluatedDimensions : { dimension | _$dimension$}$
+$endif$
+%>
+
+string_name(string) ::= <<
+anonymous_string_$if(string.isBounded)$$string.evaluatedMaxsize$$else$4294967295$endif$
+>>
+
+wstring_name(wstring) ::= <<
+anonymous_wstring_$if(wstring.isBounded)$$wstring.evaluatedMaxsize$$else$4294967295$endif$
+>>
+//}
