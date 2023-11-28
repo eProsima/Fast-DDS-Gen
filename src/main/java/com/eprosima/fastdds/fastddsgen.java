@@ -944,7 +944,7 @@ public class fastddsgen
                 System.out.println("Generating Type Support files...");
                 if (generate_typesupport_)
                 {
-                    System.out.println("Generating TypeObject files...");
+                    System.out.println("Generating TypeObjectSupport files...");
                     if (returnedValue &= Utils.writeFile(output_dir + ctx.getFilename() + "TypeObjectSupport.hpp",
                             maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/XTypesTypeObjectHeader.stg"), m_replace))
                     {
@@ -1654,7 +1654,7 @@ class ProcessOutput extends Thread
                 }
                 else
                 {
-                    // Sustituir los "\\" que pone cl.exe por "\"
+                    // Substitute "\\" added by cl.exe for "\"
                     if (line.startsWith(clLine))
                     {
                         line = "#" + line.substring(clLine.length());

@@ -30,8 +30,7 @@ $fileHeader(ctx=ctx,  file=[ctx.filename, "TypeObjectTestingTest.cpp"], descript
 
 $ctx.directIncludeDependencies : {include | #include "$include$.hpp"}; separator="\n"$
 
-// TODO(jlbueno): update when TypeObject is generated. Commented in order for the tests to build.
-// #include "$ctx.filename$TypeObject.h"
+#include "$ctx.filename$TypeObjectSupport.hpp"
 
 using ReturnCode_t = eprosima::fastdds::dds::ReturnCode_t;
 using namespace eprosima::fastdds::dds::xtypes;
@@ -61,8 +60,7 @@ int main(
         char** argv)
 {
 
-    // TODO(jlbueno): update when TypeObject is generated. Commented in order for the tests to build.
-    // register$ctx.filename$Types();
+    register_$ctx.filename$_type_objects();
 
     testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
