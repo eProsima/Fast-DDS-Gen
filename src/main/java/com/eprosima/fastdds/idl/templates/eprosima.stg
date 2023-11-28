@@ -56,7 +56,7 @@ indexName(name, loopvar) ::= <<$name$[$loopvar$]>>
 //{ IDL-parser templates
 annotation(ctx, annotation) ::= <<>>
 
-array_declarator(ctx, array, array_type) ::= <<>>
+array_declarator(ctx, array) ::= <<>>
 
 bitmask_type(ctx, parent, bitmask) ::= <<>>
 
