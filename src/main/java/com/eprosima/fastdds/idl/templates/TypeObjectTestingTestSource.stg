@@ -119,14 +119,26 @@ verbatim_annotation = true;
 ASSERT_TRUE(type_objects.complete_type_object.$type$.ann_builtin().has_value());
 ASSERT_TRUE(type_objects.complete_type_object.$type$.ann_builtin().value().verbatim().has_value());
 $annotation.valueList : { verbatim_param |
+bool placement_applied = false;
+bool language_applied = false;
 $if(verbatim_param.isVerbatimPlacement)$
+placement_applied = true;
 EXPECT_EQ($verbatim_param.enumStringValue$, type_objects.complete_type_object.$type$.ann_builtin().value().verbatim.value().placement());
 $elseif(verbatim_param.isVerbatimLanguage)$
-EXPECT_EQ($verbatim_param.value$, type_objects.complete_type_object.$type$.ann_builtin().value().verbatim.value().language());
+language_applied = true;
+EXPECT_EQ("$verbatim_param.value$", type_objects.complete_type_object.$type$.ann_builtin().value().verbatim.value().language());
 $elseif(verbatim_param.isVerbatimText)$
-EXPECT_EQ($verbatim_param.value$, type_objects.complete_type_object.$type$.ann_builtin().value().verbatim.value().text());
+EXPECT_EQ("$verbatim_param.value$", type_objects.complete_type_object.$type$.ann_builtin().value().verbatim.value().text());
 $endif$
 }; separator="\n"$
+if (!placement_applied)
+{
+    EXPECT_EQ(PlacementKindValue::BEFORE_DECLARATION, type_objects.complete_type_object.$type$.ann_builtin().value().verbatim.value().placement());
+\}
+if (!language_applied)
+{
+    EXPECT_EQ("*", type_objects.complete_type_object.$type$.ann_builtin().value().verbatim.value().language());
+\}
 $elseif(!annotation.isBuiltin)$
 custom_annotations = true;
 $check_applied_custom_annotations(annotation=annotation, type=type)$
@@ -257,7 +269,7 @@ EXPECT_EQ($param.value$, type_objects.$type$.string16_value());
 $endif$
 >>
 
-check_member_detail_annotations(member, type) ::= <<
+check_member_detail_annotations(member, type, parent) ::= <<
 $if(member.annotationList)$
 bool unit_annotation = false;
 bool min_annotation = false;
@@ -303,7 +315,7 @@ hash_id_annotation = true;
 ASSERT_TRUE(type_objects.complete_type_object.$type$.ann_builtin().has_value());
 ASSERT_TRUE(type_objects.complete_type_object.$type$.ann_builtin().value().hash_id().has_value());
 EXPECT_EQ($annotation.value$, type_objects.complete_type_object.$type$.ann_builtin().value().hash_id().value())
-$elseif(!annotation.isBuiltin)$
+$elseif(!annotation.isBuiltin && !parent.isAliasType)$
 custom_annotations = true;
 $check_applied_custom_annotations(annotation=annotation, type=type)$
 $endif$
@@ -409,7 +421,7 @@ EXPECT_TRUE(related_type_ids.type_identifier1() == type_objects.minimal_type_obj
     related_type_ids.type_identifier2() == type_objects.minimal_type_object.alias_type().body().common().related_type());
 EXPECT_TRUE(related_type_ids.type_identifier1() == type_objects.complete_type_object.alias_type().body().common().related_type() ||
     related_type_ids.type_identifier2() == type_objects.complete_type_object.alias_type().body().common().related_type());
-$check_member_detail_annotations(member=typedefs, type="alias_type().body()")$
+$check_member_detail_annotations(member=typedefs, type="alias_type().body()", parent=typedefs)$
 >>
 
 test_structure(struct) ::= <<
@@ -488,7 +500,7 @@ check_struct_member(member, parent) ::= <<
         member_type_ids.type_identifier2() == type_objects.complete_type_object.struct_type().member_seq()[pos].common().member_type_id());
     EXPECT_EQ("$member.name$", type_objects.complete_type_object.struct_type().member_seq()[pos].detail().name());
     EXPECT_EQ(member_name_hashed, type_objects.minimal_type_object.struct_type().member_seq()[pos].detail().name_hash());
-    $check_member_detail_annotations(member=member, type="struct_type().member_seq()[pos].detail()")$
+    $check_member_detail_annotations(member=member, type="struct_type().member_seq()[pos].detail()", parent=parent)$
 }
 >>
 
@@ -572,7 +584,7 @@ check_union_member(member, parent) ::= <<
     ASSERT_EQ($member.labelsSize$, type_objects.complete_type_object.union_type().member_seq()[pos].common().label_seq().size());
     EXPECT_EQ("$member.name$", type_objects.complete_type_object.union_type().member_seq()[pos].detail().name());
     EXPECT_EQ(member_name_hashed, type_objects.minimal_type_object.union_type().member_seq()[pos].detail().name_hash());
-    $check_member_detail_annotations(member=member, type="union_type().member_seq()[pos].detail()")$
+    $check_member_detail_annotations(member=member, type="union_type().member_seq()[pos].detail()", parent=parent)$
 }
 >>
 
@@ -610,12 +622,12 @@ EXPECT_EQ($enum.bitBound$, type_objects.complete_type_object.enumerated_type().h
 $check_type_detail_annotations(object=enum, type="enumerated_type().header().detail()")$
 EXPECT_EQ("$enum.scopedname$", type_objects.complete_type_object.enumerated_type().header().detail().type_name());
 int32_t enum_literal_id = 0;
-$enum.members: { member | $check_enum_literal(literal=member)$}; separator="\n"$
+$enum.members: { member | $check_enum_literal(literal=member, parent=enum)$}; separator="\n"$
 ASSERT_EQ($enum.membersSize$, type_objects.minimal_type_object.enumerated_type().literal_seq().size());
 ASSERT_EQ($enum.membersSize$, type_objects.complete_type_object.enumerated_type().literal_seq().size());
 >>
 
-check_enum_literal(literal) ::= <<
+check_enum_literal(literal, parent) ::= <<
 {
     size_t pos = 0;
     bool found = false;
@@ -641,7 +653,7 @@ check_enum_literal(literal) ::= <<
     EXPECT_EQ($literal.name$_expected_flags, type_objects.complete_type_object.enumerated_type().literal_seq()[pos].common().flags());
     EXPECT_EQ("$literal.name$", type_objects.complete_type_object.enumerated_type().literal_seq()[pos].detail().name());
     EXPECT_EQ(TypeObjectUtils::name_hash("$literal.name$"), type_objects.minimal_type_object.enumerated_type().literal_seq()[pos].detail().name_hash());
-    $check_member_detail_annotations(member=literal, type="enumerated_type().literal_seq()[pos].detail()")$
+    $check_member_detail_annotations(member=literal, type="enumerated_type().literal_seq()[pos].detail()", parent=parent)$
     enum_literal_id++;
 }
 >>
@@ -668,12 +680,12 @@ EXPECT_EQ($bitmask.bitBound$, type_objects.minimal_type_object.bitmask_type().he
 EXPECT_EQ($bitmask.bitBound$, type_objects.complete_type_object.bitmask_type().header().common().bit_bound());
 $check_type_detail_annotations(object=bitmask, type="bitmask_type().header().detail()")$
 EXPECT_EQ("$bitmask.scopedname$", type_objects.complete_type_object.bitmask_type().header().detail().type_name());
-$bitmask.members: { member | $check_bitmask_flag(bitflag=member)$}; separator="\n"$
+$bitmask.members: { member | $check_bitmask_flag(bitflag=member, parent=bitmask)$}; separator="\n"$
 ASSERT_EQ($bitmask.membersSize$, type_objects.minimal_type_object.bitmask_type().flag_seq().size());
 ASSERT_EQ($bitmask.membersSize$, type_objects.complete_type_object.bitmask_type().flag_seq().size());
 >>
 
-check_bitmask_flag(bitflag) ::= <<
+check_bitmask_flag(bitflag, parent) ::= <<
 {
     size_t pos = 0;
     bool found = false;
@@ -692,7 +704,7 @@ check_bitmask_flag(bitflag) ::= <<
     EXPECT_EQ(0u, type_objects.complete_type_object.bitmask_type().flag_seq()[pos].common().flags());
     EXPECT_EQ("$bitflag.name$", type_objects.complete_type_object.bitmask_type().flag_seq()[pos].detail().name());
     EXPECT_EQ(TypeObjectUtils::name_hash("$bitflag.name$"), type_objects.minimal_type_object.bitmask_type().flag_seq()[pos].detail().name_hash());
-    $check_member_detail_annotations(member=bitflag, type="bitmask_type().flag_seq()[pos].detail()")$
+    $check_member_detail_annotations(member=bitflag, type="bitmask_type().flag_seq()[pos].detail()", parent=parent)$
 }
 >>
 
@@ -716,12 +728,12 @@ EXPECT_EQ(0u, type_objects.minimal_type_object.bitset_type().bitset_flags());
 EXPECT_EQ(0u, type_objects.complete_type_object.bitset_type().bitset_flags());
 $check_type_detail_annotations(object=bitset, type="bitset_type().header().detail()")$
 EXPECT_EQ("$bitset.scopedname$", type_objects.complete_type_object.bitset_type().header().detail().type_name());
-$bitset.members: { member | $check_bitfield(bitfield=member)$}; separator="\n"$
+$bitset.members: { member | $check_bitfield(bitfield=member, parent=bitset)$}; separator="\n"$
 ASSERT_EQ($bitset.membersSize$, type_objects.minimal_type_object.bitset_type().field_seq().size());
 ASSERT_EQ($bitset.membersSize$, type_objects.complete_type_object.bitset_type().field_seq().size());
 >>
 
-check_bitfield(bitfield) ::= <<
+check_bitfield(bitfield, parent) ::= <<
 {
     size_t pos = 0;
     bool found = false;
@@ -750,7 +762,7 @@ check_bitfield(bitfield) ::= <<
     EXPECT_EQ("", type_objects.complete_type_object.bitset_type().field_seq()[pos].detail().name());
     EXPECT_EQ(empty_name_hash, type_objects.minimal_type_object.bitset_type().field_seq()[pos].name_hash());
     $endif$
-    $check_member_detail_annotations(member=bitfield, type="bitset_type().field_seq()[pos].detail()")$
+    $check_member_detail_annotations(member=bitfield, type="bitset_type().field_seq()[pos].detail()", parent=parent)$
 }
 >>
 
@@ -875,7 +887,7 @@ else
         element_type_ids.type_identifier1() == type_objects.complete_type_object.array_type().element().common().type());
     EXPECT_TRUE(element_type_ids.type_identifier2() == type_objects.minimal_type_object.array_type().element().common().type() ||
         element_type_ids.type_identifier2() == type_objects.complete_type_object.array_type().element().common().type());
-    $check_member_detail_annotations(member=array.contentTypeCode, type="array_type().element().detail()")$
+    $check_member_detail_annotations(member=array.contentTypeCode, type="array_type().element().detail()", parent=array)$
     if (type_ids.type_identifier1()._d() == TI_PLAIN_ARRAY_SMALL)
     {
         EXPECT_TRUE((type_ids.type_identifier1().array_sdefn().header().equiv_kind() == EK_COMPLETE &&
@@ -975,7 +987,7 @@ else
         element_type_ids.type_identifier1() == type_objects.complete_type_object.sequence_type().element().common().type());
     EXPECT_TRUE(element_type_ids.type_identifier2() == type_objects.minimal_type_object.sequence_type().element().common().type() ||
         element_type_ids.type_identifier2() == type_objects.complete_type_object.sequence_type().element().common().type());
-    $check_member_detail_annotations(member=sequence.contentTypeCode, type="sequence_type().element().detail()")$
+    $check_member_detail_annotations(member=sequence.contentTypeCode, type="sequence_type().element().detail()", parent=sequence)$
     if (type_ids.type_identifier1()._d() == TI_PLAIN_SEQUENCE_SMALL)
     {
         EXPECT_TRUE((type_ids.type_identifier1().seq_sdefn().header().equiv_kind() == EK_COMPLETE &&
@@ -1077,14 +1089,14 @@ else
         key_type_ids.type_identifier1() == type_objects.complete_type_object.map_type().key().common().type());
     EXPECT_TRUE(key_type_ids.type_identifier2() == type_objects.minimal_type_object.map_type().key().common().type() ||
         key_type_ids.type_identifier2() == type_objects.complete_type_object.map_type().key().common().type());
-    $check_member_detail_annotations(member=map.keyTypeCode, type="map_type().key().detail()")$
+    $check_member_detail_annotations(member=map.keyTypeCode, type="map_type().key().detail()", parent=map)$
     EXPECT_EQ($map_name(map=map)$_expected_flags, type_objects.complete_type_object.map_type().element().common().element_flags());
     EXPECT_EQ($map_name(map=map)$_expected_flags, type_objects.minimal_type_object.map_type().element().common().element_flags());
     EXPECT_TRUE(element_type_ids.type_identifier1() == type_objects.minimal_type_object.map_type().element().common().type() ||
         element_type_ids.type_identifier1() == type_objects.complete_type_object.map_type().element().common().type());
     EXPECT_TRUE(element_type_ids.type_identifier2() == type_objects.minimal_type_object.map_type().element().common().type() ||
         element_type_ids.type_identifier2() == type_objects.complete_type_object.map_type().element().common().type());
-    $check_member_detail_annotations(member=map.valueTypeCode, type="map_type().element().detail()")$
+    $check_member_detail_annotations(member=map.valueTypeCode, type="map_type().element().detail()", parent=map)$
     if (type_ids.type_identifier1()._d() == TI_PLAIN_MAP_SMALL)
     {
         EXPECT_TRUE((type_ids.type_identifier1().map_sdefn().header().equiv_kind() == EK_COMPLETE &&
