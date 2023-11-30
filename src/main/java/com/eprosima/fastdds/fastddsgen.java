@@ -1018,7 +1018,7 @@ public class fastddsgen
 
                             System.out.println("Generating main file...");
                             if (returnedValue =
-                                    Utils.writeFile(output_dir + ctx.getFilename() + "PubSubFain.cxx",
+                                    Utils.writeFile(output_dir + ctx.getFilename() + "PubSubMain.cxx",
                                         maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/DDSPubSubMain.stg"), m_replace))
                             {
                                 project.addProjectSrcFile(relative_dir + ctx.getFilename() + "PubSubMain.cxx");
