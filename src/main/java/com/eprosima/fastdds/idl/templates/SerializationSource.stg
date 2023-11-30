@@ -557,7 +557,7 @@ for(size_t $loopvar$ = 0; $if(typecode.contentTypeCode.forwarded)$!$name$_detect
 >>
 
 map_assigment(ctx, typecode, name, originName, p, loopvar) ::= <<
-for(size_t $loopvar$ = 0; $loopvar$ < $typecode.maxsize$; ++$loopvar$)
+for(size_t $loopvar$ = 0; $loopvar$ < $if(typecode.unbound)$50$else$$typecode.maxsize$$endif$; ++$loopvar$)
 {
     $if(typecode.valueTypeCode.isSequenceType)$
     $map_member_assignment(ctx=ctx, keytypecode=typecode.keyTypeCode, valueTypeCode=typecode.valueTypeCode, name=name,
