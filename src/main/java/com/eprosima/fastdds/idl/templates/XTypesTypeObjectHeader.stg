@@ -23,6 +23,14 @@ $fileHeader(ctx=ctx, file=[ctx.filename, "TypeObjectSupport.hpp"], description=[
 #define _FAST_DDS_GENERATED_$ctx.headerGuardName$_TYPE_OBJECT_H_
 
 #include <mutex>
+#include <string>
+
+#include <fastcdr/xcdr/optional.hpp>
+#include <fastdds/dds/domain/DomainParticipantFactory.hpp>
+#include <fastdds/dds/log/Log.hpp>
+#include <fastdds/dds/xtypes/type_representation/TypeObject.hpp>
+#include <fastdds/dds/xtypes/type_representation/TypeObjectRegistry.hpp>
+#include <fastdds/dds/xtypes/type_representation/TypeObjectUtils.hpp>
 
 $ctx.directIncludeDependencies : { include | #include "$include$TypeObjectSupport.hpp"}; separator="\n"$
 
@@ -35,6 +43,8 @@ $ctx.directIncludeDependencies : { include | #include "$include$TypeObjectSuppor
 #else
 #define eProsima_user_DllExport
 #endif  // _WIN32
+
+using namespace eprosima::fastdds::dds::xtypes;
 
 /**
  * @brief Register every TypeObject representation defined in the IDL file in Fast DDS TypeObjectRegistry.
@@ -85,6 +95,136 @@ typedef_decl(ctx, parent, typedefs, typedefs_type, declarator_type) ::= <<
 $declarator_type$
 $typedefs_type$
 $register_type_identifier(typename=typedefs.name)$
+{
+    ReturnCode_t return_code;
+    TypeIdentifierPair type_ids;
+    CommonAliasBody common_alias_body;
+    $get_type_identifier(type=typedefs.typedefContentTypeCode)$
+    if (return_code != eprosima::fastdds::dds::RETCODE_OK)
+    {
+        EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
+                "$typedefs.scopedname$ Alias: related TypeIdentifier unknown to TypeObjectRegistry.");
+        return;
+    }
+    if (EK_COMPLETE == type_ids.type_identifier1()._d() || TK_NONE == type_ids.type_identifier2()._d())
+    {
+        common_alias_body = TypeObjectUtils::build_common_alias_body(0, type_ids.type_identifier1());
+    }
+    else if (EK_COMPLETE == type_ids.type_identifier2()._d())
+    {
+        common_alias_body = TypeObjectUtils::build_common_alias_body(0, type_ids.type_identifier2());
+    }
+    else
+    {
+        EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
+                "$typedefs.scopedname$ Alias: related TypeIdentifier registered in TypeObjectRegistry is inconsistent.");
+        return;
+    }
+    eprosima::fastcdr::optional<AppliedBuiltinMemberAnnotations> member_ann_builtin;
+    eprosima::fastcdr::optional<AppliedBuiltinTypeAnnotations> type_ann_builtin;
+    eprosima::fastcdr::optional<AppliedAnnotationSeq> ann_custom;
+    $if (typedefs.annotationList)$
+    AppliedAnnotationSeq tmp_ann_custom;
+    eprosima::fastcdr::optional<std::string> unit;
+    eprosima::fastcdr::optional<AnnotationParameterValue> min;
+    eprosima::fastcdr::optional<AnnotationParameterValue> max;
+    eprosima::fastcdr::optional<AppliedVerbatimAnnotation> verbatim;
+    $typedefs.annotationList : { annotation |
+    $if (annotation.isUnit)$
+    unit = $annotation.value$;
+    $elseif (annotation.isMin || annotation.isMax || annotation.isRange)$
+    EPROSIMA_LOG_WARNING(XTYPES_TYPE_REPRESENTATION,
+            "$typedefs.scopedname$ Alias: @min, @max, and @range builtin annotations not yet supported");
+    $elseif (annotation.isHashId)$
+    EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
+            "$typedefs.scopedname$ Alias: @hashid builtin annotation does not apply to Alias types");
+    $elseif (annotation.isVerbatim)$
+    PlacementKindValue placement = BEFORE_DECLARATION;
+    eprosima::fastcdr::fixed_string<32> language = "*";
+    std::string text;
+    $annotation.valueList : { verbatim_param |
+    $if (verbatim_param.isVerbatimPlacement)$
+    placement = $verbatim_param.enumStringValue$;
+    $elseif (verbatim_param.isVerbatimLanguage)$
+    language = "$verbatim_param.value$";
+    $elseif (verbatim_param.isVerbatimText)$
+    text = "$verbatim_param.value$";
+    $endif$
+    }; separator="\n"$
+    verbatim = TypeObjectUtils::build_applied_verbatim_annotation(placement, language, text);
+    $elseif (!annotation.isBuiltin)$
+    {
+    $if (annotation.valueList)$
+    eprosima::fastcdr::optional<AppliedAnnotationParameterSeq> applied_annotation_parameter_seq;
+    AppliedAnnotationParameterSeq tmp_applied_annotation_parameter_seq;
+    $annotation.valueList : { param |
+    {
+        $if (param.typecode.isEnumType)$
+        AnnotationParameterValue param_value = TypeObjectUtils::build_annotation_parameter_value_enum($param.value$);
+        $elseif (param.typecode.isByteType)$
+        AnnotationParameterValue param_value = TypeObjectUtils::build_annotation_parameter_value_byte($param.value$);
+        $else$
+        AnnotationParameterValue param_value = TypeObjectUtils::build_annotation_parameter_value($param.value$);
+        $endif$
+        AppliedAnnotationParameter applied_param = TypeObjectUtils::build_applied_annotation_parameter(
+                TypeObjectUtils::name_hash("$param.name$"), param_value);
+        TypeObjectUtils::add_applied_annotation_parameter(tmp_applied_annotation_parameter_seq, applied_param);
+    \}
+    }; separator="\n"$
+    $endif$
+        {
+            AppliedAnnotation applied_annotation;
+            $get_type_identifier(type=annotation.scopedname)$
+            if (retcode != eprosima::fastdds::dds::RETCODE_OK)
+            {
+                EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
+                            "$typedefs.scopedname$ Alias: Given Annotation TypeIdentifier unknown to TypeObjectRegistry.");
+                return;
+            \}
+            if (!tmp_applied_annotation_parameter_seq.empty())
+            {
+                applied_annotation_parameter_seq = tmp_applied_annotation_parameter_seq;
+            \}
+            if (EK_COMPLETE == type_ids.type_identifier1()._d())
+            {
+                applied_annotation = TypeObjectUtils::build_applied_annotation(type_ids.type_identifier1(), applied_annotation_parameter_seq);
+            \}
+            else if (EK_COMPLETE == type_ids.type_identifier2()._d())
+            {
+                applied_annotation = TypeObjectUtils::build_applied_annotation(type_ids.type_identifier2(), applied_annotation_parameter_seq);
+            \}
+            else
+            {
+                EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
+                        "$typedefs.scopedname$ Alias: Given Annotation TypeIdentifier is inconsistent.");
+                return;
+            \}
+            TypeObjectUtils::add_applied_annotation(tmp_ann_custom, applied_annotation);
+        \}
+    \}
+    $endif$
+    }; separator="\n"$
+    member_ann_builtin = TypeObjectUtils::build_applied_builtin_member_annotations(unit, min, max,
+            eprosima::fastcdr::optional<std::string>());
+    type_ann_builtin = TypeObjectUtils::build_applied_builtin_type_annotations(verbatim);
+    if (!tmp_ann_custom.empty())
+    {
+        ann_custom = tmp_ann_custom;
+    }
+    $endif$
+    CompleteAliasBody body = TypeObjectUtils::build_complete_alias_body(common_alias_body, member_ann_builtin,
+            eprosima::fastcdr::optional<AppliedAnnotationSeq>());
+    CompleteTypeDetail detail = TypeObjectUtils::build_complete_type_detail(type_ann_builtin, ann_custom,
+            "$typedefs.scopedname$");
+    CompleteAliasHeader header = TypeObjectUtils::build_complete_alias_header(detail);
+    CompleteAliasType alias_type = TypeObjectUtils::build_complete_alias_type(0, header, body);
+    if (eprosima::fastdds::dds::RETCODE_BAD_PARAMETER ==
+            TypeObjectUtils::build_and_register_alias_type_object(alias_type, "$typedefs.scopedname$"))
+    {
+        EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
+            "$typedefs.scopedname$ already registered in TypeObjectRegistry for a different type.");
+    }
+}
 >>
 
 fwd_decl(ctx, parent, type) ::= <<>>
@@ -162,4 +302,28 @@ register_type_identifier(typename) ::= <<
  *        indirectly registered as well.
  */
 void register_$typename$_type_identifier()
+>>
+
+get_type_identifier(type) ::= <<
+$if (type.primitive)$
+$get_type_identifier_registry(typename=["_", type.cppTypenameForTypeId])$
+$elseif (type.isStringType)$
+$get_type_identifier_registry(typename=string_name(string=type))$
+$elseif (type.isWStringType)$
+$get_type_identifier_registry(typename=wstring_name(wstring=type))$
+$elseif (type.isArrayType)$
+$get_type_identifier_registry(typename=array_name(array=type))$
+$elseif (type.isSequenceType)$
+$get_type_identifier_registry(typename=sequence_name(sequence=type))$
+$elseif (type.isMapType)$
+$get_type_identifier_registry(typename=map_name(map=type))$
+$else$
+$get_type_identifier_registry(typename=type.scopedname)$
+$endif$
+>>
+
+get_type_identifier_registry(typename) ::= <<
+return_code =
+    eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->type_object_registry().get_type_identifiers(
+    "$typename$", type_ids);
 >>
