@@ -697,7 +697,7 @@ public class fastddsgen
             }
 
             // Load common types template
-            tmanager.addGroup("com/eprosima/fastcdr/idl/templates/TypesHeader.stg").enable_using_explicitly_modules();
+            tmanager.addGroup("com/eprosima/fastcdr/idl/templates/TypesHeader.stg").enable_custom_property("using_explicitly_modules");
             if (m_type_object_files)
             {
                 tmanager.addGroup("com/eprosima/fastdds/idl/templates/TypeObjectHeader.stg");
