@@ -98,7 +98,6 @@ $register_type_identifier(typename=typedefs.name)$
 {
     ReturnCode_t return_code;
     TypeIdentifierPair type_ids;
-    CommonAliasBody common_alias_body;
     $get_type_identifier(type=typedefs.typedefContentTypeCode)$
     if (return_code != eprosima::fastdds::dds::RETCODE_OK)
     {
@@ -106,6 +105,7 @@ $register_type_identifier(typename=typedefs.name)$
                 "$typedefs.scopedname$ Alias: related TypeIdentifier unknown to TypeObjectRegistry.");
         return;
     }
+    CommonAliasBody common_alias_body;
     if (EK_COMPLETE == type_ids.type_identifier1()._d() || TK_NONE == type_ids.type_identifier2()._d())
     {
         common_alias_body = TypeObjectUtils::build_common_alias_body(0, type_ids.type_identifier1());
@@ -139,74 +139,13 @@ $register_type_identifier(typename=typedefs.name)$
     EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
             "$typedefs.scopedname$ Alias: @hashid builtin annotation does not apply to Alias types");
     $elseif (annotation.isVerbatim)$
-    PlacementKindValue placement = BEFORE_DECLARATION;
-    eprosima::fastcdr::fixed_string<32> language = "*";
-    std::string text;
-    $annotation.valueList : { verbatim_param |
-    $if (verbatim_param.isVerbatimPlacement)$
-    placement = $verbatim_param.enumStringValue$;
-    $elseif (verbatim_param.isVerbatimLanguage)$
-    language = "$verbatim_param.value$";
-    $elseif (verbatim_param.isVerbatimText)$
-    text = "$verbatim_param.value$";
-    $endif$
-    }; separator="\n"$
-    verbatim = TypeObjectUtils::build_applied_verbatim_annotation(placement, language, text);
+    $applied_verbatim_annotation(annotation=annotation)$
     $elseif (!annotation.isBuiltin)$
-    {
-    $if (annotation.valueList)$
-    eprosima::fastcdr::optional<AppliedAnnotationParameterSeq> applied_annotation_parameter_seq;
-    AppliedAnnotationParameterSeq tmp_applied_annotation_parameter_seq;
-    $annotation.valueList : { param |
-    {
-        $if (param.typecode.isEnumType)$
-        AnnotationParameterValue param_value = TypeObjectUtils::build_annotation_parameter_value_enum($param.value$);
-        $elseif (param.typecode.isByteType)$
-        AnnotationParameterValue param_value = TypeObjectUtils::build_annotation_parameter_value_byte($param.value$);
-        $else$
-        AnnotationParameterValue param_value = TypeObjectUtils::build_annotation_parameter_value($param.value$);
-        $endif$
-        AppliedAnnotationParameter applied_param = TypeObjectUtils::build_applied_annotation_parameter(
-                TypeObjectUtils::name_hash("$param.name$"), param_value);
-        TypeObjectUtils::add_applied_annotation_parameter(tmp_applied_annotation_parameter_seq, applied_param);
-    \}
-    }; separator="\n"$
-    $endif$
-        {
-            AppliedAnnotation applied_annotation;
-            $get_type_identifier(type=annotation.scopedname)$
-            if (retcode != eprosima::fastdds::dds::RETCODE_OK)
-            {
-                EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
-                            "$typedefs.scopedname$ Alias: Given Annotation TypeIdentifier unknown to TypeObjectRegistry.");
-                return;
-            \}
-            if (!tmp_applied_annotation_parameter_seq.empty())
-            {
-                applied_annotation_parameter_seq = tmp_applied_annotation_parameter_seq;
-            \}
-            if (EK_COMPLETE == type_ids.type_identifier1()._d())
-            {
-                applied_annotation = TypeObjectUtils::build_applied_annotation(type_ids.type_identifier1(), applied_annotation_parameter_seq);
-            \}
-            else if (EK_COMPLETE == type_ids.type_identifier2()._d())
-            {
-                applied_annotation = TypeObjectUtils::build_applied_annotation(type_ids.type_identifier2(), applied_annotation_parameter_seq);
-            \}
-            else
-            {
-                EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
-                        "$typedefs.scopedname$ Alias: Given Annotation TypeIdentifier is inconsistent.");
-                return;
-            \}
-            TypeObjectUtils::add_applied_annotation(tmp_ann_custom, applied_annotation);
-        \}
-    \}
+    $applied_annotation_sequence(annotation=annotation, typename=typedefs.scopedname)$
     $endif$
     }; separator="\n"$
     member_ann_builtin = TypeObjectUtils::build_applied_builtin_member_annotations(unit, min, max,
             eprosima::fastcdr::optional<std::string>());
-    type_ann_builtin = TypeObjectUtils::build_applied_builtin_type_annotations(verbatim);
     if (!tmp_ann_custom.empty())
     {
         ann_custom = tmp_ann_custom;
@@ -232,6 +171,69 @@ fwd_decl(ctx, parent, type) ::= <<>>
 struct_type(ctx, parent, struct, member_list) ::= <<
 $member_list$
 $register_type_identifier(typename=struct.name)$
+{
+    StructTypeFlag struct_flags = TypeObjectUtils::build_struct_type_flag(
+    $if (struct.annotationAppendable)$
+        eprosima::fastdds::dds::ExtensibilityKind::APPENDABLE,
+    $elseif (struct.annotationFinal)$
+        eprosima::fastdds::dds::ExtensibilityKind::FINAL,
+    $elseif (struct.annotationMutable)$
+        eprosima::fastdds::dds::ExtensibilityKind::MUTABLE,
+    $endif$
+        $struct.annotationNested$, $struct.annotationAutoidHash$);
+    TypeIdentifierPair type_ids;
+    $if (struct.inheritance)$
+    $get_type_identifier(type=struct.inheritance)$
+    if (return_code != eprosima::fastdds::dds::RETCODE_OK)
+    {
+        EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
+                "$struct.scopedname$ Structure: base_type TypeIdentifier unknown to TypeObjectRegistry.");
+        return;
+    }
+    $endif$
+    eprosima::fastcdr::optional<AppliedBuiltinTypeAnnotations> type_ann_builtin;
+    eprosima::fastcdr::optional<AppliedAnnotationSeq> ann_custom;
+    $if (struct.annotationList)$
+    AppliedAnnotationSeq tmp_ann_custom;
+    eprosima::fastcdr::optional<AppliedVerbatimAnnotation> verbatim;
+    $struct.annotationList : { annotation |
+    $if (annotation.isVerbatim)$
+    $applied_verbatim_annotation(annotation=annotation)$
+    $elseif (!annotation.isBuiltin)$
+    $applied_annotation_sequence(annotation=annotation, typename=struct.scopedname)$
+    $endif$
+    }; separator="\n"$
+    if (!tmp_ann_custom.empty())
+    {
+        ann_custom = tmp_ann_custom;
+    }
+    $endif$
+    CompleteTypeDetail detail = TypeObjectUtils::build_complete_type_detail(type_ann_builtin, ann_custom,
+            "$struct.scopedname$");
+    CompleteStructHeader header;
+    if (EK_COMPLETE == type_ids.type_identifier1()._d() || TK_NONE == type_ids.type_identifier1()._d())
+    {
+        header = TypeObjectUtils::build_complete_struct_header(type_ids.type_identifier1(), detail);
+    }
+    else if (EK_COMPLETE == type_ids.type_identifier2()._d())
+    {
+        header = TypeObjectUtils::build_complete_struct_header(type_ids.type_identifier2(), detail);
+    }
+    else
+    {
+        EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
+                "$struct.scopedname$ Structure: base_type TypeIdentifier registered in TypeObjectRegistry is inconsistent.");
+        return;
+    }
+    CompleteStructMemberSeq member_seq;
+    CompleteStructType struct_type = TypeObjectUtils::build_complete_struct_type(struct_flags, header, member_seq);
+    if (eprosima::fastdds::dds::RETCODE_BAD_PARAMETER ==
+            TypeObjectUtils::build_and_register_struct_type_object(struct_type, "$struct.scopedname$"))
+    {
+        EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
+            "$struct.scopedname$ already registered in TypeObjectRegistry for a different type.");
+    }
+}
 >>
 
 member_type(ctx, member, type_member, declarators) ::= <<
@@ -326,4 +328,73 @@ get_type_identifier_registry(typename) ::= <<
 return_code =
     eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->type_object_registry().get_type_identifiers(
     "$typename$", type_ids);
+>>
+
+applied_annotation_sequence(annotation, typename) ::= <<
+{
+$if (annotation.valueList)$
+eprosima::fastcdr::optional<AppliedAnnotationParameterSeq> applied_annotation_parameter_seq;
+AppliedAnnotationParameterSeq tmp_applied_annotation_parameter_seq;
+$annotation.valueList : { param |
+{
+    $if (param.typecode.isEnumType)$
+    AnnotationParameterValue param_value = TypeObjectUtils::build_annotation_parameter_value_enum($param.value$);
+    $elseif (param.typecode.isByteType)$
+    AnnotationParameterValue param_value = TypeObjectUtils::build_annotation_parameter_value_byte($param.value$);
+    $else$
+    AnnotationParameterValue param_value = TypeObjectUtils::build_annotation_parameter_value($param.value$);
+    $endif$
+    AppliedAnnotationParameter applied_param = TypeObjectUtils::build_applied_annotation_parameter(
+            TypeObjectUtils::name_hash("$param.name$"), param_value);
+    TypeObjectUtils::add_applied_annotation_parameter(tmp_applied_annotation_parameter_seq, applied_param);
+\}
+}; separator="\n"$
+$endif$
+    {
+        AppliedAnnotation applied_annotation;
+        $get_type_identifier(type=annotation.scopedname)$
+        if (retcode != eprosima::fastdds::dds::RETCODE_OK)
+        {
+            EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
+                        "$typename$ Alias: Given Annotation TypeIdentifier unknown to TypeObjectRegistry.");
+            return;
+        }
+        if (!tmp_applied_annotation_parameter_seq.empty())
+        {
+            applied_annotation_parameter_seq = tmp_applied_annotation_parameter_seq;
+        }
+        if (EK_COMPLETE == type_ids.type_identifier1()._d())
+        {
+            applied_annotation = TypeObjectUtils::build_applied_annotation(type_ids.type_identifier1(), applied_annotation_parameter_seq);
+        }
+        else if (EK_COMPLETE == type_ids.type_identifier2()._d())
+        {
+            applied_annotation = TypeObjectUtils::build_applied_annotation(type_ids.type_identifier2(), applied_annotation_parameter_seq);
+        }
+        else
+        {
+            EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
+                    "$typename$ Alias: Given Annotation TypeIdentifier is inconsistent.");
+            return;
+        }
+        TypeObjectUtils::add_applied_annotation(tmp_ann_custom, applied_annotation);
+    \}
+}
+>>
+
+applied_verbatim_annotation(annotation) ::= <<
+PlacementKindValue placement = BEFORE_DECLARATION;
+eprosima::fastcdr::fixed_string<32> language = "*";
+std::string text;
+$annotation.valueList : { verbatim_param |
+$if (verbatim_param.isVerbatimPlacement)$
+placement = $verbatim_param.enumStringValue$;
+$elseif (verbatim_param.isVerbatimLanguage)$
+language = "$verbatim_param.value$";
+$elseif (verbatim_param.isVerbatimText)$
+text = "$verbatim_param.value$";
+$endif$
+}; separator="\n"$
+verbatim = TypeObjectUtils::build_applied_verbatim_annotation(placement, language, text);
+type_ann_builtin = TypeObjectUtils::build_applied_builtin_type_annotations(verbatim);
 >>
