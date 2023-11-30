@@ -29,6 +29,7 @@ import com.eprosima.idl.parser.grammar.IDLParser;
 import com.eprosima.idl.parser.tree.Annotation;
 import com.eprosima.idl.parser.tree.Specification;
 import com.eprosima.idl.parser.typecode.Kind;
+import com.eprosima.idl.parser.typecode.ContainerTypeCode;
 import com.eprosima.idl.parser.typecode.PrimitiveTypeCode;
 import com.eprosima.idl.parser.typecode.TypeCode;
 import com.eprosima.idl.util.Util;
@@ -180,6 +181,17 @@ public class fastddsgen
                 else
                 {
                     throw new BadArgumentException("No URL specified after -d argument");
+                }
+            }
+            else if (arg.equals(default_container_prealloc_size))
+            {
+                if (count < args.length)
+                {
+                    ContainerTypeCode.default_unbounded_max_size = args[count++];
+                }
+                else
+                {
+                    throw new BadArgumentException("No value specified after " + default_container_prealloc_size + " argument");
                 }
             }
             else if (arg.equals("-de") || arg.equals("-default_extensibility"))
@@ -536,6 +548,8 @@ public class fastddsgen
         System.out.println(m_appName + " version " + version);
     }
 
+    private static String default_container_prealloc_size = "-default-container-prealloc-size";
+
     public static void printHelp()
     {
         System.out.println(m_appName + " usage:");
@@ -543,6 +557,8 @@ public class fastddsgen
         System.out.println("\twhere the options are:");
         System.out.println("\t\t-cs: IDL grammar apply case sensitive matching.");
         System.out.println("\t\t-d <path>: sets an output directory for generated files.");
+        System.out.print("\t\t" + default_container_prealloc_size + ": sets the default preallocated size for containers");
+        System.out.println(" (sequence and maps). Default value: 0");
         System.out.print("\t\t-default_extensibility | -de <ext>: sets the default extensibility for types without");
         System.out.println(" the @extensibility annotation.");
         System.out.println("\t\t Values:");
