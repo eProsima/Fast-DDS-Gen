@@ -162,6 +162,10 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
     @Override
     public ArrayTypeCode createArrayTypeCode()
     {
+        if (isInScopedFile())
+        {
+            there_is_at_least_one_array = true;
+        }
         return new ArrayTypeCode();
     }
 
@@ -170,6 +174,10 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
             String scope,
             String name)
     {
+        if (isInScopedFile())
+        {
+            there_is_at_least_one_bitset = true;
+        }
         return new BitsetTypeCode(scope, name);
     }
 
@@ -193,6 +201,10 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
     public MapTypeCode createMapTypeCode(
             String maxsize)
     {
+        if (isInScopedFile())
+        {
+            there_is_at_least_one_map = true;
+        }
         return new MapTypeCode(maxsize, evaluate_literal(maxsize));
     }
 
@@ -207,6 +219,10 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
     public SequenceTypeCode createSequenceTypeCode(
             String maxsize)
     {
+        if (isInScopedFile())
+        {
+            there_is_at_least_one_sequence = true;
+        }
         return new SequenceTypeCode(maxsize, evaluate_literal(maxsize));
     }
 
@@ -222,6 +238,10 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
             int kind,
             String maxsize)
     {
+        if (isInScopedFile())
+        {
+            there_is_at_least_one_string = true;
+        }
         return new StringTypeCode(kind, maxsize, evaluate_literal(maxsize));
     }
 
@@ -229,6 +249,10 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
     public StructTypeCode createStructTypeCode(
             String name)
     {
+        if (isInScopedFile())
+        {
+            there_is_at_least_one_struct = true;
+        }
         return new StructTypeCode(getScope(), name);
     }
 
@@ -237,6 +261,10 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
             String scope,
             String name)
     {
+        if (isInScopedFile())
+        {
+            there_is_at_least_one_union = true;
+        }
         return new UnionTypeCode(scope, name);
     }
 
@@ -246,6 +274,10 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
             String name,
             TypeCode discriminatorTypeCode)
     {
+        if (isInScopedFile())
+        {
+            there_is_at_least_one_union = true;
+        }
         return new UnionTypeCode(scope, name, discriminatorTypeCode);
     }
 
@@ -374,18 +406,54 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
         typecodes.add(new SimpleEntry<String, TypeCode>(sequence.getCppTypename(), sequence));
     }
 
+    public boolean isThereIsArray()
+    {
+        return there_is_at_least_one_array;
+    }
+
+    public boolean isThereIsBitset()
+    {
+        return there_is_at_least_one_bitset;
+    }
+
+    public boolean isThereIsExternalAnnotation()
+    {
+        return there_is_at_least_one_external_annotation;
+    }
+
+    public boolean isThereIsMap()
+    {
+        return there_is_at_least_one_map;
+    }
+
+    public boolean isThereIsOptionalAnnotation()
+    {
+        return there_is_at_least_one_optional_annotation;
+    }
+
+    public boolean isThereIsSequence()
+    {
+        return there_is_at_least_one_sequence;
+    }
+
+    public boolean isThereIsString()
+    {
+        return there_is_at_least_one_string;
+    }
+
+    public boolean isThereIsStructure()
+    {
+        return there_is_at_least_one_struct;
+    }
+
+    public boolean isThereIsUnion()
+    {
+        return there_is_at_least_one_union;
+    }
+
     public boolean isThereIsStructOrUnion()
     {
-        for (TypeDeclaration type : m_types.values())
-        {
-            if (type.getTypeCode() instanceof StructTypeCode ||
-                    type.getTypeCode() instanceof UnionTypeCode)
-            {
-                return true;
-            }
-        }
-
-        return false;
+        return there_is_at_least_one_struct || there_is_at_least_one_union;
     }
 
     /*** Functions inherited from FastCDR Context ***/
@@ -554,15 +622,6 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
         return null;
     }
 
-    public boolean isThereIsStructure()
-    {
-        if (m_lastStructure != null)
-        {
-            return true;
-        }
-        return false;
-    }
-
     public TypeDeclaration getLastStructure()
     {
         return m_lastStructure;
@@ -617,6 +676,25 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
         }
     }
 
+    @Override
+    public AnnotationDeclaration getAnnotationDeclaration(
+            String name)
+    {
+        if (isInScopedFile())
+        {
+            if (name.equals("optional"))
+            {
+                there_is_at_least_one_optional_annotation = true;
+            }
+            else if (name.equals("external"))
+            {
+                there_is_at_least_one_external_annotation = true;
+            }
+        }
+
+        return super.getAnnotationDeclaration(name);
+    }
+
     //// Java block ////
     // Java package name.
     private String m_package = "";
@@ -634,4 +712,22 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
             new AbstractMap.SimpleEntry<>("DDS", Arrays.asList("eprosima", "fastdds", "dds")),
             new AbstractMap.SimpleEntry<>("XTypes", Arrays.asList("xtypes")))
         .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+    private boolean there_is_at_least_one_array = false;
+
+    private boolean there_is_at_least_one_bitset = false;
+
+    private boolean there_is_at_least_one_external_annotation = false;
+
+    private boolean there_is_at_least_one_map = false;
+
+    private boolean there_is_at_least_one_optional_annotation = false;
+
+    private boolean there_is_at_least_one_sequence = false;
+
+    private boolean there_is_at_least_one_string = false;
+
+    private boolean there_is_at_least_one_struct = false;
+
+    private boolean there_is_at_least_one_union = false;
 }
