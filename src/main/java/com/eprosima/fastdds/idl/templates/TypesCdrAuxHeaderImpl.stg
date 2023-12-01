@@ -138,6 +138,7 @@ eProsima_user_DllExport void deserialize(
                 }
                 return ret_value;
                 $else$
+                static_cast<void>(data);
                 static_cast<void>(dcdr);
                 static_cast<void>(mid);
                 return false;
