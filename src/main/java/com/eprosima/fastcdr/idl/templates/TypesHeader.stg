@@ -23,18 +23,36 @@ $fileHeader(ctx=ctx, file=[ctx.filename, ".hpp"], description=["This header file
 #ifndef _FAST_DDS_GENERATED_$ctx.headerGuardName$_HPP_
 #define _FAST_DDS_GENERATED_$ctx.headerGuardName$_HPP_
 
+$if(ctx.thereIsArray)$
 #include <array>
+$endif$
+$if(ctx.thereIsBitset)$
 #include <bitset>
+$endif$
 #include <cstdint>
+$if(ctx.thereIsMap)$
 #include <map>
+$endif$
+$if(ctx.thereIsString)$
 #include <string>
+$endif$
 #include <utility>
+$if(ctx.thereIsSequence)$
 #include <vector>
+$endif$
 
+$if(ctx.thereIsString)$
 #include <fastcdr/cdr/fixed_size_string.hpp>
+$endif$
+$if(ctx.thereIsExternalAnnotation)$
 #include <fastcdr/xcdr/external.hpp>
+$endif$
+$if(ctx.thereIsOptionalAnnotation)$
 #include <fastcdr/xcdr/optional.hpp>
+$endif$
+$if(ctx.thereIsUnion)$
 #include <fastcdr/exceptions/BadParamException.h>
+$endif$
 
 $ctx.directIncludeDependencies : {include | #include "$include$.hpp"}; separator="\n"$
 
