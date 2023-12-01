@@ -550,7 +550,7 @@ public class fastddsgen
         System.out.println(m_appName + " version " + version);
     }
 
-    private static String default_container_prealloc_size = "-default-container-prealloc-size";
+    private static final String default_container_prealloc_size = "-default-container-prealloc-size";
 
     public static void printHelp()
     {
@@ -714,7 +714,8 @@ public class fastddsgen
             }
 
             // Load common types template
-            tmanager.addGroup("com/eprosima/fastcdr/idl/templates/TypesHeader.stg").enable_using_explicitly_modules();
+            tmanager.addGroup("com/eprosima/fastcdr/idl/templates/TypesHeader.stg").enable_custom_property(
+                    Context.using_explicitly_modules_custom_property);
             if (m_type_object_files)
             {
                 tmanager.addGroup("com/eprosima/fastdds/idl/templates/TypeObjectHeader.stg");
