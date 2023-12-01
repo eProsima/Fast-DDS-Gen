@@ -1259,7 +1259,7 @@ $endif$
 
 
 $if(object.labels)$
-$object.labels:{ label | mst_$object.name$.common().label_seq().emplace_back($label$);}; separator="\n"$
+$object.labels:{ label | mst_$object.name$.common().label_seq().emplace_back(static_cast<int32_t>($label$));}; separator="\n"$
 $endif$
 
 MD5 $object.name$_hash("$object.name$");
@@ -1290,7 +1290,7 @@ cst_$object.name$.common().type_id(*TypeObjectFactory::get_instance()->get_type_
 $endif$
 
 $if(object.labels)$
-$object.labels:{ label | cst_$object.name$.common().label_seq().emplace_back($label$);}; separator="\n"$
+$object.labels:{ label | cst_$object.name$.common().label_seq().emplace_back(static_cast<int32_t>($label$));}; separator="\n"$
 $endif$
 
 
