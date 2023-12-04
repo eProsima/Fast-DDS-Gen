@@ -451,6 +451,8 @@ EXPECT_TRUE(base_type_ids.type_identifier1() == type_objects.minimal_type_object
     base_type_ids.type_identifier1() == type_objects.complete_type_object.struct_type().header().base_type());
 EXPECT_TRUE(base_type_ids.type_identifier2() == type_objects.minimal_type_object.struct_type().header().base_type() ||
     base_type_ids.type_identifier2() == type_objects.complete_type_object.struct_type().header().base_type());
+TypeObjectPair base_type_objects;
+$get_type_object_registry(typename=struct.inheritance.scopedname, result="base_type_objects")$
 $else$
 TypeIdentifier invalid_type_id;
 EXPECT_EQ(invalid_type_id, type_objects.minimal_type_object.struct_type().header().base_type());
@@ -458,7 +460,14 @@ EXPECT_EQ(invalid_type_id, type_objects.complete_type_object.struct_type().heade
 $endif$
 $check_type_detail_annotations(object=struct, type="struct_type().header().detail()")$
 EXPECT_EQ("$struct.scopedname$", type_objects.complete_type_object.struct_type().header().detail().type_name());
+$if (struct.members)$
+$if (struct.inheritance)$
+MemberId member_id += base_type_objects.complete_type_object.struct_type().member_seq().back().common().member_id();
+$else$
+MemberId member_id = 0;
+$endif$
 $struct.members: { member | $check_struct_member(member=member, parent=struct)$}; separator="\n"$
+$endif$
 ASSERT_EQ($struct.membersSize$, type_objects.minimal_type_object.struct_type().member_seq().size());
 ASSERT_EQ($struct.membersSize$, type_objects.complete_type_object.struct_type().member_seq().size());
 >>
@@ -478,17 +487,18 @@ check_struct_member(member, parent) ::= <<
     ASSERT_TRUE(found);
     NameHash member_name_hashed = TypeObjectUtils::name_hash("$member.name$");
     $if(member.annotationId)$
-    EXPECT_EQ($member.annotationIdValue$, type_objects.minimal_type_object.struct_type().member_seq()[pos].common().member_id());
-    EXPECT_EQ($member.annotationIdValue$, type_objects.complete_type_object.struct_type().member_seq()[pos].common().member_id());
+    member_id = $member.annotationIdValue$;
     $elseif(member.annotationHashid && member.annotationHashidValue)$
-    EXPECT_EQ($member.annotationHashidValue$, type_objects.minimal_type_object.struct_type().member_seq()[pos].common().member_id());
-    EXPECT_EQ($member.annotationHashidValue$, type_objects.complete_type_object.struct_type().member_seq()[pos].common().member_id());
+    NameHash value_hash_id = TypeObjectUtils::name_hash("$member.annotationHashidValue$");
+    member_id = (value_hash_id[3] << 24 | value_hash_id[2] << 16 | value_hash_id[1] << 8 |
+        value_hash_id[0]) & 0x0FFFFFFF;
     $elseif(parent.annotationAutoidHash || member.annotationHashid)$
-    MemberId member_id = (member_name_hashed[3] << 24 | member_name_hashed[2] << 16 | member_name_hashed[1] << 8 |
+    member_id = (member_name_hashed[3] << 24 | member_name_hashed[2] << 16 | member_name_hashed[1] << 8 |
         member_name_hashed[0]) & 0x0FFFFFFF;
+    $endif$
     EXPECT_EQ(member_id, type_objects.minimal_type_object.struct_type().member_seq()[pos].common().member_id());
     EXPECT_EQ(member_id, type_objects.complete_type_object.struct_type().member_seq()[pos].common().member_id());
-    $endif$
+    member_id++;
     $expected_member_flags(object=member, typename=member.name)$
     EXPECT_EQ($member.name$_expected_flags, type_objects.minimal_type_object.struct_type().member_seq()[pos].common().member_flags());
     EXPECT_EQ($member.name$_expected_flags, type_objects.complete_type_object.struct_type().member_seq()[pos].common().member_flags());
@@ -539,6 +549,7 @@ EXPECT_TRUE(discriminator_type_ids.type_identifier1() == type_objects.minimal_ty
 EXPECT_TRUE(discriminator_type_ids.type_identifier2() == type_objects.minimal_type_object.union_type().discriminator().common().type_id() ||
     discriminator_type_ids.type_identifier2() == type_objects.complete_type_object.union_type().discriminator().common().type_id());
 $check_type_detail_annotations(object=union.discriminator, type="union_type().discriminator()")$
+MemberId member_id = 0;
 $union.members: { member | $check_union_member(member=member, parent=union)$}; separator="\n"$
 ASSERT_EQ($union.membersSize$, type_objects.minimal_type_object.union_type().member_seq().size());
 ASSERT_EQ($union.membersSize$, type_objects.complete_type_object.union_type().member_seq().size());
@@ -559,17 +570,18 @@ check_union_member(member, parent) ::= <<
     ASSERT_TRUE(found);
     NameHash member_name_hashed = TypeObjectUtils::name_hash("$member.name$");
     $if(member.annotationId)$
-    EXPECT_EQ($member.annotationIdValue$, type_objects.minimal_type_object.union_type().member_seq()[pos].common().member_id());
-    EXPECT_EQ($member.annotationIdValue$, type_objects.complete_type_object.union_type().member_seq()[pos].common().member_id());
+    member_id = $member.annotationIdValue$;
     $elseif(member.annotationHashid && member.annotationHashidValue)$
-    EXPECT_EQ($member.annotationHashidValue$, type_objects.minimal_type_object.union_type().member_seq()[pos].common().member_id());
-    EXPECT_EQ($member.annotationHashidValue$, type_objects.complete_type_object.union_type().member_seq()[pos].common().member_id());
+    NameHash value_hash_id = TypeObjectUtils::name_hash("$member.annotationHashidValue$");
+    member_id = (value_hash_id[3] << 24 | value_hash_id[2] << 16 | value_hash_id[1] << 8 |
+        value_hash_id[0]) & 0x0FFFFFFF;
     $elseif(parent.annotationAutoidHash || member.annotationHashid)$
-    MemberId member_id = (member_name_hashed[3] << 24 | member_name_hashed[2] << 16 | member_name_hashed[1] << 8 |
+    member_id = (member_name_hashed[3] << 24 | member_name_hashed[2] << 16 | member_name_hashed[1] << 8 |
         member_name_hashed[0]) & 0x0FFFFFFF;
+    $endif$
     EXPECT_EQ(member_id, type_objects.minimal_type_object.union_type().member_seq()[pos].common().member_id());
     EXPECT_EQ(member_id, type_objects.complete_type_object.union_type().member_seq()[pos].common().member_id());
-    $endif$
+    member_id++;
     $expected_member_flags(object=member, typename=member.name)$
     EXPECT_EQ($member.name$_expected_flags, type_objects.minimal_type_object.union_type().member_seq()[pos].common().member_flags());
     EXPECT_EQ($member.name$_expected_flags, type_objects.complete_type_object.union_type().member_seq()[pos].common().member_flags());
