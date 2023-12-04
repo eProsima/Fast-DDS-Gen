@@ -768,6 +768,7 @@ public class fastddsgen
                 tmanager.addGroup("com/eprosima/fastdds/idl/templates/DDSPubSubTypeHeader.stg");
                 tmanager.addGroup("com/eprosima/fastdds/idl/templates/DDSPubSubTypeSource.stg");
                 tmanager.addGroup("com/eprosima/fastdds/idl/templates/XTypesTypeObjectHeader.stg");
+                tmanager.addGroup("com/eprosima/fastdds/idl/templates/XTypesTypeObjectSource.stg");
             }
 
             if (m_exampleOption != null)
@@ -948,7 +949,12 @@ public class fastddsgen
                     if (returnedValue &= Utils.writeFile(output_dir + ctx.getFilename() + "TypeObjectSupport.hpp",
                             maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/XTypesTypeObjectHeader.stg"), m_replace))
                     {
-                        project.addCommonIncludeFile(relative_dir + ctx.getFilename() + "TypeObjectSupport.hpp");
+                        if (returnedValue &= Utils.writeFile(output_dir + ctx.getFilename() + "TypeObjectSupport.cxx",
+                                maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/XTypesTypeObjectSource.stg"), m_replace))
+                        {
+                            project.addCommonIncludeFile(relative_dir + ctx.getFilename() + "TypeObjectSupport.hpp");
+                            project.addCommonSrcFile(relative_dir + ctx.getFilename() + "TypeObjectSupport.cxx");
+                        }
                     }
 
                     if (ctx.isThereIsStructOrUnion())
