@@ -41,7 +41,7 @@ eProsima_user_DllExport void register_$ctx.filename$_type_objects();
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS_PUBLIC
 
-$definitions; separator="\n"$
+$definitions; separator=""$
 
 #endif // DOXYGEN_SHOULD_SKIP_THIS_PUBLIC
 
@@ -60,79 +60,15 @@ $definitions; separator="\n"$
 >>
 
 annotation(ctx, annotation) ::= <<
-$if(annotation.enums || annotation.typeDefs)$
-namespace $annotation.ROS2Scopedname$ {
-    $annotation.enums : { it | $enum_type(ctx=ctx, parent=annotation, enum=it)$}; separator="\n"$
-    $annotation.typeDefs : { it | $typedef_decl(ctx=ctx, parent=annotation, typedefs=it)$}; separator="\n"$
-} // namespace $annotation.ROS2Scopedname$
-$endif$
+$register_type_identifier(typename=annotation.CScopedname)$
 >>
-
-const_decl(ctx, parent, const, const_type) ::= <<
-$const_type$
->>
-
-typedef_decl(ctx, parent, typedefs, typedefs_type, declarator_type) ::= <<
-$declarator_type$
-$typedefs_type$
-$register_type_identifier(typename=typedefs.name)$
->>
-
-fwd_decl(ctx, parent, type) ::= <<>>
 
 struct_type(ctx, parent, struct, member_list) ::= <<
-$member_list$
-$register_type_identifier(typename=struct.name)$
->>
-
-member_type(ctx, member, type_member, declarators) ::= <<
-$type_member$
-$declarators$
+$register_type_identifier(typename=struct.CScopedname)$
 >>
 
 union_type(ctx, parent, union, extensions, switch_type) ::= <<
-$switch_type$
-$register_type_identifier(typename=union.name)$
->>
-
-element_type(ctx, element, type_element, declarator) ::= <<
-$type_element$
-$declarator$
->>
-
-bitset_type(ctx, parent, bitset, extensions) ::= <<
-$register_type_identifier(typename=bitset.name)$
->>
-
-enum_type(ctx, parent, enum) ::= <<
-$register_type_identifier(typename=enum.name)$
->>
-
-bitmask_type(ctx, parent, bitmask) ::= <<
-$register_type_identifier(typename=bitmask.name)$
->>
-
-sequence_type(ctx, sequence, type_sequence) ::= <<
-$type_sequence$
-$register_type_identifier(typename=sequence_name(sequence))$
->>
-
-map_type(ctx, map, key_type, value_type) ::= <<
-$key_type$
-$value_type$
-$register_type_identifier(typename=map_name(map))$
->>
-
-string_type(ctx, string) ::= <<
-$register_type_identifier(typename=string_name(string))$
->>
-
-wide_string_type(ctx, wstring) ::= <<
-$register_type_identifier(typename=wstring_name(wstring))$
->>
-
-array_declarator(ctx, array) ::= <<
-$register_type_identifier(typename=array_name(array))$
+$register_type_identifier(typename=union.CScopedname)$
 >>
 
 /***** Utils *****/

@@ -39,11 +39,12 @@ void register_$ctx.filename$_type_objects()
     static std::once_flag once_flag;
     std::call_once(once_flag, []()
             {
-                $ctx.definitions: { def | $register_type(ctx=ctx, object=def)$}; separator="\n"$
+                $ctx.definitions: { def | $register_type(ctx=ctx, object=def)$}; separator=""$
             });
 }
 
-$definitions; separator="\n"$
+$definitions; separator=""$
+
 >>
 
 module(ctx, parent, module, definition_list) ::= <<
@@ -52,101 +53,18 @@ $definition_list$
 } // namespace $module.name$
 >>
 
-definition_list(definitions) ::= <<
-$definitions; separator="\n"$
->>
+definition_list(definitions) ::= <%
+$definitions; separator=""$
+%>
 
 annotation(ctx, annotation) ::= <<
-$if(annotation.enums || annotation.typeDefs)$
-namespace $annotation.ROS2Scopedname$ {
-    $annotation.enums : { it | $enum_type(ctx=ctx, parent=annotation, enum=it)$}; separator="\n"$
-    $annotation.typeDefs : { it | $typedef_decl(ctx=ctx, parent=annotation, typedefs=it)$}; separator="\n"$
-} // namespace $annotation.ROS2Scopedname$
-$endif$
->>
-
-const_decl(ctx, parent, const, const_type) ::= <<
-$const_type$
->>
-
-typedef_decl(ctx, parent, typedefs, typedefs_type, declarator_type) ::= <<
-$declarator_type$
-$typedefs_type$
-void register_$typedefs.name$_type_identifier()
+void register_$annotation.formatedScopedname$_type_identifier()
 {
-    ReturnCode_t return_code;
-    TypeIdentifierPair type_ids;
-    $get_type_identifier(type=typedefs.typedefContentTypeCode)$
-    if (return_code != eprosima::fastdds::dds::RETCODE_OK)
-    {
-        EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
-                "$typedefs.scopedname$ Alias: related TypeIdentifier unknown to TypeObjectRegistry.");
-        return;
-    }
-    CommonAliasBody common_alias_body;
-    if (EK_COMPLETE == type_ids.type_identifier1()._d() || TK_NONE == type_ids.type_identifier2()._d())
-    {
-        common_alias_body = TypeObjectUtils::build_common_alias_body(0, type_ids.type_identifier1());
-    }
-    else if (EK_COMPLETE == type_ids.type_identifier2()._d())
-    {
-        common_alias_body = TypeObjectUtils::build_common_alias_body(0, type_ids.type_identifier2());
-    }
-    else
-    {
-        EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
-                "$typedefs.scopedname$ Alias: related TypeIdentifier registered in TypeObjectRegistry is inconsistent.");
-        return;
-    }
-    eprosima::fastcdr::optional<AppliedBuiltinMemberAnnotations> member_ann_builtin;
-    eprosima::fastcdr::optional<AppliedBuiltinTypeAnnotations> type_ann_builtin;
-    eprosima::fastcdr::optional<AppliedAnnotationSeq> ann_custom;
-    $if (typedefs.annotationList)$
-    AppliedAnnotationSeq tmp_ann_custom;
-    eprosima::fastcdr::optional<std::string> unit;
-    eprosima::fastcdr::optional<AnnotationParameterValue> min;
-    eprosima::fastcdr::optional<AnnotationParameterValue> max;
-    eprosima::fastcdr::optional<AppliedVerbatimAnnotation> verbatim;
-    $typedefs.annotationList : { annotation |
-    $if (annotation.isUnit)$
-    unit = $annotation.value$;
-    $elseif (annotation.isMin || annotation.isMax || annotation.isRange)$
-    EPROSIMA_LOG_WARNING(XTYPES_TYPE_REPRESENTATION,
-            "$typedefs.scopedname$ Alias: @min, @max, and @range builtin annotations not yet supported");
-    $elseif (annotation.isHashId)$
-    EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
-            "$typedefs.scopedname$ Alias: @hashid builtin annotation does not apply to Alias types");
-    $elseif (annotation.isVerbatim)$
-    $applied_verbatim_annotation(annotation=annotation)$
-    $elseif (!annotation.isBuiltin)$
-    $applied_annotation_sequence(annotation=annotation, typename=[typedefs.scopedname, " Alias"])$
-    $endif$
-    }; separator="\n"$
-    member_ann_builtin = TypeObjectUtils::build_applied_builtin_member_annotations(unit, min, max,
-            eprosima::fastcdr::optional<std::string>());
-    if (!tmp_ann_custom.empty())
-    {
-        ann_custom = tmp_ann_custom;
-    }
-    $endif$
-    CompleteAliasBody body = TypeObjectUtils::build_complete_alias_body(common_alias_body, member_ann_builtin,
-            eprosima::fastcdr::optional<AppliedAnnotationSeq>());
-    CompleteTypeDetail detail = TypeObjectUtils::build_complete_type_detail(type_ann_builtin, ann_custom,
-            "$typedefs.scopedname$");
-    CompleteAliasHeader header = TypeObjectUtils::build_complete_alias_header(detail);
-    CompleteAliasType alias_type = TypeObjectUtils::build_complete_alias_type(0, header, body);
-    if (eprosima::fastdds::dds::RETCODE_BAD_PARAMETER ==
-            TypeObjectUtils::build_and_register_alias_type_object(alias_type, "$typedefs.scopedname$"))
-    {
-        EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
-            "$typedefs.scopedname$ already registered in TypeObjectRegistry for a different type.");
-    }
 }
 >>
 
 struct_type(ctx, parent, struct, member_list) ::= <<
-$member_list$
-void register_$struct.name$_type_identifier()
+void register_$struct.CScopedname$_type_identifier()
 {
     StructTypeFlag struct_flags = TypeObjectUtils::build_struct_type_flag(
     $if (struct.annotationAppendable)$
@@ -229,82 +147,22 @@ void register_$struct.name$_type_identifier()
 }
 >>
 
-member_type(ctx, member, type_member, declarators) ::= <<
-$type_member$
-$declarators$
->>
-
 union_type(ctx, parent, union, extensions, switch_type) ::= <<
-$switch_type$
-void register_$union.name$_type_identifier()
-{
-}
->>
-
-element_type(ctx, element, type_element, declarator) ::= <<
-$type_element$
-$declarator$
->>
-
-bitset_type(ctx, parent, bitset, extensions) ::= <<
-void register_$bitset.name$_type_identifier()
-{
-}
->>
-
-enum_type(ctx, parent, enum) ::= <<
-void register_$enum.name$_type_identifier()
-{
-}
->>
-
-bitmask_type(ctx, parent, bitmask) ::= <<
-void register_$bitmask.name$_type_identifier()
-{
-}
->>
-
-sequence_type(ctx, sequence, type_sequence) ::= <<
-$type_sequence$
-void register_$ctx_filename$_$sequence_name(sequence)$_type_identifier()
-{
-}
->>
-
-map_type(ctx, map, key_type, value_type) ::= <<
-$key_type$
-$value_type$
-void register_$ctx_filename$_$map_name(map)$_type_identifier()
-{
-}
->>
-
-string_type(ctx, string) ::= <<
-void register_$ctx_filename$_$string_name(string)$_type_identifier()
-{
-}
->>
-
-wide_string_type(ctx, wstring) ::= <<
-void register_$ctx_filename$_$wstring_name(wstring)$_type_identifier()
-{
-}
->>
-
-array_declarator(ctx, array) ::= <<
-void register_$ctx_filename$_$array_name(array)$_type_identifier()
+void register_$union.CScopedname$_type_identifier()
 {
 }
 >>
 
 /***** Utils *****/
-register_type(ctx, object) ::= <%
-$if (!object.isModule)$
-$if(!object.isConstDeclaration)$
+register_type(ctx, object) ::= <<
+$if (object.isTypeDeclaration)$
+$if (object.typeCode.isStructType || object.typeCode.isUnionType)$
 register_$object.CScopedname$_type_identifier();
 $endif$
+$elseif (object.isAnnotation)$
+register_$object.formatedScopedname$_type_identifier();
 $endif$
-%>
+>>
 
 get_type_identifier(type) ::= <<
 $if (type.primitive)$
