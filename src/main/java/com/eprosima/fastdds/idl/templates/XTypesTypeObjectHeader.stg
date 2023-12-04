@@ -28,6 +28,7 @@ $fileHeader(ctx=ctx, file=[ctx.filename, "TypeObjectSupport.hpp"], description=[
 #include <fastcdr/xcdr/optional.hpp>
 #include <fastdds/dds/domain/DomainParticipantFactory.hpp>
 #include <fastdds/dds/log/Log.hpp>
+#include <fastdds/dds/xtypes/dynamic_types/Types.hpp>
 #include <fastdds/dds/xtypes/type_representation/TypeObject.hpp>
 #include <fastdds/dds/xtypes/type_representation/TypeObjectRegistry.hpp>
 #include <fastdds/dds/xtypes/type_representation/TypeObjectUtils.hpp>
@@ -141,7 +142,7 @@ $register_type_identifier(typename=typedefs.name)$
     $elseif (annotation.isVerbatim)$
     $applied_verbatim_annotation(annotation=annotation)$
     $elseif (!annotation.isBuiltin)$
-    $applied_annotation_sequence(annotation=annotation, typename=typedefs.scopedname)$
+    $applied_annotation_sequence(annotation=annotation, typename=[typedefs.scopedname, " Alias"])$
     $endif$
     }; separator="\n"$
     member_ann_builtin = TypeObjectUtils::build_applied_builtin_member_annotations(unit, min, max,
@@ -181,7 +182,10 @@ $register_type_identifier(typename=struct.name)$
         eprosima::fastdds::dds::ExtensibilityKind::MUTABLE,
     $endif$
         $struct.annotationNested$, $struct.annotationAutoidHash$);
+    $if (struct.inheritance || struct.members)$
+    ReturnCode_t return_code;
     TypeIdentifierPair type_ids;
+    $endif$
     $if (struct.inheritance)$
     $get_type_identifier(type=struct.inheritance)$
     if (return_code != eprosima::fastdds::dds::RETCODE_OK)
@@ -190,6 +194,8 @@ $register_type_identifier(typename=struct.name)$
                 "$struct.scopedname$ Structure: base_type TypeIdentifier unknown to TypeObjectRegistry.");
         return;
     }
+    TypeObjectPair type_objects;
+    $get_type_object(type=struct.inheritance)$
     $endif$
     eprosima::fastcdr::optional<AppliedBuiltinTypeAnnotations> type_ann_builtin;
     eprosima::fastcdr::optional<AppliedAnnotationSeq> ann_custom;
@@ -200,7 +206,7 @@ $register_type_identifier(typename=struct.name)$
     $if (annotation.isVerbatim)$
     $applied_verbatim_annotation(annotation=annotation)$
     $elseif (!annotation.isBuiltin)$
-    $applied_annotation_sequence(annotation=annotation, typename=struct.scopedname)$
+    $applied_annotation_sequence(annotation=annotation, typename=[struct.scopedname, " Structure"])$
     $endif$
     }; separator="\n"$
     if (!tmp_ann_custom.empty())
@@ -211,6 +217,7 @@ $register_type_identifier(typename=struct.name)$
     CompleteTypeDetail detail = TypeObjectUtils::build_complete_type_detail(type_ann_builtin, ann_custom,
             "$struct.scopedname$");
     CompleteStructHeader header;
+    $if (struct.inheritance)$
     if (EK_COMPLETE == type_ids.type_identifier1()._d() || TK_NONE == type_ids.type_identifier1()._d())
     {
         header = TypeObjectUtils::build_complete_struct_header(type_ids.type_identifier1(), detail);
@@ -225,7 +232,18 @@ $register_type_identifier(typename=struct.name)$
                 "$struct.scopedname$ Structure: base_type TypeIdentifier registered in TypeObjectRegistry is inconsistent.");
         return;
     }
+    $else$
+    header = TypeObjectUtils::build_complete_struct_header(TypeIdentifier(), detail);
+    $endif$
     CompleteStructMemberSeq member_seq;
+    $if (struct.members)$
+    $if (struct.inheritance)$
+    MemberId member_id = type_objects.complete_type_object.struct_type().member_seq().back().common().member_id();
+    $else$
+    MemberId member_id = 0;
+    $endif$
+    $struct.members: { member | $struct_member(member=member, parent=struct)$}; separator="\n"$
+    $endif$
     CompleteStructType struct_type = TypeObjectUtils::build_complete_struct_type(struct_flags, header, member_seq);
     if (eprosima::fastdds::dds::RETCODE_BAD_PARAMETER ==
             TypeObjectUtils::build_and_register_struct_type_object(struct_type, "$struct.scopedname$"))
@@ -330,6 +348,30 @@ return_code =
     "$typename$", type_ids);
 >>
 
+get_type_object(type) ::= <<
+$if (type.primitive)$
+$get_type_object_registry(typename=["_", type.cppTypenameForTypeId])$
+$elseif (type.isStringType)$
+$get_type_object_registry(typename=string_name(string=type))$
+$elseif (type.isWStringType)$
+$get_type_object_registry(typename=wstring_name(wstring=type))$
+$elseif (type.isArrayType)$
+$get_type_object_registry(typename=array_name(array=type))$
+$elseif (type.isSequenceType)$
+$get_type_object_registry(typename=sequence_name(sequence=type))$
+$elseif (type.isMapType)$
+$get_type_object_registry(typename=map_name(map=type))$
+$else$
+$get_type_object_registry(typename=type.scopedname)$
+$endif$
+>>
+
+get_type_object_registry(typename) ::= <<
+return_code =
+    eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->type_object_registry().get_type_objects(
+    "$typename$", type_objects);
+>>
+
 applied_annotation_sequence(annotation, typename) ::= <<
 {
 $if (annotation.valueList)$
@@ -356,7 +398,7 @@ $endif$
         if (retcode != eprosima::fastdds::dds::RETCODE_OK)
         {
             EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
-                        "$typename$ Alias: Given Annotation TypeIdentifier unknown to TypeObjectRegistry.");
+                        "$typename$: Given Annotation TypeIdentifier unknown to TypeObjectRegistry.");
             return;
         }
         if (!tmp_applied_annotation_parameter_seq.empty())
@@ -374,7 +416,7 @@ $endif$
         else
         {
             EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
-                    "$typename$ Alias: Given Annotation TypeIdentifier is inconsistent.");
+                    "$typename$: Given Annotation TypeIdentifier is inconsistent.");
             return;
         }
         TypeObjectUtils::add_applied_annotation(tmp_ann_custom, applied_annotation);
@@ -397,4 +439,106 @@ $endif$
 }; separator="\n"$
 verbatim = TypeObjectUtils::build_applied_verbatim_annotation(placement, language, text);
 type_ann_builtin = TypeObjectUtils::build_applied_builtin_type_annotations(verbatim);
+>>
+
+struct_member(member, parent) ::= <<
+{
+    StructMemberFlag member_flags = TypeObjectUtils::build_struct_member_flag(
+    $if (member.annotationDiscard)$
+        eprosima::fastdds::dds::TryConstructKind::DISCARD,
+    $elseif (member.annotationUseDefault)$
+        eprosima::fastdds::dds::TryConstructKind::USE_DEFAULT,
+    $elseif (member.annotationTrim)$
+        eprosima::fastdds::dds::TryConstructKind::TRIM,
+    $endif$
+        $member.annotationOptional$, $member.annotationMustUnderstand$, $member.annotationKey$, $member.annotationExternal$);
+    $get_type_identifier(type=member.typecode)$
+    if (return_code != eprosima::fastdds::dds::RETCODE_OK)
+    {
+        EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
+                "$member.name$ Structure member TypeIdentifier unknown to TypeObjectRegistry.");
+        return;
+    }
+    $if (member.annotationId)$
+    member_id = $member.annotationId$;
+    $elseif (member.annotationHashid && member.annotationHashidValue)$
+    NameHash value_hash_id = TypeObjectUtils::name_hash("$member.annotationHashidValue$");
+    member_id = (value_hash_id[3] << 24 | value_hash_id[2] << 16 | value_hash_id[1] << 8 |
+        value_hash_id[0]) & 0x0FFFFFFF;
+    $elseif (parent.annotationAutoidHash || member.annotationHashid)$
+    NameHash member_name_hashed = TypeObjectUtils::name_hash("$member.name$");
+    member_id = (member_name_hashed[3] << 24 | member_name_hashed[2] << 16 | member_name_hashed[1] << 8 |
+        member_name_hashed[0]) & 0x0FFFFFFF;
+    $endif$
+    CommonStructMember common;
+    if (EK_COMPLETE == type_ids.type_identifier1()._d() || TK_NONE == type_ids.type_identifier2()._d() ||
+            (TI_PLAIN_SEQUENCE_SMALL == type_ids.type_identifier1()._d() &&
+            EK_COMPLETE == type_ids.type_identifier1().seq_sdefn().header().equiv_kind()) ||
+            (TI_PLAIN_SEQUENCE_LARGE == type_ids.type_identifier1()._d() &&
+            EK_COMPLETE == type_ids.type_identifier1().seq_ldefn().header().equiv_kind()) ||
+            (TI_PLAIN_ARRAY_SMALL == type_ids.type_identifier1()._d() &&
+            EK_COMPLETE == type_ids.type_identifier1().array_sdefn().header().equiv_kind()) ||
+            (TI_PLAIN_ARRAY_LARGE == type_ids.type_identifier1()._d() &&
+            EK_COMPLETE == type_ids.type_identifier1().array_ldefn().header().equiv_kind()) ||
+            (TI_PLAIN_MAP_SMALL == type_ids.type_identifier1()._d() &&
+            EK_COMPLETE == type_ids.type_identifier1().map_sdefn().header().equiv_kind()) ||
+            (TI_PLAIN_MAP_LARGE == type_ids.type_identifier1()._d() &&
+            EK_COMPLETE == type_ids.type_identifier1().map_ldefn().header().equiv_kind()))
+    {
+        common = TypeObjectUtils::build_common_struct_member(member_id, member_flags, type_ids.type_identifier1());
+    }
+    else if (EK_COMPLETE == type_ids.type_identifier2()._d() ||
+            (TI_PLAIN_SEQUENCE_SMALL == type_ids.type_identifier2()._d() &&
+            EK_COMPLETE == type_ids.type_identifier2().seq_sdefn().header().equiv_kind()) ||
+            (TI_PLAIN_SEQUENCE_LARGE == type_ids.type_identifier2()._d() &&
+            EK_COMPLETE == type_ids.type_identifier2().seq_ldefn().header().equiv_kind()) ||
+            (TI_PLAIN_ARRAY_SMALL == type_ids.type_identifier2()._d() &&
+            EK_COMPLETE == type_ids.type_identifier2().array_sdefn().header().equiv_kind()) ||
+            (TI_PLAIN_ARRAY_LARGE == type_ids.type_identifier2()._d() &&
+            EK_COMPLETE == type_ids.type_identifier2().array_ldefn().header().equiv_kind()) ||
+            (TI_PLAIN_MAP_SMALL == type_ids.type_identifier2()._d() &&
+            EK_COMPLETE == type_ids.type_identifier2().map_sdefn().header().equiv_kind()) ||
+            (TI_PLAIN_MAP_LARGE == type_ids.type_identifier2()._d() &&
+            EK_COMPLETE == type_ids.type_identifier2().map_ldefn().header().equiv_kind()))
+    {
+        common = TypeObjectUtils::build_common_struct_member(member_id, member_flags, type_ids.type_identifier2());
+    }
+    else
+    {
+        EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
+                "Structure $member.name$ member TypeIdentifier inconsistent.");
+        return;
+    }
+    member_id++;
+    eprosima::fastcdr::optional<AppliedBuiltinMemberAnnotations> member_ann_builtin;
+    ann_custom.reset();
+    $if (member.annotationList)$
+    AppliedAnnotationSeq tmp_ann_custom;
+    eprosima::fastcdr::optional<std::string> unit;
+    eprosima::fastcdr::optional<AnnotationParameterValue> min;
+    eprosima::fastcdr::optional<AnnotationParameterValue> max;
+    eprosima::fastcdr::optional<std::string> hash_id;
+    $member.annotationList : { annotation |
+    $if (annotation.isUnit)$
+    unit = $annotation.value$;
+    $elseif (annotation.isMin || annotation.isMax || annotation.isRange)$
+    EPROSIMA_LOG_WARNING(XTYPES_TYPE_REPRESENTATION,
+            "$parent.scopedname$ Structure $member.name$ member: @min, @max, and @range builtin annotations not yet supported");
+    $elseif (annotation.isHashId)$
+    hash_id = $annotation.value$;
+    $elseif (!annotation.isBuiltin)$
+    $applied_annotation_sequence(annotation=annotation, typename=[parent.scopedname, " ", member.name, " member"])$
+    $endif$
+    }; separator="\n"$
+    member_ann_builtin = TypeObjectUtils::build_applied_builtin_member_annotations(unit, min, max, hash_id);
+    if (!tmp_ann_custom.empty())
+    {
+        ann_custom = tmp_ann_custom;
+    }
+    $endif$
+    CompleteMemberDetail detail = TypeObjectUtils::build_complete_member_detail("$member.name$", member_ann_builtin,
+            ann_custom);
+    CompleteStructMember member = TypeObjectUtils::build_complete_struct_member(common, detail);
+    TypeObjectUtils::add_complete_struct_member(member_seq, member);
+}
 >>
