@@ -682,11 +682,11 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
     {
         if (isInScopedFile())
         {
-            if (name.equals("optional"))
+            if (name.equals(Annotation.optional_str))
             {
                 there_is_at_least_one_optional_annotation = true;
             }
-            else if (name.equals("external"))
+            else if (name.equals(Annotation.external_str))
             {
                 there_is_at_least_one_external_annotation = true;
             }
