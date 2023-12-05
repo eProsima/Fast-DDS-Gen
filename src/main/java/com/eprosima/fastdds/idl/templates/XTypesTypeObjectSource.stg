@@ -61,8 +61,64 @@ $definitions; separator=""$
 annotation(ctx, annotation) ::= <<
 void register_$annotation.CScopedname$_type_identifier()
 {
+    CompleteAnnotationHeader header = TypeObjectUtils::build_complete_annotation_header(
+            "$annotation.scopedname$");
+    CompleteAnnotationParameterSeq member_seq;
+    $if (annotation.members)$
+    $annotation.members: { member | $annotation_parameter(param=member)$}; separator="\n"$
+    $endif$
+    CompleteAnnotationType annotation_type = TypeObjectUtils::build_complete_annotation_type(0, header, member_seq);
+    if (eprosima::fastdds::dds::RETCODE_BAD_PARAMETER ==
+            TypeObjectUtils::build_and_register_annotation_type_object(annotation_type, "$annotation.scopedname$"))
+    {
+        EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
+            "$annotation.scopedname$ already registered in TypeObjectRegistry for a different type.");
+    }
 }
 
+>>
+
+annotation_parameter(param) ::= <<
+{
+    ReturnCode_t return_code;
+    TypeIdentifierPair type_ids;
+    $get_type_identifier(type=param.typecode)$
+    if (return_code != eprosima::fastdds::dds::RETCODE_OK)
+    {
+        $if (param.typecode.isAliasType)$
+        $register_alias_type(alias=param.typecode)$
+        $elseif (param.typecode.isEnumType)$
+        $register_enum_type(enum=param.typecode)$
+        $elseif (param.typecode.isStringType)$
+        $register_string_type(string=param.typecode)$
+        $elseif (param.typecode.isWStringType)$
+        $register_wstring_type(wstring=param.typecode)$
+        $else$
+        EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
+                "$param.name$ annotation parameter TypeIdentifier unknown to TypeObjectRegistry.");
+        return;
+        $endif$
+    }
+    CommonAnnotationParameter common;
+    if (EK_COMPLETE == type_ids.type_identifier1()._d() || TK_NONE == type_ids.type_identifier2()._d())
+    {
+        common = TypeObjectUtils::build_common_annotation_parameter(0, type_ids.type_identifier1());
+    }
+    else if (EK_COMPLETE == type_ids.type_identifier2()._d())
+    {
+        common = TypeObjectUtils::build_common_annotation_parameter(0, type_ids.type_identifier2());
+    }
+    else
+    {
+        EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
+                "$param.name$ annotation parameter TypeIdentifier inconsistent.");
+        return;
+    }
+    $annotation_parameter_value(param=param)$
+    CompleteAnnotationParameter param = TypeObjectUtils::build_complete_annotation_parameter(common,
+            "$param.name$", param_value);
+    TypeObjectUtils::add_complete_annotation_parameter(member_seq, param);
+}
 >>
 
 struct_type(ctx, parent, struct, member_list) ::= <<
@@ -92,7 +148,7 @@ $endif$
 >>
 
 get_type_identifier(type) ::= <<
-$if (type.primitive)$
+$if (type.primitive && !type.isEnumType)$
 $get_type_identifier_registry(typename=["_", type.cppTypenameForTypeId])$
 $elseif (type.isStringType)$
 $get_type_identifier_registry(typename=string_name(string=type))$
@@ -146,17 +202,7 @@ AppliedAnnotationParameterSeq tmp_applied_annotation_parameter_seq;
 $if (annotation.valueList)$
 $annotation.valueList : { param |
 {
-    $if (param.typecode.isEnumType)$
-    AnnotationParameterValue param_value = TypeObjectUtils::build_annotation_parameter_value_enum($param.value$);
-    $elseif (param.typecode.isByteType)$
-    AnnotationParameterValue param_value = TypeObjectUtils::build_annotation_parameter_value_byte($param.value$);
-    $elseif (param.typecode.isStringType)$
-    AnnotationParameterValue param_value = TypeObjectUtils::build_annotation_parameter_value("$param.value$");
-    $elseif (param.typecode.isWStringType)$
-    AnnotationParameterValue param_value = TypeObjectUtils::build_annotation_parameter_value(L"$param.value$");
-    $else$
-    AnnotationParameterValue param_value = TypeObjectUtils::build_annotation_parameter_value($param.value$);
-    $endif$
+    $annotation_parameter_value(param=param)$
     AppliedAnnotationParameter applied_param = TypeObjectUtils::build_applied_annotation_parameter(
             TypeObjectUtils::name_hash("$param.name$"), param_value);
     TypeObjectUtils::add_applied_annotation_parameter(tmp_applied_annotation_parameter_seq, applied_param);
@@ -193,6 +239,20 @@ $endif$
         TypeObjectUtils::add_applied_annotation(tmp_ann_custom, applied_annotation);
     \}
 }
+>>
+
+annotation_parameter_value(param) ::= <<
+$if (param.typecode.isEnumType)$
+AnnotationParameterValue param_value = TypeObjectUtils::build_annotation_parameter_value_enum($param.value$);
+$elseif (param.typecode.isByteType)$
+AnnotationParameterValue param_value = TypeObjectUtils::build_annotation_parameter_value_byte($param.value$);
+$elseif (param.typecode.isStringType)$
+AnnotationParameterValue param_value = TypeObjectUtils::build_annotation_parameter_value("$param.value$");
+$elseif (param.typecode.isWStringType)$
+AnnotationParameterValue param_value = TypeObjectUtils::build_annotation_parameter_value(L"$param.value$");
+$else$
+AnnotationParameterValue param_value = TypeObjectUtils::build_annotation_parameter_value(static_cast<$param.typecode.cppTypename$>($param.value$));
+$endif$
 >>
 
 applied_verbatim_annotation(annotation) ::= <<
@@ -377,3 +437,11 @@ struct_member(member, parent) ::= <<
     TypeObjectUtils::add_complete_struct_member(member_seq, member);
 }
 >>
+
+register_enum_type(enum) ::= <<>>
+
+register_alias_type(alias) ::= <<>>
+
+register_wstring_type(wstring) ::= <<>>
+
+register_string_type(string) ::= <<>>
