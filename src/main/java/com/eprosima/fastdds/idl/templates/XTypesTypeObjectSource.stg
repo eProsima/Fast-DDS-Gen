@@ -443,7 +443,7 @@ $get_type_identifier_registry(typename=enum.scopedname)$
 if (return_code != eprosima::fastdds::dds::RETCODE_OK)
 {
     EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
-                "$enum.scopedname$: Given Annotation TypeIdentifier unknown to TypeObjectRegistry.");
+                "$enum.scopedname$: Given Enum TypeIdentifier unknown to TypeObjectRegistry.");
     return;
 }
 >>
@@ -486,9 +486,83 @@ enum_literal(literal, parent) ::= <<
 
 register_alias_type(alias) ::= <<>>
 
-register_wstring_type(wstring) ::= <<>>
+register_wstring_type(wstring) ::= <<
+std::string type_id_kind("$wstring.typeIdentifier$");
+if (type_id_kind == "TI_STRING16_SMALL")
+{
+    StringSTypeDefn string_sdefn = TypeObjectUtils::build_string_s_type_defn($wstring.evaluatedMaxsize$);
+    if (eprosima::fastdds::dds::RETCODE_BAD_PARAMETER ==
+            TypeObjectUtils::build_and_register_s_string_type_identifier(string_sdefn,
+            "$wstring_name(wstring)$"))
+    {
+        EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
+            "$wstring_name(wstring)$ already registered in TypeObjectRegistry for a different type.");
+    }
+}
+else if (type_id_kind == "TI_STRING16_LARGE")
+{
+    StringLTypeDefn string_ldefn = TypeObjectUtils::build_string_l_type_defn($wstring.evaluatedMaxsize$);
+    if (eprosima::fastdds::dds::RETCODE_BAD_PARAMETER ==
+            TypeObjectUtils::build_and_register_l_string_type_identifier(string_ldefn,
+            "$wstring_name(wstring)$"))
+    {
+        EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
+            "$wstring_name(wstring)$ already registered in TypeObjectRegistry for a different type.");
+    }
+}
+else
+{
+    EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
+                "$wstring_name(wstring)$: Unknown WString kind.");
+    return;
+}
+$get_type_identifier_registry(typename=wstring_name(wstring))$
+if (return_code != eprosima::fastdds::dds::RETCODE_OK)
+{
+    EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
+                "$wstring_name(wstring)$: Given WString TypeIdentifier unknown to TypeObjectRegistry.");
+    return;
+}
+>>
 
-register_string_type(string) ::= <<>>
+register_string_type(string) ::= <<
+std::string type_id_kind("$string.typeIdentifier$");
+if (type_id_kind == "TI_STRING8_SMALL")
+{
+    StringSTypeDefn string_sdefn = TypeObjectUtils::build_string_s_type_defn($string.evaluatedMaxsize$);
+    if (eprosima::fastdds::dds::RETCODE_BAD_PARAMETER ==
+            TypeObjectUtils::build_and_register_s_string_type_identifier(string_sdefn,
+            "$string_name(string)$"))
+    {
+        EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
+            "$string_name(string)$ already registered in TypeObjectRegistry for a different type.");
+    }
+}
+else if (type_id_kind == "TI_STRING8_LARGE")
+{
+    StringLTypeDefn string_ldefn = TypeObjectUtils::build_string_l_type_defn($string.evaluatedMaxsize$);
+    if (eprosima::fastdds::dds::RETCODE_BAD_PARAMETER ==
+            TypeObjectUtils::build_and_register_l_string_type_identifier(string_ldefn,
+            "$string_name(string)$"))
+    {
+        EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
+            "$string_name(string)$ already registered in TypeObjectRegistry for a different type.");
+    }
+}
+else
+{
+    EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
+                "$string_name(string)$: Unknown String kind.");
+    return;
+}
+$get_type_identifier_registry(typename=string_name(string))$
+if (return_code != eprosima::fastdds::dds::RETCODE_OK)
+{
+    EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
+                "$string_name(string)$: Given String TypeIdentifier unknown to TypeObjectRegistry.");
+    return;
+}
+>>
 
 complete_type_detail(type, type_kind) ::= <<
 eprosima::fastcdr::optional<AppliedBuiltinTypeAnnotations> type_ann_builtin;
