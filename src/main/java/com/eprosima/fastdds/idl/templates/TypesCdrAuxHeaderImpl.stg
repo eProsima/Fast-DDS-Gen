@@ -306,10 +306,10 @@ eProsima_user_DllExport size_t calculate_serialized_size(
 
     switch (data._d())
     {
-        $union.identifiedMembers:{ member | $if(member.value.printable)$$member.value.labels:{ label |case $label$:}; separator="\n"$
-        $if(member.value.default)$default:$endif$
-            calculated_size += calculator.calculate_member_serialized_size(eprosima::fastcdr::MemberId($member.key$),
-                        data.$member.value.name$(), current_alignment);
+        $union.membersDefaultAtEnd:{ member | $if(member.printable)$$member.labels:{ label |case $label$:}; separator="\n"$
+        $if(member.default)$default:$endif$
+            calculated_size += calculator.calculate_member_serialized_size(eprosima::fastcdr::MemberId($member.id$),
+                        data.$member.name$(), current_alignment);
             break;
         $endif$
         }; separator="\n"$
@@ -346,10 +346,10 @@ eProsima_user_DllExport void serialize(
 
     switch (data._d())
     {
-        $union.identifiedMembers:{ member | $if(member.value.printable)$
-        $member.value.labels:{ label |case $label$:}; separator="\n"$
-        $if(member.value.default)$default:$endif$
-            scdr << eprosima::fastcdr::MemberId($member.key$) << data.$member.value.name$();
+        $union.membersDefaultAtEnd:{ member | $if(member.printable)$
+        $member.labels:{ label |case $label$:}; separator="\n"$
+        $if(member.default)$default:$endif$
+            scdr << eprosima::fastcdr::MemberId($member.id$) << data.$member.name$();
             break;
         $endif$
         }; separator="\n"$
@@ -385,10 +385,10 @@ eProsima_user_DllExport void deserialize(
                     default:
                         switch (data._d())
                         {
-                            $union.identifiedMembers:{ member | $if(member.value.printable)$
-                            $member.value.labels:{ label |case $label$:}; separator="\n"$
-                            $if(member.value.default)$default:$endif$
-                                dcdr \>> data.$member.value.name$();
+                            $union.membersDefaultAtEnd:{ member | $if(member.printable)$
+                            $member.labels:{ label |case $label$:}; separator="\n"$
+                            $if(member.default)$default:$endif$
+                                dcdr \>> data.$member.name$();
                                 break;
                             $endif$
                             }; separator="\n"$
