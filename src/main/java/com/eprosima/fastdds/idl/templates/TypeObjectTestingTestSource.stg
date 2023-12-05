@@ -462,15 +462,29 @@ $endif$
 $check_type_detail_annotations(object=struct, type="struct_type().header().detail()")$
 EXPECT_EQ("$struct.scopedname$", type_objects.complete_type_object.struct_type().header().detail().type_name());
 $if (struct.members)$
-$if (struct.inheritance)$
-MemberId member_id += base_type_objects.complete_type_object.struct_type().member_seq().back().common().member_id();
-$else$
 MemberId member_id = 0;
+$if (struct.inheritance)$
+$struct_inherited_member_id(struct=struct.inheritance)$
 $endif$
 $struct.members: { member | $check_struct_member(member=member, parent=struct)$}; separator="\n"$
 $endif$
 ASSERT_EQ($struct.membersSize$, type_objects.minimal_type_object.struct_type().member_seq().size());
 ASSERT_EQ($struct.membersSize$, type_objects.complete_type_object.struct_type().member_seq().size());
+>>
+
+struct_inherited_member_id(struct) ::= <<
+if (!base_type_objects.complete_type_object.struct_type().member_seq().empty())
+{
+    member_id = base_type_objects.complete_type_object.struct_type().member_seq().back().common().member_id();
+}
+$if (struct.inheritance)$
+else
+{
+    TypeObjectPair base_type_objects;
+    $get_type_object_registry(typename=struct.inheritance.scopedname, result="base_type_objects")$
+    $struct_inherited_member_id(struct=struct.inheritance)$
+}
+$endif$
 >>
 
 check_struct_member(member, parent) ::= <<
