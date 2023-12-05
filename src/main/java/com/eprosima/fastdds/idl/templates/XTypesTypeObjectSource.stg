@@ -61,13 +61,15 @@ $definitions; separator=""$
 annotation(ctx, annotation) ::= <<
 void register_$annotation.CScopedname$_type_identifier()
 {
+    AnnotationTypeFlag annotation_flag = 0;
     CompleteAnnotationHeader header = TypeObjectUtils::build_complete_annotation_header(
             "$annotation.scopedname$");
     CompleteAnnotationParameterSeq member_seq;
     $if (annotation.members)$
     $annotation.members: { member | $annotation_parameter(param=member)$}; separator="\n"$
     $endif$
-    CompleteAnnotationType annotation_type = TypeObjectUtils::build_complete_annotation_type(0, header, member_seq);
+    CompleteAnnotationType annotation_type = TypeObjectUtils::build_complete_annotation_type(annotation_flag, header,
+            member_seq);
     if (eprosima::fastdds::dds::RETCODE_BAD_PARAMETER ==
             TypeObjectUtils::build_and_register_annotation_type_object(annotation_type, "$annotation.scopedname$"))
     {
@@ -82,6 +84,7 @@ annotation_parameter(param) ::= <<
 {
     ReturnCode_t return_code;
     TypeIdentifierPair type_ids;
+    AnnotationParameterFlag member_flags = 0;
     $get_type_identifier(type=param.typecode)$
     if (return_code != eprosima::fastdds::dds::RETCODE_OK)
     {
@@ -102,11 +105,11 @@ annotation_parameter(param) ::= <<
     CommonAnnotationParameter common;
     if (EK_COMPLETE == type_ids.type_identifier1()._d() || TK_NONE == type_ids.type_identifier2()._d())
     {
-        common = TypeObjectUtils::build_common_annotation_parameter(0, type_ids.type_identifier1());
+        common = TypeObjectUtils::build_common_annotation_parameter(member_flags, type_ids.type_identifier1());
     }
     else if (EK_COMPLETE == type_ids.type_identifier2()._d())
     {
-        common = TypeObjectUtils::build_common_annotation_parameter(0, type_ids.type_identifier2());
+        common = TypeObjectUtils::build_common_annotation_parameter(member_flags, type_ids.type_identifier2());
     }
     else
     {
@@ -296,25 +299,7 @@ register_struct_type(struct) ::= <<
     TypeObjectPair type_objects;
     $get_type_object(type=struct.inheritance)$
     $endif$
-    eprosima::fastcdr::optional<AppliedBuiltinTypeAnnotations> type_ann_builtin;
-    eprosima::fastcdr::optional<AppliedAnnotationSeq> ann_custom;
-    $if (struct.annotationList)$
-    AppliedAnnotationSeq tmp_ann_custom;
-    eprosima::fastcdr::optional<AppliedVerbatimAnnotation> verbatim;
-    $struct.annotationList : { annotation |
-    $if (annotation.isVerbatim)$
-    $applied_verbatim_annotation(annotation=annotation)$
-    $elseif (!annotation.isBuiltin)$
-    $applied_annotation_sequence(annotation=annotation, typename=[struct.scopedname, " Structure"])$
-    $endif$
-    }; separator="\n"$
-    if (!tmp_ann_custom.empty())
-    {
-        ann_custom = tmp_ann_custom;
-    }
-    $endif$
-    CompleteTypeDetail detail = TypeObjectUtils::build_complete_type_detail(type_ann_builtin, ann_custom,
-            "$struct.scopedname$");
+    $complete_type_detail(type=struct, type_kind=" Structure")$
     CompleteStructHeader header;
     $if (struct.inheritance)$
     if (EK_COMPLETE == type_ids.type_identifier1()._d() || TK_NONE == type_ids.type_identifier1()._d())
@@ -438,10 +423,91 @@ struct_member(member, parent) ::= <<
 }
 >>
 
-register_enum_type(enum) ::= <<>>
+register_enum_type(enum) ::= <<
+EnumTypeFlag enum_flags = 0;
+CommonEnumeratedHeader common = TypeObjectUtils::build_common_enumerated_header($enum.bitBound$);
+$complete_type_detail(type=enum, type_kind=" Enum")$
+CompleteEnumeratedHeader header = TypeObjectUtils::build_complete_enumerated_header(common, detail);
+CompleteEnumeratedLiteralSeq literal_seq;
+int32_t value = 0; // TODO(jlbueno): remove
+$enum.members: { member | $enum_literal(literal=member, parent=enum)$}; separator="\n"$
+CompleteEnumeratedType enumerated_type = TypeObjectUtils::build_complete_enumerated_type(enum_flags, header,
+        literal_seq);
+if (eprosima::fastdds::dds::RETCODE_BAD_PARAMETER ==
+        TypeObjectUtils::build_and_register_enumerated_type_object(enumerated_type, "$enum.scopedname$"))
+{
+    EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
+        "$enum.scopedname$ already registered in TypeObjectRegistry for a different type.");
+}
+$get_type_identifier_registry(typename=enum.scopedname)$
+if (return_code != eprosima::fastdds::dds::RETCODE_OK)
+{
+    EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
+                "$enum.scopedname$: Given Annotation TypeIdentifier unknown to TypeObjectRegistry.");
+    return;
+}
+>>
+
+enum_literal(literal, parent) ::= <<
+{
+    EnumeratedLiteralFlag flags = TypeObjectUtils::build_enumerated_literal_flag($literal.annotationDefaultLiteral$);
+    // TODO(jlbueno): getIndex
+    CommonEnumeratedLiteral common = TypeObjectUtils::build_common_enumerated_literal(value, flags);
+    value++; // TODO(jlbueno): remove
+    eprosima::fastcdr::optional<AppliedBuiltinMemberAnnotations> member_ann_builtin;
+    ann_custom.reset();
+    $if (member.annotationList)$
+    AppliedAnnotationSeq tmp_ann_custom;
+    eprosima::fastcdr::optional<std::string> unit;
+    eprosima::fastcdr::optional<AnnotationParameterValue> min;
+    eprosima::fastcdr::optional<AnnotationParameterValue> max;
+    eprosima::fastcdr::optional<std::string> hash_id;
+    $member.annotationList : { annotation |
+    $if (annotation.isUnit || annotation.isMin || annotation.isMax || annotation.isRange || annotation.isHashId)$
+    EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
+            "$parent.scopedname$ Enumerated $member.name$ literal: only @default_literal and @value builtin annotations apply to literals");
+    return;
+    $elseif (!annotation.isBuiltin)$
+    $applied_annotation_sequence(annotation=annotation, typename=[parent.scopedname, " ", member.name, " member"])$
+    $endif$
+    }; separator="\n"$
+    member_ann_builtin = TypeObjectUtils::build_applied_builtin_member_annotations(unit, min, max, hash_id);
+    if (!tmp_ann_custom.empty())
+    {
+        ann_custom = tmp_ann_custom;
+    }
+    $endif$
+    CompleteMemberDetail detail = TypeObjectUtils::build_complete_member_detail("$member.name$", member_ann_builtin,
+            ann_custom);
+    CompleteEnumeratedLiteral literal = TypeObjectUtils::build_complete_enumerated_literal(common, detail);
+    TypeObjectUtils::add_complete_enumerated_literal(literal_seq, literal);
+}
+>>
 
 register_alias_type(alias) ::= <<>>
 
 register_wstring_type(wstring) ::= <<>>
 
 register_string_type(string) ::= <<>>
+
+complete_type_detail(type, type_kind) ::= <<
+eprosima::fastcdr::optional<AppliedBuiltinTypeAnnotations> type_ann_builtin;
+eprosima::fastcdr::optional<AppliedAnnotationSeq> ann_custom;
+$if (type.annotationList)$
+AppliedAnnotationSeq tmp_ann_custom;
+eprosima::fastcdr::optional<AppliedVerbatimAnnotation> verbatim;
+$type.annotationList : { annotation |
+$if (annotation.isVerbatim)$
+$applied_verbatim_annotation(annotation=annotation)$
+$elseif (!annotation.isBuiltin)$
+$applied_annotation_sequence(annotation=annotation, typename=[type.scopedname, type_kind])$
+$endif$
+}; separator="\n"$
+if (!tmp_ann_custom.empty())
+{
+    ann_custom = tmp_ann_custom;
+}
+$endif$
+CompleteTypeDetail detail = TypeObjectUtils::build_complete_type_detail(type_ann_builtin, ann_custom,
+        "$type.scopedname$");
+>>
