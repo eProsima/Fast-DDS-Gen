@@ -73,15 +73,8 @@ public class StructTypeCode extends com.eprosima.idl.parser.typecode.StructTypeC
             detect_recursive_ = true;
             current_alignment = MemberedTypeCode.xcdr_extra_header_serialized_size(current_alignment, struct_ext_kind);
 
-            if (getInheritance() != null)
-            {
-                current_alignment += ((StructTypeCode)getInheritance()).maxSerializedSize(current_alignment, only_keys,
-                        com.eprosima.idl.parser.typecode.TypeCode.ExtensibilityKind.FINAL); // FINAL to avoid calculation
-                                                                                            // of any XCDR header.
-            }
-
             // TODO if only_key, get members sorted.
-            for (Member member : getMembers())
+            for (Member member : getAllMembers())
             {
                 if (member.isAnnotationNonSerialized())
                 {
@@ -110,7 +103,7 @@ public class StructTypeCode extends com.eprosima.idl.parser.typecode.StructTypeC
                     current_alignment = MemberedTypeCode.xcdr_extra_member_serialized_size(
                             current_alignment,
                             struct_ext_kind, member.isAnnotationOptional(),
-                            member.getTypecode() instanceof PrimitiveTypeCode ? Integer.parseInt(((PrimitiveTypeCode)member.getTypecode()).getSize()) : 8);
+                            member);
                     current_alignment += ((TypeCode)member.getTypecode()).maxSerializedSize(current_alignment);
                 }
             }
