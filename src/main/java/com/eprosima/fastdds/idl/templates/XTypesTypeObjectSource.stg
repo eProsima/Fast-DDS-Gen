@@ -121,12 +121,8 @@ return_code =
 >>
 
 get_type_object(type) ::= <<
-$if (type.primitive)$
-$get_type_object_registry(typename=["_", type.cppTypenameForTypeId])$
-$elseif (type.isStringType)$
-$get_type_object_registry(typename=string_name(string=type))$
-$elseif (type.isWStringType)$
-$get_type_object_registry(typename=wstring_name(wstring=type))$
+$if (type.isAliasType)$
+$get_type_object_registry(typename=type.scopedname)$
 $elseif (type.isArrayType)$
 $get_type_object_registry(typename=array_name(array=type))$
 $elseif (type.isSequenceType)$
