@@ -77,6 +77,7 @@ void register_$struct.CScopedname$_type_identifier()
 union_type(ctx, parent, union, extensions, switch_type) ::= <<
 void register_$union.CScopedname$_type_identifier()
 {
+    $register_union_type(union)$
 }
 
 >>
@@ -281,15 +282,8 @@ annotation_parameter(param) ::= <<
 
 register_struct_type(struct) ::= <<
 {
-    StructTypeFlag struct_flags = TypeObjectUtils::build_struct_type_flag(
-    $if (struct.annotationAppendable)$
-        eprosima::fastdds::dds::ExtensibilityKind::APPENDABLE,
-    $elseif (struct.annotationFinal)$
-        eprosima::fastdds::dds::ExtensibilityKind::FINAL,
-    $elseif (struct.annotationMutable)$
-        eprosima::fastdds::dds::ExtensibilityKind::MUTABLE,
-    $endif$
-        $struct.annotationNested$, $struct.annotationAutoidHash$);
+    StructTypeFlag struct_flags = TypeObjectUtils::build_struct_type_flag($extensibility(object=struct)$
+            $struct.annotationNested$, $struct.annotationAutoidHash$);
     $if (struct.inheritance || struct.members || struct.annotationList)$
     ReturnCode_t return_code;
     TypeIdentifierPair type_ids;
@@ -335,29 +329,24 @@ register_struct_type(struct) ::= <<
             TypeObjectUtils::build_and_register_struct_type_object(struct_type, "$struct.scopedname$"))
     {
         EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
-            "$struct.scopedname$ already registered in TypeObjectRegistry for a different type.");
+                "$struct.scopedname$ already registered in TypeObjectRegistry for a different type.");
+    }
+    $get_type_identifier_registry(typename=struct.scopedname)$
+    if (return_code != eprosima::fastdds::dds::RETCODE_OK)
+    {
+        EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
+                    "$struct.scopedname$: Given Struct TypeIdentifier unknown to TypeObjectRegistry.");
+        return;
     }
 }
 >>
 
 struct_member(member, parent) ::= <<
 {
-    StructMemberFlag member_flags = TypeObjectUtils::build_struct_member_flag(
-    $if (member.annotationDiscard)$
-        eprosima::fastdds::dds::TryConstructKind::DISCARD,
-    $elseif (member.annotationUseDefault)$
-        eprosima::fastdds::dds::TryConstructKind::USE_DEFAULT,
-    $elseif (member.annotationTrim)$
-        eprosima::fastdds::dds::TryConstructKind::TRIM,
-    $endif$
-        $member.annotationOptional$, $member.annotationMustUnderstand$, $member.annotationKey$, $member.annotationExternal$);
+    StructMemberFlag member_flags = TypeObjectUtils::build_struct_member_flag($try_construct(object=member)$
+            $member.annotationOptional$, $member.annotationMustUnderstand$, $member.annotationKey$, $member.annotationExternal$);
     $get_type_identifier(type=member.typecode)$
-    if (return_code != eprosima::fastdds::dds::RETCODE_OK)
-    {
-        EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
-                "$member.name$ Structure member TypeIdentifier unknown to TypeObjectRegistry.");
-        return;
-    }
+    $check_register_type_identifier(type=member.typecode, message=[member.name, " Structure member"])$
     CommonStructMember common;
     $check_first_returned_type_identifier_pair()$
     {
@@ -405,6 +394,71 @@ struct_member(member, parent) ::= <<
     TypeObjectUtils::add_complete_struct_member(member_seq, member);
 }
 >>
+
+register_union_type(union) ::= <<
+{
+    ReturnCode_t return_code;
+    TypeIdentifierPair type_ids;
+    UnionTypeFlag union_flags = TypeObjectUtils::build_union_type_flag($extensibility(object=union)$
+            $union.annotationNested$, $union.annotationAutoidHash$);
+    $complete_type_detail(type=union, type_kind=" Union")$
+    CompleteUnionHeader header = TypeObjectUtils::build_complete_union_header(detail);
+    UnionDiscriminatorFlag member_flags = TypeObjectUtils::build_union_discriminator_flag($try_construct(object=union.discriminator)$
+            $union.discriminator.annotationKey$);
+    $get_type_identifier(type=union.discriminator.typecode)$
+    if (return_code != eprosima::fastdds::dds::RETCODE_OK)
+    {
+        $if (union.discriminator.typecode.isAliasType)$
+        $register_alias_type(alias=union.discriminator.typecode)$
+        $elseif (union.discriminator.typecode.isEnumType)$
+        $register_enum_type(enum=union.discriminator.typecode)$
+        $else$
+        EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
+                "Union discriminator TypeIdentifier unknown to TypeObjectRegistry.");
+        return;
+        $endif$
+    }
+    CommonDiscriminatorMember common;
+    if (EK_COMPLETE == type_ids.type_identifier1()._d() || TK_NONE == type_ids.type_identifier2()._d())
+    {
+        common = TypeObjectUtils::build_common_discriminator_member(member_flags, type_ids.type_identifier1());
+    }
+    else if (EK_COMPLETE == type_ids.type_identifier2()._d())
+    {
+        common = TypeObjectUtils::build_common_discriminator_member(member_flags, type_ids.type_identifier2());
+    }
+    else
+    {
+        EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
+                "$union.scopedname$ discriminator TypeIdentifier inconsistent.");
+        return;
+    }
+    type_ann_builtin.reset();
+    ann_custom.reset();
+    $type_annotations(type=union.discriminator, type_kind=" Union Discriminator")$
+    CompleteDiscriminatorMember discriminator = TypeObjectUtils::build_complete_discriminator_member(common,
+            type_ann_builtin, ann_custom);
+    CompleteUnionMemberSeq member_seq;
+    $union.members : { member | $union_member(member=member)$}; separator="\n"$
+    CompleteUnionType union_type = TypeObjectUtils::build_complete_union_type(union_flags, header, discriminator,
+            member_seq);
+    if (eprosima::fastdds::dds::RETCODE_BAD_PARAMETER ==
+            TypeObjectUtils::build_and_register_union_type_object(union_type, "$union.scopedname$"))
+    {
+        EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
+                "$union.scopedname$ already registered in TypeObjectRegistry for a different type.");
+    }
+    $get_type_identifier_registry(typename=union.scopedname)$
+    if (return_code != eprosima::fastdds::dds::RETCODE_OK)
+    {
+        EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
+                    "$union.scopedname$: Given Union TypeIdentifier unknown to TypeObjectRegistry.");
+        return;
+    }
+}
+>>
+
+union_member(member) ::= <<>>
 
 register_enum_type(enum) ::= <<
 EnumTypeFlag enum_flags = 0;
@@ -473,36 +527,7 @@ $complete_type_detail(type=alias, type_kind=" Alias")$
 CompleteAliasHeader header = TypeObjectUtils::build_complete_alias_header(detail);
 AliasMemberFlag related_flags = 0;
 $get_type_identifier(type=alias.typedefContentTypeCode)$
-if (return_code != eprosima::fastdds::dds::RETCODE_OK)
-{
-    $if (alias.typedefContentTypeCode.isAliasType)$
-    $register_alias_type(alias=alias.typedefContentTypeCode)$
-    $elseif (alias.typedefContentTypeCode.isStructType)$
-    $register_struct_type(struct=alias.typedefContentTypeCode)$
-    $elseif (alias.typedefContentTypeCode.isUnionType)$
-    $register_union_type(union=alias.typedefContentTypeCode)$
-    $elseif (alias.typedefContentTypeCode.isBitsetType)$
-    $register_bitset_type(bitset=alias.typedefContentTypeCode)$
-    $elseif (alias.typedefContentTypeCode.isSequenceType)$
-    $register_sequence_type(sequence=alias.typedefContentTypeCode)$
-    $elseif (alias.typedefContentTypeCode.isArrayType)$
-    $register_array_type(array=alias.typedefContentTypeCode)$
-    $elseif (alias.typedefContentTypeCode.isMapType)$
-    $register_map_type(map=alias.typedefContentTypeCode)$
-    $elseif (alias.typedefContentTypeCode.isEnumType)$
-    $register_enum_type(enum=alias.typedefContentTypeCode)$
-    $elseif (alias.typedefContentTypeCode.isBitmaskType)$
-    $register_bitmask_type(bitmask=alias.typedefContentTypeCode)$
-    $elseif (alias.typedefContentTypeCode.isStringType)$
-    $register_string_type(string=alias.typedefContentTypeCode)$
-    $elseif (alias.typedefContentTypeCode.isWStringType)$
-    $register_wstring_type(wstring=alias.typedefContentTypeCode)$
-    $else$
-    EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
-            "$alias.scopedname$ related TypeIdentifier unknown to TypeObjectRegistry.");
-    return;
-    $endif$
-}
+$check_register_type_identifier(type=alias.typedefContentTypeCode, message=[alias.scopedname, " related"])$
 CommonAliasBody common;
 $check_first_returned_type_identifier_pair()$
 {
@@ -637,6 +662,12 @@ if (return_code != eprosima::fastdds::dds::RETCODE_OK)
 complete_type_detail(type, type_kind) ::= <<
 eprosima::fastcdr::optional<AppliedBuiltinTypeAnnotations> type_ann_builtin;
 eprosima::fastcdr::optional<AppliedAnnotationSeq> ann_custom;
+$type_annotations(type=type, type_kind=type_kind)$
+CompleteTypeDetail detail = TypeObjectUtils::build_complete_type_detail(type_ann_builtin, ann_custom,
+        "$type.scopedname$");
+>>
+
+type_annotations(type, type_kind) ::= <<
 $if (type.annotationList)$
 AppliedAnnotationSeq tmp_ann_custom;
 eprosima::fastcdr::optional<AppliedVerbatimAnnotation> verbatim;
@@ -652,8 +683,6 @@ if (!tmp_ann_custom.empty())
     ann_custom = tmp_ann_custom;
 }
 $endif$
-CompleteTypeDetail detail = TypeObjectUtils::build_complete_type_detail(type_ann_builtin, ann_custom,
-        "$type.scopedname$");
 >>
 
 check_first_returned_type_identifier_pair() ::= <<
@@ -687,3 +716,56 @@ else if (EK_COMPLETE == type_ids.type_identifier2()._d() ||
         (TI_PLAIN_MAP_LARGE == type_ids.type_identifier2()._d() &&
         EK_COMPLETE == type_ids.type_identifier2().map_ldefn().header().equiv_kind()))
 >>
+
+check_register_type_identifier(type, message) ::= <<
+if (return_code != eprosima::fastdds::dds::RETCODE_OK)
+{
+    $if (type.isAliasType)$
+    $register_alias_type(alias=type)$
+    $elseif (type.isStructType)$
+    $register_struct_type(struct=type)$
+    $elseif (type.isUnionType)$
+    $register_union_type(union=type)$
+    $elseif (type.isBitsetType)$
+    $register_bitset_type(bitset=type)$
+    $elseif (type.isSequenceType)$
+    $register_sequence_type(sequence=type)$
+    $elseif (type.isArrayType)$
+    $register_array_type(array=type)$
+    $elseif (type.isMapType)$
+    $register_map_type(map=type)$
+    $elseif (type.isEnumType)$
+    $register_enum_type(enum=type)$
+    $elseif (type.isBitmaskType)$
+    $register_bitmask_type(bitmask=type)$
+    $elseif (type.isStringType)$
+    $register_string_type(string=type)$
+    $elseif (type.isWStringType)$
+    $register_wstring_type(wstring=type)$
+    $else$
+    EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
+            "$message$ TypeIdentifier unknown to TypeObjectRegistry.");
+    return;
+    $endif$
+}
+>>
+
+extensibility(object) ::= <%
+$if (object.annotationAppendable)$
+    eprosima::fastdds::dds::ExtensibilityKind::APPENDABLE,
+$elseif (object.annotationFinal)$
+    eprosima::fastdds::dds::ExtensibilityKind::FINAL,
+$elseif (object.annotationMutable)$
+    eprosima::fastdds::dds::ExtensibilityKind::MUTABLE,
+$endif$
+%>
+
+try_construct(object) ::= <%
+$if (object.annotationDiscard)$
+    eprosima::fastdds::dds::TryConstructKind::DISCARD,
+$elseif (object.annotationUseDefault)$
+    eprosima::fastdds::dds::TryConstructKind::USE_DEFAULT,
+$elseif (object.annotationTrim)$
+    eprosima::fastdds::dds::TryConstructKind::TRIM,
+$endif$
+%>
