@@ -89,7 +89,11 @@ EXPECT_NO_THROW(TypeObjectUtilsTest::complete_type_object_consistency($result$.c
 >>
 
 get_type_identifier(type, var) ::= <<
-$if (type.primitive)$
+$if (type.isAliasType)$
+$get_type_identifier_registry(typename=type.scopedname, result=var)$
+$elseif (type.isByteType)$
+$get_type_identifier_registry(typename="_byte", result=var)$
+$elseif (type.primitive && !type.isEnumType)$
 $get_type_identifier_registry(typename=["_", type.cppTypenameForTypeId], result=var)$
 $elseif (type.isStringType)$
 $get_type_identifier_registry(typename=string_name(string=type), result=var)$
@@ -259,7 +263,7 @@ EXPECT_EQ(TK_ENUM, type_objects.$type$._d());
 EXPECT_EQ($param.value$, type_objects.$type$.enumerated_value());
 $elseif (param.typecode.isStringType)$
 EXPECT_EQ(TK_STRING8, type_objects.$type$._d());
-EXPECT_EQ("$param.value$", type_objects.$type$.string8_value());
+EXPECT_EQ("$param.value$", type_objects.$type$.string8_value().to_string());
 $elseif (param.typecode.isWStringType)$
 EXPECT_EQ(TK_STRING16, type_objects.$type$._d());
 EXPECT_EQ($param.value$, type_objects.$type$.string16_value());
@@ -460,7 +464,7 @@ EXPECT_EQ(invalid_type_id, type_objects.minimal_type_object.struct_type().header
 EXPECT_EQ(invalid_type_id, type_objects.complete_type_object.struct_type().header().base_type());
 $endif$
 $check_type_detail_annotations(object=struct, type="struct_type().header().detail()")$
-EXPECT_EQ("$struct.scopedname$", type_objects.complete_type_object.struct_type().header().detail().type_name());
+EXPECT_EQ("$struct.scopedname$", type_objects.complete_type_object.struct_type().header().detail().type_name().to_string());
 $if (struct.members)$
 MemberId member_id = 0;
 $if (struct.inheritance)$
@@ -821,7 +825,7 @@ EXPECT_EQ(TK_ANNOTATION, type_objects.minimal_type_object._d());
 EXPECT_EQ(TK_ANNOTATION, type_objects.complete_type_object._d());
 EXPECT_EQ(0u, type_objects.minimal_type_object.annotation_type().annotation_flag());
 EXPECT_EQ(0u, type_objects.complete_type_object.annotation_type().annotation_flag());
-EXPECT_EQ("$annotation.scopedname$", type_objects.complete_type_object.annotation_type().header().annotation_name());
+EXPECT_EQ("$annotation.scopedname$", type_objects.complete_type_object.annotation_type().header().annotation_name().to_string());
 $annotation.members: { member | $check_annotation_parameter_member(parameter=member)$}; separator="\n"$
 ASSERT_EQ($annotation.membersSize$, type_objects.minimal_type_object.annotation_type().member_seq().size());
 ASSERT_EQ($annotation.membersSize$, type_objects.complete_type_object.annotation_type().member_seq().size());
@@ -848,7 +852,7 @@ check_annotation_parameter_member(parameter) ::= <<
         parameter_type_ids.type_identifier2() == type_objects.minimal_type_object.annotation_type().member_seq()[pos].common().member_type_id());
     EXPECT_TRUE(parameter_type_ids.type_identifier1() == type_objects.complete_type_object.annotation_type().member_seq()[pos].common().member_type_id() ||
         parameter_type_ids.type_identifier2() == type_objects.complete_type_object.annotation_type().member_seq()[pos].common().member_type_id());
-    EXPECT_EQ("$parameter.name$", type_objects.complete_type_object.annotation_type().member_seq()[pos].name());
+    EXPECT_EQ("$parameter.name$", type_objects.complete_type_object.annotation_type().member_seq()[pos].name().to_string());
     EXPECT_EQ(TypeObjectUtils::name_hash("$parameter.name$"), type_objects.minimal_type_object.annotation_type().member_seq()[pos].name_hash());
     $check_annotation_parameter_value(param=parameter, type="complete_type_object.annotation_type().member_seq()[pos].default_value()")$
     $check_annotation_parameter_value(param=parameter, type="minimal_type_object.annotation_type().member_seq()[pos].default_value()")$
