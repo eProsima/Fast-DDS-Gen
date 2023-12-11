@@ -120,9 +120,9 @@ eProsima_user_DllExport size_t calculate_serialized_size(
                                 current_alignment)};
 
 
-    $struct.allIdentifiedMembers : { member | $if(!member.value.annotationNonSerialized)$
-    calculated_size += calculator.calculate_member_serialized_size(eprosima::fastcdr::MemberId($member.key$),
-            data.$member.value.name$(), current_alignment);
+    $struct.allMembers : { member | $if(!member.annotationNonSerialized)$
+    calculated_size += calculator.calculate_member_serialized_size(eprosima::fastcdr::MemberId($if(struct.annotationMutable)$$member.id$$else$$member.index$$endif$),
+            data.$member.name$(), current_alignment);
     $endif$}; separator="\n"$
 
     calculated_size += calculator.end_calculate_type_serialized_size(previous_encoding, current_alignment);
@@ -147,9 +147,9 @@ eProsima_user_DllExport void serialize(
             $if(struct.annotationFinal)$eprosima::fastcdr::EncodingAlgorithmFlag::PLAIN_CDR2$elseif(struct.annotationAppendable)$eprosima::fastcdr::EncodingAlgorithmFlag::DELIMIT_CDR2$elseif(struct.annotationMutable)$eprosima::fastcdr::EncodingAlgorithmFlag::PL_CDR2$endif$ :
             $if(struct.annotationFinal || struct.annotationAppendable)$eprosima::fastcdr::EncodingAlgorithmFlag::PLAIN_CDR$elseif(struct.annotationMutable)$eprosima::fastcdr::EncodingAlgorithmFlag::PL_CDR$endif$);
 
-    $if(struct.allIdentifiedMembers)$
-    scdr$struct.allIdentifiedMembers : { member | $if(!member.value.annotationNonSerialized)$
-        << eprosima::fastcdr::MemberId($member.key$) << data.$member.value.name$()
+    $if(struct.allMembers)$
+    scdr$struct.allMembers : { member | $if(!member.annotationNonSerialized)$
+        << eprosima::fastcdr::MemberId($if(struct.annotationMutable)$$member.id$$else$$member.index$$endif$) << data.$member.name$()
     $endif$
     }; separator=""$;
     $else$
@@ -176,13 +176,13 @@ eProsima_user_DllExport void deserialize(
                 bool ret_value = true;
                 switch (mid.id)
                 {
-                    $if(!struct.allIdentifiedMembers)$
+                    $if(!struct.allMembers)$
                     static_cast<void>(dcdr);
                     $endif$
-                    $struct.allIdentifiedMembers : { member |
-                    case $member.key$:
-                        $if(!member.value.annotationNonSerialized)$
-                            dcdr \>> data.$member.value.name$();
+                    $struct.allMembers : { member |
+                    case $if(struct.annotationMutable)$$member.id$$else$$member.index$$endif$:
+                        $if(!member.annotationNonSerialized)$
+                            dcdr \>> data.$member.name$();
                         $endif$
                         break;
                     }; separator="\n"$
@@ -306,10 +306,10 @@ eProsima_user_DllExport size_t calculate_serialized_size(
 
     switch (data._d())
     {
-        $union.identifiedMembers:{ member | $if(member.value.printable)$$member.value.labels:{ label |case $label$:}; separator="\n"$
-        $if(member.value.default)$default:$endif$
-            calculated_size += calculator.calculate_member_serialized_size(eprosima::fastcdr::MemberId($member.key$),
-                        data.$member.value.name$(), current_alignment);
+        $union.membersDefaultAtEnd:{ member | $if(member.printable)$$member.labels:{ label |case $label$:}; separator="\n"$
+        $if(member.default)$default:$endif$
+            calculated_size += calculator.calculate_member_serialized_size(eprosima::fastcdr::MemberId($if(union.annotationMutable)$$member.id$$else$$member.index$$endif$),
+                        data.$member.name$(), current_alignment);
             break;
         $endif$
         }; separator="\n"$
@@ -346,10 +346,10 @@ eProsima_user_DllExport void serialize(
 
     switch (data._d())
     {
-        $union.identifiedMembers:{ member | $if(member.value.printable)$
-        $member.value.labels:{ label |case $label$:}; separator="\n"$
-        $if(member.value.default)$default:$endif$
-            scdr << eprosima::fastcdr::MemberId($member.key$) << data.$member.value.name$();
+        $union.membersDefaultAtEnd:{ member | $if(member.printable)$
+        $member.labels:{ label |case $label$:}; separator="\n"$
+        $if(member.default)$default:$endif$
+            scdr << eprosima::fastcdr::MemberId($if(union.annotationMutable)$$member.id$$else$$member.index$$endif$) << data.$member.name$();
             break;
         $endif$
         }; separator="\n"$
@@ -385,10 +385,14 @@ eProsima_user_DllExport void deserialize(
                     default:
                         switch (data._d())
                         {
-                            $union.identifiedMembers:{ member | $if(member.value.printable)$
-                            $member.value.labels:{ label |case $label$:}; separator="\n"$
-                            $if(member.value.default)$default:$endif$
-                                dcdr \>> data.$member.value.name$();
+                            $union.membersDefaultAtEnd:{ member | $if(member.printable)$
+                            $member.labels:{ label |case $label$:}; separator="\n"$
+                            $if(member.default)$default:$endif$
+                                if (mid != $if(union.annotationMutable || member.annotationOptional)$$member.id$$else$$member.index$$endif$)
+                                {
+                                    throw BadParamException("Deserializing union member $member.name$ the MemberId doesn't match");
+                                \}
+                                dcdr \>> data.$member.name$();
                                 break;
                             $endif$
                             }; separator="\n"$

@@ -14,6 +14,8 @@
 
 package com.eprosima.fastdds.idl.parser.typecode;
 
+import com.eprosima.idl.parser.typecode.Member;
+
 public interface MemberedTypeCode extends TypeCode
 {
     static long xcdr_extra_header_serialized_size(
@@ -50,14 +52,15 @@ public interface MemberedTypeCode extends TypeCode
             long current_alignment,
             com.eprosima.idl.parser.typecode.TypeCode.ExtensibilityKind memberedtypecode_ext_kind,
             boolean member_optional,
-            int member_size)
+            Member member)
     {
         long returned_alignment = current_alignment;
+        int member_size = member.getTypecode() instanceof PrimitiveTypeCode ? Integer.parseInt(((PrimitiveTypeCode)member.getTypecode()).getSize()) : 8;
 
         if (com.eprosima.idl.parser.typecode.TypeCode.ExtensibilityKind.MUTABLE.get_value() == memberedtypecode_ext_kind.get_value() ||
                 member_optional)
         {
-            if (5 > member_size)
+            if (5 > member_size && 16384 /*2^14*/ >= member.get_id())
             {
                 returned_alignment += 4 + TypeCode.cdr_alignment(returned_alignment, 4);
             }
