@@ -133,8 +133,12 @@ public class fastddsgen
 
     private LANGUAGE m_languageOption = LANGUAGE.CPP; // Default language -> CPP
 
+    // Generate type support files?
     private boolean generate_typesupport_ = true;
 
+    // Generate files for dependencies?
+    private boolean generate_dependencies_ = true;
+    
     /*
      * ----------------------------------------------------------------------------------------
      *
@@ -295,6 +299,10 @@ public class fastddsgen
             {
                 generate_typesupport_ = false;
             }
+            else if (arg.equals("-no-dependencies"))
+            {
+                generate_dependencies_ = false;
+            }
             else if (arg.equals("-package"))
             {
                 if (count < args.length)
@@ -454,14 +462,16 @@ public class fastddsgen
                     {
                         solution.addProject(project);
                     }
-
-                    for (String include : project.getIDLIncludeFiles())
+                    if(generate_dependencies_)
                     {
-                        Project inner = process(include, Util.getIDLFileDirectoryOnly(m_idlFiles.get(count)), false);
-                        if (inner != null && !solution.existsProject(inner.getFile()))
+                        for (String include : project.getIDLIncludeFiles())
                         {
-                            System.out.println("Adding project: " + inner.getFile());
-                            solution.addProject(inner);
+                            Project inner = process(include, Util.getIDLFileDirectoryOnly(m_idlFiles.get(count)), false);
+                            if (inner != null && !solution.existsProject(inner.getFile()))
+                            {
+                                System.out.println("Adding project: " + inner.getFile());
+                                solution.addProject(inner);
+                            }
                         }
                     }
                 }
@@ -569,6 +579,7 @@ public class fastddsgen
         System.out.println("\t\t-help: shows this help");
         System.out.println("\t\t-I <path>: add directory to preprocessor include paths.");
         System.out.println("\t\t-no-typesupport: avoid generating the type support files.");
+        System.out.println("\t\t-no-dependencies: avoid generating the dependencies of the files.");
         System.out.println("\t\t-ppDisable: disables the preprocessor.");
         System.out.println("\t\t-ppPath: specifies the preprocessor path.");
         System.out.println("\t\t-python: generates python bindings for the generated types.");
