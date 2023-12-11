@@ -608,7 +608,40 @@ enum_literal(literal, parent) ::= <<
 }
 >>
 
-register_bitmask_type(bitmask) ::= <<>>
+register_bitmask_type(bitmask) ::= <<
+BitmaskTypeFlag bitmask_flags = 0;
+BitBound bit_bound = $bitmask.bitBound$;
+CommonEnumeratedHeader common = TypeObjectUtils::build_common_enumerated_header(bit_bound, true);
+$complete_type_detail(type=bitmask, type_kind=" Bitmask")$
+CompleteEnumeratedHeader header = TypeObjectUtils::build_complete_enumerated_header(common, detail, true);
+CompleteBitflagSeq flag_seq;
+$bitmask.bitmasks: { bitflag | $bitflag_member(bitflag=bitflag, parent=parent)$}; separator="\n"$
+CompleteBitmaskType bitmask_type = TypeObjectUtils::build_complete_bitmask_type(bitmask_flags, header, flag_seq);
+if (eprosima::fastdds::dds::RETCODE_BAD_PARAMETER ==
+        TypeObjectUtils::build_and_register_bitmask_type_object(bitmask_type, type_name.to_string()))
+{
+    EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
+        "$bitmask.scopedname$ already registered in TypeObjectRegistry for a different type.");
+}
+$get_type_identifier_registry(typename=bitmask.scopedname)$
+if (return_code != eprosima::fastdds::dds::RETCODE_OK)
+{
+    EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
+                "$bitmask.scopedname$: Given Enum TypeIdentifier unknown to TypeObjectRegistry.");
+    return;
+}
+>>
+
+bitflag_member(bitflag, parent) ::= <<
+{
+    uint16_t position = $bitflag.position$;
+    BitflagFlag flags = 0;
+    CommonBitflag common = TypeObjectUtils::build_common_bitflag(position, flags);
+    $empty_ann_builtin_complete_member_detail(member=bitflag, parent=parent, message=[parent.scopedname, " Bitmask ", bitflag.name, " bitflag: only @position builtin annotation apply to bitmask bitflags"])$
+    CompleteBitflag bitflag = TypeObjectUtils::build_complete_bitflag(common, detail);
+    TypeObjectUtils::add_complete_bitflag(flag_seq, bitflag);
+}
+>>
 
 register_wstring_type(wstring) ::= <<
 std::string type_id_kind("$wstring.typeIdentifier$");
