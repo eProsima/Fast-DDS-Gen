@@ -133,10 +133,10 @@ public class fastddsgen
 
     private LANGUAGE m_languageOption = LANGUAGE.CPP; // Default language -> CPP
 
-    // Generate type support files?
+    // Specifies whether the type support files should be generated.
     private boolean generate_typesupport_ = true;
 
-    // Generate files for dependencies?
+    // Specifies whether the dependent IDL files should be processed.
     private boolean generate_dependencies_ = true;
     
     /*
