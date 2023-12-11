@@ -555,7 +555,6 @@ public class fastddsgen
 
     /*
      * ----------------------------------------------------------------------------------------
-     *
      * Arguments
      */
     private static final String case_sensitive_arg = "-cs";
@@ -565,6 +564,7 @@ public class fastddsgen
     private static final String default_extensibility_short_arg = "-de";
     private static final String specific_platform_arg = "-example";    
     private static final String extra_template_arg = "-extrastg";
+    private static final String fusion_arg = "-fusion";
     private static final String help_arg = "-help";
     private static final String include_path_arg = "-I";
     private static final String language_arg = "-language";
@@ -577,11 +577,14 @@ public class fastddsgen
     private static final String replace_arg = "-replace";
     private static final String temp_dir_arg = "-t";
     private static final String typeobject_arg = "-typeobject";
-    private static final String cnames_arg = "-typesc";
     private static final String ros2_names_arg = "-typeros2";
-    private static final String fusion_arg = "-fusion";
+    private static final String cnames_arg = "-typesc";
     private static final String version_arg = "-version";
 
+    /*
+     * ----------------------------------------------------------------------------------------
+     * Developer Arguments
+     */
     private static final String generate_api_arg = "-genapi";
     private static final String execute_test_arg = "-test";
 
@@ -609,6 +612,7 @@ public class fastddsgen
         }
         System.out.print("\t\t" + extra_template_arg + " <template file> <output file name>: specifies a custom ");
         System.out.println("template, template location must be in classpath.");
+        System.out.println("\t\t" + fusion_arg + ": activates fusion.");
         System.out.println("\t\t" + help_arg + ": shows this help");
         System.out.println("\t\t" + include_path_arg + " <path>: add directory to preprocessor include paths.");
         System.out.println("\t\t" + language_arg + " <lang>: chooses between <c++> or <java> languages.");
@@ -624,7 +628,6 @@ public class fastddsgen
         System.out.println("types as dynamic.");
         System.out.println("\t\t" + cnames_arg + ": generates string and sequence types compatible with C.");
         System.out.println("\t\t" + ros2_names_arg + ": generates type naming compatible with ROS2.");
-        System.out.println("\t\t" + fusion_arg + ": activates fusion.");
         System.out.println("\t\t" + version_arg + ": shows the current version of eProsima Fast DDS gen.");
         System.out.println("\tand the supported input files are:");
         System.out.println("\t* IDL files.");
