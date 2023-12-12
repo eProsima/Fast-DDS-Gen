@@ -24,6 +24,7 @@ $fileHeader(ctx=ctx, file=[ctx.filename, "TypeObjectSupport.cxx"], description=[
 #include <mutex>
 #include <string>
 
+#include <fastcdr/xcdr/external.hpp>
 #include <fastcdr/xcdr/optional.hpp>
 #include <fastdds/dds/domain/DomainParticipantFactory.hpp>
 #include <fastdds/dds/log/Log.hpp>
@@ -222,6 +223,8 @@ type_ann_builtin = TypeObjectUtils::build_applied_builtin_type_annotations(verba
 >>
 
 register_alias_type(alias) ::= <<
+$! TODO(jlbueno): annotated collections aliases are considered non-anonymous collections.
+                  pending implementation of annotated collection support !$
 AliasTypeFlag alias_flags = 0;
 $complete_type_detail(type=alias, type_kind=" Alias")$
 CompleteAliasHeader header = TypeObjectUtils::build_complete_alias_header(detail);
@@ -564,11 +567,79 @@ bitfield_member(bitfield, parent) ::= <<
 }
 >>
 
-register_sequence_type(sequence) ::= <<>>
+register_sequence_type(sequence) ::= <<
+$! TODO(jlbueno): annotated collections generate TypeObject instead of TypeIdentifier
+                  pending implementation of annotated collection support !$
+$get_type_identifier(type=sequence.contentTypeCode)$
+$check_register_type_identifier(type=sequence.contentTypeCode, message="Sequence element")$
+EquivalenceKind equiv_kind = EK_COMPLETE;
+if (TK_NONE == type_ids.type_identifier2()._d())
+{
+    equiv_kind = EK_BOTH;
+}
+CollectionElementFlag element_flags = TypeObjectUtils::build_collection_element_flag(eprosima::fastdds::dds::TryConstructKind::DISCARD, false);
+PlainCollectionHeader header = TypeObjectUtils::build_plain_collection_header(equiv_kind, element_flags);
+std::string type_id_kind("$sequence.typeIdentifier$");
+if (type_id_kind == "TI_PLAIN_SEQUENCE_SMALL")
+{
+    SBound bound = $if (!sequence.isBounded)$0$else$static_cast<SBound>($sequence.evaluatedMaxsize$)$endif$;
+    PlainSequenceSElemDefn seq_sdefn;
+    $check_first_returned_type_identifier_pair()$
+    {
+        seq_sdefn = TypeObjectUtils::build_plain_sequence_s_elem_defn(header, bound,
+                eprosima::fastcdr::external<TypeIdentifier>(&type_ids.type_identifier1()));
+    }
+    $check_second_returned_type_identifier_pair()$
+    {
+        seq_sdefn = TypeObjectUtils::build_plain_sequence_s_elem_defn(header, bound,
+                eprosima::fastcdr::external<TypeIdentifier>(&type_ids.type_identifier2()));
+    }
+    if (eprosima::fastdds::dds::RETCODE_BAD_PARAMETER ==
+            TypeObjectUtils::build_and_register_s_sequence_type_identifier(seq_sdefn, "$sequence_name(sequence)$"))
+    {
+        EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
+            "$sequence_name(sequence)$ already registered in TypeObjectRegistry for a different type.");
+    }
+}
+else
+{
+    LBound bound = $sequence.evaluatedMaxsize$;
+    PlainSequenceLElemDefn seq_ldefn;
+    $check_first_returned_type_identifier_pair()$
+    {
+        seq_ldefn = TypeObjectUtils::build_plain_sequence_l_elem_defn(header, bound,
+                eprosima::fastcdr::external<TypeIdentifier>(&type_ids.type_identifier1()));
+    }
+    $check_second_returned_type_identifier_pair()$
+    {
+        seq_ldefn = TypeObjectUtils::build_plain_sequence_l_elem_defn(header, bound,
+                eprosima::fastcdr::external<TypeIdentifier>(&type_ids.type_identifier2()));
+    }
+    if (eprosima::fastdds::dds::RETCODE_BAD_PARAMETER ==
+            TypeObjectUtils::build_and_register_l_sequence_type_identifier(seq_ldefn, "$sequence_name(sequence)$"))
+    {
+        EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
+            "$sequence_name(sequence)$ already registered in TypeObjectRegistry for a different type.");
+    }
+}
+$get_type_identifier_registry(typename=sequence_name(sequence))$
+if (return_code != eprosima::fastdds::dds::RETCODE_OK)
+{
+    EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
+                "$sequence_name(sequence)$: Given Sequence TypeIdentifier unknown to TypeObjectRegistry.");
+    return;
+}
+>>
 
-register_array_type(array) ::= <<>>
+register_array_type(array) ::= <<
+$! TODO(jlbueno): annotated collections generate TypeObject instead of TypeIdentifier
+                  pending implementation of annotated collection support !$
+>>
 
-register_map_type(map) ::= <<>>
+register_map_type(map) ::= <<
+$! TODO(jlbueno): annotated collections generate TypeObject instead of TypeIdentifier
+                  pending implementation of annotated collection support !$
+>>
 
 register_enum_type(enum) ::= <<
 EnumTypeFlag enum_flags = 0;
@@ -647,7 +718,7 @@ register_wstring_type(wstring) ::= <<
 std::string type_id_kind("$wstring.typeIdentifier$");
 if (type_id_kind == "TI_STRING16_SMALL")
 {
-    SBound bound = $wstring.evaluatedMaxsize$;
+    SBound bound = $if (!wstring.isBounded)$0$else$static_cast<SBound>($wstring.evaluatedMaxsize$)$endif$;
     StringSTypeDefn string_sdefn = TypeObjectUtils::build_string_s_type_defn(bound);
     if (eprosima::fastdds::dds::RETCODE_BAD_PARAMETER ==
             TypeObjectUtils::build_and_register_s_string_type_identifier(string_sdefn,
@@ -659,7 +730,7 @@ if (type_id_kind == "TI_STRING16_SMALL")
 }
 else if (type_id_kind == "TI_STRING16_LARGE")
 {
-    LBound bound = $if(wstring.isBounded)$$wstring.evaluatedMaxsize$$else$-1$endif$;
+    LBound bound = $wstring.evaluatedMaxsize$;
     StringLTypeDefn string_ldefn = TypeObjectUtils::build_string_l_type_defn(bound);
     if (eprosima::fastdds::dds::RETCODE_BAD_PARAMETER ==
             TypeObjectUtils::build_and_register_l_string_type_identifier(string_ldefn,
@@ -688,7 +759,7 @@ register_string_type(string) ::= <<
 std::string type_id_kind("$string.typeIdentifier$");
 if (type_id_kind == "TI_STRING8_SMALL")
 {
-    SBound bound = $string.evaluatedMaxsize$;
+    SBound bound = $if (!string.isBounded)$0$else$static_cast<SBound>($string.evaluatedMaxsize$)$endif$;
     StringSTypeDefn string_sdefn = TypeObjectUtils::build_string_s_type_defn(bound);
     if (eprosima::fastdds::dds::RETCODE_BAD_PARAMETER ==
             TypeObjectUtils::build_and_register_s_string_type_identifier(string_sdefn,
@@ -700,7 +771,7 @@ if (type_id_kind == "TI_STRING8_SMALL")
 }
 else if (type_id_kind == "TI_STRING8_LARGE")
 {
-    LBound bound = $if(string.isBounded)$$string.evaluatedMaxsize$$else$-1$endif$;
+    LBound bound = $string.evaluatedMaxsize$;
     StringLTypeDefn string_ldefn = TypeObjectUtils::build_string_l_type_defn(bound);
     if (eprosima::fastdds::dds::RETCODE_BAD_PARAMETER ==
             TypeObjectUtils::build_and_register_l_string_type_identifier(string_ldefn,
