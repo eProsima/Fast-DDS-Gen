@@ -570,15 +570,7 @@ bitfield_member(bitfield, parent) ::= <<
 register_sequence_type(sequence) ::= <<
 $! TODO(jlbueno): annotated collections generate TypeObject instead of TypeIdentifier
                   pending implementation of annotated collection support !$
-$get_type_identifier(type=sequence.contentTypeCode)$
-$check_register_type_identifier(type=sequence.contentTypeCode, message="Sequence element")$
-EquivalenceKind equiv_kind = EK_COMPLETE;
-if (TK_NONE == type_ids.type_identifier2()._d())
-{
-    equiv_kind = EK_BOTH;
-}
-CollectionElementFlag element_flags = TypeObjectUtils::build_collection_element_flag(eprosima::fastdds::dds::TryConstructKind::DISCARD, false);
-PlainCollectionHeader header = TypeObjectUtils::build_plain_collection_header(equiv_kind, element_flags);
+$plain_collection_header(type=sequence.contentTypeCode, message="Sequence element")$
 std::string type_id_kind("$sequence.typeIdentifier$");
 if (type_id_kind == "TI_PLAIN_SEQUENCE_SMALL")
 {
@@ -593,6 +585,11 @@ if (type_id_kind == "TI_PLAIN_SEQUENCE_SMALL")
     {
         seq_sdefn = TypeObjectUtils::build_plain_sequence_s_elem_defn(header, bound,
                 eprosima::fastcdr::external<TypeIdentifier>(&type_ids.type_identifier2()));
+    }
+    else
+    {
+        EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
+            "$sequence_name(sequence)$ inconsistent element TypeIdentifier.");
     }
     if (eprosima::fastdds::dds::RETCODE_BAD_PARAMETER ==
             TypeObjectUtils::build_and_register_s_sequence_type_identifier(seq_sdefn, "$sequence_name(sequence)$"))
@@ -615,6 +612,11 @@ else
         seq_ldefn = TypeObjectUtils::build_plain_sequence_l_elem_defn(header, bound,
                 eprosima::fastcdr::external<TypeIdentifier>(&type_ids.type_identifier2()));
     }
+    else
+    {
+        EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
+            "$sequence_name(sequence)$ inconsistent element TypeIdentifier.");
+    }
     if (eprosima::fastdds::dds::RETCODE_BAD_PARAMETER ==
             TypeObjectUtils::build_and_register_l_sequence_type_identifier(seq_ldefn, "$sequence_name(sequence)$"))
     {
@@ -634,6 +636,73 @@ if (return_code != eprosima::fastdds::dds::RETCODE_OK)
 register_array_type(array) ::= <<
 $! TODO(jlbueno): annotated collections generate TypeObject instead of TypeIdentifier
                   pending implementation of annotated collection support !$
+$plain_collection_header(type=array.contentTypeCode, message="Array element")$
+std::string type_id_kind("$array.typeIdentifier$");
+if (type_id_kind == "TI_PLAIN_ARRAY_SMALL")
+{
+    SBoundSeq array_bound_seq;
+    $array.evaluatedDimensions: { dimension |
+    TypeObjectUtils::add_array_dimension(array_bound_seq, static_cast<SBound>($dimension$));
+    }; separator="\n"$
+    PlainArraySElemDefn array_sdefn;
+    $check_first_returned_type_identifier_pair()$
+    {
+        array_sdefn = TypeObjectUtils::build_plain_array_s_elem_defn(header, array_bound_seq,
+                eprosima::fastcdr::external<TypeIdentifier>(&type_ids.type_identifier1()));
+    }
+    $check_second_returned_type_identifier_pair()$
+    {
+        array_sdefn = TypeObjectUtils::build_plain_array_s_elem_defn(header, array_bound_seq,
+                eprosima::fastcdr::external<TypeIdentifier>(&type_ids.type_identifier2()));
+    }
+    else
+    {
+        EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
+            "$array_name(array)$ inconsistent element TypeIdentifier.");
+    }
+    if (eprosima::fastdds::dds::RETCODE_BAD_PARAMETER ==
+            TypeObjectUtils::build_and_register_s_array_type_identifier(array_sdefn, "$array_name(array)$"))
+    {
+        EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
+            "$array_name(array)$ already registered in TypeObjectRegistry for a different type.");
+    }
+}
+else
+{
+    LBoundSeq array_bound_seq;
+    $array.evaluatedDimensions: { dimension |
+    TypeObjectUtils::add_array_dimension(array_bound_seq, static_cast<LBound>($dimension$));
+    }; separator="\n"$
+    PlainArrayLElemDefn array_ldefn;
+    $check_first_returned_type_identifier_pair()$
+    {
+        array_ldefn = TypeObjectUtils::build_plain_array_l_elem_defn(header, array_bound_seq,
+                eprosima::fastcdr::external<TypeIdentifier>(&type_ids.type_identifier1()));
+    }
+    $check_second_returned_type_identifier_pair()$
+    {
+        array_ldefn = TypeObjectUtils::build_plain_array_l_elem_defn(header, array_bound_seq,
+                eprosima::fastcdr::external<TypeIdentifier>(&type_ids.type_identifier2()));
+    }
+    else
+    {
+        EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
+            "$array_name(array)$ inconsistent element TypeIdentifier.");
+    }
+    if (eprosima::fastdds::dds::RETCODE_BAD_PARAMETER ==
+            TypeObjectUtils::build_and_register_l_array_type_identifier(array_ldefn, "$array_name(array)$"))
+    {
+        EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
+            "$array_name(array)$ already registered in TypeObjectRegistry for a different type.");
+    }
+}
+$get_type_identifier_registry(typename=array_name(array))$
+if (return_code != eprosima::fastdds::dds::RETCODE_OK)
+{
+    EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
+                "$array_name(array)$: Given Array TypeIdentifier unknown to TypeObjectRegistry.");
+    return;
+}
 >>
 
 register_map_type(map) ::= <<
@@ -965,3 +1034,16 @@ $elseif (object.annotationTrim)$
     eprosima::fastdds::dds::TryConstructKind::TRIM,
 $endif$
 %>
+
+plain_collection_header(type, message) ::= <<
+$get_type_identifier(type=type)$
+$check_register_type_identifier(type=type, message=message)$
+EquivalenceKind equiv_kind = EK_COMPLETE;
+if (TK_NONE == type_ids.type_identifier2()._d())
+{
+    equiv_kind = EK_BOTH;
+}
+$! TODO(jlbueno) Annotated collections not yet supported !$
+CollectionElementFlag element_flags = 0;
+PlainCollectionHeader header = TypeObjectUtils::build_plain_collection_header(equiv_kind, element_flags);
+>>
