@@ -667,9 +667,13 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
         {
             String current_name = name;
 
-            for(Map.Entry<String, List<String>> entry : modules_conversion.entrySet())
+            for (Map.Entry<String, List<String>> entry : modules_conversion.entrySet())
             {
-                current_name = current_name.replace(entry.getKey() + "::", String.join("::", entry.getValue()) + "::");
+                // Additional replacement logic to avoid double replacements
+                if (!current_name.contains(String.join("::", entry.getValue())))
+                {
+                    current_name = current_name.replace(entry.getKey() + "::", String.join("::", entry.getValue()) + "::");
+                }
             }
 
             return super.getTypeCode(current_name);
@@ -709,8 +713,9 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
     private boolean is_generating_api_ = false;
 
     private Map<String, List<String>> modules_conversion = Stream.of(
-            new AbstractMap.SimpleEntry<>("DDS", Arrays.asList("eprosima", "fastdds", "dds")),
-            new AbstractMap.SimpleEntry<>("XTypes", Arrays.asList("xtypes")))
+        new AbstractMap.SimpleEntry<>("dds", Arrays.asList("eprosima", "fastdds", "dds")),
+        new AbstractMap.SimpleEntry<>("DDS", Arrays.asList("eprosima", "fastdds", "dds")),
+        new AbstractMap.SimpleEntry<>("XTypes", Arrays.asList("xtypes")))
         .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
     private boolean there_is_at_least_one_array = false;
