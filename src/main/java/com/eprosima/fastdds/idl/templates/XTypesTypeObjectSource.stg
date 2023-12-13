@@ -1067,22 +1067,26 @@ if (return_code != eprosima::fastdds::dds::RETCODE_OK)
 >>
 
 extensibility(object) ::= <%
-$if (object.annotationAppendable)$
-    eprosima::fastdds::dds::ExtensibilityKind::APPENDABLE,
+$if (object.annotationExtensibilityNotApplied)$
+    ExtensibilityKind::NOT_APPLIED,
+$elseif (object.annotationAppendable)$
+    ExtensibilityKind::APPENDABLE,
 $elseif (object.annotationFinal)$
-    eprosima::fastdds::dds::ExtensibilityKind::FINAL,
+    ExtensibilityKind::FINAL,
 $elseif (object.annotationMutable)$
-    eprosima::fastdds::dds::ExtensibilityKind::MUTABLE,
+    ExtensibilityKind::MUTABLE,
 $endif$
 %>
 
 try_construct(object) ::= <%
-$if (object.annotationDiscard)$
-    eprosima::fastdds::dds::TryConstructKind::DISCARD,
+$if (!object.annotationTryConstruct)$
+    TryConstructKind::NOT_APPLIED,
+$elseif (object.annotationDiscard)$
+    TryConstructKind::DISCARD,
 $elseif (object.annotationUseDefault)$
-    eprosima::fastdds::dds::TryConstructKind::USE_DEFAULT,
+    TryConstructKind::USE_DEFAULT,
 $elseif (object.annotationTrim)$
-    eprosima::fastdds::dds::TryConstructKind::TRIM,
+    TryConstructKind::TRIM,
 $endif$
 %>
 
