@@ -353,12 +353,14 @@ $endif$
 
 expected_member_flags(object, typename) ::= <<
 MemberFlag $typename$_expected_flags;
+$if(object.annotationTryConstruct)$
 $if(object.annotationDiscard)$
 $typename$_expected_flags |= MemberFlagBits::TRY_CONSTRUCT1;
 $elseif(object.annotationUseDefault)$
 $typename$_expected_flags |= MemberFlagBits::TRY_CONSTRUCT2;
 $elseif(object.annotationTrim)$
 $typename$_expected_flags |= MemberFlagBits::TRY_CONSTRUCT1 | MemberFlagBits::TRY_CONSTRUCT2;
+$endif$
 $endif$
 $if(object.annotationExternal)$
 $typename$_expected_flags |= MemberFlagBits::IS_EXTERNAL;
@@ -379,12 +381,14 @@ $endif$
 
 expected_type_flags(object) ::= <<
 TypeFlag $object.name$_expected_flags;
+$if(!object.annotationExtensibilityNotApplied)$
 $if(object.annotationFinal)$
 $object.name$_expected_flags |= TypeFlagBits::IS_FINAL;
 $elseif(object.annotationAppendable)$
 $object.name$_expected_flags |= TypeFlagBits::IS_APPENDABLE;
 $elseif(object.annotationMutable)$
 $object.name$_expected_flags |= TypeFlagBits::IS_MUTABLE;
+$endif$
 $endif$
 $if(object.annotationNested)$
 $object.name$_expected_flags |= TypeFlagBits::IS_NESTED;
