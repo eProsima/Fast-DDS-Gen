@@ -63,7 +63,8 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
             String appProduct,
             boolean generate_typesc,
             boolean generate_type_ros2,
-            boolean is_generating_api
+            boolean is_generating_api,
+            boolean generate_typeobjectsupport
             )
     {
         super(tmanager, file, includePaths, generate_typesc);
@@ -79,6 +80,7 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
 
         m_type_ros2 = generate_type_ros2;
         is_generating_api_ = is_generating_api;
+        m_generate_typeobject_support = generate_typeobjectsupport;
 
         // Create default @Key annotation.
         AnnotationDeclaration keyann = this.createAnnotationDeclaration("Key", null);
@@ -565,10 +567,18 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
 
     private boolean m_type_ros2 = false;
 
+    private boolean m_generate_typeobject_support = true;
+
     @Override
     public boolean isGenerateTypesROS2()
     {
         return m_type_ros2;
+    }
+
+    @Override
+    public boolean isGenerateTypeObjectSupport()
+    {
+        return m_generate_typeobject_support;
     }
 
     public String getHeaderGuardName ()

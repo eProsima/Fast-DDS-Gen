@@ -92,6 +92,7 @@ $endif$
 >>
 
 type_object_tests(project, libraries) ::= <<
+$if(project.typeObjectTestingFiles)$
 # $project.name$ TypeObject Test
 add_executable($project.name$TypeObjectTestingTest
         $project.typeObjectTestingFiles : { file | $file$}; separator="\n"$
@@ -101,4 +102,5 @@ target_link_libraries($project.name$TypeObjectTestingTest
         $libraries : { library | $library$}; separator=" "$
         $project.name$_lib $project.dependencies : { dep | $dep$_lib}; separator=" "$)
 gtest_discover_tests($project.name$TypeObjectTestingTest)
+$endif$
 >>

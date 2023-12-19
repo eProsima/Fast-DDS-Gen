@@ -41,6 +41,8 @@ public interface Context
 
     public boolean isGenerateTypesROS2();
 
+    public boolean isGenerateTypeObjectSupport();
+
     public boolean isCdr();
 
     public boolean isFastcdr();
