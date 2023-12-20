@@ -83,8 +83,8 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
         m_generate_typeobject_support = generate_typeobjectsupport;
 
         // Create default @Key annotation.
-        AnnotationDeclaration keyann = this.createAnnotationDeclaration("Key", null);
-        keyann.addMember(new AnnotationMember("value", new PrimitiveTypeCode(Kind.KIND_BOOLEAN), "true"));
+        AnnotationDeclaration keyann = this.createAnnotationDeclaration(Annotation.eprosima_key_str, null);
+        keyann.addMember(new AnnotationMember(Annotation.value_str, new PrimitiveTypeCode(Kind.KIND_BOOLEAN), Annotation.true_str));
 
     }
 
