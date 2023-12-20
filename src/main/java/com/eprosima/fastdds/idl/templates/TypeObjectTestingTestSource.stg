@@ -315,7 +315,7 @@ $elseif(annotation.isHashId)$
 hash_id_annotation = true;
 ASSERT_TRUE(type_objects.complete_type_object.$type$.ann_builtin().has_value());
 ASSERT_TRUE(type_objects.complete_type_object.$type$.ann_builtin().value().hash_id().has_value());
-EXPECT_EQ($annotation.value$, type_objects.complete_type_object.$type$.ann_builtin().value().hash_id().value())
+EXPECT_EQ("$annotation.value$", type_objects.complete_type_object.$type$.ann_builtin().value().hash_id().value());
 $elseif(!annotation.isBuiltin && !parent.isAliasType)$
 custom_annotations = true;
 $check_applied_custom_annotations(annotation=annotation, type=type)$
@@ -325,19 +325,19 @@ if (!unit_annotation && !max_annotation && !min_annotation && !hash_id_annotatio
 {
     EXPECT_FALSE(type_objects.complete_type_object.$type$.ann_builtin().has_value());
 }
-if (!unit_annotation)
+else if (!unit_annotation)
 {
     EXPECT_FALSE(type_objects.complete_type_object.$type$.ann_builtin().value().unit().has_value());
 }
-if (!min_annotation)
+else if (!min_annotation)
 {
     EXPECT_FALSE(type_objects.complete_type_object.$type$.ann_builtin().value().min().has_value());
 }
-if (!max_annotation)
+else if (!max_annotation)
 {
     EXPECT_FALSE(type_objects.complete_type_object.$type$.ann_builtin().value().max().has_value());
 }
-if (!hash_id_annotation)
+else if (!hash_id_annotation)
 {
     EXPECT_FALSE(type_objects.complete_type_object.$type$.ann_builtin().value().hash_id().has_value());
 }
@@ -352,7 +352,7 @@ $endif$
 >>
 
 expected_member_flags(object, typename) ::= <<
-MemberFlag $typename$_expected_flags;
+MemberFlag $typename$_expected_flags = 0;
 $if(object.annotationTryConstruct)$
 $if(object.annotationDiscard)$
 $typename$_expected_flags |= MemberFlagBits::TRY_CONSTRUCT1;
@@ -380,7 +380,7 @@ $endif$
 >>
 
 expected_type_flags(object) ::= <<
-TypeFlag $object.name$_expected_flags;
+TypeFlag $object.name$_expected_flags = 0;
 $if(!object.annotationExtensibilityNotApplied)$
 $if(object.annotationFinal)$
 $object.name$_expected_flags |= TypeFlagBits::IS_FINAL;
@@ -419,7 +419,7 @@ EXPECT_EQ(TK_ALIAS, type_objects.complete_type_object._d());
 EXPECT_EQ(0u, type_objects.minimal_type_object.alias_type().alias_flags());
 EXPECT_EQ(0u, type_objects.complete_type_object.alias_type().alias_flags());
 $check_type_detail_annotations(object=typedefs, type="alias_type().header().detail()")$
-EXPECT_EQ("$typedefs.scopedname$", type_objects.complete_type_object.alias_type().header().detail().type_name());
+EXPECT_EQ("$typedefs.scopedname$", type_objects.complete_type_object.alias_type().header().detail().type_name().to_string());
 EXPECT_EQ(0u, type_objects.minimal_type_object.alias_type().body().common().related_flags());
 EXPECT_EQ(0u, type_objects.complete_type_object.alias_type().body().common().related_flags());
 TypeIdentifierPair related_type_ids;
@@ -472,27 +472,12 @@ EXPECT_EQ("$struct.scopedname$", type_objects.complete_type_object.struct_type()
 $if (struct.members)$
 MemberId member_id = 0;
 $if (struct.inheritance)$
-$struct_inherited_member_id(struct=struct.inheritance)$
+    member_id = $struct.firstMember.id$;
 $endif$
 $struct.members: { member | $check_struct_member(member=member, parent=struct)$}; separator="\n"$
 $endif$
 ASSERT_EQ($struct.membersSize$, type_objects.minimal_type_object.struct_type().member_seq().size());
 ASSERT_EQ($struct.membersSize$, type_objects.complete_type_object.struct_type().member_seq().size());
->>
-
-struct_inherited_member_id(struct) ::= <<
-if (!base_type_objects.complete_type_object.struct_type().member_seq().empty())
-{
-    member_id = base_type_objects.complete_type_object.struct_type().member_seq().back().common().member_id();
-}
-$if (struct.inheritance)$
-else
-{
-    TypeObjectPair base_type_objects;
-    $get_type_object_registry(typename=struct.inheritance.scopedname, result="base_type_objects")$
-    $struct_inherited_member_id(struct=struct.inheritance)$
-}
-$endif$
 >>
 
 check_struct_member(member, parent) ::= <<
@@ -512,14 +497,18 @@ check_struct_member(member, parent) ::= <<
     $if(member.annotationId)$
     member_id = $member.annotationIdValue$;
     $elseif(member.annotationHashid)$
-    $if (member.annotationHashidValue)$
-    NameHash value_hash_id = TypeObjectUtils::name_hash("$member.annotationHashidValue$");
-    member_id = (value_hash_id[3] << 24 | value_hash_id[2] << 16 | value_hash_id[1] << 8 |
-        value_hash_id[0]) & 0x0FFFFFFF;
-    $else$
-    member_id = (member_name_hashed[3] << 24 | member_name_hashed[2] << 16 | member_name_hashed[1] << 8 |
-        member_name_hashed[0]) & 0x0FFFFFFF;
-    $endif$
+    std::string hashid_annotation_value("$member.annotationHashidValue$");
+    if (hashid_annotation_value.empty())
+    {
+        member_id = (member_name_hashed[3] << 24 | member_name_hashed[2] << 16 | member_name_hashed[1] << 8 |
+            member_name_hashed[0]) & 0x0FFFFFFF;
+    }
+    else
+    {
+        NameHash value_hash_id = TypeObjectUtils::name_hash("$member.annotationHashidValue$");
+        member_id = (value_hash_id[3] << 24 | value_hash_id[2] << 16 | value_hash_id[1] << 8 |
+            value_hash_id[0]) & 0x0FFFFFFF;
+    }
     $elseif(parent.annotationAutoidHash)$
     member_id = (member_name_hashed[3] << 24 | member_name_hashed[2] << 16 | member_name_hashed[1] << 8 |
         member_name_hashed[0]) & 0x0FFFFFFF;
@@ -532,11 +521,19 @@ check_struct_member(member, parent) ::= <<
     EXPECT_EQ($member.name$_expected_flags, type_objects.complete_type_object.struct_type().member_seq()[pos].common().member_flags());
     TypeIdentifierPair member_type_ids;
     $get_type_identifier(type=member.typecode, var="member_type_ids")$
-    EXPECT_TRUE(member_type_ids.type_identifier1() == type_objects.minimal_type_object.struct_type().member_seq()[pos].common().member_type_id() ||
-        member_type_ids.type_identifier1() == type_objects.complete_type_object.struct_type().member_seq()[pos].common().member_type_id());
-    EXPECT_TRUE(member_type_ids.type_identifier2() == type_objects.minimal_type_object.struct_type().member_seq()[pos].common().member_type_id() ||
-        member_type_ids.type_identifier2() == type_objects.complete_type_object.struct_type().member_seq()[pos].common().member_type_id());
-    EXPECT_EQ("$member.name$", type_objects.complete_type_object.struct_type().member_seq()[pos].detail().name());
+    if (TK_NONE != member_type_ids.type_identifier2()._d())
+    {
+        EXPECT_TRUE(member_type_ids.type_identifier1() == type_objects.minimal_type_object.struct_type().member_seq()[pos].common().member_type_id() ||
+            member_type_ids.type_identifier1() == type_objects.complete_type_object.struct_type().member_seq()[pos].common().member_type_id());
+        EXPECT_TRUE(member_type_ids.type_identifier2() == type_objects.minimal_type_object.struct_type().member_seq()[pos].common().member_type_id() ||
+            member_type_ids.type_identifier2() == type_objects.complete_type_object.struct_type().member_seq()[pos].common().member_type_id());
+    }
+    else
+    {
+        EXPECT_EQ(member_type_ids.type_identifier1(), type_objects.minimal_type_object.struct_type().member_seq()[pos].common().member_type_id());
+        EXPECT_EQ(member_type_ids.type_identifier1(), type_objects.complete_type_object.struct_type().member_seq()[pos].common().member_type_id());
+    }
+    EXPECT_EQ("$member.name$", type_objects.complete_type_object.struct_type().member_seq()[pos].detail().name().to_string());
     EXPECT_EQ(member_name_hashed, type_objects.minimal_type_object.struct_type().member_seq()[pos].detail().name_hash());
     $check_member_detail_annotations(member=member, type="struct_type().member_seq()[pos].detail()", parent=parent)$
 }
@@ -564,20 +561,32 @@ $expected_type_flags(object=union)$
 EXPECT_EQ($union.name$_expected_flags, type_objects.minimal_type_object.union_type().union_flags());
 EXPECT_EQ($union.name$_expected_flags, type_objects.complete_type_object.union_type().union_flags());
 $check_type_detail_annotations(object=union, type="union_type().header().detail()")$
-EXPECT_EQ("$union.scopedname$", type_objects.complete_type_object.union_type().header().detail().type_name());
+EXPECT_EQ("$union.scopedname$", type_objects.complete_type_object.union_type().header().detail().type_name().to_string());
 $expected_member_flags(object=union.discriminator, typename=union.discriminator.name)$
 EXPECT_EQ($union.discriminator.name$_expected_flags, type_objects.minimal_type_object.union_type().discriminator().common().member_flags());
 EXPECT_EQ($union.discriminator.name$_expected_flags, type_objects.complete_type_object.union_type().discriminator().common().member_flags());
 TypeIdentifierPair discriminator_type_ids;
-$if(union.discriminator.typecode.primitive)$
+$if(union.discriminator.typecode.primitive && !union.discriminator.typecode.isEnumType && !union.discriminator.typecode.isAliasType)$
+$if (union.discriminator.typecode.isByteType)$
+$get_type_identifier_registry(typename="_byte", result="discriminator_type_ids")$
+$else$
 $get_type_identifier_registry(typename=["_", union.discriminator.typecode.cppTypenameForTypeId], result="discriminator_type_ids")$
+$endif$
 $else$
 $get_type_identifier_registry(typename=union.discriminator.typecode.scopedname, result="discriminator_type_ids")$
 $endif$
 EXPECT_TRUE(discriminator_type_ids.type_identifier1() == type_objects.minimal_type_object.union_type().discriminator().common().type_id() ||
     discriminator_type_ids.type_identifier1() == type_objects.complete_type_object.union_type().discriminator().common().type_id());
-EXPECT_TRUE(discriminator_type_ids.type_identifier2() == type_objects.minimal_type_object.union_type().discriminator().common().type_id() ||
-    discriminator_type_ids.type_identifier2() == type_objects.complete_type_object.union_type().discriminator().common().type_id());
+if (TK_NONE == discriminator_type_ids.type_identifier2()._d())
+{
+    EXPECT_EQ(type_objects.minimal_type_object.union_type().discriminator().common().type_id(),
+            type_objects.complete_type_object.union_type().discriminator().common().type_id());
+}
+else
+{
+    EXPECT_TRUE(discriminator_type_ids.type_identifier2() == type_objects.minimal_type_object.union_type().discriminator().common().type_id() ||
+        discriminator_type_ids.type_identifier2() == type_objects.complete_type_object.union_type().discriminator().common().type_id());
+}
 $check_type_detail_annotations(object=union.discriminator, type="union_type().discriminator()")$
 MemberId member_id = 0;
 $union.members: { member | $check_union_member(member=member, parent=union)$}; separator="\n"$
@@ -618,18 +627,29 @@ check_union_member(member, parent) ::= <<
     EXPECT_EQ(member_id, type_objects.complete_type_object.union_type().member_seq()[pos].common().member_id());
     member_id++;
     $expected_member_flags(object=member, typename=member.name)$
+    $if (member.default)$
+    $member.name$_expected_flags |= MemberFlagBits::IS_DEFAULT;
+    $endif$
     EXPECT_EQ($member.name$_expected_flags, type_objects.minimal_type_object.union_type().member_seq()[pos].common().member_flags());
     EXPECT_EQ($member.name$_expected_flags, type_objects.complete_type_object.union_type().member_seq()[pos].common().member_flags());
     TypeIdentifierPair member_type_ids;
     $get_type_identifier(type=member.typecode, var="member_type_ids")$
     EXPECT_TRUE(member_type_ids.type_identifier1() == type_objects.minimal_type_object.union_type().member_seq()[pos].common().type_id() ||
         member_type_ids.type_identifier1() == type_objects.complete_type_object.union_type().member_seq()[pos].common().type_id());
-    EXPECT_TRUE(member_type_ids.type_identifier2() == type_objects.minimal_type_object.union_type().member_seq()[pos].common().type_id() ||
-        member_type_ids.type_identifier2() == type_objects.complete_type_object.union_type().member_seq()[pos].common().type_id());
+    if (TK_NONE == member_type_ids.type_identifier2()._d())
+    {
+        EXPECT_EQ(type_objects.minimal_type_object.union_type().member_seq()[pos].common().type_id(),
+                type_objects.complete_type_object.union_type().member_seq()[pos].common().type_id());
+    }
+    else
+    {
+        EXPECT_TRUE(member_type_ids.type_identifier2() == type_objects.minimal_type_object.union_type().member_seq()[pos].common().type_id() ||
+            member_type_ids.type_identifier2() == type_objects.complete_type_object.union_type().member_seq()[pos].common().type_id());
+    }
     $member.labels: { label | $check_label(label=label)$}; separator="\n"$
     ASSERT_EQ($member.labelsSize$, type_objects.minimal_type_object.union_type().member_seq()[pos].common().label_seq().size());
     ASSERT_EQ($member.labelsSize$, type_objects.complete_type_object.union_type().member_seq()[pos].common().label_seq().size());
-    EXPECT_EQ("$member.name$", type_objects.complete_type_object.union_type().member_seq()[pos].detail().name());
+    EXPECT_EQ("$member.name$", type_objects.complete_type_object.union_type().member_seq()[pos].detail().name().to_string());
     EXPECT_EQ(member_name_hashed, type_objects.minimal_type_object.union_type().member_seq()[pos].detail().name_hash());
     $check_member_detail_annotations(member=member, type="union_type().member_seq()[pos].detail()", parent=parent)$
 }
@@ -638,10 +658,10 @@ check_union_member(member, parent) ::= <<
 check_label(label) ::= <<
 {
     EXPECT_NE(std::find(type_objects.complete_type_object.union_type().member_seq()[pos].common().label_seq().begin(),
-        type_objects.complete_type_object.union_type().member_seq()[pos].common().label_seq().end(), $label$),
+        type_objects.complete_type_object.union_type().member_seq()[pos].common().label_seq().end(), static_cast<int32_t>($label$)),
         type_objects.complete_type_object.union_type().member_seq()[pos].common().label_seq().end());
     EXPECT_NE(std::find(type_objects.minimal_type_object.union_type().member_seq()[pos].common().label_seq().begin(),
-        type_objects.minimal_type_object.union_type().member_seq()[pos].common().label_seq().end(), $label$),
+        type_objects.minimal_type_object.union_type().member_seq()[pos].common().label_seq().end(), static_cast<int32_t>($label$)),
         type_objects.minimal_type_object.union_type().member_seq()[pos].common().label_seq().end());
 }
 >>
@@ -669,7 +689,7 @@ EXPECT_EQ(0u, type_objects.complete_type_object.enumerated_type().enum_flags());
 EXPECT_EQ($enum.bitBound$, type_objects.minimal_type_object.enumerated_type().header().common().bit_bound());
 EXPECT_EQ($enum.bitBound$, type_objects.complete_type_object.enumerated_type().header().common().bit_bound());
 $check_type_detail_annotations(object=enum, type="enumerated_type().header().detail()")$
-EXPECT_EQ("$enum.scopedname$", type_objects.complete_type_object.enumerated_type().header().detail().type_name());
+EXPECT_EQ("$enum.scopedname$", type_objects.complete_type_object.enumerated_type().header().detail().type_name().to_string());
 int32_t enum_literal_id = 0;
 $enum.members: { member | $check_enum_literal(literal=member, parent=enum)$}; separator="\n"$
 ASSERT_EQ($enum.membersSize$, type_objects.minimal_type_object.enumerated_type().literal_seq().size());
@@ -700,7 +720,7 @@ check_enum_literal(literal, parent) ::= <<
     $expected_member_flags(object=literal, typename=literal.name)$
     EXPECT_EQ($literal.name$_expected_flags, type_objects.minimal_type_object.enumerated_type().literal_seq()[pos].common().flags());
     EXPECT_EQ($literal.name$_expected_flags, type_objects.complete_type_object.enumerated_type().literal_seq()[pos].common().flags());
-    EXPECT_EQ("$literal.name$", type_objects.complete_type_object.enumerated_type().literal_seq()[pos].detail().name());
+    EXPECT_EQ("$literal.name$", type_objects.complete_type_object.enumerated_type().literal_seq()[pos].detail().name().to_string());
     EXPECT_EQ(TypeObjectUtils::name_hash("$literal.name$"), type_objects.minimal_type_object.enumerated_type().literal_seq()[pos].detail().name_hash());
     $check_member_detail_annotations(member=literal, type="enumerated_type().literal_seq()[pos].detail()", parent=parent)$
     enum_literal_id++;
@@ -730,7 +750,7 @@ EXPECT_EQ(0u, type_objects.complete_type_object.bitmask_type().bitmask_flags());
 EXPECT_EQ($bitmask.bitBound$, type_objects.minimal_type_object.bitmask_type().header().common().bit_bound());
 EXPECT_EQ($bitmask.bitBound$, type_objects.complete_type_object.bitmask_type().header().common().bit_bound());
 $check_type_detail_annotations(object=bitmask, type="bitmask_type().header().detail()")$
-EXPECT_EQ("$bitmask.scopedname$", type_objects.complete_type_object.bitmask_type().header().detail().type_name());
+EXPECT_EQ("$bitmask.scopedname$", type_objects.complete_type_object.bitmask_type().header().detail().type_name().to_string());
 $bitmask.members: { member | $check_bitmask_flag(bitflag=member, parent=bitmask)$}; separator="\n"$
 ASSERT_EQ($bitmask.membersSize$, type_objects.minimal_type_object.bitmask_type().flag_seq().size());
 ASSERT_EQ($bitmask.membersSize$, type_objects.complete_type_object.bitmask_type().flag_seq().size());
@@ -753,7 +773,7 @@ check_bitmask_flag(bitflag, parent) ::= <<
     EXPECT_EQ($bitflag.position$, type_objects.complete_type_object.bitmask_type().flag_seq()[pos].common().position());
     EXPECT_EQ(0u, type_objects.minimal_type_object.bitmask_type().flag_seq()[pos].common().flags());
     EXPECT_EQ(0u, type_objects.complete_type_object.bitmask_type().flag_seq()[pos].common().flags());
-    EXPECT_EQ("$bitflag.name$", type_objects.complete_type_object.bitmask_type().flag_seq()[pos].detail().name());
+    EXPECT_EQ("$bitflag.name$", type_objects.complete_type_object.bitmask_type().flag_seq()[pos].detail().name().to_string());
     EXPECT_EQ(TypeObjectUtils::name_hash("$bitflag.name$"), type_objects.minimal_type_object.bitmask_type().flag_seq()[pos].detail().name_hash());
     $check_member_detail_annotations(member=bitflag, type="bitmask_type().flag_seq()[pos].detail()", parent=parent)$
 }
@@ -780,7 +800,7 @@ EXPECT_EQ(TK_BITSET, type_objects.complete_type_object._d());
 EXPECT_EQ(0u, type_objects.minimal_type_object.bitset_type().bitset_flags());
 EXPECT_EQ(0u, type_objects.complete_type_object.bitset_type().bitset_flags());
 $check_type_detail_annotations(object=bitset, type="bitset_type().header().detail()")$
-EXPECT_EQ("$bitset.scopedname$", type_objects.complete_type_object.bitset_type().header().detail().type_name());
+EXPECT_EQ("$bitset.scopedname$", type_objects.complete_type_object.bitset_type().header().detail().type_name().to_string());
 $bitset.members: { member | $check_bitfield(bitfield=member, parent=bitset)$}; separator="\n"$
 ASSERT_EQ($bitset.membersSize$, type_objects.minimal_type_object.bitset_type().field_seq().size());
 ASSERT_EQ($bitset.membersSize$, type_objects.complete_type_object.bitset_type().field_seq().size());
@@ -788,6 +808,7 @@ ASSERT_EQ($bitset.membersSize$, type_objects.complete_type_object.bitset_type().
 
 check_bitfield(bitfield, parent) ::= <<
 {
+    $if(bitfield.name)$
     size_t pos = 0;
     bool found = false;
     for (; pos < type_objects.complete_type_object.bitset_type().field_seq().size(); ++pos)
@@ -807,15 +828,10 @@ check_bitfield(bitfield, parent) ::= <<
     EXPECT_EQ($bitfield.spec.bitSize$, type_objects.minimal_type_object.bitset_type().field_seq()[pos].common().bitcount());
     EXPECT_EQ($bitfield.spec.typecode.typeIdentifier$, type_objects.complete_type_object.bitset_type().field_seq()[pos].common().holder_type());
     EXPECT_EQ($bitfield.spec.typecode.typeIdentifier$, type_objects.minimal_type_object.bitset_type().field_seq()[pos].common().holder_type());
-    $if(bitfield.name)$
-    EXPECT_EQ("$bitfield.name$", type_objects.complete_type_object.bitset_type().field_seq()[pos].detail().name());
+    EXPECT_EQ("$bitfield.name$", type_objects.complete_type_object.bitset_type().field_seq()[pos].detail().name().to_string());
     EXPECT_EQ(TypeObjectUtils::name_hash("$bitfield.name$"), type_objects.minimal_type_object.bitset_type().field_seq()[pos].name_hash());
-    $else$
-    NameHash empty_name_hash;
-    EXPECT_EQ("", type_objects.complete_type_object.bitset_type().field_seq()[pos].detail().name());
-    EXPECT_EQ(empty_name_hash, type_objects.minimal_type_object.bitset_type().field_seq()[pos].name_hash());
-    $endif$
     $check_member_detail_annotations(member=bitfield, type="bitset_type().field_seq()[pos].detail()", parent=parent)$
+    $endif$
 }
 >>
 
@@ -898,67 +914,41 @@ MemberFlag $array_name(array=array)$_expected_flags = 0;
 $! $endif$ !$
 TypeIdentifierPair element_type_ids;
 $get_type_identifier(type=array.contentTypeCode, var="element_type_ids")$
-if (type_ids.type_identifier2()._d() == TK_NONE)
+$! TODO: Annotated collections are not yet supported: no TypeObject !$
+if (type_ids.type_identifier1()._d() == TI_PLAIN_ARRAY_SMALL)
 {
-    EXPECT_TRUE((type_ids.type_identifier1()._d() == TI_PLAIN_ARRAY_SMALL &&
-        type_ids.type_identifier1().array_sdefn().header().equiv_kind() == EK_BOTH) ||
-        (type_ids.type_identifier1()._d() == TI_PLAIN_ARRAY_LARGE &&
-        type_ids.type_identifier1().array_ldefn().header().equiv_kind() == EK_BOTH));
-    if (type_ids.type_identifier1()._d() == TI_PLAIN_ARRAY_SMALL)
+    if (type_ids.type_identifier2()._d() == TK_NONE)
     {
-        EXPECT_EQ($array_name(array=array)$_expected_flags, type_ids.type_identifier1().array_sdefn().header().element_flags());
-        $array.evaluatedDimensions: {dimension | $check_array_dimension(dimension=dimension, type="type_ids.type_identifier1().array_sdefn().array_bound_seq()")$}; separator="\n"$
-        EXPECT_EQ($array.evaluatedDimensionsSize$, type_ids.type_identifier1().array_sdefn().array_bound_seq().size());
+        EXPECT_EQ(type_ids.type_identifier1().array_sdefn().header().equiv_kind(), EK_BOTH);
         EXPECT_TRUE(element_type_ids.type_identifier1() == *type_ids.type_identifier1().array_sdefn().element_identifier() ||
             element_type_ids.type_identifier2() == *type_ids.type_identifier1().array_sdefn().element_identifier());
     }
     else
     {
-        EXPECT_EQ($array_name(array=array)$_expected_flags, type_ids.type_identifier1().array_ldefn().header().element_flags());
-        $array.evaluatedDimensions: {dimension | $check_array_dimension(dimension=dimension, type="type_ids.type_identifier1().array_ldefn().array_bound_seq()")$}; separator="\n"$
-        EXPECT_EQ($array.evaluatedDimensionsSize$, type_ids.type_identifier1().array_ldefn().array_bound_seq().size());
-        EXPECT_TRUE(element_type_ids.type_identifier1() == *type_ids.type_identifier1().array_ldefn().element_identifier() ||
-            element_type_ids.type_identifier2() == *type_ids.type_identifier1().array_ldefn().element_identifier());
-    }
-}
-else
-{
-    EXPECT_EQ(type_ids.type_identifier1()._d(), type_ids.type_identifier2()._d());
-    TypeObjectPair type_objects;
-    $get_type_object_registry(typename=array_name(array), result="type_objects")$
-    EXPECT_EQ(TK_ARRAY, type_objects.minimal_type_object._d());
-    EXPECT_EQ(TK_ARRAY, type_objects.complete_type_object._d());
-    EXPECT_EQ(0u, type_objects.complete_type_object.array_type().collection_flag());
-    EXPECT_EQ(0u, type_objects.minimal_type_object.array_type().collection_flag());
-    $array.evaluatedDimensions: {dimension |
-    $check_array_dimension(dimension=dimension, type="type_objects.complete_type_object.array_type().header().common().bound_seq()")$
-    $check_array_dimension(dimension=dimension, type="type_objects.minimal_type_object.array_type().header().common().bound_seq()")$
-    }; separator="\n"$
-    EXPECT_EQ(type_objects.complete_type_object.array_type().header().common().bound_seq().size(), $array.evaluatedDimensionsSize$);
-    EXPECT_EQ(type_objects.minimal_type_object.array_type().header().common().bound_seq().size(), $array.evaluatedDimensionsSize$);
-    $check_type_detail_annotations(object=array, type="array_type().header().detail()")$
-    EXPECT_EQ("", type_objects.complete_type_object.array_type().header().detail().type_name());
-    EXPECT_EQ($array_name(array=array)$_expected_flags, type_objects.complete_type_object.array_type().element().common().element_flags());
-    EXPECT_EQ($array_name(array=array)$_expected_flags, type_objects.minimal_type_object.array_type().element().common().element_flags());
-    EXPECT_TRUE(element_type_ids.type_identifier1() == type_objects.minimal_type_object.array_type().element().common().type() ||
-        element_type_ids.type_identifier1() == type_objects.complete_type_object.array_type().element().common().type());
-    EXPECT_TRUE(element_type_ids.type_identifier2() == type_objects.minimal_type_object.array_type().element().common().type() ||
-        element_type_ids.type_identifier2() == type_objects.complete_type_object.array_type().element().common().type());
-    $check_member_detail_annotations(member=array.contentTypeCode, type="array_type().element().detail()", parent=array)$
-    if (type_ids.type_identifier1()._d() == TI_PLAIN_ARRAY_SMALL)
-    {
         EXPECT_TRUE((type_ids.type_identifier1().array_sdefn().header().equiv_kind() == EK_COMPLETE &&
             type_ids.type_identifier2().array_sdefn().header().equiv_kind() == EK_MINIMAL) ||
             (type_ids.type_identifier1().array_sdefn().header().equiv_kind() == EK_MINIMAL &&
             type_ids.type_identifier2().array_sdefn().header().equiv_kind() == EK_COMPLETE));
-        EXPECT_EQ(type_objects.complete_type_object.array_type().element().common().element_flags(), type_ids.type_identifier1().array_sdefn().header().element_flags());
-        EXPECT_EQ(type_objects.complete_type_object.array_type().header().common().bound_seq().size(), type_ids.type_identifier1().array_sdefn().array_bound_seq().size());
-        for (size_t i = 0; i < type_objects.complete_type_object.array_type().header().common().bound_seq().size(); ++i)
-        {
-            EXPECT_EQ(type_objects.complete_type_object.array_type().header().common().bound_seq()[i], static_cast<uint32_t>(type_ids.type_identifier1().array_sdefn().array_bound_seq()[i]));
-        }
-        EXPECT_TRUE(type_objects.complete_type_object.array_type().element().common().type() == *type_ids.type_identifier1().array_sdefn().element_identifier() ||
-            type_objects.minimal_type_object.array_type().element().common().type() == *type_ids.type_identifier1().array_sdefn().element_identifier());
+        EXPECT_EQ(type_ids.type_identifier1().array_sdefn().header().element_flags(),
+                type_ids.type_identifier2().array_sdefn().header().element_flags());
+        EXPECT_EQ(type_ids.type_identifier1().array_sdefn().array_bound_seq(),
+                type_ids.type_identifier2().array_sdefn().array_bound_seq());
+        EXPECT_TRUE((element_type_ids.type_identifier1() == *type_ids.type_identifier1().array_sdefn().element_identifier() &&
+                element_type_ids.type_identifier2() == *type_ids.type_identifier2().array_sdefn().element_identifier()) ||
+                (element_type_ids.type_identifier1() == *type_ids.type_identifier2().array_sdefn().element_identifier() &&
+                element_type_ids.type_identifier2() == *type_ids.type_identifier1().array_sdefn().element_identifier()));
+    }
+    EXPECT_EQ($array_name(array=array)$_expected_flags, type_ids.type_identifier1().array_sdefn().header().element_flags());
+    $array.evaluatedDimensions: {dimension | $check_array_dimension(dimension=dimension, type="type_ids.type_identifier1().array_sdefn().array_bound_seq()")$}; separator="\n"$
+    EXPECT_EQ($array.evaluatedDimensionsSize$, type_ids.type_identifier1().array_sdefn().array_bound_seq().size());
+}
+else
+{
+    if (type_ids.type_identifier2()._d() == TK_NONE)
+    {
+        EXPECT_EQ(type_ids.type_identifier1().array_ldefn().header().equiv_kind(), EK_BOTH);
+        EXPECT_TRUE(element_type_ids.type_identifier1() == *type_ids.type_identifier1().array_ldefn().element_identifier() ||
+            element_type_ids.type_identifier2() == *type_ids.type_identifier1().array_ldefn().element_identifier());
     }
     else
     {
@@ -966,11 +956,18 @@ else
             type_ids.type_identifier2().array_ldefn().header().equiv_kind() == EK_MINIMAL) ||
             (type_ids.type_identifier1().array_ldefn().header().equiv_kind() == EK_MINIMAL &&
             type_ids.type_identifier2().array_ldefn().header().equiv_kind() == EK_COMPLETE));
-        EXPECT_EQ(type_objects.complete_type_object.array_type().element().common().element_flags(), type_ids.type_identifier1().array_ldefn().header().element_flags());
-        EXPECT_EQ(type_objects.complete_type_object.array_type().header().common().bound_seq(), type_ids.type_identifier1().array_ldefn().array_bound_seq());
-        EXPECT_TRUE(type_objects.complete_type_object.array_type().element().common().type() == *type_ids.type_identifier1().array_ldefn().element_identifier() ||
-            type_objects.minimal_type_object.array_type().element().common().type() == *type_ids.type_identifier1().array_ldefn().element_identifier());
+        EXPECT_EQ(type_ids.type_identifier1().array_ldefn().header().element_flags(),
+                type_ids.type_identifier2().array_ldefn().header().element_flags());
+        EXPECT_EQ(type_ids.type_identifier1().array_ldefn().array_bound_seq(),
+                type_ids.type_identifier2().array_ldefn().array_bound_seq());
+        EXPECT_TRUE((element_type_ids.type_identifier1() == *type_ids.type_identifier1().array_ldefn().element_identifier() &&
+                element_type_ids.type_identifier2() == *type_ids.type_identifier2().array_ldefn().element_identifier()) ||
+                (element_type_ids.type_identifier1() == *type_ids.type_identifier2().array_ldefn().element_identifier() &&
+                element_type_ids.type_identifier2() == *type_ids.type_identifier1().array_ldefn().element_identifier()));
     }
+    EXPECT_EQ($array_name(array=array)$_expected_flags, type_ids.type_identifier1().array_ldefn().header().element_flags());
+    $array.evaluatedDimensions: {dimension | $check_array_dimension(dimension=dimension, type="type_ids.type_identifier1().array_ldefn().array_bound_seq()")$}; separator="\n"$
+    EXPECT_EQ($array.evaluatedDimensionsSize$, type_ids.type_identifier1().array_ldefn().array_bound_seq().size());
 }
 >>
 
@@ -1003,60 +1000,38 @@ MemberFlag $sequence_name(sequence=sequence)$_expected_flags = 0;
 $! $endif$ !$
 TypeIdentifierPair element_type_ids;
 $get_type_identifier(type=sequence.contentTypeCode, var="element_type_ids")$
-if (type_ids.type_identifier2()._d() == TK_NONE)
+if (type_ids.type_identifier1()._d() == TI_PLAIN_SEQUENCE_SMALL)
 {
-    EXPECT_TRUE((type_ids.type_identifier1()._d() == TI_PLAIN_SEQUENCE_SMALL &&
-        type_ids.type_identifier1().seq_sdefn().header().equiv_kind() == EK_BOTH) ||
-        (type_ids.type_identifier1()._d() == TI_PLAIN_SEQUENCE_LARGE &&
-        type_ids.type_identifier1().seq_ldefn().header().equiv_kind() == EK_BOTH));
-    if (type_ids.type_identifier1()._d() == TI_PLAIN_SEQUENCE_SMALL)
+    if (type_ids.type_identifier2()._d() == TK_NONE)
     {
-        EXPECT_EQ($sequence_name(sequence=sequence)$_expected_flags, type_ids.type_identifier1().seq_sdefn().header().element_flags());
-        EXPECT_EQ($sequence.evaluatedMaxsize$, type_ids.type_identifier1().seq_sdefn().bound());
+        EXPECT_EQ(type_ids.type_identifier1().seq_sdefn().header().equiv_kind(), EK_BOTH);
         EXPECT_TRUE(element_type_ids.type_identifier1() == *type_ids.type_identifier1().seq_sdefn().element_identifier() ||
             element_type_ids.type_identifier2() == *type_ids.type_identifier1().seq_sdefn().element_identifier());
     }
     else
     {
-        EXPECT_EQ($sequence_name(sequence=sequence)$_expected_flags, type_ids.type_identifier1().seq_ldefn().header().element_flags());
-        EXPECT_EQ($sequence.evaluatedMaxsize$, type_ids.type_identifier1().seq_ldefn().bound());
-        EXPECT_TRUE(element_type_ids.type_identifier1() == *type_ids.type_identifier1().seq_ldefn().element_identifier() ||
-            element_type_ids.type_identifier2() == *type_ids.type_identifier1().seq_ldefn().element_identifier());
-    }
-}
-else
-{
-    EXPECT_EQ(type_ids.type_identifier1()._d(), type_ids.type_identifier2()._d());
-    TypeObjectPair type_objects;
-    $get_type_object_registry(typename=sequence_name(sequence = sequence), result="type_objects")$
-    EXPECT_EQ(TK_SEQUENCE, type_objects.minimal_type_object._d());
-    EXPECT_EQ(TK_SEQUENCE, type_objects.complete_type_object._d());
-    EXPECT_EQ(0u, type_objects.complete_type_object.sequence_type().collection_flag());
-    EXPECT_EQ(0u, type_objects.minimal_type_object.sequence_type().collection_flag());
-    EXPECT_EQ($sequence.evaluatedMaxsize$, type_objects.complete_type_object.sequence_type().header().common().bound());
-    EXPECT_EQ($sequence.evaluatedMaxsize$, type_objects.minimal_type_object.sequence_type().header().common().bound());
-    if (type_objects.complete_type_object.sequence_type().header().detail().has_value())
-    {
-        $check_type_detail_annotations(object=sequence, type="sequence_type().header().detail().value()")$
-        EXPECT_EQ("", type_objects.complete_type_object.sequence_type().header().detail().value().type_name());
-    }
-    EXPECT_EQ($sequence_name(sequence=sequence)$_expected_flags, type_objects.complete_type_object.sequence_type().element().common().element_flags());
-    EXPECT_EQ($sequence_name(sequence=sequence)$_expected_flags, type_objects.minimal_type_object.sequence_type().element().common().element_flags());
-    EXPECT_TRUE(element_type_ids.type_identifier1() == type_objects.minimal_type_object.sequence_type().element().common().type() ||
-        element_type_ids.type_identifier1() == type_objects.complete_type_object.sequence_type().element().common().type());
-    EXPECT_TRUE(element_type_ids.type_identifier2() == type_objects.minimal_type_object.sequence_type().element().common().type() ||
-        element_type_ids.type_identifier2() == type_objects.complete_type_object.sequence_type().element().common().type());
-    $check_member_detail_annotations(member=sequence.contentTypeCode, type="sequence_type().element().detail()", parent=sequence)$
-    if (type_ids.type_identifier1()._d() == TI_PLAIN_SEQUENCE_SMALL)
-    {
         EXPECT_TRUE((type_ids.type_identifier1().seq_sdefn().header().equiv_kind() == EK_COMPLETE &&
             type_ids.type_identifier2().seq_sdefn().header().equiv_kind() == EK_MINIMAL) ||
             (type_ids.type_identifier1().seq_sdefn().header().equiv_kind() == EK_MINIMAL &&
             type_ids.type_identifier2().seq_sdefn().header().equiv_kind() == EK_COMPLETE));
-        EXPECT_EQ(type_objects.complete_type_object.sequence_type().element().common().element_flags(), type_ids.type_identifier1().seq_sdefn().header().element_flags());
-        EXPECT_EQ(type_objects.complete_type_object.sequence_type().header().common().bound(), static_cast<uint32_t>(type_ids.type_identifier1().seq_sdefn().bound()));
-        EXPECT_TRUE(type_objects.complete_type_object.sequence_type().element().common().type() == *type_ids.type_identifier1().seq_sdefn().element_identifier() ||
-            type_objects.minimal_type_object.sequence_type().element().common().type() == *type_ids.type_identifier1().seq_sdefn().element_identifier());
+        EXPECT_EQ(type_ids.type_identifier1().seq_sdefn().header().element_flags(),
+                type_ids.type_identifier2().seq_sdefn().header().element_flags());
+        EXPECT_EQ(type_ids.type_identifier1().seq_sdefn().bound(), type_ids.type_identifier2().seq_sdefn().bound());
+        EXPECT_TRUE((element_type_ids.type_identifier1() == *type_ids.type_identifier1().seq_sdefn().element_identifier() &&
+                element_type_ids.type_identifier2() == *type_ids.type_identifier2().seq_sdefn().element_identifier()) ||
+                (element_type_ids.type_identifier1() == *type_ids.type_identifier2().seq_sdefn().element_identifier() &&
+                element_type_ids.type_identifier2() == *type_ids.type_identifier1().seq_sdefn().element_identifier()));
+    }
+    EXPECT_EQ($sequence_name(sequence=sequence)$_expected_flags, type_ids.type_identifier1().seq_sdefn().header().element_flags());
+    EXPECT_EQ($if(sequence.unbound)$0$else$$sequence.evaluatedMaxsize$$endif$, type_ids.type_identifier1().seq_sdefn().bound());
+}
+else
+{
+    if (type_ids.type_identifier2()._d() == TK_NONE)
+    {
+        EXPECT_EQ(type_ids.type_identifier1().seq_ldefn().header().equiv_kind(), EK_BOTH);
+        EXPECT_TRUE(element_type_ids.type_identifier1() == *type_ids.type_identifier1().seq_ldefn().element_identifier() ||
+            element_type_ids.type_identifier2() == *type_ids.type_identifier1().seq_ldefn().element_identifier());
     }
     else
     {
@@ -1064,11 +1039,16 @@ else
             type_ids.type_identifier2().seq_ldefn().header().equiv_kind() == EK_MINIMAL) ||
             (type_ids.type_identifier1().seq_ldefn().header().equiv_kind() == EK_MINIMAL &&
             type_ids.type_identifier2().seq_ldefn().header().equiv_kind() == EK_COMPLETE));
-        EXPECT_EQ(type_objects.complete_type_object.sequence_type().element().common().element_flags(), type_ids.type_identifier1().seq_ldefn().header().element_flags());
-        EXPECT_EQ(type_objects.complete_type_object.sequence_type().header().common().bound(), type_ids.type_identifier1().seq_ldefn().bound());
-        EXPECT_TRUE(type_objects.complete_type_object.sequence_type().element().common().type() == *type_ids.type_identifier1().seq_ldefn().element_identifier() ||
-            type_objects.minimal_type_object.sequence_type().element().common().type() == *type_ids.type_identifier1().seq_ldefn().element_identifier());
+        EXPECT_EQ(type_ids.type_identifier1().seq_ldefn().header().element_flags(),
+                type_ids.type_identifier2().seq_ldefn().header().element_flags());
+        EXPECT_EQ(type_ids.type_identifier1().seq_ldefn().bound(), type_ids.type_identifier2().seq_ldefn().bound());
+        EXPECT_TRUE((element_type_ids.type_identifier1() == *type_ids.type_identifier1().seq_ldefn().element_identifier() &&
+                element_type_ids.type_identifier2() == *type_ids.type_identifier2().seq_ldefn().element_identifier()) ||
+                (element_type_ids.type_identifier1() == *type_ids.type_identifier2().seq_ldefn().element_identifier() &&
+                element_type_ids.type_identifier2() == *type_ids.type_identifier1().seq_ldefn().element_identifier()));
     }
+    EXPECT_EQ($sequence_name(sequence=sequence)$_expected_flags, type_ids.type_identifier1().seq_ldefn().header().element_flags());
+    EXPECT_EQ($if(sequence.unbound)$0$else$$sequence.evaluatedMaxsize$$endif$, type_ids.type_identifier1().seq_ldefn().bound());
 }
 >>
 
@@ -1101,73 +1081,65 @@ TypeIdentifierPair key_type_ids;
 $get_type_identifier(type=map.keyTypeCode, var="key_type_ids")$
 TypeIdentifierPair element_type_ids;
 $get_type_identifier(type=map.valueTypeCode, var="element_type_ids")$
-if (type_ids.type_identifier2()._d() == TK_NONE)
+if (type_ids.type_identifier1()._d() == TI_PLAIN_MAP_SMALL)
 {
-    EXPECT_TRUE((type_ids.type_identifier1()._d() == TI_PLAIN_MAP_SMALL &&
-        type_ids.type_identifier1().map_sdefn().header().equiv_kind() == EK_BOTH) ||
-        (type_ids.type_identifier1()._d() == TI_PLAIN_MAP_LARGE &&
-        type_ids.type_identifier1().map_ldefn().header().equiv_kind() == EK_BOTH));
-    if (type_ids.type_identifier1()._d() == TI_PLAIN_MAP_SMALL)
+    if (type_ids.type_identifier2()._d() == TK_NONE)
     {
-        EXPECT_EQ($map_name(map=map)$_expected_flags, type_ids.type_identifier1().map_sdefn().header().element_flags());
-        EXPECT_EQ($map.evaluatedMaxsize$, type_ids.type_identifier1().map_sdefn().bound());
+        EXPECT_EQ(type_ids.type_identifier1().map_sdefn().header().equiv_kind(), EK_BOTH);
         EXPECT_TRUE(element_type_ids.type_identifier1() == *type_ids.type_identifier1().map_sdefn().element_identifier() ||
             element_type_ids.type_identifier2() == *type_ids.type_identifier1().map_sdefn().element_identifier());
-        EXPECT_EQ(key_$map_name(map=map)$_expected_flags, type_ids.type_identifier1().map_sdefn().key_flags());
         EXPECT_TRUE(key_type_ids.type_identifier1() == *type_ids.type_identifier1().map_sdefn().key_identifier() ||
             key_type_ids.type_identifier2() == *type_ids.type_identifier1().map_sdefn().key_identifier());
     }
     else
     {
-        EXPECT_EQ($map_name(map=map)$_expected_flags, type_ids.type_identifier1().map_ldefn().header().element_flags());
-        EXPECT_EQ($map.evaluatedMaxsize$, type_ids.type_identifier1().map_ldefn().bound());
-        EXPECT_TRUE(element_type_ids.type_identifier1() == *type_ids.type_identifier1().map_ldefn().element_identifier() ||
-            element_type_ids.type_identifier2() == *type_ids.type_identifier1().map_ldefn().element_identifier());
-        EXPECT_EQ(key_$map_name(map=map)$_expected_flags, type_ids.type_identifier1().map_ldefn().key_flags());
-        EXPECT_TRUE(key_type_ids.type_identifier1() == *type_ids.type_identifier1().map_ldefn().key_identifier() ||
-            key_type_ids.type_identifier2() == *type_ids.type_identifier1().map_ldefn().key_identifier());
-    }
-}
-else
-{
-    EXPECT_EQ(type_ids.type_identifier1()._d(), type_ids.type_identifier2()._d());
-    TypeObjectPair type_objects;
-    $get_type_object_registry(typename=map_name(map = map), result="type_objects")$
-    EXPECT_EQ(TK_MAP, type_objects.minimal_type_object._d());
-    EXPECT_EQ(TK_MAP, type_objects.complete_type_object._d());
-    EXPECT_EQ(0u, type_objects.complete_type_object.map_type().collection_flag());
-    EXPECT_EQ(0u, type_objects.minimal_type_object.map_type().collection_flag());
-    EXPECT_EQ($map.evaluatedMaxsize$, type_objects.complete_type_object.map_type().header().common().bound());
-    EXPECT_EQ($map.evaluatedMaxsize$, type_objects.minimal_type_object.map_type().header().common().bound());
-    if (type_objects.complete_type_object.map_type().header().detail().has_value())
-    {
-        $check_type_detail_annotations(object=map, type="map_type().header().detail().value()")$
-        EXPECT_EQ("", type_objects.complete_type_object.map_type().header().detail().value().type_name());
-    }
-    EXPECT_EQ(key_$map_name(map=map)$_expected_flags, type_objects.complete_type_object.map_type().key().common().element_flags());
-    EXPECT_EQ(key_$map_name(map=map)$_expected_flags, type_objects.minimal_type_object.map_type().key().common().element_flags());
-    EXPECT_TRUE(key_type_ids.type_identifier1() == type_objects.minimal_type_object.map_type().key().common().type() ||
-        key_type_ids.type_identifier1() == type_objects.complete_type_object.map_type().key().common().type());
-    EXPECT_TRUE(key_type_ids.type_identifier2() == type_objects.minimal_type_object.map_type().key().common().type() ||
-        key_type_ids.type_identifier2() == type_objects.complete_type_object.map_type().key().common().type());
-    $check_member_detail_annotations(member=map.keyTypeCode, type="map_type().key().detail()", parent=map)$
-    EXPECT_EQ($map_name(map=map)$_expected_flags, type_objects.complete_type_object.map_type().element().common().element_flags());
-    EXPECT_EQ($map_name(map=map)$_expected_flags, type_objects.minimal_type_object.map_type().element().common().element_flags());
-    EXPECT_TRUE(element_type_ids.type_identifier1() == type_objects.minimal_type_object.map_type().element().common().type() ||
-        element_type_ids.type_identifier1() == type_objects.complete_type_object.map_type().element().common().type());
-    EXPECT_TRUE(element_type_ids.type_identifier2() == type_objects.minimal_type_object.map_type().element().common().type() ||
-        element_type_ids.type_identifier2() == type_objects.complete_type_object.map_type().element().common().type());
-    $check_member_detail_annotations(member=map.valueTypeCode, type="map_type().element().detail()", parent=map)$
-    if (type_ids.type_identifier1()._d() == TI_PLAIN_MAP_SMALL)
-    {
         EXPECT_TRUE((type_ids.type_identifier1().map_sdefn().header().equiv_kind() == EK_COMPLETE &&
             type_ids.type_identifier2().map_sdefn().header().equiv_kind() == EK_MINIMAL) ||
             (type_ids.type_identifier1().map_sdefn().header().equiv_kind() == EK_MINIMAL &&
             type_ids.type_identifier2().map_sdefn().header().equiv_kind() == EK_COMPLETE));
-        EXPECT_EQ(type_objects.complete_type_object.map_type().element().common().element_flags(), type_ids.type_identifier1().map_sdefn().header().element_flags());
-        EXPECT_EQ(type_objects.complete_type_object.map_type().header().common().bound(), static_cast<uint32_t>(type_ids.type_identifier1().map_sdefn().bound()));
-        EXPECT_TRUE(type_objects.complete_type_object.map_type().element().common().type() == *type_ids.type_identifier1().map_sdefn().element_identifier() ||
-            type_objects.minimal_type_object.map_type().element().common().type() == *type_ids.type_identifier1().map_sdefn().element_identifier());
+        EXPECT_EQ(type_ids.type_identifier1().map_sdefn().header().element_flags(),
+                type_ids.type_identifier2().map_sdefn().header().element_flags());
+        EXPECT_EQ(type_ids.type_identifier1().map_sdefn().bound(), type_ids.type_identifier2().map_sdefn().bound());
+        if (type_ids.type_identifier1().map_sdefn().element_identifier()->_d() == EK_COMPLETE ||
+                type_ids.type_identifier1().map_sdefn().element_identifier()->_d() == EK_MINIMAL)
+        {
+            EXPECT_TRUE((element_type_ids.type_identifier1() == *type_ids.type_identifier1().map_sdefn().element_identifier() &&
+                    element_type_ids.type_identifier2() == *type_ids.type_identifier2().map_sdefn().element_identifier()) ||
+                    (element_type_ids.type_identifier1() == *type_ids.type_identifier2().map_sdefn().element_identifier() &&
+                    element_type_ids.type_identifier2() == *type_ids.type_identifier1().map_sdefn().element_identifier()));
+        }
+        else
+        {
+            EXPECT_EQ(element_type_ids.type_identifier1(), *type_ids.type_identifier1().map_sdefn().element_identifier());
+            EXPECT_EQ(*type_ids.type_identifier1().map_sdefn().element_identifier(), *type_ids.type_identifier2().map_sdefn().element_identifier());
+        }
+        if (type_ids.type_identifier1().map_sdefn().key_identifier()->_d() == EK_COMPLETE ||
+                type_ids.type_identifier1().map_sdefn().key_identifier()->_d() == EK_MINIMAL)
+        {
+            EXPECT_TRUE((key_type_ids.type_identifier1() == *type_ids.type_identifier1().map_sdefn().key_identifier() &&
+                    key_type_ids.type_identifier2() == *type_ids.type_identifier2().map_sdefn().key_identifier()) ||
+                    (key_type_ids.type_identifier1() == *type_ids.type_identifier2().map_sdefn().key_identifier() &&
+                    key_type_ids.type_identifier2() == *type_ids.type_identifier1().map_sdefn().key_identifier()));
+        }
+        else
+        {
+            EXPECT_EQ(key_type_ids.type_identifier1(), *type_ids.type_identifier1().map_sdefn().key_identifier());
+            EXPECT_EQ(*type_ids.type_identifier1().map_sdefn().key_identifier(), *type_ids.type_identifier2().map_sdefn().key_identifier());
+        }
+    }
+    EXPECT_EQ($map_name(map=map)$_expected_flags, type_ids.type_identifier1().map_sdefn().header().element_flags());
+    EXPECT_EQ($if(map.unbound)$0$else$$map.evaluatedMaxsize$$endif$, type_ids.type_identifier1().map_sdefn().bound());
+    EXPECT_EQ(key_$map_name(map=map)$_expected_flags, type_ids.type_identifier1().map_sdefn().key_flags());
+}
+else
+{
+    if (type_ids.type_identifier2()._d() == TK_NONE)
+    {
+        EXPECT_EQ(type_ids.type_identifier1().map_ldefn().header().equiv_kind(), EK_BOTH);
+        EXPECT_TRUE(element_type_ids.type_identifier1() == *type_ids.type_identifier1().map_ldefn().element_identifier() ||
+            element_type_ids.type_identifier2() == *type_ids.type_identifier1().map_ldefn().element_identifier());
+        EXPECT_TRUE(key_type_ids.type_identifier1() == *type_ids.type_identifier1().map_ldefn().key_identifier() ||
+            key_type_ids.type_identifier2() == *type_ids.type_identifier1().map_ldefn().key_identifier());
     }
     else
     {
@@ -1175,11 +1147,39 @@ else
             type_ids.type_identifier2().map_ldefn().header().equiv_kind() == EK_MINIMAL) ||
             (type_ids.type_identifier1().map_ldefn().header().equiv_kind() == EK_MINIMAL &&
             type_ids.type_identifier2().map_ldefn().header().equiv_kind() == EK_COMPLETE));
-        EXPECT_EQ(type_objects.complete_type_object.map_type().element().common().element_flags(), type_ids.type_identifier1().map_ldefn().header().element_flags());
-        EXPECT_EQ(type_objects.complete_type_object.map_type().header().common().bound(), type_ids.type_identifier1().map_ldefn().bound());
-        EXPECT_TRUE(type_objects.complete_type_object.map_type().element().common().type() == *type_ids.type_identifier1().map_ldefn().element_identifier() ||
-            type_objects.minimal_type_object.map_type().element().common().type() == *type_ids.type_identifier1().map_ldefn().element_identifier());
+        EXPECT_EQ(type_ids.type_identifier1().map_ldefn().header().element_flags(),
+                type_ids.type_identifier2().map_ldefn().header().element_flags());
+        EXPECT_EQ(type_ids.type_identifier1().map_ldefn().bound(), type_ids.type_identifier2().map_ldefn().bound());
+        if (type_ids.type_identifier1().map_ldefn().element_identifier()->_d() == EK_COMPLETE ||
+                type_ids.type_identifier1().map_ldefn().element_identifier()->_d() == EK_MINIMAL)
+        {
+            EXPECT_TRUE((element_type_ids.type_identifier1() == *type_ids.type_identifier1().map_ldefn().element_identifier() &&
+                    element_type_ids.type_identifier2() == *type_ids.type_identifier2().map_ldefn().element_identifier()) ||
+                    (element_type_ids.type_identifier1() == *type_ids.type_identifier2().map_ldefn().element_identifier() &&
+                    element_type_ids.type_identifier2() == *type_ids.type_identifier1().map_ldefn().element_identifier()));
+        }
+        else
+        {
+            EXPECT_EQ(element_type_ids.type_identifier1(), *type_ids.type_identifier1().map_ldefn().element_identifier());
+            EXPECT_EQ(*type_ids.type_identifier1().map_ldefn().element_identifier(), *type_ids.type_identifier2().map_ldefn().element_identifier());
+        }
+        if (type_ids.type_identifier1().map_ldefn().key_identifier()->_d() == EK_COMPLETE ||
+                type_ids.type_identifier1().map_ldefn().key_identifier()->_d() == EK_MINIMAL)
+        {
+            EXPECT_TRUE((key_type_ids.type_identifier1() == *type_ids.type_identifier1().map_ldefn().key_identifier() &&
+                    key_type_ids.type_identifier2() == *type_ids.type_identifier2().map_ldefn().key_identifier()) ||
+                    (key_type_ids.type_identifier1() == *type_ids.type_identifier2().map_ldefn().key_identifier() &&
+                    key_type_ids.type_identifier2() == *type_ids.type_identifier1().map_ldefn().key_identifier()));
+        }
+        else
+        {
+            EXPECT_EQ(key_type_ids.type_identifier1(), *type_ids.type_identifier1().map_ldefn().key_identifier());
+            EXPECT_EQ(*type_ids.type_identifier1().map_ldefn().key_identifier(), *type_ids.type_identifier2().map_ldefn().key_identifier());
+        }
     }
+    EXPECT_EQ($map_name(map=map)$_expected_flags, type_ids.type_identifier1().map_ldefn().header().element_flags());
+    EXPECT_EQ($if(map.unbound)$0$else$$map.evaluatedMaxsize$$endif$, type_ids.type_identifier1().map_ldefn().bound());
+    EXPECT_EQ(key_$map_name(map=map)$_expected_flags, type_ids.type_identifier1().map_ldefn().key_flags());
 }
 >>
 
@@ -1200,11 +1200,11 @@ EXPECT_EQ(TK_NONE, type_ids.type_identifier2()._d());
 EXPECT_TRUE(TI_STRING8_SMALL == type_ids.type_identifier1()._d() || TI_STRING8_LARGE == type_ids.type_identifier1()._d());
 if (type_ids.type_identifier1()._d() == TI_STRING8_SMALL)
 {
-    EXPECT_EQ($if(string.isBounded)$$string.evaluatedMaxsize$$else$4294967295$endif$, type_ids.type_identifier1().string_sdefn().bound());
+    EXPECT_EQ($if(string.isBounded)$$string.evaluatedMaxsize$$else$0$endif$, type_ids.type_identifier1().string_sdefn().bound());
 }
 else
 {
-    EXPECT_EQ($if(string.isBounded)$$string.evaluatedMaxsize$$else$4294967295$endif$, type_ids.type_identifier1().string_ldefn().bound());
+    EXPECT_EQ($if(string.isBounded)$$string.evaluatedMaxsize$$else$0$endif$, type_ids.type_identifier1().string_ldefn().bound());
 }
 >>
 
@@ -1222,14 +1222,14 @@ ReturnCode_t ret_code;
 TypeIdentifierPair type_ids;
 $get_type_identifier_registry(typename=wstring_name(wstring), result="type_ids")$
 EXPECT_EQ(TK_NONE, type_ids.type_identifier2()._d());
-EXPECT_TRUE(TI_STRING8_SMALL == type_ids.type_identifier1()._d() || TI_STRING8_LARGE == type_ids.type_identifier1()._d());
-if (type_ids.type_identifier1()._d() == TI_STRING8_SMALL)
+EXPECT_TRUE(TI_STRING16_SMALL == type_ids.type_identifier1()._d() || TI_STRING16_LARGE == type_ids.type_identifier1()._d());
+if (type_ids.type_identifier1()._d() == TI_STRING16_SMALL)
 {
-    EXPECT_EQ($if(wstring.isBounded)$$wstring.evaluatedMaxsize$$else$4294967295$endif$, type_ids.type_identifier1().string_sdefn().bound());
+    EXPECT_EQ($if(wstring.isBounded)$$wstring.evaluatedMaxsize$$else$0$endif$, type_ids.type_identifier1().string_sdefn().bound());
 }
 else
 {
-    EXPECT_EQ($if(wstring.isBounded)$$wstring.evaluatedMaxsize$$else$4294967295$endif$, type_ids.type_identifier1().string_ldefn().bound());
+    EXPECT_EQ($if(wstring.isBounded)$$wstring.evaluatedMaxsize$$else$0$endif$, type_ids.type_identifier1().string_ldefn().bound());
 }
 >>
 
