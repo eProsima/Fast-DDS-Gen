@@ -664,7 +664,7 @@ $! TODO(jlbueno): annotated collections generate TypeObject instead of TypeIdent
                   pending implementation of annotated collection support !$
 $get_type_identifier(type=map.valueTypeCode)$
 $check_register_type_identifier(type=map.valueTypeCode, message="Map element")$
-TypeIdentifier* element_identifier;
+TypeIdentifier* element_identifier {nullptr};
 $check_first_returned_type_identifier_pair()$
 {
     element_identifier = new TypeIdentifier(type_ids.type_identifier1());
@@ -677,10 +677,11 @@ else
 {
     EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
         "$map_name(map)$ inconsistent element TypeIdentifier.");
+    return;
 }
 $get_type_identifier(type=map.keyTypeCode)$
 $check_register_type_identifier(type=map.keyTypeCode, message="Map key")$
-TypeIdentifier* key_identifier;
+TypeIdentifier* key_identifier {nullptr};
 $check_first_returned_type_identifier_pair()$
 {
     key_identifier = new TypeIdentifier(type_ids.type_identifier1());
@@ -693,6 +694,7 @@ else
 {
     EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
         "$map_name(map)$ inconsistent key TypeIdentifier.");
+    return;
 }
 EquivalenceKind equiv_kind = EK_BOTH;
 if (EK_COMPLETE == element_identifier->_d() ||
@@ -1086,7 +1088,7 @@ $endif$
 plain_collection_header(type, message) ::= <<
 $get_type_identifier(type=type)$
 $check_register_type_identifier(type=type, message=message)$
-TypeIdentifier* element_identifier;
+TypeIdentifier* element_identifier {nullptr};
 $check_first_returned_type_identifier_pair()$
 {
     element_identifier = new TypeIdentifier(type_ids.type_identifier1());
@@ -1099,6 +1101,7 @@ else
 {
     EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
         "$message$ TypeIdentifier inconsistent.");
+    return;
 }
 EquivalenceKind equiv_kind = EK_COMPLETE;
 if (TK_NONE == type_ids.type_identifier2()._d())
