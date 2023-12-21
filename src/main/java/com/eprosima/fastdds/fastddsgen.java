@@ -307,6 +307,7 @@ public class fastddsgen
             else if (arg.equals(no_typesupport_arg))
             {
                 generate_typesupport_ = false;
+                generate_typeobjectsupport_ = false;
             }
             else if (arg.equals(no_dependencies_arg))
             {
