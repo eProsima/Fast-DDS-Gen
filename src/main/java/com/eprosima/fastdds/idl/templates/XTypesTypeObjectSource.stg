@@ -28,7 +28,7 @@ $fileHeader(ctx=ctx, file=[ctx.filename, "TypeObjectSupport.cxx"], description=[
 #include <fastcdr/xcdr/optional.hpp>
 #include <fastdds/dds/domain/DomainParticipantFactory.hpp>
 #include <fastdds/dds/log/Log.hpp>
-#include <fastdds/dds/xtypes/dynamic_types/Types.hpp>
+#include <fastdds/dds/xtypes/common.hpp>
 #include <fastdds/dds/xtypes/type_representation/ITypeObjectRegistry.hpp>
 #include <fastdds/dds/xtypes/type_representation/TypeObject.hpp>
 #include <fastdds/dds/xtypes/type_representation/TypeObjectUtils.hpp>
@@ -1063,25 +1063,25 @@ if (return_code != eprosima::fastdds::dds::RETCODE_OK)
 
 extensibility(object) ::= <%
 $if (object.annotationExtensibilityNotApplied)$
-    ExtensibilityKind::NOT_APPLIED,
+    eprosima::fastdds::dds::xtypes::ExtensibilityKind::NOT_APPLIED,
 $elseif (object.annotationAppendable)$
-    ExtensibilityKind::APPENDABLE,
+    eprosima::fastdds::dds::xtypes::ExtensibilityKind::APPENDABLE,
 $elseif (object.annotationFinal)$
-    ExtensibilityKind::FINAL,
+    eprosima::fastdds::dds::xtypes::ExtensibilityKind::FINAL,
 $elseif (object.annotationMutable)$
-    ExtensibilityKind::MUTABLE,
+    eprosima::fastdds::dds::xtypes::ExtensibilityKind::MUTABLE,
 $endif$
 %>
 
 try_construct(object) ::= <%
 $if (!object.annotationTryConstruct)$
-    TryConstructKind::NOT_APPLIED,
+    eprosima::fastdds::dds::xtypes::TryConstructKind::NOT_APPLIED,
 $elseif (object.annotationDiscard)$
-    TryConstructKind::DISCARD,
+    eprosima::fastdds::dds::xtypes::TryConstructKind::DISCARD,
 $elseif (object.annotationUseDefault)$
-    TryConstructKind::USE_DEFAULT,
+    eprosima::fastdds::dds::xtypes::TryConstructKind::USE_DEFAULT,
 $elseif (object.annotationTrim)$
-    TryConstructKind::TRIM,
+    eprosima::fastdds::dds::xtypes::TryConstructKind::TRIM,
 $endif$
 %>
 
@@ -1112,3 +1112,17 @@ $! TODO(jlbueno) Annotated collections not yet supported !$
 CollectionElementFlag element_flags = 0;
 PlainCollectionHeader header = TypeObjectUtils::build_plain_collection_header(equiv_kind, element_flags);
 >>
+
+//{ Fast DDS-Gen extensions
+module_conversion(ctx, parent, modules, definition_list) ::= <<
+$modules : { module |
+namespace $module.name$ {
+}; separator="\n"$
+
+$definition_list$
+
+$reverse(modules) : { module |
+\} // namespace $module.name$
+}; separator="\n"$
+>>
+//}
