@@ -755,7 +755,6 @@ CommonEnumeratedHeader common = TypeObjectUtils::build_common_enumerated_header(
 $complete_type_detail(type=enum, type_kind=" Enum")$
 CompleteEnumeratedHeader header = TypeObjectUtils::build_complete_enumerated_header(common, detail);
 CompleteEnumeratedLiteralSeq literal_seq;
-int32_t value = 0; // TODO(jlbueno): remove
 $enum.members: { member | $enum_literal(literal=member, parent=enum)$}; separator="\n"$
 CompleteEnumeratedType enumerated_type = TypeObjectUtils::build_complete_enumerated_type(enum_flags, header,
         literal_seq);
@@ -777,9 +776,7 @@ if (return_code != eprosima::fastdds::dds::RETCODE_OK)
 enum_literal(literal, parent) ::= <<
 {
     EnumeratedLiteralFlag flags = TypeObjectUtils::build_enumerated_literal_flag($literal.annotationDefaultLiteral$);
-    // TODO(jlbueno): getIndex
-    CommonEnumeratedLiteral common = TypeObjectUtils::build_common_enumerated_literal(value, flags);
-    value++; // TODO(jlbueno): remove
+    CommonEnumeratedLiteral common = TypeObjectUtils::build_common_enumerated_literal($literal.index$, flags);
     $empty_ann_builtin_complete_member_detail(member=literal, parent=parent, message=[parent.scopedname, " Enumerated ", literal.name, " literal: only @default_literal and @value builtin annotations apply to literals"])$
     CompleteEnumeratedLiteral literal = TypeObjectUtils::build_complete_enumerated_literal(common, detail);
     TypeObjectUtils::add_complete_enumerated_literal(literal_seq, literal);
@@ -952,23 +949,15 @@ eprosima::fastcdr::optional<AppliedBuiltinMemberAnnotations> member_ann_builtin;
 ann_custom.reset();
 $if (member.annotationList)$
 AppliedAnnotationSeq tmp_ann_custom;
-eprosima::fastcdr::optional<std::string> unit;
-eprosima::fastcdr::optional<AnnotationParameterValue> min;
-eprosima::fastcdr::optional<AnnotationParameterValue> max;
-eprosima::fastcdr::optional<std::string> hash_id;
 $member.annotationList : { annotation |
 $if (annotation.isUnit || annotation.isMin || annotation.isMax || annotation.isRange || annotation.isHashId)$
 EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
-        "$parent.scopedname$ Enumerated $member.name$ literal: only @default_literal and @value builtin annotations apply to literals");
+        "$message$");
 return;
 $elseif (!annotation.isBuiltin)$
 $applied_annotation_sequence(annotation=annotation, typename=[parent.scopedname, " ", member.name, " member"])$
 $endif$
 }; separator="\n"$
-if (unit.has_value() || min.has_value() || max.has_value() || hash_id.has_value())
-{
-    member_ann_builtin = TypeObjectUtils::build_applied_builtin_member_annotations(unit, min, max, hash_id);
-}
 if (!tmp_ann_custom.empty())
 {
     ann_custom = tmp_ann_custom;
