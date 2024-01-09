@@ -388,10 +388,12 @@ eProsima_user_DllExport void deserialize(
                             $union.membersDefaultAtEnd:{ member | $if(member.printable)$
                             $member.labels:{ label |case $label$:}; separator="\n"$
                             $if(member.default)$default:$endif$
-                                if (mid != $if(union.annotationMutable || member.annotationOptional)$$member.id$$else$$member.index$$endif$)
+                                $if(union.annotationMutable || member.annotationOptional)$
+                                if (mid != $member.id$)
                                 {
                                     throw BadParamException("Deserializing union member $member.name$ the MemberId doesn't match");
                                 \}
+                                $endif$
                                 dcdr \>> data.$member.name$();
                                 break;
                             $endif$
