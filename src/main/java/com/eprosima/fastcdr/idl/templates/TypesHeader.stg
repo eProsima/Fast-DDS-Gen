@@ -56,10 +56,6 @@ $endif$
 
 $ctx.directIncludeDependencies : {include | #include "$include$.hpp"}; separator="\n"$
 
-$if (ctx.generateTypeObjectSupport)$
-#include "$ctx.filename$TypeObjectSupport.hpp"
-$endif$
-
 #if defined(_WIN32)
 #if defined(EPROSIMA_USER_DLL_EXPORT)
 #define eProsima_user_DllExport __declspec( dllexport )
@@ -157,10 +153,6 @@ public:
         : $struct_inherit_default_init(struct.inheritance)$
         $endif$
     {
-        $if (ctx.generateTypeObjectSupport)$
-        // Register TypeObject in Fast DDS DomainParticipantFactory TypeObjectRegistry.
-        register_$ctx.filename$_type_objects();
-        $endif$
     }
 
     /*!
@@ -307,11 +299,6 @@ public:
         m__d = $union.defaultvalue$;
         $else$
         m__d = $first(first(union.members).labels)$;
-        $endif$
-
-        $if (ctx.generateTypeObjectSupport)$
-        // Register TypeObject in Fast DDS DomainParticipantFactory TypeObjectRegistry.
-        register_$ctx.filename$_type_objects();
         $endif$
     }
 

@@ -19,11 +19,15 @@ import "eprosima.stg"
 main(ctx, definitions) ::= <<
 $fileHeader(ctx=ctx,  file=[ctx.filename, "PubSubTypes.cpp"], description=["This header file contains the implementation of the serialization functions."])$
 
+#include "$ctx.filename$PubSubTypes.h"
 
+#include <fastdds/dds/log/Log.hpp>
 #include <fastdds/rtps/common/CdrSerialization.hpp>
 
-#include "$ctx.filename$PubSubTypes.h"
 #include "$ctx.filename$CdrAux.hpp"
+$if (ctx.generateTypeObjectSupport)$
+#include "$ctx.filename$TypeObjectSupport.hpp"
+$endif$
 
 using SerializedPayload_t = eprosima::fastrtps::rtps::SerializedPayload_t;
 using InstanceHandle_t = eprosima::fastrtps::rtps::InstanceHandle_t;
@@ -233,6 +237,16 @@ bool $struct.name$PubSubType::getKey(
         }
     }
     return true;
+}
+
+void $struct.name$PubSubType::register_type_object_representation() const
+{
+    $if (ctx.generateTypeObjectSupport)$
+    register_$ctx.filename$_type_objects();
+    $else$
+    EPROSIMA_LOG_WARNING(XTYPES_TYPE_REPRESENTATION,
+        "TypeObject type representation support disabled in generated code");
+    $endif$
 }
 
 >>
