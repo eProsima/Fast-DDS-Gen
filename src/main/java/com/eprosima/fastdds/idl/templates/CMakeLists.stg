@@ -16,7 +16,7 @@ group CMakeLists;
 
 cmakelists(solution, test) ::= <<
 
-cmake_minimum_required(VERSION 3.22)
+cmake_minimum_required(VERSION 3.20)
 
 project("generated_code")
 
