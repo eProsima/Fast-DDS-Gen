@@ -17,7 +17,7 @@ apply plugin: 'java-library'
 apply plugin: 'eclipse' // Eclipse integration
 
 description = """"""
-def version_str = "3.2.0"
+def version_str = "3.2.1"
 
 import org.apache.tools.ant.taskdefs.condition.Os;
 import org.gradle.api.tasks.options.Option;
