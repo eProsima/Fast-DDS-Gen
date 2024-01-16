@@ -108,89 +108,69 @@ $if (!object.scope.empty)$$object.scope$::$endif$register_$object.CScopedname$_t
 $endif$
 >>
 
-get_type_identifier(type) ::= <<
+get_type_identifier(type, name) ::= <<
 $if (type.isAliasType)$
-$get_type_identifier_registry(typename=type.scopedname)$
+$get_type_identifier_registry(typename=type.scopedname, name=name)$
 $elseif (type.isByteType)$
-$get_type_identifier_registry(typename="_byte")$
+$get_type_identifier_registry(typename="_byte", name=name)$
 $elseif (type.primitive && !type.isEnumType)$
-$get_type_identifier_registry(typename=["_", type.cppTypenameForTypeId])$
+$get_type_identifier_registry(typename=["_", type.cppTypenameForTypeId], name=name)$
 $elseif (type.isStringType)$
-$get_type_identifier_registry(typename=string_name(string=type))$
+$get_type_identifier_registry(typename=string_name(string=type), name=name)$
 $elseif (type.isWStringType)$
-$get_type_identifier_registry(typename=wstring_name(wstring=type))$
+$get_type_identifier_registry(typename=wstring_name(wstring=type), name=name)$
 $elseif (type.isArrayType)$
-$get_type_identifier_registry(typename=array_name(array=type))$
+$get_type_identifier_registry(typename=array_name(array=type), name=name)$
 $elseif (type.isSequenceType)$
-$get_type_identifier_registry(typename=sequence_name(sequence=type))$
+$get_type_identifier_registry(typename=sequence_name(sequence=type), name=name)$
 $elseif (type.isMapType)$
-$get_type_identifier_registry(typename=map_name(map=type))$
+$get_type_identifier_registry(typename=map_name(map=type), name=name)$
 $else$
-$get_type_identifier_registry(typename=type.scopedname)$
+$get_type_identifier_registry(typename=type.scopedname, name=name)$
 $endif$
 >>
 
-get_type_identifier_registry(typename) ::= <<
-return_code =
+get_type_identifier_registry(typename, name) ::= <<
+return_code_$name$ =
     eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->type_object_registry().get_type_identifiers(
-    "$typename$", type_ids);
+    "$typename$", type_ids_$name$);
 >>
 
-get_type_object(type) ::= <<
-$if (type.isAliasType)$
-$get_type_object_registry(typename=type.scopedname)$
-$elseif (type.isArrayType)$
-$get_type_object_registry(typename=array_name(array=type))$
-$elseif (type.isSequenceType)$
-$get_type_object_registry(typename=sequence_name(sequence=type))$
-$elseif (type.isMapType)$
-$get_type_object_registry(typename=map_name(map=type))$
-$else$
-$get_type_object_registry(typename=type.scopedname)$
-$endif$
->>
-
-get_type_object_registry(typename) ::= <<
-return_code =
-    eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->type_object_registry().get_type_objects(
-    "$typename$", type_objects);
->>
-
-applied_annotation_sequence(annotation, typename) ::= <<
+applied_annotation_sequence(annotation, typename, member, name) ::= <<
 {
-eprosima::fastcdr::optional<AppliedAnnotationParameterSeq> applied_annotation_parameter_seq;
-AppliedAnnotationParameterSeq tmp_applied_annotation_parameter_seq;
-$if (annotation.valueList)$
+    eprosima::fastcdr::optional<AppliedAnnotationParameterSeq> applied_annotation_parameter_seq_$member.name$;
+    AppliedAnnotationParameterSeq tmp_applied_annotation_parameter_seq_$member.name$;
+    $if (annotation.valueList)$
 $annotation.valueList : { param |
 {
-    NameHash paramname_hash = TypeObjectUtils::name_hash("$param.name$");
+    NameHash paramname_hash_$param.name$ = TypeObjectUtils::name_hash("$param.name$");
     $annotation_parameter_value(param=param, type=param.typecode)$
-    AppliedAnnotationParameter applied_param = TypeObjectUtils::build_applied_annotation_parameter(paramname_hash,
-            param_value);
-    TypeObjectUtils::add_applied_annotation_parameter(tmp_applied_annotation_parameter_seq, applied_param);
+    AppliedAnnotationParameter applied_param_$param.name$ = TypeObjectUtils::build_applied_annotation_parameter(paramname_hash_$param.name$,
+            param_value_$param.name$);
+    TypeObjectUtils::add_applied_annotation_parameter(tmp_applied_annotation_parameter_seq_$member.name$, applied_param_$param.name$);
 \}
 }; separator="\n"$
 $endif$
     {
-        AppliedAnnotation applied_annotation;
-        $get_type_identifier_registry(typename=annotation.scopedname)$
-        if (return_code != eprosima::fastdds::dds::RETCODE_OK)
+        AppliedAnnotation applied_annotation_$member.name$;
+        $get_type_identifier_registry(typename=annotation.scopedname, name=name)$
+        if (return_code_$name$ != eprosima::fastdds::dds::RETCODE_OK)
         {
             EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
                         "$typename$: Given Annotation TypeIdentifier unknown to TypeObjectRegistry.");
             return;
         }
-        if (!tmp_applied_annotation_parameter_seq.empty())
+        if (!tmp_applied_annotation_parameter_seq_$member.name$.empty())
         {
-            applied_annotation_parameter_seq = tmp_applied_annotation_parameter_seq;
+            applied_annotation_parameter_seq_$member.name$ = tmp_applied_annotation_parameter_seq_$member.name$;
         }
-        if (EK_COMPLETE == type_ids.type_identifier1()._d())
+        if (EK_COMPLETE == type_ids_$name$.type_identifier1()._d())
         {
-            applied_annotation = TypeObjectUtils::build_applied_annotation(type_ids.type_identifier1(), applied_annotation_parameter_seq);
+            applied_annotation_$member.name$ = TypeObjectUtils::build_applied_annotation(type_ids_$name$.type_identifier1(), applied_annotation_parameter_seq_$member.name$);
         }
-        else if (EK_COMPLETE == type_ids.type_identifier2()._d())
+        else if (EK_COMPLETE == type_ids_$name$.type_identifier2()._d())
         {
-            applied_annotation = TypeObjectUtils::build_applied_annotation(type_ids.type_identifier2(), applied_annotation_parameter_seq);
+            applied_annotation_$member.name$ = TypeObjectUtils::build_applied_annotation(type_ids_$name$.type_identifier2(), applied_annotation_parameter_seq_$member.name$);
         }
         else
         {
@@ -198,7 +178,7 @@ $endif$
                     "$typename$: Given Annotation TypeIdentifier is inconsistent.");
             return;
         }
-        TypeObjectUtils::add_applied_annotation(tmp_ann_custom, applied_annotation);
+        TypeObjectUtils::add_applied_annotation(tmp_ann_custom_$member.name$, applied_annotation_$member.name$);
     \}
 }
 >>
@@ -207,50 +187,50 @@ annotation_parameter_value(param, type) ::= <<
 $if (type.isAliasType)$
 $annotation_parameter_value(param=param, type=param.typecode.typedefContentTypeCode)$
 $elseif (type.isEnumType)$
-AnnotationParameterValue param_value = TypeObjectUtils::build_annotation_parameter_value_enum($param.value$);
+AnnotationParameterValue param_value_$param.name$ = TypeObjectUtils::build_annotation_parameter_value_enum($param.value$);
 $elseif (type.isByteType)$
-AnnotationParameterValue param_value = TypeObjectUtils::build_annotation_parameter_value_byte($param.value$);
+AnnotationParameterValue param_value_$param.name$ = TypeObjectUtils::build_annotation_parameter_value_byte($param.value$);
 $elseif (param.typecode.isStringType)$
-AnnotationParameterValue param_value = TypeObjectUtils::build_annotation_parameter_value(eprosima::fastcdr::fixed_string<128>("$param.value$"));
+AnnotationParameterValue param_value_$param.name$ = TypeObjectUtils::build_annotation_parameter_value(eprosima::fastcdr::fixed_string<128>("$param.value$"));
 $else$
-AnnotationParameterValue param_value = TypeObjectUtils::build_annotation_parameter_value(static_cast<$type.cppTypename$>($param.value$));
+AnnotationParameterValue param_value_$param.name$ = TypeObjectUtils::build_annotation_parameter_value(static_cast<$type.cppTypename$>($param.value$));
 $endif$
 >>
 
-applied_verbatim_annotation(annotation) ::= <<
-PlacementKindValue placement = BEFORE_DECLARATION;
-eprosima::fastcdr::fixed_string<32> language = "*";
-std::string text;
+applied_verbatim_annotation(annotation, name) ::= <<
+PlacementKindValue placement_$name$ = BEFORE_DECLARATION;
+eprosima::fastcdr::fixed_string<32> language_$name$ = "*";
+std::string text_$name$;
 $annotation.valueList : { verbatim_param |
 $if (verbatim_param.isVerbatimPlacement)$
-placement = $verbatim_param.enumStringValue$;
+placement_$name$ = $verbatim_param.enumStringValue$;
 $elseif (verbatim_param.isVerbatimLanguage)$
-language = "$verbatim_param.value$";
+language_$name$ = "$verbatim_param.value$";
 $elseif (verbatim_param.isVerbatimText)$
-text = "$verbatim_param.value$";
+text_$name$ = "$verbatim_param.value$";
 $endif$
 }; separator="\n"$
-verbatim = TypeObjectUtils::build_applied_verbatim_annotation(placement, language, text);
-type_ann_builtin = TypeObjectUtils::build_applied_builtin_type_annotations(verbatim);
+verbatim_$name$ = TypeObjectUtils::build_applied_verbatim_annotation(placement_$name$, language_$name$, text_$name$);
+type_ann_builtin_$annotation_name$ = TypeObjectUtils::build_applied_builtin_type_annotations(verbatim_$name$);
 >>
 
-register_alias_type(alias) ::= <<
+register_alias_type(alias, name) ::= <<
 $! TODO(jlbueno): annotated collections aliases are considered non-anonymous collections.
                   pending implementation of annotated collection support !$
-AliasTypeFlag alias_flags = 0;
-$complete_type_detail(type=alias, type_kind=" Alias")$
-CompleteAliasHeader header = TypeObjectUtils::build_complete_alias_header(detail);
-AliasMemberFlag related_flags = 0;
-$get_type_identifier(type=alias.typedefContentTypeCode)$
-$check_register_type_identifier(type=alias.typedefContentTypeCode, message=[alias.scopedname, " related"])$
-CommonAliasBody common;
-$check_first_returned_type_identifier_pair()$
+AliasTypeFlag alias_flags_$alias.name$ = 0;
+$complete_type_detail(type=alias, type_kind=" Alias", name=name)$
+CompleteAliasHeader header_$alias.name$ = TypeObjectUtils::build_complete_alias_header(detail_$alias.name$);
+AliasMemberFlag related_flags_$alias.name$ = 0;
+$get_type_identifier(type=alias.typedefContentTypeCode, name=name)$
+$check_register_type_identifier(type=alias.typedefContentTypeCode, message=[alias.scopedname, " related"], name=name)$
+CommonAliasBody common_$alias.name$;
+$check_first_returned_type_identifier_pair(name=name)$
 {
-    common = TypeObjectUtils::build_common_alias_body(related_flags, type_ids.type_identifier1());
+    common_$alias.name$ = TypeObjectUtils::build_common_alias_body(related_flags_$alias.name$, type_ids_$name$.type_identifier1());
 }
-$check_second_returned_type_identifier_pair()$
+$check_second_returned_type_identifier_pair(name=name)$
 {
-    common = TypeObjectUtils::build_common_alias_body(related_flags, type_ids.type_identifier2());
+    common_$alias.name$ = TypeObjectUtils::build_common_alias_body(related_flags_$alias.name$, type_ids_$name$.type_identifier2());
 }
 else
 {
@@ -258,16 +238,16 @@ else
             "$alias.scopedname$ related TypeIdentifier inconsistent.");
     return;
 }
-eprosima::fastcdr::optional<AppliedBuiltinMemberAnnotations> member_ann_builtin;
-ann_custom.reset();
+eprosima::fastcdr::optional<AppliedBuiltinMemberAnnotations> member_ann_builtin_$alias.name$;
+ann_custom_$alias.name$.reset();
 $if (alias.annotationList)$
-eprosima::fastcdr::optional<std::string> unit;
-eprosima::fastcdr::optional<AnnotationParameterValue> min;
-eprosima::fastcdr::optional<AnnotationParameterValue> max;
-eprosima::fastcdr::optional<std::string> hash_id;
+eprosima::fastcdr::optional<std::string> unit_$alias.name$;
+eprosima::fastcdr::optional<AnnotationParameterValue> min_$alias.name$;
+eprosima::fastcdr::optional<AnnotationParameterValue> max_$alias.name$;
+eprosima::fastcdr::optional<std::string> hash_id_$alias.name$;
 $alias.annotationList : { annotation |
 $if (annotation.isUnit)$
-unit = $annotation.value$;
+unit_$alias.name$ = $annotation.value$;
 $elseif (annotation.isMin || annotation.isMax || annotation.isRange)$
 EPROSIMA_LOG_WARNING(XTYPES_TYPE_REPRESENTATION,
         "$alias.scopedname$ Alias: @min, @max, and @range builtin annotations not yet supported");
@@ -277,21 +257,21 @@ EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
 return;
 $endif$
 }; separator="\n"$
-if (unit.has_value() || min.has_value() || max.has_value() || hash_id.has_value())
+if (unit_$alias.name$.has_value() || min_$alias.name$.has_value() || max_$alias.name$.has_value() || hash_id_$alias.name$.has_value())
 {
-    member_ann_builtin = TypeObjectUtils::build_applied_builtin_member_annotations(unit, min, max, hash_id);
+    member_ann_builtin_$alias.name$ = TypeObjectUtils::build_applied_builtin_member_annotations(unit_$alias.name$, min_$alias.name$, max_$alias.name$, hash_id_$alias.name$);
 }
 $endif$
-CompleteAliasBody body = TypeObjectUtils::build_complete_alias_body(common, member_ann_builtin, ann_custom);
-CompleteAliasType alias_type = TypeObjectUtils::build_complete_alias_type(alias_flags, header, body);
+CompleteAliasBody body_$alias.name$ = TypeObjectUtils::build_complete_alias_body(common_$alias.name$, member_ann_builtin_$alias.name$, ann_custom_$alias.name$);
+CompleteAliasType alias_type_$alias.name$ = TypeObjectUtils::build_complete_alias_type(alias_flags_$alias.name$, header_$alias.name$, body_$alias.name$);
 if (eprosima::fastdds::dds::RETCODE_BAD_PARAMETER ==
-        TypeObjectUtils::build_and_register_alias_type_object(alias_type, type_name.to_string()))
+        TypeObjectUtils::build_and_register_alias_type_object(alias_type_$alias.name$, type_name_$alias.name$.to_string()))
 {
     EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
         "$alias.scopedname$ already registered in TypeObjectRegistry for a different type.");
 }
-$get_type_identifier_registry(typename=alias.scopedname)$
-if (return_code != eprosima::fastdds::dds::RETCODE_OK)
+$get_type_identifier_registry(typename=alias.scopedname, name=name)$
+if (return_code_$name$ != eprosima::fastdds::dds::RETCODE_OK)
 {
     EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
                 "$alias.scopedname$: Given Alias TypeIdentifier unknown to TypeObjectRegistry.");
@@ -300,53 +280,53 @@ if (return_code != eprosima::fastdds::dds::RETCODE_OK)
 >>
 
 register_annotation_type(annotation) ::= <<
-AnnotationTypeFlag annotation_flag = 0;
-QualifiedTypeName annotation_name = "$annotation.scopedname$";
-CompleteAnnotationHeader header = TypeObjectUtils::build_complete_annotation_header(annotation_name);
-CompleteAnnotationParameterSeq member_seq;
+AnnotationTypeFlag annotation_flag_$annotation.name$ = 0;
+QualifiedTypeName annotation_name_$annotation.name$ = "$annotation.scopedname$";
+CompleteAnnotationHeader header_$annotation.name$ = TypeObjectUtils::build_complete_annotation_header(annotation_name_$annotation.name$);
+CompleteAnnotationParameterSeq member_seq_$annotation.name$;
 $if (annotation.members)$
-$annotation.members: { member | $annotation_parameter(param=member)$}; separator="\n"$
+$annotation.members: { member | $annotation_parameter(param=member, parent=annotation)$}; separator="\n"$
 $endif$
-CompleteAnnotationType annotation_type = TypeObjectUtils::build_complete_annotation_type(annotation_flag, header,
-        member_seq);
+CompleteAnnotationType annotation_type_$annotation.name$ = TypeObjectUtils::build_complete_annotation_type(annotation_flag_$annotation.name$, header_$annotation.name$,
+        member_seq_$annotation.name$);
 if (eprosima::fastdds::dds::RETCODE_BAD_PARAMETER ==
-        TypeObjectUtils::build_and_register_annotation_type_object(annotation_type, annotation_name.to_string()))
+        TypeObjectUtils::build_and_register_annotation_type_object(annotation_type_$annotation.name$, annotation_name_$annotation.name$.to_string()))
 {
     EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
         "$annotation.scopedname$ already registered in TypeObjectRegistry for a different type.");
 }
 >>
 
-annotation_parameter(param) ::= <<
+annotation_parameter(param, parent) ::= <<
 {
-    ReturnCode_t return_code;
-    TypeIdentifierPair type_ids;
-    AnnotationParameterFlag member_flags = 0;
-    $get_type_identifier(type=param.typecode)$
-    if (return_code != eprosima::fastdds::dds::RETCODE_OK)
+    ReturnCode_t return_code_$param.name$;
+    TypeIdentifierPair type_ids_$param.name$;
+    AnnotationParameterFlag member_flags_$param.name$ = 0;
+    $get_type_identifier(type=param.typecode, name=param.name)$
+    if (return_code_$param.name$ != eprosima::fastdds::dds::RETCODE_OK)
     {
         $if (param.typecode.isAliasType)$
-        $register_alias_type(alias=param.typecode)$
+        $register_alias_type(alias=param.typecode, name=param.name)$
         $elseif (param.typecode.isEnumType)$
-        $register_enum_type(enum=param.typecode)$
+        $register_enum_type(enum=param.typecode, name=param.name)$
         $elseif (param.typecode.isStringType)$
-        $register_string_type(string=param.typecode)$
+        $register_string_type(string=param.typecode, name=param.name)$
         $elseif (param.typecode.isWStringType)$
-        $register_wstring_type(wstring=param.typecode)$
+        $register_wstring_type(wstring=param.typecode, name=param.name)$
         $else$
         EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
                 "$param.name$ annotation parameter TypeIdentifier unknown to TypeObjectRegistry.");
         return;
         $endif$
     }
-    CommonAnnotationParameter common;
-    if (EK_COMPLETE == type_ids.type_identifier1()._d() || TK_NONE == type_ids.type_identifier2()._d())
+    CommonAnnotationParameter common_$param.name$;
+    if (EK_COMPLETE == type_ids_$param.name$.type_identifier1()._d() || TK_NONE == type_ids_$param.name$.type_identifier2()._d())
     {
-        common = TypeObjectUtils::build_common_annotation_parameter(member_flags, type_ids.type_identifier1());
+        common_$param.name$ = TypeObjectUtils::build_common_annotation_parameter(member_flags_$param.name$, type_ids_$param.name$.type_identifier1());
     }
-    else if (EK_COMPLETE == type_ids.type_identifier2()._d())
+    else if (EK_COMPLETE == type_ids_$param.name$.type_identifier2()._d())
     {
-        common = TypeObjectUtils::build_common_annotation_parameter(member_flags, type_ids.type_identifier2());
+        common_$param.name$ = TypeObjectUtils::build_common_annotation_parameter(member_flags_$param.name$, type_ids_$param.name$.type_identifier2());
     }
     else
     {
@@ -354,38 +334,36 @@ annotation_parameter(param) ::= <<
                 "$param.name$ annotation parameter TypeIdentifier inconsistent.");
         return;
     }
-    MemberName name = "$param.name$";
+    MemberName name_$param.name$ = "$param.name$";
     $annotation_parameter_value(param=param, type=param.typecode)$
-    CompleteAnnotationParameter param = TypeObjectUtils::build_complete_annotation_parameter(common, name, param_value);
-    TypeObjectUtils::add_complete_annotation_parameter(member_seq, param);
+    CompleteAnnotationParameter param_$param.name$ = TypeObjectUtils::build_complete_annotation_parameter(common_$param.name$, name_$param.name$, param_value_$param.name$);
+    TypeObjectUtils::add_complete_annotation_parameter(member_seq_$parent.name$, param_$param.name$);
 }
 >>
 
 register_struct_type(struct) ::= <<
 {
-    StructTypeFlag struct_flags = TypeObjectUtils::build_struct_type_flag($extensibility(object=struct)$
+    StructTypeFlag struct_flags_$struct.name$ = TypeObjectUtils::build_struct_type_flag($extensibility(object=struct)$
             $struct.annotationNested$, $struct.annotationAutoidHash$);
-    ReturnCode_t return_code;
-    TypeIdentifierPair type_ids;
+    ReturnCode_t return_code_$struct.name$;
+    TypeIdentifierPair type_ids_$struct.name$;
     $if (struct.inheritance)$
-    $get_type_identifier(type=struct.inheritance)$
-    if (return_code != eprosima::fastdds::dds::RETCODE_OK)
+    $get_type_identifier(type=struct.inheritance, name=struct.name)$
+    if (return_code_$struct.name$ != eprosima::fastdds::dds::RETCODE_OK)
     {
         $register_struct_type(struct.inheritance)$
     }
-    TypeObjectPair type_objects;
-    $get_type_object(type=struct.inheritance)$
     $endif$
-    $complete_type_detail(type=struct, type_kind=" Structure")$
-    CompleteStructHeader header;
+    $complete_type_detail(type=struct, type_kind=" Structure", name=struct.name)$
+    CompleteStructHeader header_$struct.name$;
     $if (struct.inheritance)$
-    if (EK_COMPLETE == type_ids.type_identifier1()._d() || TK_NONE == type_ids.type_identifier1()._d())
+    if (EK_COMPLETE == type_ids_$struct.name$.type_identifier1()._d() || TK_NONE == type_ids_$struct.name$.type_identifier1()._d())
     {
-        header = TypeObjectUtils::build_complete_struct_header(type_ids.type_identifier1(), detail);
+        header_$struct.name$ = TypeObjectUtils::build_complete_struct_header(type_ids_$struct.name$.type_identifier1(), detail_$struct.name$);
     }
-    else if (EK_COMPLETE == type_ids.type_identifier2()._d())
+    else if (EK_COMPLETE == type_ids_$struct.name$.type_identifier2()._d())
     {
-        header = TypeObjectUtils::build_complete_struct_header(type_ids.type_identifier2(), detail);
+        header_$struct.name$ = TypeObjectUtils::build_complete_struct_header(type_ids_$struct.name$.type_identifier2(), detail_$struct.name$);
     }
     else
     {
@@ -394,21 +372,21 @@ register_struct_type(struct) ::= <<
         return;
     }
     $else$
-    header = TypeObjectUtils::build_complete_struct_header(TypeIdentifier(), detail);
+    header_$struct.name$ = TypeObjectUtils::build_complete_struct_header(TypeIdentifier(), detail_$struct.name$);
     $endif$
-    CompleteStructMemberSeq member_seq;
+    CompleteStructMemberSeq member_seq_$struct.name$;
     $if (struct.members)$
     $struct.members: { member | $struct_member(member=member, parent=struct)$}; separator="\n"$
     $endif$
-    CompleteStructType struct_type = TypeObjectUtils::build_complete_struct_type(struct_flags, header, member_seq);
+    CompleteStructType struct_type_$struct.name$ = TypeObjectUtils::build_complete_struct_type(struct_flags_$struct.name$, header_$struct.name$, member_seq_$struct.name$);
     if (eprosima::fastdds::dds::RETCODE_BAD_PARAMETER ==
-            TypeObjectUtils::build_and_register_struct_type_object(struct_type, type_name.to_string()))
+            TypeObjectUtils::build_and_register_struct_type_object(struct_type_$struct.name$, type_name_$struct.name$.to_string()))
     {
         EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
                 "$struct.scopedname$ already registered in TypeObjectRegistry for a different type.");
     }
-    $get_type_identifier_registry(typename=struct.scopedname)$
-    if (return_code != eprosima::fastdds::dds::RETCODE_OK)
+    $get_type_identifier_registry(typename=struct.scopedname, name=struct.name)$
+    if (return_code_$struct.name$ != eprosima::fastdds::dds::RETCODE_OK)
     {
         EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
                     "$struct.scopedname$: Given Struct TypeIdentifier unknown to TypeObjectRegistry.");
@@ -419,19 +397,19 @@ register_struct_type(struct) ::= <<
 
 struct_member(member, parent) ::= <<
 {
-    StructMemberFlag member_flags = TypeObjectUtils::build_struct_member_flag($try_construct(object=member)$
+    StructMemberFlag member_flags_$member.name$ = TypeObjectUtils::build_struct_member_flag($try_construct(object=member)$
             $member.annotationOptional$, $member.annotationMustUnderstand$, $member.annotationKey$, $member.annotationExternal$);
-    $get_type_identifier(type=member.typecode)$
-    $check_register_type_identifier(type=member.typecode, message=[member.name, " Structure member"])$
-    CommonStructMember common;
-    MemberId member_id = $member.id$;
-    $check_first_returned_type_identifier_pair()$
+    $get_type_identifier(type=member.typecode, name=parent.name)$
+    $check_register_type_identifier(type=member.typecode, message=[member.name, " Structure member"], name=parent.name)$
+    CommonStructMember common_$member.name$;
+    MemberId member_id_$member.name$ = $member.id$;
+    $check_first_returned_type_identifier_pair(name=parent.name)$
     {
-        common = TypeObjectUtils::build_common_struct_member(member_id, member_flags, type_ids.type_identifier1());
+        common_$member.name$ = TypeObjectUtils::build_common_struct_member(member_id_$member.name$, member_flags_$member.name$, type_ids_$parent.name$.type_identifier1());
     }
-    $check_second_returned_type_identifier_pair()$
+    $check_second_returned_type_identifier_pair(name=parent.name)$
     {
-        common = TypeObjectUtils::build_common_struct_member(member_id, member_flags, type_ids.type_identifier2());
+        common_$member.name$ = TypeObjectUtils::build_common_struct_member(member_id_$member.name$, member_flags_$member.name$, type_ids_$parent.name$.type_identifier2());
     }
     else
     {
@@ -439,43 +417,43 @@ struct_member(member, parent) ::= <<
                 "Structure $member.name$ member TypeIdentifier inconsistent.");
         return;
     }
-    $complete_member_detail(member=member, parent=parent, type_kind="Structure")$
-    CompleteStructMember member = TypeObjectUtils::build_complete_struct_member(common, detail);
-    TypeObjectUtils::add_complete_struct_member(member_seq, member);
+    $complete_member_detail(member=member, parent=parent, type_kind="Structure", name=parent.name)$
+    CompleteStructMember member_$member.name$ = TypeObjectUtils::build_complete_struct_member(common_$member.name$, detail_$member.name$);
+    TypeObjectUtils::add_complete_struct_member(member_seq_$parent.name$, member_$member.name$);
 }
 >>
 
 register_union_type(union) ::= <<
 {
-    ReturnCode_t return_code;
-    TypeIdentifierPair type_ids;
-    UnionTypeFlag union_flags = TypeObjectUtils::build_union_type_flag($extensibility(object=union)$
+    ReturnCode_t return_code_$union.name$;
+    TypeIdentifierPair type_ids_$union.name$;
+    UnionTypeFlag union_flags_$union.name$ = TypeObjectUtils::build_union_type_flag($extensibility(object=union)$
             $union.annotationNested$, $union.annotationAutoidHash$);
-    $complete_type_detail(type=union, type_kind=" Union")$
-    CompleteUnionHeader header = TypeObjectUtils::build_complete_union_header(detail);
-    UnionDiscriminatorFlag member_flags = TypeObjectUtils::build_union_discriminator_flag($try_construct(object=union.discriminator)$
+    $complete_type_detail(type=union, type_kind=" Union", name=union.name)$
+    CompleteUnionHeader header_$union.name$ = TypeObjectUtils::build_complete_union_header(detail_$union.name$);
+    UnionDiscriminatorFlag member_flags_$union.name$ = TypeObjectUtils::build_union_discriminator_flag($try_construct(object=union.discriminator)$
             $union.discriminator.annotationKey$);
-    $get_type_identifier(type=union.discriminator.typecode)$
-    if (return_code != eprosima::fastdds::dds::RETCODE_OK)
+    $get_type_identifier(type=union.discriminator.typecode, name=union.name)$
+    if (return_code_$union.name$ != eprosima::fastdds::dds::RETCODE_OK)
     {
         $if (union.discriminator.typecode.isAliasType)$
-        $register_alias_type(alias=union.discriminator.typecode)$
+        $register_alias_type(alias=union.discriminator.typecode, name=union.name)$
         $elseif (union.discriminator.typecode.isEnumType)$
-        $register_enum_type(enum=union.discriminator.typecode)$
+        $register_enum_type(enum=union.discriminator.typecode, name=union.name)$
         $else$
         EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
                 "Union discriminator TypeIdentifier unknown to TypeObjectRegistry.");
         return;
         $endif$
     }
-    CommonDiscriminatorMember common;
-    if (EK_COMPLETE == type_ids.type_identifier1()._d() || TK_NONE == type_ids.type_identifier2()._d())
+    CommonDiscriminatorMember common_$union.name$;
+    if (EK_COMPLETE == type_ids_$union.name$.type_identifier1()._d() || TK_NONE == type_ids_$union.name$.type_identifier2()._d())
     {
-        common = TypeObjectUtils::build_common_discriminator_member(member_flags, type_ids.type_identifier1());
+        common_$union.name$ = TypeObjectUtils::build_common_discriminator_member(member_flags_$union.name$, type_ids_$union.name$.type_identifier1());
     }
-    else if (EK_COMPLETE == type_ids.type_identifier2()._d())
+    else if (EK_COMPLETE == type_ids_$union.name$.type_identifier2()._d())
     {
-        common = TypeObjectUtils::build_common_discriminator_member(member_flags, type_ids.type_identifier2());
+        common_$union.name$ = TypeObjectUtils::build_common_discriminator_member(member_flags_$union.name$, type_ids_$union.name$.type_identifier2());
     }
     else
     {
@@ -483,23 +461,23 @@ register_union_type(union) ::= <<
                 "$union.scopedname$ discriminator TypeIdentifier inconsistent.");
         return;
     }
-    type_ann_builtin.reset();
-    ann_custom.reset();
-    $type_annotations(type=union.discriminator, type_kind=" Union Discriminator")$
-    CompleteDiscriminatorMember discriminator = TypeObjectUtils::build_complete_discriminator_member(common,
-            type_ann_builtin, ann_custom);
-    CompleteUnionMemberSeq member_seq;
+    type_ann_builtin_$union.name$.reset();
+    ann_custom_$union.name$.reset();
+    $type_annotations(type=union.discriminator, type_kind=" Union Discriminator", name=union.name)$
+    CompleteDiscriminatorMember discriminator_$union.name$ = TypeObjectUtils::build_complete_discriminator_member(common_$union.name$,
+            type_ann_builtin_$union.name$, ann_custom_$union.name$);
+    CompleteUnionMemberSeq member_seq_$union.name$;
     $union.members : { member | $union_member(member=member, parent=union)$}; separator="\n"$
-    CompleteUnionType union_type = TypeObjectUtils::build_complete_union_type(union_flags, header, discriminator,
-            member_seq);
+    CompleteUnionType union_type_$union.name$ = TypeObjectUtils::build_complete_union_type(union_flags_$union.name$, header_$union.name$, discriminator_$union.name$,
+            member_seq_$union.name$);
     if (eprosima::fastdds::dds::RETCODE_BAD_PARAMETER ==
-            TypeObjectUtils::build_and_register_union_type_object(union_type, type_name.to_string()))
+            TypeObjectUtils::build_and_register_union_type_object(union_type_$union.name$, type_name_$union.name$.to_string()))
     {
         EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
                 "$union.scopedname$ already registered in TypeObjectRegistry for a different type.");
     }
-    $get_type_identifier_registry(typename=union.scopedname)$
-    if (return_code != eprosima::fastdds::dds::RETCODE_OK)
+    $get_type_identifier_registry(typename=union.scopedname, name=union.name)$
+    if (return_code_$union.name$ != eprosima::fastdds::dds::RETCODE_OK)
     {
         EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
                     "$union.scopedname$: Given Union TypeIdentifier unknown to TypeObjectRegistry.");
@@ -510,25 +488,25 @@ register_union_type(union) ::= <<
 
 union_member(member, parent) ::= <<
 {
-    UnionMemberFlag member_flags = TypeObjectUtils::build_union_member_flag($try_construct(object=member)$
+    UnionMemberFlag member_flags_$member.name$ = TypeObjectUtils::build_union_member_flag($try_construct(object=member)$
             $member.default$, $member.annotationExternal$);
-    $get_type_identifier(type=member.typecode)$
-    $check_register_type_identifier(type=member.typecode, message=[member.name, " Union member"])$
-    UnionCaseLabelSeq label_seq;
+    $get_type_identifier(type=member.typecode, name=parent.name)$
+    $check_register_type_identifier(type=member.typecode, message=[member.name, " Union member"], name=parent.name)$
+    UnionCaseLabelSeq label_seq_$member.name$;
     $if (member.labels)$
-    $member.labels : { label | TypeObjectUtils::add_union_case_label(label_seq, static_cast<int32_t>($label$));}; separator="\n"$
+    $member.labels : { label | TypeObjectUtils::add_union_case_label(label_seq_$member.name$, static_cast<int32_t>($label$));}; separator="\n"$
     $endif$
-    CommonUnionMember common;
-    MemberId member_id = $member.id$;
-    $check_first_returned_type_identifier_pair()$
+    CommonUnionMember common_$member.name$;
+    MemberId member_id_$member.name$ = $member.id$;
+    $check_first_returned_type_identifier_pair(name=parent.name)$
     {
-        common = TypeObjectUtils::build_common_union_member(member_id, member_flags, type_ids.type_identifier1(),
-                label_seq);
+        common_$member.name$ = TypeObjectUtils::build_common_union_member(member_id_$member.name$, member_flags_$member.name$, type_ids_$parent.name$.type_identifier1(),
+                label_seq_$member.name$);
     }
-    $check_second_returned_type_identifier_pair()$
+    $check_second_returned_type_identifier_pair(name=parent.name)$
     {
-        common = TypeObjectUtils::build_common_union_member(member_id, member_flags, type_ids.type_identifier2(),
-                label_seq);
+        common_$member.name$ = TypeObjectUtils::build_common_union_member(member_id_$member.name$, member_flags_$member.name$, type_ids_$parent.name$.type_identifier2(),
+                label_seq_$member.name$);
     }
     else
     {
@@ -536,27 +514,27 @@ union_member(member, parent) ::= <<
                 "Union $member.name$ member TypeIdentifier inconsistent.");
         return;
     }
-    $complete_member_detail(member=member, parent=parent, type_kind="Union")$
-    CompleteUnionMember member = TypeObjectUtils::build_complete_union_member(common, detail);
-    TypeObjectUtils::add_complete_union_member(member_seq, member);
+    $complete_member_detail(member=member, parent=parent, type_kind="Union", name=parent.name)$
+    CompleteUnionMember member_$member.name$ = TypeObjectUtils::build_complete_union_member(common_$member.name$, detail_$member.name$);
+    TypeObjectUtils::add_complete_union_member(member_seq_$parent.name$, member_$member.name$);
 }
 >>
 
-register_bitset_type(bitset) ::= <<
-BitsetTypeFlag bitset_flags = 0;
-$complete_type_detail(type=bitset, type_kind= " Bitset")$
-CompleteBitsetHeader header = TypeObjectUtils::build_complete_bitset_header(detail);
-CompleteBitfieldSeq field_seq;
-$bitset.bitfields: { bitfield | $bitfield_member(bitfield=bitfield, parent=bitset)$}; separator="\n"$
-CompleteBitsetType bitset_type = TypeObjectUtils::build_complete_bitset_type(bitset_flags, header, field_seq);
+register_bitset_type(bitset, name) ::= <<
+BitsetTypeFlag bitset_flags_$bitset.name$ = 0;
+$complete_type_detail(type=bitset, type_kind= " Bitset", name=name)$
+CompleteBitsetHeader header_$bitset.name$ = TypeObjectUtils::build_complete_bitset_header(detail_$bitset.name$);
+CompleteBitfieldSeq field_seq_$bitset.name$;
+$bitset.bitfields: { bitfield | $bitfield_member(bitfield=bitfield, parent=bitset, name=name)$}; separator="\n"$
+CompleteBitsetType bitset_type_$bitset.name$ = TypeObjectUtils::build_complete_bitset_type(bitset_flags_$bitset.name$, header_$bitset.name$, field_seq_$bitset.name$);
 if (eprosima::fastdds::dds::RETCODE_BAD_PARAMETER ==
-        TypeObjectUtils::build_and_register_bitset_type_object(bitset_type, type_name.to_string()))
+        TypeObjectUtils::build_and_register_bitset_type_object(bitset_type_$bitset.name$, type_name_$bitset.name$.to_string()))
 {
     EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
         "$bitset.scopedname$ already registered in TypeObjectRegistry for a different type.");
 }
-$get_type_identifier_registry(typename=bitset.scopedname)$
-if (return_code != eprosima::fastdds::dds::RETCODE_OK)
+$get_type_identifier_registry(typename=bitset.scopedname, name=name)$
+if (return_code_$name$ != eprosima::fastdds::dds::RETCODE_OK)
 {
     EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
                 "$bitset.scopedname$: Given Bitset TypeIdentifier unknown to TypeObjectRegistry.");
@@ -564,29 +542,29 @@ if (return_code != eprosima::fastdds::dds::RETCODE_OK)
 }
 >>
 
-bitfield_member(bitfield, parent) ::= <<
+bitfield_member(bitfield, parent, name) ::= <<
 {
-    uint16_t position = $bitfield.basePosition$;
-    BitsetMemberFlag flags = 0;
-    uint8_t bitcount = $bitfield.spec.bitSize$;
-    TypeKind holder_type = $bitfield.spec.typecode.typeIdentifier$;
-    CommonBitfield common = TypeObjectUtils::build_common_bitfield(position, flags, bitcount, holder_type);
-    $empty_ann_builtin_complete_member_detail(member=bitfield, parent=parent, message=[parent.scopedname, " Bitset ", bitfield.name, " bitfield: no builtin annotation applies to bitfield declaration"])$
-    CompleteBitfield bitfield = TypeObjectUtils::build_complete_bitfield(common, detail);
-    TypeObjectUtils::add_complete_bitfield(field_seq, bitfield);
+    uint16_t position_$bitfield.name$ = $bitfield.basePosition$;
+    BitsetMemberFlag flags_$bitfield.name$ = 0;
+    uint8_t bitcount_$bitfield.name$ = $bitfield.spec.bitSize$;
+    TypeKind holder_type_$bitfield.name$ = $bitfield.spec.typecode.typeIdentifier$;
+    CommonBitfield common_$bitfield.name$ = TypeObjectUtils::build_common_bitfield(position_$bitfield.name$, flags_$bitfield.name$, bitcount_$bitfield.name$, holder_type_$bitfield.name$);
+    $empty_ann_builtin_complete_member_detail(member=bitfield, parent=parent, message=[parent.scopedname, " Bitset ", bitfield.name, " bitfield: no builtin annotation applies to bitfield declaration"], name=name)$
+    CompleteBitfield bitfield_$bitfield.name$ = TypeObjectUtils::build_complete_bitfield(common_$bitfield.name$, detail_$bitfield.name$);
+    TypeObjectUtils::add_complete_bitfield(field_seq_$parent.name$, bitfield_$bitfield.name$);
 }
 >>
 
-register_sequence_type(sequence) ::= <<
+register_sequence_type(sequence, name) ::= <<
 $! TODO(jlbueno): annotated collections generate TypeObject instead of TypeIdentifier
                   pending implementation of annotated collection support !$
-$plain_collection_header(type=sequence.contentTypeCode, message="Sequence element")$
-std::string type_id_kind("$sequence.typeIdentifier$");
-if (type_id_kind == "TI_PLAIN_SEQUENCE_SMALL")
+$plain_collection_header(type=sequence.contentTypeCode, message="Sequence element", name=name, collection_name=sequence_name(sequence))$
+std::string type_id_kind_$sequence_name(sequence)$("$sequence.typeIdentifier$");
+if (type_id_kind_$sequence_name(sequence)$ == "TI_PLAIN_SEQUENCE_SMALL")
 {
     SBound bound = $if (!sequence.isBounded)$0$else$static_cast<SBound>($sequence.evaluatedMaxsize$)$endif$;
-    PlainSequenceSElemDefn seq_sdefn = TypeObjectUtils::build_plain_sequence_s_elem_defn(header, bound,
-                eprosima::fastcdr::external<TypeIdentifier>(element_identifier));
+    PlainSequenceSElemDefn seq_sdefn = TypeObjectUtils::build_plain_sequence_s_elem_defn(header_$sequence_name(sequence)$, bound,
+                eprosima::fastcdr::external<TypeIdentifier>(element_identifier_$sequence_name(sequence)$));
     if (eprosima::fastdds::dds::RETCODE_BAD_PARAMETER ==
             TypeObjectUtils::build_and_register_s_sequence_type_identifier(seq_sdefn, "$sequence_name(sequence)$"))
     {
@@ -597,8 +575,8 @@ if (type_id_kind == "TI_PLAIN_SEQUENCE_SMALL")
 else
 {
     LBound bound = $sequence.evaluatedMaxsize$;
-    PlainSequenceLElemDefn seq_ldefn = TypeObjectUtils::build_plain_sequence_l_elem_defn(header, bound,
-                eprosima::fastcdr::external<TypeIdentifier>(element_identifier));
+    PlainSequenceLElemDefn seq_ldefn = TypeObjectUtils::build_plain_sequence_l_elem_defn(header_$sequence_name(sequence)$, bound,
+                eprosima::fastcdr::external<TypeIdentifier>(element_identifier_$sequence_name(sequence)$));
     if (eprosima::fastdds::dds::RETCODE_BAD_PARAMETER ==
             TypeObjectUtils::build_and_register_l_sequence_type_identifier(seq_ldefn, "$sequence_name(sequence)$"))
     {
@@ -606,8 +584,8 @@ else
             "$sequence_name(sequence)$ already registered in TypeObjectRegistry for a different type.");
     }
 }
-$get_type_identifier_registry(typename=sequence_name(sequence))$
-if (return_code != eprosima::fastdds::dds::RETCODE_OK)
+$get_type_identifier_registry(typename=sequence_name(sequence), name=name)$
+if (return_code_$name$ != eprosima::fastdds::dds::RETCODE_OK)
 {
     EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
                 "$sequence_name(sequence)$: Given Sequence TypeIdentifier unknown to TypeObjectRegistry.");
@@ -615,19 +593,19 @@ if (return_code != eprosima::fastdds::dds::RETCODE_OK)
 }
 >>
 
-register_array_type(array) ::= <<
+register_array_type(array, name) ::= <<
 $! TODO(jlbueno): annotated collections generate TypeObject instead of TypeIdentifier
                   pending implementation of annotated collection support !$
-$plain_collection_header(type=array.contentTypeCode, message="Array element")$
-std::string type_id_kind("$array.typeIdentifier$");
-if (type_id_kind == "TI_PLAIN_ARRAY_SMALL")
+$plain_collection_header(type=array.contentTypeCode, message="Array element", name=name, collection_name=array_name(array))$
+std::string type_id_kind_$array_name(array)$("$array.typeIdentifier$");
+if (type_id_kind_$array_name(array)$ == "TI_PLAIN_ARRAY_SMALL")
 {
     SBoundSeq array_bound_seq;
     $array.evaluatedDimensions: { dimension |
     TypeObjectUtils::add_array_dimension(array_bound_seq, static_cast<SBound>($dimension$));
     }; separator="\n"$
-    PlainArraySElemDefn array_sdefn = TypeObjectUtils::build_plain_array_s_elem_defn(header, array_bound_seq,
-                eprosima::fastcdr::external<TypeIdentifier>(element_identifier));
+    PlainArraySElemDefn array_sdefn = TypeObjectUtils::build_plain_array_s_elem_defn(header_$array_name(array)$, array_bound_seq,
+                eprosima::fastcdr::external<TypeIdentifier>(element_identifier_$array_name(array)$));
     if (eprosima::fastdds::dds::RETCODE_BAD_PARAMETER ==
             TypeObjectUtils::build_and_register_s_array_type_identifier(array_sdefn, "$array_name(array)$"))
     {
@@ -641,8 +619,8 @@ else
     $array.evaluatedDimensions: { dimension |
     TypeObjectUtils::add_array_dimension(array_bound_seq, static_cast<LBound>($dimension$));
     }; separator="\n"$
-    PlainArrayLElemDefn array_ldefn = TypeObjectUtils::build_plain_array_l_elem_defn(header, array_bound_seq,
-                eprosima::fastcdr::external<TypeIdentifier>(element_identifier));
+    PlainArrayLElemDefn array_ldefn = TypeObjectUtils::build_plain_array_l_elem_defn(header_$array_name(array)$, array_bound_seq,
+                eprosima::fastcdr::external<TypeIdentifier>(element_identifier_$array_name(array)$));
     if (eprosima::fastdds::dds::RETCODE_BAD_PARAMETER ==
             TypeObjectUtils::build_and_register_l_array_type_identifier(array_ldefn, "$array_name(array)$"))
     {
@@ -650,8 +628,8 @@ else
             "$array_name(array)$ already registered in TypeObjectRegistry for a different type.");
     }
 }
-$get_type_identifier_registry(typename=array_name(array))$
-if (return_code != eprosima::fastdds::dds::RETCODE_OK)
+$get_type_identifier_registry(typename=array_name(array), name=name)$
+if (return_code_$name$ != eprosima::fastdds::dds::RETCODE_OK)
 {
     EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
                 "$array_name(array)$: Given Array TypeIdentifier unknown to TypeObjectRegistry.");
@@ -659,19 +637,19 @@ if (return_code != eprosima::fastdds::dds::RETCODE_OK)
 }
 >>
 
-register_map_type(map) ::= <<
+register_map_type(map, name) ::= <<
 $! TODO(jlbueno): annotated collections generate TypeObject instead of TypeIdentifier
                   pending implementation of annotated collection support !$
-$get_type_identifier(type=map.valueTypeCode)$
-$check_register_type_identifier(type=map.valueTypeCode, message="Map element")$
-TypeIdentifier* element_identifier {nullptr};
-$check_first_returned_type_identifier_pair()$
+$get_type_identifier(type=map.valueTypeCode, name=name)$
+$check_register_type_identifier(type=map.valueTypeCode, message="Map element", name=name)$
+TypeIdentifier* element_identifier_$map_name(map)$ {nullptr};
+$check_first_returned_type_identifier_pair(name=name)$
 {
-    element_identifier = new TypeIdentifier(type_ids.type_identifier1());
+    element_identifier_$map_name(map)$ = new TypeIdentifier(type_ids_$name$.type_identifier1());
 }
-$check_second_returned_type_identifier_pair()$
+$check_second_returned_type_identifier_pair(name=name)$
 {
-    element_identifier = new TypeIdentifier(type_ids.type_identifier2());
+    element_identifier_$map_name(map)$ = new TypeIdentifier(type_ids_$name$.type_identifier2());
 }
 else
 {
@@ -679,16 +657,16 @@ else
         "$map_name(map)$ inconsistent element TypeIdentifier.");
     return;
 }
-$get_type_identifier(type=map.keyTypeCode)$
-$check_register_type_identifier(type=map.keyTypeCode, message="Map key")$
-TypeIdentifier* key_identifier {nullptr};
-$check_first_returned_type_identifier_pair()$
+$get_type_identifier(type=map.keyTypeCode, name=name)$
+$check_register_type_identifier(type=map.keyTypeCode, message="Map key", name=name)$
+TypeIdentifier* key_identifier_$map_name(map)$ {nullptr};
+$check_first_returned_type_identifier_pair(name=name)$
 {
-    key_identifier = new TypeIdentifier(type_ids.type_identifier1());
+    key_identifier_$map_name(map)$ = new TypeIdentifier(type_ids_$name$.type_identifier1());
 }
-$check_second_returned_type_identifier_pair()$
+$check_second_returned_type_identifier_pair(name=name)$
 {
-    key_identifier = new TypeIdentifier(type_ids.type_identifier2());
+    key_identifier_$map_name(map)$ = new TypeIdentifier(type_ids_$name$.type_identifier2());
 }
 else
 {
@@ -696,28 +674,28 @@ else
         "$map_name(map)$ inconsistent key TypeIdentifier.");
     return;
 }
-EquivalenceKind equiv_kind = EK_BOTH;
-if (EK_COMPLETE == element_identifier->_d() ||
-        (TI_PLAIN_SEQUENCE_SMALL == element_identifier->_d() && EK_COMPLETE == element_identifier->seq_sdefn().header().equiv_kind()) ||
-        (TI_PLAIN_SEQUENCE_LARGE == element_identifier->_d() && EK_COMPLETE == element_identifier->seq_ldefn().header().equiv_kind()) ||
-        (TI_PLAIN_ARRAY_SMALL == element_identifier->_d() && EK_COMPLETE == element_identifier->array_sdefn().header().equiv_kind()) ||
-        (TI_PLAIN_ARRAY_LARGE == element_identifier->_d() && EK_COMPLETE == element_identifier->array_ldefn().header().equiv_kind()) ||
-        (TI_PLAIN_MAP_SMALL == element_identifier->_d() && EK_COMPLETE == element_identifier->map_sdefn().header().equiv_kind()) ||
-        (TI_PLAIN_MAP_LARGE == element_identifier->_d() && EK_COMPLETE == element_identifier->map_ldefn().header().equiv_kind()))
+EquivalenceKind equiv_kind_$map_name(map)$ = EK_BOTH;
+if (EK_COMPLETE == element_identifier_$map_name(map)$->_d() ||
+        (TI_PLAIN_SEQUENCE_SMALL == element_identifier_$map_name(map)$->_d() && EK_COMPLETE == element_identifier_$map_name(map)$->seq_sdefn().header().equiv_kind()) ||
+        (TI_PLAIN_SEQUENCE_LARGE == element_identifier_$map_name(map)$->_d() && EK_COMPLETE == element_identifier_$map_name(map)$->seq_ldefn().header().equiv_kind()) ||
+        (TI_PLAIN_ARRAY_SMALL == element_identifier_$map_name(map)$->_d() && EK_COMPLETE == element_identifier_$map_name(map)$->array_sdefn().header().equiv_kind()) ||
+        (TI_PLAIN_ARRAY_LARGE == element_identifier_$map_name(map)$->_d() && EK_COMPLETE == element_identifier_$map_name(map)$->array_ldefn().header().equiv_kind()) ||
+        (TI_PLAIN_MAP_SMALL == element_identifier_$map_name(map)$->_d() && EK_COMPLETE == element_identifier_$map_name(map)$->map_sdefn().header().equiv_kind()) ||
+        (TI_PLAIN_MAP_LARGE == element_identifier_$map_name(map)$->_d() && EK_COMPLETE == element_identifier_$map_name(map)$->map_ldefn().header().equiv_kind()))
 {
-    equiv_kind = EK_COMPLETE;
+    equiv_kind_$map_name(map)$ = EK_COMPLETE;
 }
 $! TODO(jlbueno) Annotated collections not yet supported !$
-CollectionElementFlag element_flags = 0;
-CollectionElementFlag key_flags = 0;
-PlainCollectionHeader header = TypeObjectUtils::build_plain_collection_header(equiv_kind, element_flags);
-std::string type_id_kind("$map.typeIdentifier$");
-if (type_id_kind == "TI_PLAIN_MAP_SMALL")
+CollectionElementFlag element_flags_$map_name(map)$ = 0;
+CollectionElementFlag key_flags_$map_name(map)$ = 0;
+PlainCollectionHeader header_$map_name(map)$ = TypeObjectUtils::build_plain_collection_header(equiv_kind_$map_name(map)$, element_flags_$map_name(map)$);
+std::string type_id_kind_$map_name(map)$("$map.typeIdentifier$");
+if (type_id_kind_$map_name(map)$ == "TI_PLAIN_MAP_SMALL")
 {
     SBound bound = $if (!map.isBounded)$0$else$static_cast<SBound>($map.evaluatedMaxsize$)$endif$;
-    PlainMapSTypeDefn map_sdefn = TypeObjectUtils::build_plain_map_s_type_defn(header, bound,
-                eprosima::fastcdr::external<TypeIdentifier>(element_identifier), key_flags,
-                eprosima::fastcdr::external<TypeIdentifier>(key_identifier));
+    PlainMapSTypeDefn map_sdefn = TypeObjectUtils::build_plain_map_s_type_defn(header_$map_name(map)$, bound,
+                eprosima::fastcdr::external<TypeIdentifier>(element_identifier_$map_name(map)$), key_flags_$map_name(map)$,
+                eprosima::fastcdr::external<TypeIdentifier>(key_identifier_$map_name(map)$));
     if (eprosima::fastdds::dds::RETCODE_BAD_PARAMETER ==
             TypeObjectUtils::build_and_register_s_map_type_identifier(map_sdefn, "$map_name(map)$"))
     {
@@ -728,9 +706,9 @@ if (type_id_kind == "TI_PLAIN_MAP_SMALL")
 else
 {
     LBound bound = $map.evaluatedMaxsize$;
-    PlainMapLTypeDefn map_ldefn = TypeObjectUtils::build_plain_map_l_type_defn(header, bound,
-                eprosima::fastcdr::external<TypeIdentifier>(element_identifier), key_flags,
-                eprosima::fastcdr::external<TypeIdentifier>(key_identifier));
+    PlainMapLTypeDefn map_ldefn = TypeObjectUtils::build_plain_map_l_type_defn(header_$map_name(map)$, bound,
+                eprosima::fastcdr::external<TypeIdentifier>(element_identifier_$map_name(map)$), key_flags_$map_name(map)$,
+                eprosima::fastcdr::external<TypeIdentifier>(key_identifier_$map_name(map)$));
     if (eprosima::fastdds::dds::RETCODE_BAD_PARAMETER ==
             TypeObjectUtils::build_and_register_l_map_type_identifier(map_ldefn, "$map_name(map)$"))
     {
@@ -738,8 +716,8 @@ else
             "$map_name(map)$ already registered in TypeObjectRegistry for a different type.");
     }
 }
-$get_type_identifier_registry(typename=map_name(map))$
-if (return_code != eprosima::fastdds::dds::RETCODE_OK)
+$get_type_identifier_registry(typename=map_name(map), name=name)$
+if (return_code_$name$ != eprosima::fastdds::dds::RETCODE_OK)
 {
     EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
                 "$map_name(map)$: Given Map TypeIdentifier unknown to TypeObjectRegistry.");
@@ -747,24 +725,24 @@ if (return_code != eprosima::fastdds::dds::RETCODE_OK)
 }
 >>
 
-register_enum_type(enum) ::= <<
-EnumTypeFlag enum_flags = 0;
-BitBound bit_bound = $enum.bitBound$;
-CommonEnumeratedHeader common = TypeObjectUtils::build_common_enumerated_header(bit_bound);
-$complete_type_detail(type=enum, type_kind=" Enum")$
-CompleteEnumeratedHeader header = TypeObjectUtils::build_complete_enumerated_header(common, detail);
-CompleteEnumeratedLiteralSeq literal_seq;
-$enum.members: { member | $enum_literal(literal=member, parent=enum)$}; separator="\n"$
-CompleteEnumeratedType enumerated_type = TypeObjectUtils::build_complete_enumerated_type(enum_flags, header,
-        literal_seq);
+register_enum_type(enum, name) ::= <<
+EnumTypeFlag enum_flags_$enum.name$ = 0;
+BitBound bit_bound_$enum.name$ = $enum.bitBound$;
+CommonEnumeratedHeader common_$enum.name$ = TypeObjectUtils::build_common_enumerated_header(bit_bound_$enum.name$);
+$complete_type_detail(type=enum, type_kind=" Enum", name=name)$
+CompleteEnumeratedHeader header_$enum.name$ = TypeObjectUtils::build_complete_enumerated_header(common_$enum.name$, detail_$enum.name$);
+CompleteEnumeratedLiteralSeq literal_seq_$enum.name$;
+$enum.members: { member | $enum_literal(literal=member, parent=enum, name=name)$}; separator="\n"$
+CompleteEnumeratedType enumerated_type_$enum.name$ = TypeObjectUtils::build_complete_enumerated_type(enum_flags_$enum.name$, header_$enum.name$,
+        literal_seq_$enum.name$);
 if (eprosima::fastdds::dds::RETCODE_BAD_PARAMETER ==
-        TypeObjectUtils::build_and_register_enumerated_type_object(enumerated_type, type_name.to_string()))
+        TypeObjectUtils::build_and_register_enumerated_type_object(enumerated_type_$enum.name$, type_name_$enum.name$.to_string()))
 {
     EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
         "$enum.scopedname$ already registered in TypeObjectRegistry for a different type.");
 }
-$get_type_identifier_registry(typename=enum.scopedname)$
-if (return_code != eprosima::fastdds::dds::RETCODE_OK)
+$get_type_identifier_registry(typename=enum.scopedname, name=name)$
+if (return_code_$name$ != eprosima::fastdds::dds::RETCODE_OK)
 {
     EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
                 "$enum.scopedname$: Given Enum TypeIdentifier unknown to TypeObjectRegistry.");
@@ -772,33 +750,33 @@ if (return_code != eprosima::fastdds::dds::RETCODE_OK)
 }
 >>
 
-enum_literal(literal, parent) ::= <<
+enum_literal(literal, parent, name) ::= <<
 {
-    EnumeratedLiteralFlag flags = TypeObjectUtils::build_enumerated_literal_flag($literal.annotationDefaultLiteral$);
-    CommonEnumeratedLiteral common = TypeObjectUtils::build_common_enumerated_literal($literal.index$, flags);
-    $empty_ann_builtin_complete_member_detail(member=literal, parent=parent, message=[parent.scopedname, " Enumerated ", literal.name, " literal: only @default_literal and @value builtin annotations apply to literals"])$
-    CompleteEnumeratedLiteral literal = TypeObjectUtils::build_complete_enumerated_literal(common, detail);
-    TypeObjectUtils::add_complete_enumerated_literal(literal_seq, literal);
+    EnumeratedLiteralFlag flags_$literal.name$ = TypeObjectUtils::build_enumerated_literal_flag($literal.annotationDefaultLiteral$);
+    CommonEnumeratedLiteral common_$literal.name$ = TypeObjectUtils::build_common_enumerated_literal($literal.index$, flags_$literal.name$);
+    $empty_ann_builtin_complete_member_detail(member=literal, parent=parent, message=[parent.scopedname, " Enumerated ", literal.name, " literal: only @default_literal and @value builtin annotations apply to literals"], name=name)$
+    CompleteEnumeratedLiteral literal_$literal.name$ = TypeObjectUtils::build_complete_enumerated_literal(common_$literal.name$, detail_$literal.name$);
+    TypeObjectUtils::add_complete_enumerated_literal(literal_seq_$parent.name$, literal_$literal.name$);
 }
 >>
 
-register_bitmask_type(bitmask) ::= <<
-BitmaskTypeFlag bitmask_flags = 0;
-BitBound bit_bound = $bitmask.bitBound$;
-CommonEnumeratedHeader common = TypeObjectUtils::build_common_enumerated_header(bit_bound, true);
-$complete_type_detail(type=bitmask, type_kind=" Bitmask")$
-CompleteEnumeratedHeader header = TypeObjectUtils::build_complete_enumerated_header(common, detail, true);
-CompleteBitflagSeq flag_seq;
-$bitmask.bitmasks: { bitflag | $bitflag_member(bitflag=bitflag, parent=parent)$}; separator="\n"$
-CompleteBitmaskType bitmask_type = TypeObjectUtils::build_complete_bitmask_type(bitmask_flags, header, flag_seq);
+register_bitmask_type(bitmask, name) ::= <<
+BitmaskTypeFlag bitmask_flags_$bitmask.name$ = 0;
+BitBound bit_bound_$bitmask.name$ = $bitmask.bitBound$;
+CommonEnumeratedHeader common_$bitmask.name$ = TypeObjectUtils::build_common_enumerated_header(bit_bound_$bitmask.name$, true);
+$complete_type_detail(type=bitmask, type_kind=" Bitmask", name=name)$
+CompleteEnumeratedHeader header_$bitmask.name$ = TypeObjectUtils::build_complete_enumerated_header(common_$bitmask.name$, detail_$bitmask.name$, true);
+CompleteBitflagSeq flag_seq_$bitmask.name$;
+$bitmask.bitmasks: { bitflag | $bitflag_member(bitflag=bitflag, parent=bitmask, name=name)$}; separator="\n"$
+CompleteBitmaskType bitmask_type_$bitmask.name$ = TypeObjectUtils::build_complete_bitmask_type(bitmask_flags_$bitmask.name$, header_$bitmask.name$, flag_seq_$bitmask.name$);
 if (eprosima::fastdds::dds::RETCODE_BAD_PARAMETER ==
-        TypeObjectUtils::build_and_register_bitmask_type_object(bitmask_type, type_name.to_string()))
+        TypeObjectUtils::build_and_register_bitmask_type_object(bitmask_type_$bitmask.name$, type_name_$bitmask.name$.to_string()))
 {
     EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
         "$bitmask.scopedname$ already registered in TypeObjectRegistry for a different type.");
 }
-$get_type_identifier_registry(typename=bitmask.scopedname)$
-if (return_code != eprosima::fastdds::dds::RETCODE_OK)
+$get_type_identifier_registry(typename=bitmask.scopedname, name=name)$
+if (return_code_$name$ != eprosima::fastdds::dds::RETCODE_OK)
 {
     EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
                 "$bitmask.scopedname$: Given Enum TypeIdentifier unknown to TypeObjectRegistry.");
@@ -806,20 +784,20 @@ if (return_code != eprosima::fastdds::dds::RETCODE_OK)
 }
 >>
 
-bitflag_member(bitflag, parent) ::= <<
+bitflag_member(bitflag, parent, name) ::= <<
 {
-    uint16_t position = $bitflag.position$;
-    BitflagFlag flags = 0;
-    CommonBitflag common = TypeObjectUtils::build_common_bitflag(position, flags);
-    $empty_ann_builtin_complete_member_detail(member=bitflag, parent=parent, message=[parent.scopedname, " Bitmask ", bitflag.name, " bitflag: only @position builtin annotation apply to bitmask bitflags"])$
-    CompleteBitflag bitflag = TypeObjectUtils::build_complete_bitflag(common, detail);
-    TypeObjectUtils::add_complete_bitflag(flag_seq, bitflag);
+    uint16_t position_$bitflag.name$ = $bitflag.position$;
+    BitflagFlag flags_$bitflag.name$ = 0;
+    CommonBitflag common_$bitflag.name$ = TypeObjectUtils::build_common_bitflag(position_$bitflag.name$, flags_$bitflag.name$);
+    $empty_ann_builtin_complete_member_detail(member=bitflag, parent=parent, message=[parent.scopedname, " Bitmask ", bitflag.name, " bitflag: only @position builtin annotation apply to bitmask bitflags"], name=name)$
+    CompleteBitflag bitflag_$bitflag.name$ = TypeObjectUtils::build_complete_bitflag(common_$bitflag.name$, detail_$bitflag.name$);
+    TypeObjectUtils::add_complete_bitflag(flag_seq_$parent.name$, bitflag_$bitflag.name$);
 }
 >>
 
-register_wstring_type(wstring) ::= <<
-std::string type_id_kind("$wstring.typeIdentifier$");
-if (type_id_kind == "TI_STRING16_SMALL")
+register_wstring_type(wstring, name) ::= <<
+std::string type_id_kind_$wstring_name(wstring)$("$wstring.typeIdentifier$");
+if (type_id_kind_$wstring_name(wstring)$ == "TI_STRING16_SMALL")
 {
     SBound bound = $if (!wstring.isBounded)$0$else$static_cast<SBound>($wstring.evaluatedMaxsize$)$endif$;
     StringSTypeDefn string_sdefn = TypeObjectUtils::build_string_s_type_defn(bound);
@@ -831,7 +809,7 @@ if (type_id_kind == "TI_STRING16_SMALL")
             "$wstring_name(wstring)$ already registered in TypeObjectRegistry for a different type.");
     }
 }
-else if (type_id_kind == "TI_STRING16_LARGE")
+else if (type_id_kind_$wstring_name(wstring)$ == "TI_STRING16_LARGE")
 {
     LBound bound = $wstring.evaluatedMaxsize$;
     StringLTypeDefn string_ldefn = TypeObjectUtils::build_string_l_type_defn(bound);
@@ -849,8 +827,8 @@ else
                 "$wstring_name(wstring)$: Unknown WString kind.");
     return;
 }
-$get_type_identifier_registry(typename=wstring_name(wstring))$
-if (return_code != eprosima::fastdds::dds::RETCODE_OK)
+$get_type_identifier_registry(typename=wstring_name(wstring), name=name)$
+if (return_code_$name$ != eprosima::fastdds::dds::RETCODE_OK)
 {
     EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
                 "$wstring_name(wstring)$: Given WString TypeIdentifier unknown to TypeObjectRegistry.");
@@ -858,9 +836,9 @@ if (return_code != eprosima::fastdds::dds::RETCODE_OK)
 }
 >>
 
-register_string_type(string) ::= <<
-std::string type_id_kind("$string.typeIdentifier$");
-if (type_id_kind == "TI_STRING8_SMALL")
+register_string_type(string, name) ::= <<
+std::string type_id_kind_$string_name(string)$("$string.typeIdentifier$");
+if (type_id_kind_$string_name(string)$ == "TI_STRING8_SMALL")
 {
     SBound bound = $if (!string.isBounded)$0$else$static_cast<SBound>($string.evaluatedMaxsize$)$endif$;
     StringSTypeDefn string_sdefn = TypeObjectUtils::build_string_s_type_defn(bound);
@@ -872,7 +850,7 @@ if (type_id_kind == "TI_STRING8_SMALL")
             "$string_name(string)$ already registered in TypeObjectRegistry for a different type.");
     }
 }
-else if (type_id_kind == "TI_STRING8_LARGE")
+else if (type_id_kind_$string_name(string)$ == "TI_STRING8_LARGE")
 {
     LBound bound = $string.evaluatedMaxsize$;
     StringLTypeDefn string_ldefn = TypeObjectUtils::build_string_l_type_defn(bound);
@@ -890,8 +868,8 @@ else
                 "$string_name(string)$: Unknown String kind.");
     return;
 }
-$get_type_identifier_registry(typename=string_name(string))$
-if (return_code != eprosima::fastdds::dds::RETCODE_OK)
+$get_type_identifier_registry(typename=string_name(string), name=name)$
+if (return_code_$name$ != eprosima::fastdds::dds::RETCODE_OK)
 {
     EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
                 "$string_name(string)$: Given String TypeIdentifier unknown to TypeObjectRegistry.");
@@ -899,152 +877,152 @@ if (return_code != eprosima::fastdds::dds::RETCODE_OK)
 }
 >>
 
-complete_type_detail(type, type_kind) ::= <<
-QualifiedTypeName type_name = "$type.scopedname$";
-eprosima::fastcdr::optional<AppliedBuiltinTypeAnnotations> type_ann_builtin;
-eprosima::fastcdr::optional<AppliedAnnotationSeq> ann_custom;
-$type_annotations(type=type, type_kind=type_kind)$
-CompleteTypeDetail detail = TypeObjectUtils::build_complete_type_detail(type_ann_builtin, ann_custom, type_name.to_string());
+complete_type_detail(type, type_kind, name) ::= <<
+QualifiedTypeName type_name_$type.name$ = "$type.scopedname$";
+eprosima::fastcdr::optional<AppliedBuiltinTypeAnnotations> type_ann_builtin_$type.name$;
+eprosima::fastcdr::optional<AppliedAnnotationSeq> ann_custom_$type.name$;
+$type_annotations(type=type, type_kind=type_kind, name=name)$
+CompleteTypeDetail detail_$type.name$ = TypeObjectUtils::build_complete_type_detail(type_ann_builtin_$type.name$, ann_custom_$type.name$, type_name_$type.name$.to_string());
 >>
 
-complete_member_detail(member, parent, type_kind) ::= <<
-MemberName name = "$member.name$";
-eprosima::fastcdr::optional<AppliedBuiltinMemberAnnotations> member_ann_builtin;
-ann_custom.reset();
+complete_member_detail(member, parent, type_kind, name) ::= <<
+MemberName name_$member.name$ = "$member.name$";
+eprosima::fastcdr::optional<AppliedBuiltinMemberAnnotations> member_ann_builtin_$member.name$;
+ann_custom_$parent.name$.reset();
 $if (member.annotationList)$
-AppliedAnnotationSeq tmp_ann_custom;
-eprosima::fastcdr::optional<std::string> unit;
-eprosima::fastcdr::optional<AnnotationParameterValue> min;
-eprosima::fastcdr::optional<AnnotationParameterValue> max;
-eprosima::fastcdr::optional<std::string> hash_id;
+AppliedAnnotationSeq tmp_ann_custom_$member.name$;
+eprosima::fastcdr::optional<std::string> unit_$member.name$;
+eprosima::fastcdr::optional<AnnotationParameterValue> min_$member.name$;
+eprosima::fastcdr::optional<AnnotationParameterValue> max_$member.name$;
+eprosima::fastcdr::optional<std::string> hash_id_$member.name$;
 $member.annotationList : { annotation |
 $if (annotation.isUnit)$
-unit = $annotation.value$;
+unit_$member.name$ = $annotation.value$;
 $elseif (annotation.isMin || annotation.isMax || annotation.isRange)$
 EPROSIMA_LOG_WARNING(XTYPES_TYPE_REPRESENTATION,
         "$parent.scopedname$ $type_kind$ $member.name$ member: @min, @max, and @range builtin annotations not yet supported");
 $elseif (annotation.isHashId)$
 $if (annotation.value)$
-hash_id = "$annotation.value$";
+hash_id_$member.name$ = "$annotation.value$";
 $endif$
 $elseif (!annotation.isBuiltin)$
-$applied_annotation_sequence(annotation=annotation, typename=[parent.scopedname, " ", member.name, " member"])$
+$applied_annotation_sequence(annotation=annotation, typename=[parent.scopedname, " ", member.name, " member"], member=member, name=name)$
 $endif$
 }; separator="\n"$
-if (unit.has_value() || min.has_value() || max.has_value() || hash_id.has_value())
+if (unit_$member.name$.has_value() || min_$member.name$.has_value() || max_$member.name$.has_value() || hash_id_$member.name$.has_value())
 {
-    member_ann_builtin = TypeObjectUtils::build_applied_builtin_member_annotations(unit, min, max, hash_id);
+    member_ann_builtin_$member.name$ = TypeObjectUtils::build_applied_builtin_member_annotations(unit_$member.name$, min_$member.name$, max_$member.name$, hash_id_$member.name$);
 }
-if (!tmp_ann_custom.empty())
+if (!tmp_ann_custom_$member.name$.empty())
 {
-    ann_custom = tmp_ann_custom;
+    ann_custom_$parent.name$ = tmp_ann_custom_$member.name$;
 }
 $endif$
-CompleteMemberDetail detail = TypeObjectUtils::build_complete_member_detail(name, member_ann_builtin, ann_custom);
+CompleteMemberDetail detail_$member.name$ = TypeObjectUtils::build_complete_member_detail(name_$member.name$, member_ann_builtin_$member.name$, ann_custom_$parent.name$);
 >>
 
-empty_ann_builtin_complete_member_detail(member, parent, message) ::= <<
-eprosima::fastcdr::optional<AppliedBuiltinMemberAnnotations> member_ann_builtin;
-ann_custom.reset();
+empty_ann_builtin_complete_member_detail(member, parent, message, name) ::= <<
+eprosima::fastcdr::optional<AppliedBuiltinMemberAnnotations> member_ann_builtin_$member.name$;
+ann_custom_$parent.name$.reset();
 $if (member.annotationList)$
-AppliedAnnotationSeq tmp_ann_custom;
+AppliedAnnotationSeq tmp_ann_custom_$member.name$;
 $member.annotationList : { annotation |
 $if (annotation.isUnit || annotation.isMin || annotation.isMax || annotation.isRange || annotation.isHashId)$
 EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
         "$message$");
 return;
 $elseif (!annotation.isBuiltin)$
-$applied_annotation_sequence(annotation=annotation, typename=[parent.scopedname, " ", member.name, " member"])$
+$applied_annotation_sequence(annotation=annotation, typename=[parent.scopedname, " ", member.name, " member"], member=member, name=name)$
 $endif$
 }; separator="\n"$
-if (!tmp_ann_custom.empty())
+if (!tmp_ann_custom_$member.name$.empty())
 {
-    ann_custom = tmp_ann_custom;
+    ann_custom_$parent.name$ = tmp_ann_custom_$member.name$;
 }
 $endif$
-MemberName name = "$member.name$";
-CompleteMemberDetail detail = TypeObjectUtils::build_complete_member_detail(name, member_ann_builtin, ann_custom);
+MemberName name_$member.name$ = "$member.name$";
+CompleteMemberDetail detail_$member.name$ = TypeObjectUtils::build_complete_member_detail(name_$member.name$, member_ann_builtin_$member.name$, ann_custom_$parent.name$);
 >>
 
-type_annotations(type, type_kind) ::= <<
+type_annotations(type, type_kind, name) ::= <<
 $if (type.annotationList)$
-AppliedAnnotationSeq tmp_ann_custom;
-eprosima::fastcdr::optional<AppliedVerbatimAnnotation> verbatim;
+AppliedAnnotationSeq tmp_ann_custom_$type.name$;
+eprosima::fastcdr::optional<AppliedVerbatimAnnotation> verbatim_$type.name$;
 $type.annotationList : { annotation |
 $if (annotation.isVerbatim)$
-$applied_verbatim_annotation(annotation=annotation)$
+$applied_verbatim_annotation(annotation=annotation, name=type.name)$
 $elseif (!annotation.isBuiltin)$
-$applied_annotation_sequence(annotation=annotation, typename=[type.scopedname, type_kind])$
+$applied_annotation_sequence(annotation=annotation, typename=[type.scopedname, type_kind], member=type, name=name)$
 $endif$
 }; separator="\n"$
-if (!tmp_ann_custom.empty())
+if (!tmp_ann_custom_$type.name$.empty())
 {
-    ann_custom = tmp_ann_custom;
+    ann_custom_$type.name$ = tmp_ann_custom_$type.name$;
 }
 $endif$
 >>
 
-check_first_returned_type_identifier_pair() ::= <<
-if (EK_COMPLETE == type_ids.type_identifier1()._d() || TK_NONE == type_ids.type_identifier2()._d() ||
-        (TI_PLAIN_SEQUENCE_SMALL == type_ids.type_identifier1()._d() &&
-        EK_COMPLETE == type_ids.type_identifier1().seq_sdefn().header().equiv_kind()) ||
-        (TI_PLAIN_SEQUENCE_LARGE == type_ids.type_identifier1()._d() &&
-        EK_COMPLETE == type_ids.type_identifier1().seq_ldefn().header().equiv_kind()) ||
-        (TI_PLAIN_ARRAY_SMALL == type_ids.type_identifier1()._d() &&
-        EK_COMPLETE == type_ids.type_identifier1().array_sdefn().header().equiv_kind()) ||
-        (TI_PLAIN_ARRAY_LARGE == type_ids.type_identifier1()._d() &&
-        EK_COMPLETE == type_ids.type_identifier1().array_ldefn().header().equiv_kind()) ||
-        (TI_PLAIN_MAP_SMALL == type_ids.type_identifier1()._d() &&
-        (EK_COMPLETE == type_ids.type_identifier1().map_sdefn().header().equiv_kind() ||
-        EK_COMPLETE == type_ids.type_identifier1().map_sdefn().key_identifier()->_d())) ||
-        (TI_PLAIN_MAP_LARGE == type_ids.type_identifier1()._d() &&
-        (EK_COMPLETE == type_ids.type_identifier1().map_ldefn().header().equiv_kind() ||
-        EK_COMPLETE == type_ids.type_identifier1().map_ldefn().key_identifier()->_d())))
+check_first_returned_type_identifier_pair(name) ::= <<
+if (EK_COMPLETE == type_ids_$name$.type_identifier1()._d() || TK_NONE == type_ids_$name$.type_identifier2()._d() ||
+        (TI_PLAIN_SEQUENCE_SMALL == type_ids_$name$.type_identifier1()._d() &&
+        EK_COMPLETE == type_ids_$name$.type_identifier1().seq_sdefn().header().equiv_kind()) ||
+        (TI_PLAIN_SEQUENCE_LARGE == type_ids_$name$.type_identifier1()._d() &&
+        EK_COMPLETE == type_ids_$name$.type_identifier1().seq_ldefn().header().equiv_kind()) ||
+        (TI_PLAIN_ARRAY_SMALL == type_ids_$name$.type_identifier1()._d() &&
+        EK_COMPLETE == type_ids_$name$.type_identifier1().array_sdefn().header().equiv_kind()) ||
+        (TI_PLAIN_ARRAY_LARGE == type_ids_$name$.type_identifier1()._d() &&
+        EK_COMPLETE == type_ids_$name$.type_identifier1().array_ldefn().header().equiv_kind()) ||
+        (TI_PLAIN_MAP_SMALL == type_ids_$name$.type_identifier1()._d() &&
+        (EK_COMPLETE == type_ids_$name$.type_identifier1().map_sdefn().header().equiv_kind() ||
+        EK_COMPLETE == type_ids_$name$.type_identifier1().map_sdefn().key_identifier()->_d())) ||
+        (TI_PLAIN_MAP_LARGE == type_ids_$name$.type_identifier1()._d() &&
+        (EK_COMPLETE == type_ids_$name$.type_identifier1().map_ldefn().header().equiv_kind() ||
+        EK_COMPLETE == type_ids_$name$.type_identifier1().map_ldefn().key_identifier()->_d())))
 >>
 
-check_second_returned_type_identifier_pair() ::= <<
-else if (EK_COMPLETE == type_ids.type_identifier2()._d() ||
-        (TI_PLAIN_SEQUENCE_SMALL == type_ids.type_identifier2()._d() &&
-        EK_COMPLETE == type_ids.type_identifier2().seq_sdefn().header().equiv_kind()) ||
-        (TI_PLAIN_SEQUENCE_LARGE == type_ids.type_identifier2()._d() &&
-        EK_COMPLETE == type_ids.type_identifier2().seq_ldefn().header().equiv_kind()) ||
-        (TI_PLAIN_ARRAY_SMALL == type_ids.type_identifier2()._d() &&
-        EK_COMPLETE == type_ids.type_identifier2().array_sdefn().header().equiv_kind()) ||
-        (TI_PLAIN_ARRAY_LARGE == type_ids.type_identifier2()._d() &&
-        EK_COMPLETE == type_ids.type_identifier2().array_ldefn().header().equiv_kind()) ||
-        (TI_PLAIN_MAP_SMALL == type_ids.type_identifier2()._d() &&
-        (EK_COMPLETE == type_ids.type_identifier2().map_sdefn().header().equiv_kind() ||
-        EK_COMPLETE == type_ids.type_identifier2().map_sdefn().key_identifier()->_d())) ||
-        (TI_PLAIN_MAP_LARGE == type_ids.type_identifier2()._d() &&
-        (EK_COMPLETE == type_ids.type_identifier2().map_ldefn().header().equiv_kind() ||
-        EK_COMPLETE == type_ids.type_identifier2().map_ldefn().key_identifier()->_d())))
+check_second_returned_type_identifier_pair(name) ::= <<
+else if (EK_COMPLETE == type_ids_$name$.type_identifier2()._d() ||
+        (TI_PLAIN_SEQUENCE_SMALL == type_ids_$name$.type_identifier2()._d() &&
+        EK_COMPLETE == type_ids_$name$.type_identifier2().seq_sdefn().header().equiv_kind()) ||
+        (TI_PLAIN_SEQUENCE_LARGE == type_ids_$name$.type_identifier2()._d() &&
+        EK_COMPLETE == type_ids_$name$.type_identifier2().seq_ldefn().header().equiv_kind()) ||
+        (TI_PLAIN_ARRAY_SMALL == type_ids_$name$.type_identifier2()._d() &&
+        EK_COMPLETE == type_ids_$name$.type_identifier2().array_sdefn().header().equiv_kind()) ||
+        (TI_PLAIN_ARRAY_LARGE == type_ids_$name$.type_identifier2()._d() &&
+        EK_COMPLETE == type_ids_$name$.type_identifier2().array_ldefn().header().equiv_kind()) ||
+        (TI_PLAIN_MAP_SMALL == type_ids_$name$.type_identifier2()._d() &&
+        (EK_COMPLETE == type_ids_$name$.type_identifier2().map_sdefn().header().equiv_kind() ||
+        EK_COMPLETE == type_ids_$name$.type_identifier2().map_sdefn().key_identifier()->_d())) ||
+        (TI_PLAIN_MAP_LARGE == type_ids_$name$.type_identifier2()._d() &&
+        (EK_COMPLETE == type_ids_$name$.type_identifier2().map_ldefn().header().equiv_kind() ||
+        EK_COMPLETE == type_ids_$name$.type_identifier2().map_ldefn().key_identifier()->_d())))
 >>
 
-check_register_type_identifier(type, message) ::= <<
-if (return_code != eprosima::fastdds::dds::RETCODE_OK)
+check_register_type_identifier(type, message, name) ::= <<
+if (return_code_$name$ != eprosima::fastdds::dds::RETCODE_OK)
 {
     $if (type.isAliasType)$
-    $register_alias_type(alias=type)$
+    $register_alias_type(alias=type, name=name)$
     $elseif (type.isStructType)$
     $register_struct_type(struct=type)$
     $elseif (type.isUnionType)$
     $register_union_type(union=type)$
     $elseif (type.isBitsetType)$
-    $register_bitset_type(bitset=type)$
+    $register_bitset_type(bitset=type, name=name)$
     $elseif (type.isSequenceType)$
-    $register_sequence_type(sequence=type)$
+    $register_sequence_type(sequence=type, name=name)$
     $elseif (type.isArrayType)$
-    $register_array_type(array=type)$
+    $register_array_type(array=type, name=name)$
     $elseif (type.isMapType)$
-    $register_map_type(map=type)$
+    $register_map_type(map=type, name=name)$
     $elseif (type.isEnumType)$
-    $register_enum_type(enum=type)$
+    $register_enum_type(enum=type, name=name)$
     $elseif (type.isBitmaskType)$
-    $register_bitmask_type(bitmask=type)$
+    $register_bitmask_type(bitmask=type, name=name)$
     $elseif (type.isStringType)$
-    $register_string_type(string=type)$
+    $register_string_type(string=type, name=name)$
     $elseif (type.isWStringType)$
-    $register_wstring_type(wstring=type)$
+    $register_wstring_type(wstring=type, name=name)$
     $else$
     EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
             "$message$ TypeIdentifier unknown to TypeObjectRegistry.");
@@ -1077,17 +1055,17 @@ $elseif (object.annotationTrim)$
 $endif$
 %>
 
-plain_collection_header(type, message) ::= <<
-$get_type_identifier(type=type)$
-$check_register_type_identifier(type=type, message=message)$
-TypeIdentifier* element_identifier {nullptr};
-$check_first_returned_type_identifier_pair()$
+plain_collection_header(type, message, name, collection_name) ::= <<
+$get_type_identifier(type=type, name=name)$
+$check_register_type_identifier(type=type, message=message, name=name)$
+TypeIdentifier* element_identifier_$collection_name$ {nullptr};
+$check_first_returned_type_identifier_pair(name=name)$
 {
-    element_identifier = new TypeIdentifier(type_ids.type_identifier1());
+    element_identifier_$collection_name$ = new TypeIdentifier(type_ids_$name$.type_identifier1());
 }
-$check_second_returned_type_identifier_pair()$
+$check_second_returned_type_identifier_pair(name=name)$
 {
-    element_identifier = new TypeIdentifier(type_ids.type_identifier2());
+    element_identifier_$collection_name$ = new TypeIdentifier(type_ids_$name$.type_identifier2());
 }
 else
 {
@@ -1095,14 +1073,14 @@ else
         "$message$ TypeIdentifier inconsistent.");
     return;
 }
-EquivalenceKind equiv_kind = EK_COMPLETE;
-if (TK_NONE == type_ids.type_identifier2()._d())
+EquivalenceKind equiv_kind_$collection_name$ = EK_COMPLETE;
+if (TK_NONE == type_ids_$name$.type_identifier2()._d())
 {
-    equiv_kind = EK_BOTH;
+    equiv_kind_$collection_name$ = EK_BOTH;
 }
 $! TODO(jlbueno) Annotated collections not yet supported !$
-CollectionElementFlag element_flags = 0;
-PlainCollectionHeader header = TypeObjectUtils::build_plain_collection_header(equiv_kind, element_flags);
+CollectionElementFlag element_flags_$collection_name$ = 0;
+PlainCollectionHeader header_$collection_name$ = TypeObjectUtils::build_plain_collection_header(equiv_kind_$collection_name$, element_flags_$collection_name$);
 >>
 
 //{ Fast DDS-Gen extensions
