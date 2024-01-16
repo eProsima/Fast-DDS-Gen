@@ -397,10 +397,10 @@ register_struct_type(struct) ::= <<
 
 struct_member(member, parent) ::= <<
 {
-    StructMemberFlag member_flags_$member.name$ = TypeObjectUtils::build_struct_member_flag($try_construct(object=member)$
-            $member.annotationOptional$, $member.annotationMustUnderstand$, $member.annotationKey$, $member.annotationExternal$);
     $get_type_identifier(type=member.typecode, name=parent.name)$
     $check_register_type_identifier(type=member.typecode, message=[member.name, " Structure member"], name=parent.name)$
+    StructMemberFlag member_flags_$member.name$ = TypeObjectUtils::build_struct_member_flag($try_construct(object=member)$
+            $member.annotationOptional$, $member.annotationMustUnderstand$, $member.annotationKey$, $member.annotationExternal$);
     CommonStructMember common_$member.name$;
     MemberId member_id_$member.name$ = $member.id$;
     $check_first_returned_type_identifier_pair(name=parent.name)$
@@ -488,10 +488,10 @@ register_union_type(union) ::= <<
 
 union_member(member, parent) ::= <<
 {
-    UnionMemberFlag member_flags_$member.name$ = TypeObjectUtils::build_union_member_flag($try_construct(object=member)$
-            $member.default$, $member.annotationExternal$);
     $get_type_identifier(type=member.typecode, name=parent.name)$
     $check_register_type_identifier(type=member.typecode, message=[member.name, " Union member"], name=parent.name)$
+    UnionMemberFlag member_flags_$member.name$ = TypeObjectUtils::build_union_member_flag($try_construct(object=member)$
+            $member.default$, $member.annotationExternal$);
     UnionCaseLabelSeq label_seq_$member.name$;
     $if (member.labels)$
     $member.labels : { label | TypeObjectUtils::add_union_case_label(label_seq_$member.name$, static_cast<int32_t>($label$));}; separator="\n"$
