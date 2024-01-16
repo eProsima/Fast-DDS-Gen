@@ -630,6 +630,7 @@ public class fastddsgen
         System.out.println("\t\t" + language_arg + " <lang>: chooses between <c++> or <java> languages.");
         System.out.println("\t\t" + no_typesupport_arg + ": avoid generating the type support files.");
         System.out.println("\t\t" + no_typeobjectsupport_arg + ": avoid generating the TypeObject support specific files.");
+        System.out.println("\t\t\tEnabled automatically if " + no_typesupport_arg + " argument is used.");
         System.out.println("\t\t" + no_dependencies_arg + ": avoid processing the dependent IDL files.");
         System.out.println("\t\t" + package_arg + ": default package used in Java files.");
         System.out.println("\t\t" + disable_preprocessor_arg + ": disables the preprocessor.");

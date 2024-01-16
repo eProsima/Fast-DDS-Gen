@@ -64,6 +64,90 @@ int main(
 }
 >>
 
+fwd_decl(ctx, parent, type) ::= <<>>
+
+typedef_decl(ctx, parent, typedefs, typedefs_type, declarator_type) ::= <<
+$declarator_type$
+$typedefs_type$
+$test_typedef(typedefs=typedefs)$
+>>
+
+struct_type(ctx, parent, struct, member_list) ::= <<
+namespace $struct.cScopedname$_namespace {
+$member_list$
+} // $struct.cScopedname$_namespace
+$test_structure(struct=struct)$
+>>
+
+union_type(ctx, parent, union, switch_type) ::= <<
+$switch_type$
+$test_union(union=union)$
+>>
+
+enum_type(ctx, parent, enum) ::= <<
+$test_enum(enum=enum)$
+>>
+
+bitmask_type(ctx, parent, bitmask) ::= <<
+$test_bitmask(bitmask=bitmask)$
+>>
+
+bitset_type(ctx, parent, bitset, extensions) ::= <<
+$test_bitset(bitset=bitset)$
+>>
+
+annotation(ctx, annotation) ::= <<
+$test_annotation(annotation=annotation)$
+>>
+
+module(ctx, parent, module, definition_list) ::= <<
+$definition_list$
+>>
+
+definition_list(definitions) ::= <<
+$definitions;separator="\n"$
+>>
+
+const_decl(ctx, parent, const, const_type) ::= <<
+$const_type$
+>>
+
+member_type(ctx, member, type_member, declarators) ::= <<
+$type_member$
+$declarators$
+>>
+
+element_type(ctx, element, type_element, declarator) ::= <<>>
+
+sequence_type(ctx, sequence, type_sequence) ::= <<
+$type_sequence$
+$test_sequence(sequence=sequence)$
+>>
+
+map_type(ctx, map, key_type, value_type) ::= <<
+namespace $map_name(map=map)$_namespace {
+namespace key {
+$key_type$
+} // namespace key
+namespace value {
+$value_type$
+} // namespace value
+} // $map_name(map=map)$_namespace
+$test_map(map=map)$
+>>
+
+string_type(ctx, string) ::= <<
+$test_string(string=string)$
+>>
+
+wide_string_type(ctx, wstring) ::= <<
+$test_wstring(wstring=wstring)$
+>>
+
+array_declarator(ctx, array) ::= <<
+$test_array(array=array)$
+>>
+
 get_type_identifier_registry(typename, result) ::= <<
 ret_code =
     eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->type_object_registry().get_type_identifiers(
@@ -1345,90 +1429,6 @@ else
 {
     EXPECT_EQ($if(wstring.isBounded)$$wstring.evaluatedMaxsize$$else$0$endif$, type_ids.type_identifier1().string_ldefn().bound());
 }
->>
-
-fwd_decl(ctx, parent, type) ::= <<>>
-
-typedef_decl(ctx, parent, typedefs, typedefs_type, declarator_type) ::= <<
-$declarator_type$
-$typedefs_type$
-$test_typedef(typedefs=typedefs)$
->>
-
-struct_type(ctx, parent, struct, member_list) ::= <<
-namespace $struct.cScopedname$_namespace {
-$member_list$
-} // $struct.cScopedname$_namespace
-$test_structure(struct=struct)$
->>
-
-union_type(ctx, parent, union, switch_type) ::= <<
-$switch_type$
-$test_union(union=union)$
->>
-
-enum_type(ctx, parent, enum) ::= <<
-$test_enum(enum=enum)$
->>
-
-bitmask_type(ctx, parent, bitmask) ::= <<
-$test_bitmask(bitmask=bitmask)$
->>
-
-bitset_type(ctx, parent, bitset, extensions) ::= <<
-$test_bitset(bitset=bitset)$
->>
-
-annotation(ctx, annotation) ::= <<
-$test_annotation(annotation=annotation)$
->>
-
-module(ctx, parent, module, definition_list) ::= <<
-$definition_list$
->>
-
-definition_list(definitions) ::= <<
-$definitions;separator="\n"$
->>
-
-const_decl(ctx, parent, const, const_type) ::= <<
-$const_type$
->>
-
-member_type(ctx, member, type_member, declarators) ::= <<
-$type_member$
-$declarators$
->>
-
-element_type(ctx, element, type_element, declarator) ::= <<>>
-
-sequence_type(ctx, sequence, type_sequence) ::= <<
-$type_sequence$
-$test_sequence(sequence=sequence)$
->>
-
-map_type(ctx, map, key_type, value_type) ::= <<
-namespace $map_name(map=map)$_namespace {
-namespace key {
-$key_type$
-} // namespace key
-namespace value {
-$value_type$
-} // namespace value
-} // $map_name(map=map)$_namespace
-$test_map(map=map)$
->>
-
-string_type(ctx, string) ::= <<
-$test_string(string=string)$
->>
-
-wide_string_type(ctx, wstring) ::= <<
-$test_wstring(wstring=wstring)$
->>
-
-array_declarator(ctx, array) ::= <<
-$test_array(array=array)$
 >>
 
 check_direct_hash_type_identifier(typeid) ::= <<

@@ -78,7 +78,7 @@ void register_$struct.CScopedname$_type_identifier()
     $register_struct_type(struct)$
     $else$
     EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
-                        "$struct.CScopedname$ contains forward declarations (not yet supported).");
+                        "$struct.scopedname$ contains forward declarations (not yet supported).");
     $endif$
 }
 
@@ -91,7 +91,7 @@ void register_$union.CScopedname$_type_identifier()
     $register_union_type(union)$
     $else$
     EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
-                        "$union.CScopedname$ contains forward declarations (not yet supported).");
+                        "$union.scopedname$ contains forward declarations (not yet supported).");
     $endif$
 }
 

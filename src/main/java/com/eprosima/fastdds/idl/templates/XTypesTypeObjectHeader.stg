@@ -37,6 +37,7 @@ $ctx.directIncludeDependencies : { include | #include "$include$TypeObjectSuppor
 /**
  * @brief Register every TypeObject representation defined in the IDL file in Fast DDS TypeObjectRegistry.
  */
+$! TODO: ensure no conflict between IDL files with same name but different directory !$
 eProsima_user_DllExport void register_$ctx.filename$_type_objects();
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS_PUBLIC
