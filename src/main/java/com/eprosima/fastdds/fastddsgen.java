@@ -122,6 +122,11 @@ public class fastddsgen
     // Testing
     private boolean m_test = false;
 
+    // Ignore input relative file paths
+    // generate files under the -d directory
+    // ignoring the relative dir of the input files
+    private boolean m_flat_output_dir = false;
+
     // Use to know the programming language
     public enum LANGUAGE
     {
@@ -296,6 +301,10 @@ public class fastddsgen
             else if (arg.equals("-test"))
             {
                 m_test = true;
+            }
+            else if (arg.equals("-flat-output-dir"))
+            {
+                m_flat_output_dir = true;
             }
             else if (arg.equals("-I"))
             {
@@ -663,7 +672,15 @@ public class fastddsgen
                             m_localAppProduct, m_type_object_files, m_typesc, m_type_ros2, cdr_version_);
 
             String relative_dir = ctx.getRelativeDir(dependant_idl_dir);
-            String output_dir = m_outputDir + relative_dir;
+            String output_dir;
+            if (!m_flat_output_dir)
+            {
+                output_dir = m_outputDir + relative_dir;
+            }
+            else
+            {
+                output_dir = m_outputDir;
+            }
 
             // Check the output directory exists or create it.
             File dir = new File(output_dir);
