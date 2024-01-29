@@ -39,9 +39,9 @@ public interface Context
 
     public String getHeaderGuardName ();
 
-    public boolean isGenerateTypeObject();
-
     public boolean isGenerateTypesROS2();
+
+    public boolean isGenerateTypeObjectSupport();
 
     public boolean isCdr();
 
