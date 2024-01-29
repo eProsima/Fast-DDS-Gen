@@ -43,6 +43,10 @@ find_package(fastrtps 2.12 REQUIRED)
 
 $solution.projects : { project | $pub_sub_execs(project=project, libraries=solution.libraries, test=test)$}; separator="\n"$
 
+$if (test)$
+$type_object_tests(project=solution.mainProject, libraries=solution.libraries)$
+$endif$
+
 >>
 
 pub_sub_execs(project, libraries, test) ::= <<
@@ -50,12 +54,12 @@ pub_sub_execs(project, libraries, test) ::= <<
 message(STATUS "Configuring $project.name$...")
 $if(!project.commonSrcFiles.empty)$
 add_library($project.name$_lib $project.commonSrcFiles : { file | $file$}; separator=" "$)
-target_link_libraries($project.name$_lib $solution.libraries : { library | $library$}; separator=" "$)
+target_link_libraries($project.name$_lib $libraries : { library | $library$}; separator=" "$)
 $endif$
 
 $if(!project.projectSrcFiles.empty)$
 add_executable($project.name$ $project.projectSrcFiles : { file | $file$}; separator=" "$)
-target_link_libraries($project.name$ $solution.libraries : { library | $library$}; separator=" "$
+target_link_libraries($project.name$ $libraries : { library | $library$}; separator=" "$
         $project.name$_lib $project.dependencies : { dep | $dep$_lib}; separator=" "$
         )
 $endif$
@@ -77,11 +81,26 @@ add_executable($project.name$SerializationTest
 )
 target_link_libraries($project.name$SerializationTest
         GTest::gtest_main
-        $solution.libraries : { library | $library$}; separator=" "$
+        $libraries : { library | $library$}; separator=" "$
         $project.name$_lib $project.dependencies : { dep | $dep$_lib}; separator=" "$
         )
 gtest_discover_tests($project.name$SerializationTest)
 
 $endif$
 
+
+>>
+
+type_object_tests(project, libraries) ::= <<
+$if(project.typeObjectTestingFiles)$
+# $project.name$ TypeObject Test
+add_executable($project.name$TypeObjectTestingTest
+        $project.typeObjectTestingFiles : { file | $file$}; separator="\n"$
+)
+target_link_libraries($project.name$TypeObjectTestingTest
+        GTest::gtest_main
+        $libraries : { library | $library$}; separator=" "$
+        $project.name$_lib $project.dependencies : { dep | $dep$_lib}; separator=" "$)
+gtest_discover_tests($project.name$TypeObjectTestingTest)
+$endif$
 >>
