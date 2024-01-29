@@ -56,10 +56,6 @@ $endif$
 
 $ctx.directIncludeDependencies : {include | #include "$include$.hpp"}; separator="\n"$
 
-$if(ctx.generateTypeObject)$
-#include "$ctx.filename$TypeObject.h"
-$endif$
-
 #if defined(_WIN32)
 #if defined(EPROSIMA_USER_DLL_EXPORT)
 #define eProsima_user_DllExport __declspec( dllexport )
@@ -104,9 +100,9 @@ $if(annotation.enums || annotation.typeDefs || annotation.constDecls)$
 namespace $annotation.name$ {
     $annotation.enums : { enum | $enum_type(ctx=ctx, parent=annotation, enum=enum)$}; separator="\n"$
 
-    $annotation.typeDefs : { typedef | $typedef_decl(ctx=ctx, parent=annotation, typedefs=typedef)$}; separator="\n"$
+    $annotation.typeDefs : { typedef | $typedef_decl(ctx=ctx, parent=annotation, typedefs=typedef, typedefs_type="", declarator_type="")$}; separator="\n"$
 
-    $annotation.constDecls : { const | $const_decl(ctx=ctx, parent=annotation, const=const)$}; separator="\n"$
+    $annotation.constDecls : { const | $const_decl(ctx=ctx, parent=annotation, const=const, const_type="")$}; separator="\n"$
 
 } // namespace $annotation.name$
 $endif$
@@ -157,10 +153,6 @@ public:
         : $struct_inherit_default_init(struct.inheritance)$
         $endif$
     {
-        $if(ctx.generateTypeObject)$
-        // Just to register all known types
-        register$ctx.filename$Types();
-        $endif$
     }
 
     /*!
@@ -491,10 +483,6 @@ public:
     : $struct_inherit_default_init(bitset.inheritance)$
     $endif$
     {
-        $if(ctx.generateTypeObject)$
-        // Just to register all known types
-        register$ctx.filename$Types();
-        $endif$
     }
 
     /*!

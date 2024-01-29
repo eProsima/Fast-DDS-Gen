@@ -61,10 +61,10 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
             boolean subscribercode,
             boolean publishercode,
             String appProduct,
-            boolean generate_type_object,
             boolean generate_typesc,
             boolean generate_type_ros2,
-            boolean is_generating_api
+            boolean is_generating_api,
+            boolean generate_typeobjectsupport
             )
     {
         super(tmanager, file, includePaths, generate_typesc);
@@ -78,13 +78,13 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
         //m_protocol = protocol;
         //m_ddstypes = ddstypes;
 
-        m_type_object = generate_type_object;
         m_type_ros2 = generate_type_ros2;
         is_generating_api_ = is_generating_api;
+        generate_typeobject_support_ = generate_typeobjectsupport;
 
         // Create default @Key annotation.
-        AnnotationDeclaration keyann = this.createAnnotationDeclaration("Key", null);
-        keyann.addMember(new AnnotationMember("value", new PrimitiveTypeCode(Kind.KIND_BOOLEAN), "true"));
+        AnnotationDeclaration keyann = this.createAnnotationDeclaration(Annotation.eprosima_key_str, null);
+        keyann.addMember(new AnnotationMember(Annotation.value_str, new PrimitiveTypeCode(Kind.KIND_BOOLEAN), Annotation.true_str));
 
     }
 
@@ -565,20 +565,20 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
 
     private TypeDeclaration m_lastStructure = null;
 
-    private boolean m_type_object = false;
-
     private boolean m_type_ros2 = false;
 
-    @Override
-    public boolean isGenerateTypeObject()
-    {
-        return m_type_object;
-    }
+    private boolean generate_typeobject_support_ = true;
 
     @Override
     public boolean isGenerateTypesROS2()
     {
         return m_type_ros2;
+    }
+
+    @Override
+    public boolean isGenerateTypeObjectSupport()
+    {
+        return generate_typeobject_support_;
     }
 
     public String getHeaderGuardName ()
