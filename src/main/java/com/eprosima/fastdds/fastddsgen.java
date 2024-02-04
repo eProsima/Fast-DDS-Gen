@@ -586,7 +586,6 @@ public class fastddsgen
     private static final String python_bindings_arg = "-python";
     private static final String replace_arg = "-replace";
     private static final String temp_dir_arg = "-t";
-    private static final String typeobject_arg = "-typeobject";
     private static final String ros2_names_arg = "-typeros2";
     private static final String cnames_arg = "-typesc";
     private static final String version_arg = "-version";
@@ -624,11 +623,13 @@ public class fastddsgen
         System.out.println("template, template location must be in classpath.");
         System.out.println("\t\t" + flat_output_directory_arg + ": ignore input files relative paths and place all generated files in the specified output directory.");
         System.out.println("\t\t" + fusion_arg + ": activates fusion.");
+        System.out.print("\t\t" + flat_output_directory_arg + ": ignore input files relative paths and place all ");
+        System.out.println("generated files in the specified output directory.");
         System.out.println("\t\t" + help_arg + ": shows this help");
         System.out.println("\t\t" + include_path_arg + " <path>: add directory to preprocessor include paths.");
         System.out.println("\t\t" + language_arg + " <lang>: chooses between <c++> or <java> languages.");
         System.out.println("\t\t" + no_typesupport_arg + ": avoid generating the type support files.");
-        System.out.println("\t\t" + no_typeobjectsupport_arg + ": avoid generating the TypeObject support specific files.");
+        System.out.println("\t\t" + no_typeobjectsupport_arg + ": avoid generating the TypeObject support files.");
         System.out.println("\t\t\tEnabled automatically if " + no_typesupport_arg + " argument is used.");
         System.out.println("\t\t" + no_dependencies_arg + ": avoid processing the dependent IDL files.");
         System.out.println("\t\t" + package_arg + ": default package used in Java files.");
@@ -640,7 +641,7 @@ public class fastddsgen
         System.out.println("\t\t" + cnames_arg + ": generates string and sequence types compatible with C.");
         System.out.println("\t\t" + ros2_names_arg + ": generates type naming compatible with ROS2.");
         System.out.println("\t\t" + version_arg + ": shows the current version of eProsima Fast DDS gen.");
-        System.out.println("\tand the supported input files are:");
+        System.out.println("\tThe supported input files are:");
         System.out.println("\t* IDL files.");
 
     }
