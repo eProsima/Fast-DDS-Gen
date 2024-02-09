@@ -562,7 +562,7 @@ $plain_collection_header(type=sequence.contentTypeCode, message="Sequence elemen
 std::string type_id_kind_$sequence_name(sequence)$("$sequence.typeIdentifier$");
 if (type_id_kind_$sequence_name(sequence)$ == "TI_PLAIN_SEQUENCE_SMALL")
 {
-    SBound bound = $if (!sequence.isBounded)$0$else$static_cast<SBound>($sequence.evaluatedMaxsize$)$endif$;
+    SBound bound = $if (sequence.unbound)$0$else$static_cast<SBound>($sequence.evaluatedMaxsize$)$endif$;
     PlainSequenceSElemDefn seq_sdefn = TypeObjectUtils::build_plain_sequence_s_elem_defn(header_$sequence_name(sequence)$, bound,
                 eprosima::fastcdr::external<TypeIdentifier>(element_identifier_$sequence_name(sequence)$));
     if (eprosima::fastdds::dds::RETCODE_BAD_PARAMETER ==
@@ -692,7 +692,7 @@ PlainCollectionHeader header_$map_name(map)$ = TypeObjectUtils::build_plain_coll
 std::string type_id_kind_$map_name(map)$("$map.typeIdentifier$");
 if (type_id_kind_$map_name(map)$ == "TI_PLAIN_MAP_SMALL")
 {
-    SBound bound = $if (!map.isBounded)$0$else$static_cast<SBound>($map.evaluatedMaxsize$)$endif$;
+    SBound bound = $if (map.unbound)$0$else$static_cast<SBound>($map.evaluatedMaxsize$)$endif$;
     PlainMapSTypeDefn map_sdefn = TypeObjectUtils::build_plain_map_s_type_defn(header_$map_name(map)$, bound,
                 eprosima::fastcdr::external<TypeIdentifier>(element_identifier_$map_name(map)$), key_flags_$map_name(map)$,
                 eprosima::fastcdr::external<TypeIdentifier>(key_identifier_$map_name(map)$));
