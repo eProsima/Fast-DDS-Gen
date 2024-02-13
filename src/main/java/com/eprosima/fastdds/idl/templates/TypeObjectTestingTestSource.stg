@@ -526,7 +526,7 @@ $check_member_detail_annotations(member=typedefs, type="alias_type().body()", pa
 >>
 
 test_structure(struct) ::= <<
-TEST(TypeObjectTests, TestStructureTypeObject_$struct.name$)
+TEST(TypeObjectTests, TestStructureTypeObject_$struct.cScopedname$)
 {
     register_$ctx.filename$_type_objects();
 
