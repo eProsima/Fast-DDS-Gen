@@ -53,7 +53,10 @@ public class UnionTypeCode extends com.eprosima.idl.parser.typecode.UnionTypeCod
 
             for (Member member : getMembers())
             {
-                reset_alignment = current_alignment;
+                reset_alignment = MemberedTypeCode.xcdr_extra_member_serialized_size(
+                        current_alignment,
+                        union_ext_kind, member.isAnnotationOptional(),
+                        member);
                 reset_alignment += ((TypeCode)member.getTypecode()).maxSerializedSize(reset_alignment);
                 if (union_max_size_serialized < reset_alignment)
                 {
