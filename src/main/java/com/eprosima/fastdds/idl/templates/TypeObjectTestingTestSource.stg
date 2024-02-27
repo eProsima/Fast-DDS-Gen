@@ -692,7 +692,7 @@ else
         discriminator_type_ids.type_identifier2() == type_objects.complete_type_object.union_type().discriminator().common().type_id());
 }
 $check_type_detail_annotations(object=union.discriminator, type="union_type().discriminator()")$
-MemberId member_id = 0;
+MemberId member_id = 1;
 $union.members: { member | $check_union_member(member=member, parent=union)$}; separator="\n"$
 ASSERT_EQ($union.membersSize$, type_objects.minimal_type_object.union_type().member_seq().size());
 for (size_t i = 1; i < type_objects.minimal_type_object.union_type().member_seq().size(); ++i)
