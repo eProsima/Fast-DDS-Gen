@@ -675,7 +675,7 @@ else
     return;
 }
 EquivalenceKind equiv_kind_$map_name(map)$ = EK_BOTH;
-if (  (EK_COMPLETE == key_identifier_$map_name(map)$->_d() || EK_COMPLETE == element_identifier_$map_name(map)$->_d()) ||
+if ((EK_COMPLETE == key_identifier_$map_name(map)$->_d() || EK_COMPLETE == element_identifier_$map_name(map)$->_d()) ||
         (TI_PLAIN_SEQUENCE_SMALL == element_identifier_$map_name(map)$->_d() && EK_COMPLETE == element_identifier_$map_name(map)$->seq_sdefn().header().equiv_kind()) ||
         (TI_PLAIN_SEQUENCE_LARGE == element_identifier_$map_name(map)$->_d() && EK_COMPLETE == element_identifier_$map_name(map)$->seq_ldefn().header().equiv_kind()) ||
         (TI_PLAIN_ARRAY_SMALL == element_identifier_$map_name(map)$->_d() && EK_COMPLETE == element_identifier_$map_name(map)$->array_sdefn().header().equiv_kind()) ||

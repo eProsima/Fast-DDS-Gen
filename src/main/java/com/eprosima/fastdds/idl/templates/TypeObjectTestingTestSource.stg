@@ -1096,8 +1096,7 @@ if (type_ids.type_identifier1()._d() == TI_PLAIN_ARRAY_SMALL)
     if (type_ids.type_identifier2()._d() == TK_NONE)
     {
         EXPECT_EQ(type_ids.type_identifier1().array_sdefn().header().equiv_kind(), EK_BOTH);
-        EXPECT_TRUE(element_type_ids.type_identifier1() == *type_ids.type_identifier1().array_sdefn().element_identifier() ||
-            element_type_ids.type_identifier2() == *type_ids.type_identifier1().array_sdefn().element_identifier());
+        EXPECT_TRUE(element_type_ids.type_identifier1() == *type_ids.type_identifier1().array_sdefn().element_identifier());
     }
     else
     {
@@ -1123,8 +1122,7 @@ else
     if (type_ids.type_identifier2()._d() == TK_NONE)
     {
         EXPECT_EQ(type_ids.type_identifier1().array_ldefn().header().equiv_kind(), EK_BOTH);
-        EXPECT_TRUE(element_type_ids.type_identifier1() == *type_ids.type_identifier1().array_ldefn().element_identifier() ||
-            element_type_ids.type_identifier2() == *type_ids.type_identifier1().array_ldefn().element_identifier());
+        EXPECT_TRUE(element_type_ids.type_identifier1() == *type_ids.type_identifier1().array_ldefn().element_identifier());
     }
     else
     {
@@ -1181,8 +1179,7 @@ if (type_ids.type_identifier1()._d() == TI_PLAIN_SEQUENCE_SMALL)
     if (type_ids.type_identifier2()._d() == TK_NONE)
     {
         EXPECT_EQ(type_ids.type_identifier1().seq_sdefn().header().equiv_kind(), EK_BOTH);
-        EXPECT_TRUE(element_type_ids.type_identifier1() == *type_ids.type_identifier1().seq_sdefn().element_identifier() ||
-            element_type_ids.type_identifier2() == *type_ids.type_identifier1().seq_sdefn().element_identifier());
+        EXPECT_TRUE(element_type_ids.type_identifier1() == *type_ids.type_identifier1().seq_sdefn().element_identifier());
     }
     else
     {
@@ -1206,8 +1203,7 @@ else
     if (type_ids.type_identifier2()._d() == TK_NONE)
     {
         EXPECT_EQ(type_ids.type_identifier1().seq_ldefn().header().equiv_kind(), EK_BOTH);
-        EXPECT_TRUE(element_type_ids.type_identifier1() == *type_ids.type_identifier1().seq_ldefn().element_identifier() ||
-            element_type_ids.type_identifier2() == *type_ids.type_identifier1().seq_ldefn().element_identifier());
+        EXPECT_TRUE(element_type_ids.type_identifier1() == *type_ids.type_identifier1().seq_ldefn().element_identifier());
     }
     else
     {
@@ -1262,21 +1258,8 @@ if (type_ids.type_identifier1()._d() == TI_PLAIN_MAP_SMALL)
     if (type_ids.type_identifier2()._d() == TK_NONE)
     {
         EXPECT_EQ(type_ids.type_identifier1().map_sdefn().header().equiv_kind(), EK_BOTH);
-        EXPECT_TRUE(element_type_ids.type_identifier1() == *type_ids.type_identifier1().map_sdefn().element_identifier() ||
-            element_type_ids.type_identifier2() == *type_ids.type_identifier1().map_sdefn().element_identifier());
-        EXPECT_TRUE(key_type_ids.type_identifier1() == *type_ids.type_identifier1().map_sdefn().key_identifier() ||
-            key_type_ids.type_identifier2() == *type_ids.type_identifier1().map_sdefn().key_identifier());
-    }
-    else if (EK_BOTH == type_ids.type_identifier1().map_sdefn().header().equiv_kind())
-    {
-        EXPECT_EQ(type_ids.type_identifier1().map_sdefn().header().equiv_kind(),
-                type_ids.type_identifier2().map_sdefn().header().equiv_kind());
-        EXPECT_TRUE(element_type_ids.type_identifier1() == *type_ids.type_identifier1().map_sdefn().element_identifier() ||
-            element_type_ids.type_identifier2() == *type_ids.type_identifier1().map_sdefn().element_identifier());
-        EXPECT_TRUE((key_type_ids.type_identifier1() == *type_ids.type_identifier1().map_sdefn().key_identifier() &&
-                key_type_ids.type_identifier2() == *type_ids.type_identifier2().map_sdefn().key_identifier()) ||
-                (key_type_ids.type_identifier1() == *type_ids.type_identifier2().map_sdefn().key_identifier() &&
-                key_type_ids.type_identifier2() == *type_ids.type_identifier1().map_sdefn().key_identifier()));
+        EXPECT_TRUE(element_type_ids.type_identifier1() == *type_ids.type_identifier1().map_sdefn().element_identifier());
+        EXPECT_TRUE(key_type_ids.type_identifier1() == *type_ids.type_identifier1().map_sdefn().key_identifier());
     }
     else
     {
@@ -1323,21 +1306,8 @@ else
     if (type_ids.type_identifier2()._d() == TK_NONE)
     {
         EXPECT_EQ(type_ids.type_identifier1().map_ldefn().header().equiv_kind(), EK_BOTH);
-        EXPECT_TRUE(element_type_ids.type_identifier1() == *type_ids.type_identifier1().map_ldefn().element_identifier() ||
-            element_type_ids.type_identifier2() == *type_ids.type_identifier1().map_ldefn().element_identifier());
-        EXPECT_TRUE(key_type_ids.type_identifier1() == *type_ids.type_identifier1().map_ldefn().key_identifier() ||
-            key_type_ids.type_identifier2() == *type_ids.type_identifier1().map_ldefn().key_identifier());
-    }
-    else if (EK_BOTH == type_ids.type_identifier1().map_ldefn().header().equiv_kind())
-    {
-        EXPECT_EQ(type_ids.type_identifier1().map_ldefn().header().equiv_kind(),
-                type_ids.type_identifier2().map_ldefn().header().equiv_kind());
-        EXPECT_TRUE(element_type_ids.type_identifier1() == *type_ids.type_identifier1().map_ldefn().element_identifier() ||
-            element_type_ids.type_identifier2() == *type_ids.type_identifier1().map_ldefn().element_identifier());
-        EXPECT_TRUE((key_type_ids.type_identifier1() == *type_ids.type_identifier1().map_ldefn().key_identifier() &&
-                key_type_ids.type_identifier2() == *type_ids.type_identifier2().map_ldefn().key_identifier()) ||
-                (key_type_ids.type_identifier1() == *type_ids.type_identifier2().map_ldefn().key_identifier() &&
-                key_type_ids.type_identifier2() == *type_ids.type_identifier1().map_ldefn().key_identifier()));
+        EXPECT_TRUE(element_type_ids.type_identifier1() == *type_ids.type_identifier1().map_ldefn().element_identifier());
+        EXPECT_TRUE(key_type_ids.type_identifier1() == *type_ids.type_identifier1().map_ldefn().key_identifier());
     }
     else
     {
