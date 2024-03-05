@@ -251,12 +251,12 @@ eProsima_user_DllExport size_t calculate_serialized_size(
 
     switch (data._d())
     {
-        $union.membersDefaultAtEnd:{ member | $if(member.printable)$$member.labels:{ label |case $label$:}; separator="\n"$
+        $union.members :{ member |
+        $member.labels:{ label |case $label$:}; separator="\n"$
         $if(member.default)$default:$endif$
             calculated_size += calculator.calculate_member_serialized_size(eprosima::fastcdr::MemberId($if(union.annotationMutable)$$member.id$$else$$member.index$$endif$),
                         data.$member.name$(), current_alignment);
             break;
-        $endif$
         }; separator="\n"$
         $if(!union.defaultMember)$
         default:
@@ -291,12 +291,11 @@ eProsima_user_DllExport void serialize(
 
     switch (data._d())
     {
-        $union.membersDefaultAtEnd:{ member | $if(member.printable)$
+        $union.members :{ member |
         $member.labels:{ label |case $label$:}; separator="\n"$
         $if(member.default)$default:$endif$
             scdr << eprosima::fastcdr::MemberId($if(union.annotationMutable)$$member.id$$else$$member.index$$endif$) << data.$member.name$();
             break;
-        $endif$
         }; separator="\n"$
         $if(!union.defaultMember)$
         default:
