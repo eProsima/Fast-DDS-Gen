@@ -30,6 +30,9 @@ $if(ctx.thereIsBitset)$
 #include <bitset>
 $endif$
 #include <cstdint>
+$if(ctx.thereIsUnion)$
+#include <functional>
+$endif$
 $if(ctx.thereIsMap)$
 #include <map>
 $endif$
@@ -295,10 +298,8 @@ public:
      */
     eProsima_user_DllExport $union.name$()
     {
-        $if(union.defaultvalue)$
-        m__d = $union.defaultvalue$;
-        $else$
-        m__d = $first(first(union.members).labels)$;
+        $if(union.defaultMember)$
+        $union.defaultMember.name$_();
         $endif$
     }
 
@@ -307,6 +308,10 @@ public:
      */
     eProsima_user_DllExport ~$union.name$()
     {
+        if (member_destructor_)
+        {
+            member_destructor_();
+        }
     }
 
     /*!
@@ -317,11 +322,15 @@ public:
             const $union.name$& x)
     {
         m__d = x.m__d;
+        selected_member_ = x.selected_member_;
 
-        switch (m__d)
+        switch (selected_member_)
         {
-            $union.members:{ member | $unionmember_copy(member)$}; separator="\n"$
-            $unionmemberdefault_copy(union.defaultMember)$
+            $union.members:{ member |
+            case $member.id$:
+                $member.name$_() = x.m_$member.name$;
+                break;
+            }; separator="\n"$
         }
     }
 
@@ -333,11 +342,15 @@ public:
             $union.name$&& x) noexcept
     {
         m__d = x.m__d;
+        selected_member_ = x.selected_member_;
 
-        switch (m__d)
+        switch (selected_member_)
         {
-            $union.members:{ member | $unionmember_move(member)$}; separator="\n"$
-            $unionmemberdefault_move(union.defaultMember)$
+            $union.members:{ member |
+            case $member.id$:
+                $member.name$_() = std::move(x.m_$member.name$);
+                break;
+            }; separator="\n"$
         }
     }
 
@@ -349,11 +362,15 @@ public:
             const $union.name$& x)
     {
         m__d = x.m__d;
+        selected_member_ = x.selected_member_;
 
-        switch (m__d)
+        switch (selected_member_)
         {
-            $union.members:{ member | $unionmember_copy(member)$}; separator="\n"$
-            $unionmemberdefault_copy(union.defaultMember)$
+            $union.members:{ member |
+            case $member.id$:
+                $member.name$_() = x.m_$member.name$;
+                break;
+            }; separator="\n"$
         }
 
         return *this;
@@ -367,11 +384,15 @@ public:
             $union.name$&& x) noexcept
     {
         m__d = x.m__d;
+        selected_member_ = x.selected_member_;
 
-        switch (m__d)
+        switch (selected_member_)
         {
-            $union.members:{ member | $unionmember_move(member)$}; separator="\n"$
-            $unionmemberdefault_move(union.defaultMember)$
+            $union.members:{ member |
+            case $member.id$:
+                $member.name$_() = std::move(x.m_$member.name$);
+                break;
+            }; separator="\n"$
         }
 
         return *this;
@@ -384,19 +405,22 @@ public:
     eProsima_user_DllExport bool operator ==(
             const $union.name$& x) const
     {
-        if (m__d != x.m__d)
+        bool ret_value {false};
+
+        if (m__d == x.m__d &&
+                selected_member_ == x.selected_member_)
         {
-            return false;
+            switch (selected_member_)
+            {
+                $union.members:{ member |
+                case $member.id$:
+                    ret_value = (m_$member.name$ == x.m_$member.name$);
+                    break;
+                }; separator="\n"$
+            }
         }
 
-        switch (m__d)
-        {
-            $union.members:{ member | $unionmember_compare(member)$}; separator="\n"$
-            $unionmemberdefault_compare(union.defaultMember)$
-        }
-        $if(!union.defaultMember)$
-        return false;
-        $endif$
+        return ret_value;
     }
 
     /*!
@@ -417,18 +441,24 @@ public:
     eProsima_user_DllExport void _d(
             $union.discriminator.typecode.cppTypename$ __d)
     {
-        bool b = false;
+        bool valid_discriminator = false;
 
-        switch (m__d)
+        switch (__d)
         {
-            $union.members:{ member | $unionmember_discriminator_case(member=member, totallabels=union.totallabels)$}; separator="\n"$
-            $if(!union.defaultMember)$
+            $union.members:{ member |
+            $member.labels:{ label | case $label$:}; separator="\n"$
+            $if(member.default)$
             default:
-                break;
             $endif$
+                if ($member.id$ == selected_member_)
+                {
+                    valid_discriminator = true;
+                \}
+                break;
+            }; separator="\n"$
         }
 
-        if (!b)
+        if (!valid_discriminator)
         {
             throw eprosima::fastcdr::exception::BadParamException("Discriminator doesn't correspond with the selected union member");
         }
@@ -454,15 +484,58 @@ public:
         return m__d;
     }
 
-    $union.members:{ member | $public_unionmember_declaration(union, member)$}; separator="\n"$
+    $union.members: { member | $public_unionmember_declaration(union, member)$}; separator="\n"$
+
+    $if(!union.defaultMember)$
+    void _default()
+    {
+        if (member_destructor_)
+        {
+            member_destructor_();
+        }
+
+        selected_member_ = 0x0FFFFFFFu;
+    }
+    $endif$
 
     $extensions : {extension | $extension$}; separator="\n"$
 
 private:
 
-    $union.discriminator.typecode.cppTypename$ m__d;
+    $union.members: { member |
+        $member.typecode.cppTypename$& $member.name$_()
+        {
+            if ($member.id$ != selected_member_)
+            {
+                if (member_destructor_)
+                {
+                    member_destructor_();
+                \}
 
-    $union.members:{ member | $private_member_declaration(member=member)$}; separator="\n"$
+                selected_member_ = $member.id$;
+                $if(member.typecode.primitive)$
+                member_destructor_ = nullptr;
+                m_$member.name$ = $member_default_init(member)$;
+                $else$
+                member_destructor_ = [&]() {$union_member_destroy_call(member)$\};
+                new(&m_$member.name$) $member.typecode.cppTypename$();
+                $endif$;
+            \}
+
+            return m_$member.name$;
+        \}
+    }; separator="\n"$
+
+    $union.discriminator.typecode.cppTypename$ m__d {$union.defaultvalue$};
+
+    union
+    {
+        $union.members:{ member | $union_member_declaration(member=member)$}; separator="\n"$
+    };
+
+    uint32_t selected_member_ {0x0FFFFFFFu};
+
+    std::function<void()> member_destructor_;
 };
 >>
 
@@ -777,15 +850,15 @@ $member_type_declaration(member)$ m_$member.name$$member_default_init(member)$;
 
 public_unionmember_declaration(union, member) ::= <<
 $if(member.annotationExternal)$
-$public_unionmember_common_declaration(union, member)$
+$public_union_member_common_declaration(union, member)$
 $elseif(member.typecode.primitive)$
-$public_unionmember_primitive_declaration(union, member)$
+$public_union_member_primitive_declaration(union, member)$
 $else$
-$public_unionmember_common_declaration(union, member)$
+$public_union_member_common_declaration(union, member)$
 $endif$
 >>
 
-public_unionmember_primitive_declaration(union, member) ::= <<
+public_union_member_primitive_declaration(union, member) ::= <<
 /*!
  * @brief This function sets a value in member $member.name$
  * @param _$member.name$ New value for member $member.name$
@@ -793,8 +866,8 @@ public_unionmember_primitive_declaration(union, member) ::= <<
 eProsima_user_DllExport void $member.name$(
         $member.typecode.cppTypename$ _$member.name$)
 {
-    m_$member.name$ = _$member.name$;
-    $unionmember_set_discriminator(member=member, defaultvalue=union.defaultvalue)$
+    $member.name$_() = _$member.name$;
+    $union_member_set_discriminator(member=member, defaultvalue=union.defaultvalue)$
 }
 
 /*!
@@ -804,7 +877,10 @@ eProsima_user_DllExport void $member.name$(
  */
 eProsima_user_DllExport $member.typecode.cppTypename$ $member.name$() const
 {
-    $unionmember_check_case_list(member=member, totallabels=union.totallabels)$
+    if ($member.id$ != selected_member_)
+    {
+        throw eprosima::fastcdr::exception::BadParamException("This member has not been selected");
+    }
 
     return m_$member.name$;
 }
@@ -816,13 +892,16 @@ eProsima_user_DllExport $member.typecode.cppTypename$ $member.name$() const
  */
 eProsima_user_DllExport $member.typecode.cppTypename$& $member.name$()
 {
-    $unionmember_check_case_list(member=member, totallabels=union.totallabels)$
+    if ($member.id$ != selected_member_)
+    {
+        throw eprosima::fastcdr::exception::BadParamException("This member has not been selected");
+    }
 
     return m_$member.name$;
 }
 >>
 
-public_unionmember_common_declaration(union, member) ::= <<
+public_union_member_common_declaration(union, member) ::= <<
 /*!
  * @brief This function copies the value in member $member.name$
  * @param _$member.name$ New value to be copied in member $member.name$
@@ -830,8 +909,8 @@ public_unionmember_common_declaration(union, member) ::= <<
 eProsima_user_DllExport void $member.name$(
         const $member_type_declaration(member)$& _$member.name$)
 {
-    m_$member.name$ = _$member.name$;
-    $unionmember_set_discriminator(member=member, defaultvalue=union.defaultvalue)$
+    $member.name$_() = _$member.name$;
+    $union_member_set_discriminator(member=member, defaultvalue=union.defaultvalue)$
 }
 
 /*!
@@ -841,8 +920,8 @@ eProsima_user_DllExport void $member.name$(
 eProsima_user_DllExport void $member.name$(
         $member_type_declaration(member)$&& _$member.name$)
 {
-    m_$member.name$ = std::move(_$member.name$);
-    $unionmember_set_discriminator(member=member, defaultvalue=union.defaultvalue)$
+    $member.name$_() = _$member.name$;
+    $union_member_set_discriminator(member=member, defaultvalue=union.defaultvalue)$
 }
 
 /*!
@@ -852,7 +931,10 @@ eProsima_user_DllExport void $member.name$(
  */
 eProsima_user_DllExport const $member_type_declaration(member)$& $member.name$() const
 {
-    $unionmember_check_case_list(member=member, totallabels=union.totallabels)$
+    if ($member.id$ != selected_member_)
+    {
+        throw eprosima::fastcdr::exception::BadParamException("This member has not been selected");
+    }
 
     return m_$member.name$;
 }
@@ -864,7 +946,10 @@ eProsima_user_DllExport const $member_type_declaration(member)$& $member.name$()
  */
 eProsima_user_DllExport $member_type_declaration(member)$& $member.name$()
 {
-    $unionmember_check_case_list(member=member, totallabels=union.totallabels)$
+    if ($member.id$ != selected_member_)
+    {
+        throw eprosima::fastcdr::exception::BadParamException("This member has not been selected");
+    }
 
     return m_$member.name$;
 }
@@ -888,32 +973,31 @@ m_$member.name$ = std::move(x.m_$member.name$);
 $endif$
 %>
 
-unionmember_discriminator_case(member, totallabels) ::= <<
-$if(member.default)$
-default:
-    b = true;
-    switch (__d)
-    {
-        $totallabels:{ label | case $label$:}; separator="\n"$
-            b = false;
-            break;
-        default:
-            break;
-    }
-    break;
-$else$
-$member.labels:{ label | case $label$:}; separator="\n"$
-    switch (__d)
-    {
-        $member.labels:{ label | case $label$:}; separator="\n"$
-            b = true;
-            break;
-        default:
-            break;
-    }
-    break;
-$endif$
+union_member_declaration(member) ::= <<
+$member_type_declaration(member)$ m_$member.name$;
 >>
+
+union_member_destroy_call(member) ::= <%
+$if(!member.typecode.isAliasType && (member.typecode.isStringType || member.typecode.isWStringType))$
+    m_$member.name$.~basic_string();
+$elseif(!member.typecode.isAliasType && member.typecode.isSequenceType)$
+    m_$member.name$.~vector();
+$elseif(!member.typecode.isAliasType && member.typecode.isArrayType)$
+    m_$member.name$.~array();
+$elseif(!member.typecode.isAliasType && member.typecode.isMapType)$
+    m_$member.name$.~map();
+$else$
+    m_$member.name$.~$member.typecode.noScopedCppTypename$();
+$endif$
+%>
+
+union_member_set_discriminator(member, defaultvalue) ::= <%
+$if(member.default)$
+m__d = $defaultvalue$;
+$else$
+m__d = $first(member.labels)$;
+$endif$
+%>
 
 unionmember_copy(member) ::= <<
 $if(member.labels)$
@@ -960,33 +1044,6 @@ $endif$
 $endif$
 
     break;
->>
-
-unionmember_compare(member) ::= <<
-$if(member.labels)$
-$member.labels:{ label | case $label$:}; separator="\n"$
-    return (m_$member.name$ == x.m_$member.name$);
-    break;
-$endif$
->>
-
-unionmemberdefault_compare(member) ::= <<
-default:
-$if(member)$
-$if(member.default)$
-    return m_$member.name$ == x.m_$member.name$;
-$endif$
-$endif$
-
-    break;
->>
-
-unionmember_set_discriminator(member, defaultvalue) ::= <<
-$if(member.default)$
-m__d = $defaultvalue$;
-$else$
-m__d = $first(member.labels)$;
-$endif$
 >>
 
 unionmember_check_case_list(member, totallabels) ::= <<
