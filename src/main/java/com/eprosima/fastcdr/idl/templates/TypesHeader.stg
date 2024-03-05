@@ -471,7 +471,7 @@ public:
         return m__d;
     }
 
-    $union.members: { member | $public_unionmember_declaration(union, member)$}; separator="\n"$
+    $union.members: { member | $public_union_member_declaration(union, member)$}; separator="\n"$
 
     $if(!union.defaultMember)$
     void _default()
@@ -835,7 +835,7 @@ private_member_declaration(member) ::= <<
 $member_type_declaration(member)$ m_$member.name$$member_default_init(member)$;
 >>
 
-public_unionmember_declaration(union, member) ::= <<
+public_union_member_declaration(union, member) ::= <<
 $if(member.annotationExternal)$
 $public_union_member_common_declaration(union, member)$
 $elseif(member.typecode.primitive)$
@@ -985,84 +985,6 @@ $else$
 m__d = $first(member.labels)$;
 $endif$
 %>
-
-unionmember_copy(member) ::= <<
-$if(member.labels)$
-$member.labels:{ label | case $label$:}; separator="\n"$
-    m_$member.name$ = x.m_$member.name$;
-    break;
-$endif$
->>
-
-unionmemberdefault_copy(member) ::= <<
-default:
-$if(member)$
-$if(member.default)$
-    m_$member.name$ = x.m_$member.name$;
-$endif$
-$endif$
-
-    break;
->>
-
-unionmember_move(member) ::= <<
-$if(member.labels)$
-$member.labels:{ label | case $label$:}; separator="\n"$
-$if(member.typecode.primitive)$
-    m_$member.name$ = x.m_$member.name$;
-$else$
-    m_$member.name$ = std::move(x.m_$member.name$);
-$endif$
-
-    break;
-$endif$
->>
-
-unionmemberdefault_move(member) ::= <<
-default:
-$if(member)$
-$if(member.default)$
-$if(member.typecode.primitive)$
-    m_$member.name$ = x.m_$member.name$;
-$else$
-    m_$member.name$ = std::move(x.m_$member.name$);
-$endif$
-$endif$
-$endif$
-
-    break;
->>
-
-unionmember_check_case_list(member, totallabels) ::= <<
-$if(member.default)$
-bool b = true;
-
-switch (m__d)
-{
-    $totallabels:{ label | case $label$:}; separator="\n"$
-        b = false;
-        break;
-    default:
-        break;
-}
-$else$
-bool b = false;
-
-switch (m__d)
-{
-    $member.labels:{ label | case $label$:}; separator="\n"$
-        b = true;
-        break;
-    default:
-        break;
-}
-$endif$
-
-if (!b)
-{
-    throw eprosima::fastcdr::exception::BadParamException("This member has not been selected");
-}
->>
 
 //{ Fast DDS-Gen extensions
 module_conversion(ctx, parent, modules, definition_list) ::= <<
