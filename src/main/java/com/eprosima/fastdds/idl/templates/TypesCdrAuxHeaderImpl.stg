@@ -322,34 +322,52 @@ eProsima_user_DllExport void deserialize(
             [&data](eprosima::fastcdr::Cdr& dcdr, const eprosima::fastcdr::MemberId& mid) -> bool
             {
                 bool ret_value = true;
-                switch (mid.id)
+                if (0 == mid.id)
                 {
-                    case 0:
-                        dcdr \>> data._d();
-                        break;
-                    default:
-                        switch (data._d())
-                        {
-                            $union.membersDefaultAtEnd:{ member | $if(member.printable)$
-                            $member.labels:{ label |case $label$:}; separator="\n"$
-                            $if(member.default)$default:$endif$
-                                $if(union.annotationMutable || member.annotationOptional)$
-                                if (mid != $member.id$)
-                                {
-                                    throw BadParamException("Deserializing union member $member.name$ the MemberId doesn't match");
-                                \}
-                                $endif$
-                                dcdr \>> data.$member.name$();
+                    $union.discriminator.typecode.cppTypename$ discriminator;
+                    dcdr \>> discriminator;
+
+                    switch (discriminator)
+                    {
+                        $union.members:{ member |
+                        $member.labels:{ label |case $label$:}; separator="\n"$
+                        $if(member.default)$default:$endif$
+                            {
+                                $member.typecode.cppTypename$ $member.name$_value;
+                                data.$member.name$(std::move($member.name$_value));
+                                data._d(discriminator);
                                 break;
+                            \}
+                        }; separator="\n"$
+                        $if(!union.defaultMember)$
+                        default:
+                            data._default();
+                            break;
+                        $endif$
+                    }
+                }
+                else
+                {
+                    switch (data._d())
+                    {
+                        $union.members :{ member |
+                        $member.labels:{ label |case $label$:}; separator="\n"$
+                        $if(member.default)$default:$endif$
+                            $if(union.annotationMutable || member.annotationOptional)$
+                            if (mid != $member.id$)
+                            {
+                                throw BadParamException("Deserializing union member $member.name$ the MemberId doesn't match");
+                            \}
                             $endif$
-                            }; separator="\n"$
-                            $if(!union.defaultMember)$
-                            default:
-                                break;
-                            $endif$
-                        }
-                        $if(!union.annotationMutable)$ret_value = false;$endif$
-                        break;
+                            dcdr \>> data.$member.name$();
+                            break;
+                        }; separator="\n"$
+                        $if(!union.defaultMember)$
+                        default:
+                            break;
+                        $endif$
+                    }
+                    $if(!union.annotationMutable)$ret_value = false;$endif$
                 }
                 return ret_value;
             });

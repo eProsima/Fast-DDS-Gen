@@ -322,9 +322,8 @@ public:
             const $union.name$& x)
     {
         m__d = x.m__d;
-        selected_member_ = x.selected_member_;
 
-        switch (selected_member_)
+        switch (x.selected_member_)
         {
             $union.members:{ member |
             case $member.id$:
@@ -342,9 +341,8 @@ public:
             $union.name$&& x) noexcept
     {
         m__d = x.m__d;
-        selected_member_ = x.selected_member_;
 
-        switch (selected_member_)
+        switch (x.selected_member_)
         {
             $union.members:{ member |
             case $member.id$:
@@ -362,9 +360,8 @@ public:
             const $union.name$& x)
     {
         m__d = x.m__d;
-        selected_member_ = x.selected_member_;
 
-        switch (selected_member_)
+        switch (x.selected_member_)
         {
             $union.members:{ member |
             case $member.id$:
@@ -384,9 +381,8 @@ public:
             $union.name$&& x) noexcept
     {
         m__d = x.m__d;
-        selected_member_ = x.selected_member_;
 
-        switch (selected_member_)
+        switch (x.selected_member_)
         {
             $union.members:{ member |
             case $member.id$:
@@ -471,15 +467,6 @@ public:
      * @return Value of the discriminator
      */
     eProsima_user_DllExport $union.discriminator.typecode.cppTypename$ _d() const
-    {
-        return m__d;
-    }
-
-    /*!
-     * @brief This function returns a reference to the discriminator.
-     * @return Reference to the discriminator.
-     */
-    eProsima_user_DllExport $union.discriminator.typecode.cppTypename$& _d()
     {
         return m__d;
     }
