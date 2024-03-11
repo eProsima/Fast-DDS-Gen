@@ -490,7 +490,7 @@ public:
 private:
 
     $union.members: { member |
-        $member.typecode.cppTypename$& $member.name$_()
+        $member_type_declaration(member)$& $member.name$_()
         {
             if ($member.id$ != selected_member_)
             {
@@ -505,7 +505,7 @@ private:
                 m_$member.name$ = $member_default_init(member)$;
                 $else$
                 member_destructor_ = [&]() {$union_member_destroy_call(member)$\};
-                new(&m_$member.name$) $member.typecode.cppTypename$();
+                new(&m_$member.name$) $member_type_declaration(member)$();
                 $endif$;
             \}
 
@@ -965,16 +965,19 @@ $member_type_declaration(member)$ m_$member.name$;
 >>
 
 union_member_destroy_call(member) ::= <%
-$if(!member.typecode.isAliasType && (member.typecode.isStringType || member.typecode.isWStringType))$
-    m_$member.name$.~basic_string();
+m_$member.name$.
+$if(member.annotationExternal)$
+~external();
+$elseif(!member.typecode.isAliasType && (member.typecode.isStringType || member.typecode.isWStringType))$
+~basic_string();
 $elseif(!member.typecode.isAliasType && member.typecode.isSequenceType)$
-    m_$member.name$.~vector();
+~vector();
 $elseif(!member.typecode.isAliasType && member.typecode.isArrayType)$
-    m_$member.name$.~array();
+~array();
 $elseif(!member.typecode.isAliasType && member.typecode.isMapType)$
-    m_$member.name$.~map();
+~map();
 $else$
-    m_$member.name$.~$member.typecode.noScopedCppTypename$();
+~$member.typecode.noScopedCppTypename$();
 $endif$
 %>
 
