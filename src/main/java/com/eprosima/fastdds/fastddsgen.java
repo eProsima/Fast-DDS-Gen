@@ -570,7 +570,7 @@ public class fastddsgen
     private static final String default_container_prealloc_size = "-default-container-prealloc-size";
     private static final String default_extensibility_arg = "-default_extensibility";
     private static final String default_extensibility_short_arg = "-de";
-    private static final String specific_platform_arg = "-example";    
+    private static final String specific_platform_arg = "-example";
     private static final String extra_template_arg = "-extrastg";
     private static final String flat_output_directory_arg = "-flat-output-dir";
     private static final String fusion_arg = "-fusion";
