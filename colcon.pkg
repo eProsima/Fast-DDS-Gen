@@ -1,5 +1,5 @@
 {
     "name": "fastddsgen",
     "type": "gradle",
-    "test-dependencies" : ["fastrtps"]
+    "test-dependencies" : ["fastdds"]
 }

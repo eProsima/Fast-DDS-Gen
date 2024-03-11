@@ -1,7 +1,7 @@
 {
     "names":
     {
-        "fastrtps": {
+        "fastdds": {
             "cmake-args": [
                 "-DEPROSIMA_BUILD_TESTS=ON"
 

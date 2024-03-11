@@ -72,7 +72,7 @@ public class fastddsgen
     private static ArrayList<String> m_platforms = null;
 
     private Vector<String> m_idlFiles;
-    protected static String m_appEnv = "FASTRTPSHOME";
+    protected static String m_appEnv = "FASTDDSHOME";
     private String m_exampleOption = null;
     private boolean m_ppDisable = false; //TODO
     private boolean m_replace = false;
@@ -85,7 +85,7 @@ public class fastddsgen
     private boolean m_publishercode = true;
     private boolean m_subscribercode = true;
     private boolean m_atLeastOneStructure = false;
-    protected static String m_localAppProduct = "fastrtps";
+    protected static String m_localAppProduct = "fastdds";
     private ArrayList<String> m_includePaths = new ArrayList<String>();
 
     // Mapping where the key holds the path to the template file and the value the wanted output file name
@@ -459,7 +459,7 @@ public class fastddsgen
             }
 
             // Add product library
-            solution.addLibrary("fastrtps");
+            solution.addLibrary("fastdds");
 
             for (int count = 0; returnedValue && (count < m_idlFiles.size()); ++count)
             {
@@ -538,8 +538,6 @@ public class fastddsgen
     {
         try
         {
-            //InputStream input = this.getClass().getResourceAsStream("/fastrtps_version.h");
-
             InputStream input = this.getClass().getClassLoader().getResourceAsStream("version");
             byte[] b = new byte[input.available()];
             input.read(b);
@@ -572,7 +570,7 @@ public class fastddsgen
     private static final String default_container_prealloc_size = "-default-container-prealloc-size";
     private static final String default_extensibility_arg = "-default_extensibility";
     private static final String default_extensibility_short_arg = "-de";
-    private static final String specific_platform_arg = "-example";    
+    private static final String specific_platform_arg = "-example";
     private static final String extra_template_arg = "-extrastg";
     private static final String flat_output_directory_arg = "-flat-output-dir";
     private static final String fusion_arg = "-fusion";
