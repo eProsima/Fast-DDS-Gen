@@ -45,7 +45,7 @@ message(STATUS "Configuring python wrapper for types in $project.name$...")
 project($project.name$)
 
 find_package(fastcdr REQUIRED)
-find_package(fastrtps REQUIRED)
+find_package(fastdds 3 REQUIRED)
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
@@ -64,7 +64,7 @@ target_include_directories(\${PROJECT_NAME} PUBLIC
 target_link_libraries(\${PROJECT_NAME}
     PUBLIC
     fastcdr
-    fastrtps
+    fastdds
     $project.dependencies : { dep | $dep$}; separator=" "$
     )
 
@@ -110,7 +110,7 @@ endif()
 
 target_link_libraries(\${\${PROJECT_NAME}_MODULE}
     Python3::Module
-    fastrtps
+    fastdds
     \${PROJECT_NAME}
     )
 
