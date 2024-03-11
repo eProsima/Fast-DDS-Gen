@@ -969,7 +969,11 @@ m_$member.name$.
 $if(member.annotationExternal)$
 ~external();
 $elseif(!member.typecode.isAliasType && (member.typecode.isStringType || member.typecode.isWStringType))$
+$if(member.typecode.isBounded && member.typecode.isStringType)$
+~fixed_string();
+$else$
 ~basic_string();
+$endif$
 $elseif(!member.typecode.isAliasType && member.typecode.isSequenceType)$
 ~vector();
 $elseif(!member.typecode.isAliasType && member.typecode.isArrayType)$
