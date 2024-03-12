@@ -333,7 +333,7 @@ eProsima_user_DllExport void deserialize(
                         $member.labels:{ label |case $label$:}; separator="\n"$
                         $if(member.default)$default:$endif$
                             {
-                                $member_type_declaration(member)$ $member.name$_value;
+                                $member_type_declaration(member)$ $member.name$_value$member_default_init(member)$;
                                 data.$member.name$(std::move($member.name$_value));
                                 data._d(discriminator);
                                 break;

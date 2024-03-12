@@ -942,16 +942,6 @@ eProsima_user_DllExport $member_type_declaration(member)$& $member.name$()
 }
 >>
 
-member_default_init(member) ::= <%
-$if(member.annotationDefault)$
- {$member.annotationDefaultValue$}
-$elseif(!member.annotationOptional && !member.annotationExternal)$
-$if(member.typecode.initialValue)$
- {$member.typecode.initialValue$}
-$endif$
-$endif$
-%>
-
 member_move(member) ::= <%
 $if(member.typecode.primitive)$
 m_$member.name$ = x.m_$member.name$;
