@@ -26,6 +26,18 @@ public class AliasTypeCode extends com.eprosima.idl.parser.typecode.AliasTypeCod
         super(scope, name);
     }
 
+    public boolean isHasKey()
+    {
+        boolean returnedValue = false;
+
+        if (getContentTypeCode() instanceof StructTypeCode)
+        {
+            returnedValue = ((StructTypeCode)getContentTypeCode()).isHasKey();
+        }
+
+        return returnedValue;
+    }
+
     @Override
     public long maxSerializedSize(
             long current_alignment)

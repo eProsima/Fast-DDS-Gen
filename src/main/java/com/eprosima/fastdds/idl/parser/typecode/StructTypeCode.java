@@ -34,9 +34,9 @@ public class StructTypeCode extends com.eprosima.idl.parser.typecode.StructTypeC
     {
         boolean returnedValue = false;
 
-        if (getInheritance() != null)
+        if (getEnclosedInheritance() != null)
         {
-            returnedValue |= ((StructTypeCode)getInheritance()).isHasKey();
+            returnedValue |= ((StructTypeCode)getEnclosedInheritance()).isHasKey();
         }
 
         for (int count = 0; count < getMembers().size() && !returnedValue; ++count)
@@ -143,9 +143,9 @@ public class StructTypeCode extends com.eprosima.idl.parser.typecode.StructTypeC
 
         long initial_alignment = current_alignment;
 
-        if (getInheritance() != null)
+        if (getEnclosedInheritance() != null)
         {
-            current_alignment += ((StructTypeCode)getInheritance()).maxPlainTypeSerializedSize(current_alignment, align64);
+            current_alignment += ((StructTypeCode)getEnclosedInheritance()).maxPlainTypeSerializedSize(current_alignment, align64);
         }
 
         for (Member member : getMembers())
