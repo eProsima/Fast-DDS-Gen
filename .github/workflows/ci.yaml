@@ -27,6 +27,7 @@ on:
   pull_request:
     branches:
       - 'master'
+      - '4.0.x-devel'
 
 jobs:
   ubuntu-build-test:
