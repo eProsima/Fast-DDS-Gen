@@ -1051,11 +1051,8 @@ external_suffix(p, external) ::= <<$p$$if(external)$->$else$.$endif$>>
 cppTypenameBetweenCdrVersions(typecode) ::= <<
 $if(typecode.isStringType && typecode.isBounded)$
 $! Avoid error with namespace when generated fixed_string depending on CDR version !$
-#if FASTCDR_VERSION_MAJOR == 1
-eprosima::fastrtps::fixed_string<$typecode.maxsize$>
-#else
 eprosima::fastcdr::fixed_string<$typecode.maxsize$>
-#endif
+
 
 $else$
 $typecode.cppTypename$
