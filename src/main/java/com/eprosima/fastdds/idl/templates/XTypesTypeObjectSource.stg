@@ -351,13 +351,17 @@ register_struct_type(struct) ::= <<
     $get_type_identifier(type=struct.inheritance, name=struct.name)$
     if (return_code_$struct.name$ != eprosima::fastdds::dds::RETCODE_OK)
     {
+        $if(struct.inheritance.isAliasType)$
+        $register_alias_type(alias=struct.inheritance, name=struct.name)$
+        $else$
         $register_struct_type(struct.inheritance)$
+        $endif$
     }
     $endif$
     $complete_type_detail(type=struct, type_kind=" Structure", name=struct.name)$
     CompleteStructHeader header_$struct.name$;
     $if (struct.inheritance)$
-    if (EK_COMPLETE == type_ids_$struct.name$.type_identifier1()._d() || TK_NONE == type_ids_$struct.name$.type_identifier1()._d())
+    if (EK_COMPLETE == type_ids_$struct.name$.type_identifier1()._d())
     {
         header_$struct.name$ = TypeObjectUtils::build_complete_struct_header(type_ids_$struct.name$.type_identifier1(), detail_$struct.name$);
     }
