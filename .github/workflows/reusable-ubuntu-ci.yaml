@@ -38,7 +38,7 @@ defaults:
 
 jobs:
   ubuntu-build-test:
-    runs-on: ${{ github.event.inputs.os_image }}
+    runs-on: ${{ inputs.os_image }}
     strategy:
       fail-fast: false
 
@@ -59,23 +59,23 @@ jobs:
       - name: Install apt packages
         uses: eProsima/eProsima-CI/ubuntu/install_apt_packages@v0
         with:
-          packages: libasio-dev libtinyxml2-dev ${{ github.event.inputs.java_version }}
+          packages: libasio-dev libtinyxml2-dev ${{ inputs.java_version }}
 
-      - name: Configure Java to ${{ github.event.inputs.java_version }}
+      - name: Configure Java to ${{ inputs.java_version }}
         shell: bash
         run: |
-          jv=$(echo ${{ github.event.inputs.java_version }} | sed -r 's/.*-([0-9]*)-.*/\1/g'); jvs=$(update-alternatives --list java | grep "$jv" | head -1); sudo update-alternatives --set java "$jvs"
-          jv=$(echo ${{ github.event.inputs.java_version }} | sed -r 's/.*-([0-9]*)-.*/\1/g'); jvs=$(update-alternatives --list javac | grep "$jv" | head -1); sudo update-alternatives --set javac "$jvs"
+          jv=$(echo ${{ inputs.java_version }} | sed -r 's/.*-([0-9]*)-.*/\1/g'); jvs=$(update-alternatives --list java | grep "$jv" | head -1); sudo update-alternatives --set java "$jvs"
+          jv=$(echo ${{ inputs.java_version }} | sed -r 's/.*-([0-9]*)-.*/\1/g'); jvs=$(update-alternatives --list javac | grep "$jv" | head -1); sudo update-alternatives --set javac "$jvs"
 
       - name: Install python packages
         uses: eProsima/eProsima-CI/multiplatform/install_colcon@v0
 
       - uses: ./src/fastddsgen/.github/actions/fetch-fastddsgen-repos
         with:
-          foonathan-memory-vendor-branch: ${{ github.event.inputs.foonathan_memory_vendor_branch }}
+          foonathan-memory-vendor-branch: ${{ inputs.foonathan_memory_vendor_branch }}
           fastcdr-branch: ${{ matrix.fastcdr_version }}
-          fastdds-branch: ${{ github.event.inputs.fastdds_branch }}
-          fastdds-python-branch: ${{ github.event.inputs.fastdds_python_branch }}
+          fastdds-branch: ${{ inputs.fastdds_branch }}
+          fastdds-python-branch: ${{ inputs.fastdds_python_branch }}
 
       - name: Build fastddsgen
         run: |
@@ -100,14 +100,14 @@ jobs:
           colcon build --event-handlers=console_direct+ --mixin rel-with-deb-info ccache --metas src/fastddsgen/.github/fastddsgen.meta
 
       - name: Test fastddsgen with fastcdr v1
-        if: startsWith(github.event.inputs.fastcdr_version, '1')
+        if: startsWith(inputs.fastcdr_version, '1')
         run: |
           source install/local_setup.bash
           cd src/fastddsgen
           ./gradlew test -Dcdr_version=v1 -Dblacklist_tests=external,optional
 
       - name: Test fastddsgen with fastcdr v2
-        if: ${{ ! startsWith(github.event.inputs.fastcdr_version, '1') }}
+        if: ${{ ! startsWith(inputs.fastcdr_version, '1') }}
         run: |
           source install/local_setup.bash
           cd src/fastddsgen
