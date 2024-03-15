@@ -50,10 +50,10 @@ jobs:
     with:
       os_image: ${{ matrix.os_image }}
       java_version: ${{ matrix.java_version }}
-      foonathan_memory_vendor_branch: ${{ inputs.foonathan_memory_vendor_branch || github.ref || 'master' }}
+      foonathan_memory_vendor_branch: ${{ inputs.foonathan_memory_vendor_branch || 'master' }}
       fastcdr_branch: ${{ matrix.fastcdr_version }}
-      fastdds_branch: ${{ inputs.fastdds_branch || github.ref || 'master' }}
-      fastdds_python_branch: ${{ inputs.fastdds_python_branch || github.ref || 'main' }}
+      fastdds_branch: ${{ inputs.fastdds_branch || 'master' }}
+      fastdds_python_branch: ${{ inputs.fastdds_python_branch || 'main' }}
       fastddsgen_branch: ${{ inputs.fastddsgen_branch || github.ref || 'master' }}
 
   ubuntu-ci-4_0_x-devel:
@@ -72,8 +72,8 @@ jobs:
     with:
       os_image: ${{ matrix.os_image }}
       java_version: ${{ matrix.java_version }}
-      foonathan_memory_vendor_branch: ${{ inputs.foonathan_memory_vendor_branch || github.ref || 'master' }}
+      foonathan_memory_vendor_branch: ${{ inputs.foonathan_memory_vendor_branch || 'master' }}
       fastcdr_branch: ${{ matrix.fastcdr_version }}
-      fastdds_branch: ${{ inputs.fastdds_branch || github.ref || '3.0.x-devel' }}
-      fastdds_python_branch: ${{ inputs.fastdds_python_branch || github.ref || '3.0.x-devel' }}
+      fastdds_branch: ${{ inputs.fastdds_branch || '3.0.x-devel' }}
+      fastdds_python_branch: ${{ inputs.fastdds_python_branch || '3.0.x-devel' }}
       fastddsgen_branch: ${{ inputs.fastddsgen_branch || github.ref || '4.0.x-devel' }}
