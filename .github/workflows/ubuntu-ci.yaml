@@ -35,7 +35,7 @@ concurrency:
 
 jobs:
   ubuntu-ci:
-    if: ${{ (github.event_name == 'pull_request') && (github.head_ref != '4.0.x-devel') }}
+    if: ${{ (github.event_name == 'pull_request') && (github.base_ref != '4.0.x-devel') }}
     strategy:
       fail-fast: false
       matrix:
@@ -57,7 +57,7 @@ jobs:
       fastddsgen_branch: ${{ inputs.fastddsgen_branch || github.ref || 'master' }}
 
   ubuntu-ci-4_0_x-devel:
-    if: ${{ (github.event_name == 'pull_request') && (github.head_ref == '4.0.x-devel') }}
+    if: ${{ (github.event_name == 'pull_request') && (github.base_ref == '4.0.x-devel') }}
     strategy:
       fail-fast: false
       matrix:
