@@ -73,7 +73,7 @@ jobs:
       - uses: ./src/fastddsgen/.github/actions/fetch-fastddsgen-repos
         with:
           foonathan-memory-vendor-branch: ${{ inputs.foonathan_memory_vendor_branch }}
-          fastcdr-branch: ${{ matrix.fastcdr_version }}
+          fastcdr-branch: ${{ inputs.fastcdr_branch }}
           fastdds-branch: ${{ inputs.fastdds_branch }}
           fastdds-python-branch: ${{ inputs.fastdds_python_branch }}
 
