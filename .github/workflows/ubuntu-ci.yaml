@@ -7,8 +7,8 @@ on:
         description: 'foonathan_memory_vendor branch to be used'
         required: true
         type: string
-      fastcdr_version:
-        description: 'Fast CDR branches to be used. Enclose the branch names like ["1.1.x", "master"], then in single quotes'
+      fastcdr_branch:
+        description: 'Fast CDR branches to be used'
         required: true
         type: string
       fastdds_branch:
@@ -46,7 +46,7 @@ jobs:
       os_image: ${{ matrix.os_image }}
       java_version: ${{ matrix.java_version }}
       foonathan_memory_vendor_branch: ${{ inputs.foonathan_memory_vendor_branch || 'master' }}
-      fastcdr_branch: ${{ matrix.fastcdr_version }}
+      fastcdr_branch: ${{ inputs.fastcdr_branch }}
       fastdds_branch: ${{ inputs.fastdds_branch || github.head_ref }}
       fastdds_python_branch: ${{ inputs.fastdds_python_branch || 'main' }}
       fastddsgen_branch: ${{ inputs.fastddsgen_branch || github.ref || 'master' }}
