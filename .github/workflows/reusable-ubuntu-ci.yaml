@@ -1,0 +1,138 @@
+name: Fast DDS Gen Ubuntu CI reusable workflow
+
+on:
+  workflow_call:
+    inputs:
+      os_image:
+        description: 'The OS image for the workflow'
+        required: true
+        type: string
+      java_version:
+        description: 'The Java version to be used'
+        required: true
+        type: string
+      foonathan_memory_vendor_branch:
+        description: 'foonathan_memory_vendor branch to be used'
+        required: true
+        type: string
+      fastcdr_branch:
+        description: 'Fast CDR branch to be used'
+        required: true
+        type: string
+      fastdds_branch:
+        description: 'Fast DDS branch to be used'
+        required: true
+        type: string
+      fastdds_python_branch:
+        description: 'Fast DDS Python branch to be used'
+        required: true
+        type: string
+      fastddsgen_branch:
+        description: 'Fast DDS Gen branch to be used'
+        required: true
+        type: string
+      fastdds_fallback_branch:
+        description: 'Fast DDS fallback branch (Ex. master or 3.0.x-devel)'
+        required: false
+        type: string
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  ubuntu-build-test:
+    runs-on: ${{ inputs.os_image }}
+    strategy:
+      fail-fast: false
+
+    steps:
+      - uses: eProsima/eProsima-CI/external/checkout@v0
+        with:
+          path: src/fastddsgen
+          ref: ${{ inputs.fastddsgen_branch }}
+
+      - name: Get minimum supported version of CMake
+        uses: eProsima/eProsima-CI/external/get-cmake@v0
+        with:
+          cmakeVersion: 3.22.6
+
+      - name: Setup CCache
+        uses: eProsima/eProsima-CI/external/setup-ccache-action@v0
+
+      - name: Install apt packages
+        uses: eProsima/eProsima-CI/ubuntu/install_apt_packages@v0
+        with:
+          packages: libasio-dev libtinyxml2-dev ${{ inputs.java_version }}
+
+      - name: Configure Java to ${{ inputs.java_version }}
+        shell: bash
+        run: |
+          jv=$(echo ${{ inputs.java_version }} | sed -r 's/.*-([0-9]*)-.*/\1/g'); jvs=$(update-alternatives --list java | grep "$jv" | head -1); sudo update-alternatives --set java "$jvs"
+          jv=$(echo ${{ inputs.java_version }} | sed -r 's/.*-([0-9]*)-.*/\1/g'); jvs=$(update-alternatives --list javac | grep "$jv" | head -1); sudo update-alternatives --set javac "$jvs"
+
+      - name: Install python packages
+        uses: eProsima/eProsima-CI/multiplatform/install_colcon@v0
+
+      - name: Determine the Fast DDS branch to be used
+        run: |
+          FASTDDS_REPO=https://github.com/eProsima/Fast-DDS.git
+          # Attempt to use PR's source branch
+          TEMP_BRANCH=${{ inputs.fastdds_branch }}
+          RESPONSE_CODE=$(git ls-remote --heads $FASTDDS_REPO $TEMP_BRANCH | wc -l)
+          if [[ ${RESPONSE_CODE} == "0" ]]
+          then
+            echo "PR source branch '$TEMP_BRANCH' branch DOES NOT exist using default branch '${{ inputs.fastdds_fallback_branch }}'"
+            # Attempt to use PR's fallback branch
+            TEMP_BRANCH=${{ inputs.fastdds_fallback_branch }}
+            RESPONSE_CODE=$(git ls-remote --heads $FASTDDS_REPO $TEMP_BRANCH | wc -l)
+            if [[ ${RESPONSE_CODE} == "0" ]]
+            then
+              echo "PR fallback branch '$TEMP_BRANCH' branch DOES NOT exist"
+              exit 1
+            fi
+          fi
+          echo "FASTDDS_BRANCH=$TEMP_BRANCH" >> $GITHUB_ENV
+
+      - uses: ./src/fastddsgen/.github/actions/fetch-fastddsgen-repos
+        with:
+          foonathan-memory-vendor-branch: ${{ inputs.foonathan_memory_vendor_branch }}
+          fastcdr-branch: ${{ inputs.fastcdr_branch }}
+          fastdds-branch: ${{ env.FASTDDS_BRANCH }}
+          fastdds-python-branch: ${{ inputs.fastdds_python_branch }}
+
+      - name: Build fastddsgen
+        run: |
+          cd src/fastddsgen
+          ./gradlew assemble
+          echo "$(pwd)/scripts" >> ${{ github.path }}
+
+      - name: Regenerate IDL files for Fast-DDS and Fast-DDS-python
+        run: |
+          cd src/Fast-DDS
+          ./utils/scripts/update_generated_code_from_idl.sh
+          cd -
+          cd src/Fast-DDS-python/fastdds_python/test/types
+          ./generate.sh
+          cd -
+          cd src/Fast-DDS-python/fastdds_python_examples/HelloWorldExample
+          fastddsgen -cdr both -python -replace HelloWorld.idl
+
+      - name: Build workspace
+        run: |
+          cmake --version
+          colcon build --event-handlers=console_direct+ --mixin rel-with-deb-info ccache --metas src/fastddsgen/.github/fastddsgen.meta
+
+      - name: Test fastddsgen with fastcdr v1
+        if: startsWith(inputs.fastcdr_branch, '1')
+        run: |
+          source install/local_setup.bash
+          cd src/fastddsgen
+          ./gradlew test -Dcdr_version=v1 -Dblacklist_tests=external,optional
+
+      - name: Test fastddsgen with fastcdr v2
+        if: ${{ ! startsWith(inputs.fastcdr_branch, '1') }}
+        run: |
+          source install/local_setup.bash
+          cd src/fastddsgen
+          ./gradlew test

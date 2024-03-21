@@ -1,0 +1,55 @@
+name: Fast DDS Gen Ubuntu CI
+
+on:
+  workflow_dispatch:
+    inputs:
+      foonathan_memory_vendor_branch:
+        description: 'foonathan_memory_vendor branch to be used'
+        required: true
+        type: string
+      fastcdr_version:
+        description: 'Fast CDR branches to be used. Enclose the branch names like ["1.1.x", "master"], then in single quotes'
+        required: true
+        type: string
+      fastdds_branch:
+        description: 'Fast-DDS branch to be used'
+        required: true
+        type: string
+      fastdds_python_branch:
+        description: 'Fast-DDS-Python branch to be used'
+        required: true
+        type: string
+      fastddsgen_branch:
+        description: 'Fast-DDS-Gen branch to be used'
+        required: true
+        type: string
+
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ubuntu-ci:
+    strategy:
+      fail-fast: false
+      matrix:
+        os_image:
+          - 'ubuntu-22.04'
+        java_version:
+          - 'openjdk-11-jdk'
+          - 'openjdk-19-jdk'
+        fastcdr_version: ${{ fromJson(inputs.fastcdr_version || '["1.1.x", "master"]') }}
+
+    uses: ./.github/workflows/reusable-ubuntu-ci.yaml
+    with:
+      os_image: ${{ matrix.os_image }}
+      java_version: ${{ matrix.java_version }}
+      foonathan_memory_vendor_branch: ${{ inputs.foonathan_memory_vendor_branch || 'master' }}
+      fastcdr_branch: ${{ matrix.fastcdr_version }}
+      fastdds_branch: ${{ inputs.fastdds_branch || github.head_ref }}
+      fastdds_python_branch: ${{ inputs.fastdds_python_branch || 'main' }}
+      fastddsgen_branch: ${{ inputs.fastddsgen_branch || github.ref || 'master' }}
+      fastdds_fallback_branch: ${{ 'master' }}
+      
