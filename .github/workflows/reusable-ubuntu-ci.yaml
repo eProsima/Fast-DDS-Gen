@@ -32,7 +32,7 @@ on:
         required: true
         type: string
       fastdds_fallback_branch:
-        description: 'Fast DDS fallback branch (Ex. master or 3.0.x-devel)'
+        description: 'Fast DDS fallback branch in case `fastdds_branch` does not exist (e.g. master or 3.0.x-devel)'
         required: false
         type: string
 

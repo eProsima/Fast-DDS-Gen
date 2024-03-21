@@ -52,4 +52,3 @@ jobs:
       fastdds_python_branch: ${{ inputs.fastdds_python_branch || 'main' }}
       fastddsgen_branch: ${{ inputs.fastddsgen_branch || github.ref || 'master' }}
       fastdds_fallback_branch: ${{ 'master' }}
-      
