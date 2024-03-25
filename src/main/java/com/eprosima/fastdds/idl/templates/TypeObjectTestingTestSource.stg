@@ -831,17 +831,17 @@ check_union_member(member, parent) ::= <<
     EXPECT_EQ($member.name$_expected_flags, type_objects.complete_type_object.complete().union_type().member_seq()[pos].common().member_flags());
     TypeIdentifierPair member_type_ids;
     $get_type_identifier(type=member.typecode, var="member_type_ids")$
-    EXPECT_TRUE(member_type_ids.type_identifier1() == type_objects.minimal_type_object.minimal().union_type().member_seq()[pos].common().type_id() ||
-        member_type_ids.type_identifier1() == type_objects.complete_type_object.complete().union_type().member_seq()[pos].common().type_id());
+    EXPECT_TRUE(compare_type_identifiers(member_type_ids.type_identifier1(), type_objects.minimal_type_object.minimal().union_type().member_seq()[pos].common().type_id()) ||
+        compare_type_identifiers(member_type_ids.type_identifier1(), type_objects.complete_type_object.complete().union_type().member_seq()[pos].common().type_id()));
     if (TK_NONE == member_type_ids.type_identifier2()._d())
     {
-        EXPECT_EQ(type_objects.minimal_type_object.minimal().union_type().member_seq()[pos].common().type_id(),
-                type_objects.complete_type_object.complete().union_type().member_seq()[pos].common().type_id());
+        EXPECT_TRUE(compare_type_identifiers(type_objects.minimal_type_object.minimal().union_type().member_seq()[pos].common().type_id(),
+                type_objects.complete_type_object.complete().union_type().member_seq()[pos].common().type_id()));
     }
     else
     {
-        EXPECT_TRUE(member_type_ids.type_identifier2() == type_objects.minimal_type_object.minimal().union_type().member_seq()[pos].common().type_id() ||
-            member_type_ids.type_identifier2() == type_objects.complete_type_object.complete().union_type().member_seq()[pos].common().type_id());
+        EXPECT_TRUE(compare_type_identifiers(member_type_ids.type_identifier2(), type_objects.minimal_type_object.minimal().union_type().member_seq()[pos].common().type_id()) ||
+            compare_type_identifiers(member_type_ids.type_identifier2(), type_objects.complete_type_object.complete().union_type().member_seq()[pos].common().type_id()));
     }
     $member.labels: { label | $check_label(label=label)$}; separator="\n"$
     ASSERT_EQ($member.labelsSize$, type_objects.minimal_type_object.minimal().union_type().member_seq()[pos].common().label_seq().size());
