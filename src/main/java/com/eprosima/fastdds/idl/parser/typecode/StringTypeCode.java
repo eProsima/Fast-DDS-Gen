@@ -65,7 +65,7 @@ public class StringTypeCode extends com.eprosima.idl.parser.typecode.StringTypeC
     {
         if (Kind.KIND_STRING == getKind() && isIsBounded() && ctx instanceof com.eprosima.fastcdr.idl.context.Context && ((com.eprosima.fastcdr.idl.context.Context)ctx).isCdrv1TemplatesEnabled())
         {
-            return "eprosima::fastrtps::fixed_string<" + getMaxsize() + ">";
+            return "eprosima::fastcdr::fixed_string<" + getMaxsize() + ">";
         }
 
         return super.getCppTypename();
