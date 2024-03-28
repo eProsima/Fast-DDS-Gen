@@ -112,11 +112,10 @@ jobs:
           cd src/Fast-DDS
           ./utils/scripts/update_generated_code_from_idl.sh
           cd -
-          cd src/Fast-DDS-python/fastdds_python/test/types
-          ./generate.sh
+
+          cd src/Fast-DDS-python
+          ./utils/scripts/update_generated_code_from_idl.sh
           cd -
-          cd src/Fast-DDS-python/fastdds_python_examples/HelloWorldExample
-          fastddsgen -cdr both -python -replace HelloWorld.idl
 
       - name: Build workspace
         run: |
