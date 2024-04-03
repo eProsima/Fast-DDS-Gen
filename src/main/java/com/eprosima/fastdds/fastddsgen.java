@@ -586,8 +586,8 @@ public class fastddsgen
     private static final String python_bindings_arg = "-python";
     private static final String replace_arg = "-replace";
     private static final String temp_dir_arg = "-t";
-    private static final String cnames_arg = "-typesc";
     private static final String ros2_names_arg = "-typeros2";
+    private static final String cnames_arg = "-typesc";
     private static final String version_arg = "-version";
 
     /*
@@ -637,8 +637,8 @@ public class fastddsgen
         System.out.println("\t\t" + python_bindings_arg + ": generates python bindings for the generated types.");
         System.out.println("\t\t" + replace_arg + ": replaces existing generated files.");
         System.out.println("\t\t" + temp_dir_arg + " <temp dir>: sets a specific directory as a temporary directory.");
-        System.out.println("\t\t" + cnames_arg + ": generates string and sequence types compatible with C.");
         System.out.println("\t\t" + ros2_names_arg + ": generates type naming compatible with ROS2.");
+        System.out.println("\t\t" + cnames_arg + ": generates string and sequence types compatible with C.");
         System.out.println("\t\t" + version_arg + ": shows the current version of eProsima Fast DDS gen.");
         System.out.println("\tThe supported input files are:");
         System.out.println("\t* IDL files.");
