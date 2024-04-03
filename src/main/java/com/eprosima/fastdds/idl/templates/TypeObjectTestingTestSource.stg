@@ -25,7 +25,7 @@ $fileHeader(ctx=ctx,  file=[ctx.filename, "TypeObjectTestingTest.cpp"], descript
 #include <fastdds/dds/xtypes/type_representation/ITypeObjectRegistry.hpp>
 #include <fastdds/dds/xtypes/type_representation/TypeObject.hpp>
 #include <fastdds/dds/xtypes/type_representation/TypeObjectUtils.hpp>
-#include <fastrtps/utils/md5.h>
+#include <fastdds/utils/md5.h>
 #include <gtest/gtest.h>
 
 $ctx.directIncludeDependencies : {include | #include "$include$.hpp"}; separator="\n"$
