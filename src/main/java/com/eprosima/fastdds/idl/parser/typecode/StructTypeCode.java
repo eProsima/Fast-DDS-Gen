@@ -53,11 +53,23 @@ public class StructTypeCode extends com.eprosima.idl.parser.typecode.StructTypeC
         return maxSerializedSize(current_alignment, false);
     }
 
+    public long getAlignmentAt()
+    {
+        return alignment_at;
+    }
+
+    public String getMaxSerializedSizeWithAlignment()
+    {
+        return Long.toString(maxSerializedSizeWithAlignment);
+    }
+
     private long maxSerializedSize(
             long current_alignment,
             boolean only_keys)
     {
         long initial_alignment = current_alignment;
+
+        System.out.println("maxSerializedSize struct for initial alignment " + initial_alignment);
 
         for (com.eprosima.idl.parser.typecode.TypeCode parent : getInheritances())
         {
@@ -87,8 +99,22 @@ public class StructTypeCode extends com.eprosima.idl.parser.typecode.StructTypeC
             }
             else if (!only_keys)
             {
+                System.out.println("maxSerializedSize MEMBER struct");
                 current_alignment += ((TypeCode)member.getTypecode()).maxSerializedSize(current_alignment);
+                alignment_at = Math.max(alignment_at, ((TypeCode)member.getTypecode()).getAlignmentAt());
             }
+        }
+        System.out.println("Total struct alignment is " + (current_alignment - initial_alignment));
+        System.out.println("");
+
+        long maxSerializedSizeWithoutAlignment = current_alignment - initial_alignment;
+        if (maxSerializedSizeWithoutAlignment % alignment_at == 0)
+        {
+            maxSerializedSizeWithAlignment = maxSerializedSizeWithoutAlignment;
+        }
+        else
+        {
+            maxSerializedSizeWithAlignment = alignment_at * (1 + Math.floorDiv(maxSerializedSizeWithoutAlignment, alignment_at));
         }
 
         return current_alignment - initial_alignment;
@@ -132,4 +158,7 @@ public class StructTypeCode extends com.eprosima.idl.parser.typecode.StructTypeC
     }
 
     private boolean istopic_ = true;
+
+    public long alignment_at = 0;
+    public long maxSerializedSizeWithAlignment = 0;
 }

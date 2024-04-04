@@ -24,38 +24,77 @@ public class PrimitiveTypeCode extends com.eprosima.idl.parser.typecode.Primitiv
         super(kind);
     }
 
+    public long getAlignmentAt()
+    {
+        switch (getKind())
+        {
+            case com.eprosima.idl.parser.typecode.Kind.KIND_LONGDOUBLE:
+                return 16; // don't really know
+            case com.eprosima.idl.parser.typecode.Kind.KIND_DOUBLE:
+            case com.eprosima.idl.parser.typecode.Kind.KIND_LONGLONG:
+            case com.eprosima.idl.parser.typecode.Kind.KIND_ULONGLONG:
+                return 8;
+            case com.eprosima.idl.parser.typecode.Kind.KIND_LONG:
+            case com.eprosima.idl.parser.typecode.Kind.KIND_ULONG:
+            case com.eprosima.idl.parser.typecode.Kind.KIND_FLOAT:
+            case com.eprosima.idl.parser.typecode.Kind.KIND_WCHAR:
+                return 4;
+            case com.eprosima.idl.parser.typecode.Kind.KIND_SHORT:
+            case com.eprosima.idl.parser.typecode.Kind.KIND_USHORT:
+                return 2;
+            case com.eprosima.idl.parser.typecode.Kind.KIND_BOOLEAN:
+            case com.eprosima.idl.parser.typecode.Kind.KIND_CHAR:
+            case com.eprosima.idl.parser.typecode.Kind.KIND_OCTET:
+            case com.eprosima.idl.parser.typecode.Kind.KIND_INT8:
+            case com.eprosima.idl.parser.typecode.Kind.KIND_UINT8:
+                return 1;
+            default:
+                System.out.println("Unexpected primitive type code kind: " + getKind());
+                return 0;
+        }
+    }
+
     public long maxSerializedSize(
             long current_alignment)
     {
         long initial_alignment = current_alignment;
 
+        System.out.println("maxSerializedSize primitive type code kind: " + getKind());
+
         switch (getKind())
         {
             case com.eprosima.idl.parser.typecode.Kind.KIND_LONGDOUBLE:
                 current_alignment += 16 + TypeCode.cdr_alignment(current_alignment, 8);
+                System.out.println("ALIGNMENT:  16/8");
                 break;
             case com.eprosima.idl.parser.typecode.Kind.KIND_DOUBLE:
             case com.eprosima.idl.parser.typecode.Kind.KIND_LONGLONG:
             case com.eprosima.idl.parser.typecode.Kind.KIND_ULONGLONG:
                 current_alignment += 8 + TypeCode.cdr_alignment(current_alignment, 8);
+                System.out.println("ALIGNMENT:  8/8");
                 break;
             case com.eprosima.idl.parser.typecode.Kind.KIND_LONG:
             case com.eprosima.idl.parser.typecode.Kind.KIND_ULONG:
             case com.eprosima.idl.parser.typecode.Kind.KIND_FLOAT:
             case com.eprosima.idl.parser.typecode.Kind.KIND_WCHAR:
                 current_alignment += 4 + TypeCode.cdr_alignment(current_alignment, 4);
+                System.out.println("ALIGNMENT:  4/4");
                 break;
             case com.eprosima.idl.parser.typecode.Kind.KIND_SHORT:
             case com.eprosima.idl.parser.typecode.Kind.KIND_USHORT:
                 current_alignment += 2 + TypeCode.cdr_alignment(current_alignment, 2);
+                System.out.println("ALIGNMENT:  2/2");
                 break;
             case com.eprosima.idl.parser.typecode.Kind.KIND_BOOLEAN:
             case com.eprosima.idl.parser.typecode.Kind.KIND_CHAR:
             case com.eprosima.idl.parser.typecode.Kind.KIND_OCTET:
             case com.eprosima.idl.parser.typecode.Kind.KIND_INT8:
             case com.eprosima.idl.parser.typecode.Kind.KIND_UINT8:
+                System.out.println("ALIGNMENT:  1/");
                 current_alignment += 1;
                 break;
+            default:
+                System.out.println("Unexpected primitive type code kind: " + getKind());
         }
 
         return current_alignment - initial_alignment;

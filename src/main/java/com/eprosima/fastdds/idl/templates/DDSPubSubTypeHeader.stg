@@ -182,7 +182,10 @@ private:
     static constexpr bool is_plain_impl()
     {
         $if(struct.members)$
-        return $struct.maxSerializedSize$ULL == (detail::$struct.name$_offset_of<$struct.name$, detail::$struct.name$_f>() + sizeof($last(struct.members).typecode.cppTypename$));
+        auto offset_val = detail::$struct.name$_offset_of<$struct.name$, detail::$struct.name$_f>();
+        auto last_size = sizeof($last(struct.members).typecode.cppTypename$);
+        // return $struct.maxSerializedSize$ULL == (offset_val + last_size);
+        return $struct.maxSerializedSizeWithAlignment$ULL == (offset_val + last_size);
         $elseif(struct.inheritances)$
         $if(last(struct.inheritances).isPlain)$
         return $struct.maxSerializedSize$ULL == (detail::$last(struct.inheritances).name$_offset_of<$last(struct.inheritances).name$, detail::$last(struct.inheritances).name$_f>() + sizeof($last(last(struct.inheritances).members).typecode.cppTypename$));

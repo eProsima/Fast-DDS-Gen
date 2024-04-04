@@ -25,4 +25,9 @@ public interface TypeCode
 
     public long maxSerializedSize(
             long current_alignment);
+
+    default public long getAlignmentAt()
+    {
+        return 0;
+    }
 }
