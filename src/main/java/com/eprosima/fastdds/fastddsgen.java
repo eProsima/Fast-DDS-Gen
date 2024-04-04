@@ -586,7 +586,6 @@ public class fastddsgen
     private static final String python_bindings_arg = "-python";
     private static final String replace_arg = "-replace";
     private static final String temp_dir_arg = "-t";
-    private static final String typeobject_arg = "-typeobject";
     private static final String ros2_names_arg = "-typeros2";
     private static final String cnames_arg = "-typesc";
     private static final String version_arg = "-version";
@@ -602,7 +601,7 @@ public class fastddsgen
     {
         System.out.println(m_appName + " usage:");
         System.out.println("\t" + m_appName + " [options] <file> [<file> ...]");
-        System.out.println("\twhere the options are:");
+        System.out.println("\tThe available options are:");
         System.out.println("\t\t" + case_sensitive_arg + ": IDL grammar apply case sensitive matching.");
         System.out.println("\t\t" + output_path_arg + " <path>: sets an output directory for generated files.");
         System.out.print("\t\t" + default_container_prealloc_size + ": sets the default preallocated size for ");
@@ -622,13 +621,14 @@ public class fastddsgen
         }
         System.out.print("\t\t" + extra_template_arg + " <template file> <output file name>: specifies a custom ");
         System.out.println("template, template location must be in classpath.");
-        System.out.println("\t\t" + flat_output_directory_arg + ": ignore input files relative paths and place all generated files in the specified output directory.");
+        System.out.print("\t\t" + flat_output_directory_arg + ": ignore input files relative paths and place all ");
+        System.out.println("generated files in the specified output directory.");
         System.out.println("\t\t" + fusion_arg + ": activates fusion.");
         System.out.println("\t\t" + help_arg + ": shows this help");
         System.out.println("\t\t" + include_path_arg + " <path>: add directory to preprocessor include paths.");
         System.out.println("\t\t" + language_arg + " <lang>: chooses between <c++> or <java> languages.");
         System.out.println("\t\t" + no_typesupport_arg + ": avoid generating the type support files.");
-        System.out.println("\t\t" + no_typeobjectsupport_arg + ": avoid generating the TypeObject support specific files.");
+        System.out.println("\t\t" + no_typeobjectsupport_arg + ": avoid generating the TypeObject support files.");
         System.out.println("\t\t\tEnabled automatically if " + no_typesupport_arg + " argument is used.");
         System.out.println("\t\t" + no_dependencies_arg + ": avoid processing the dependent IDL files.");
         System.out.println("\t\t" + package_arg + ": default package used in Java files.");
@@ -637,10 +637,10 @@ public class fastddsgen
         System.out.println("\t\t" + python_bindings_arg + ": generates python bindings for the generated types.");
         System.out.println("\t\t" + replace_arg + ": replaces existing generated files.");
         System.out.println("\t\t" + temp_dir_arg + " <temp dir>: sets a specific directory as a temporary directory.");
-        System.out.println("\t\t" + cnames_arg + ": generates string and sequence types compatible with C.");
         System.out.println("\t\t" + ros2_names_arg + ": generates type naming compatible with ROS2.");
+        System.out.println("\t\t" + cnames_arg + ": generates string and sequence types compatible with C.");
         System.out.println("\t\t" + version_arg + ": shows the current version of eProsima Fast DDS gen.");
-        System.out.println("\tand the supported input files are:");
+        System.out.println("\tThe supported input files are:");
         System.out.println("\t* IDL files.");
 
     }
@@ -648,7 +648,7 @@ public class fastddsgen
     public static void printEnhacedHelp()
     {
         printHelp();
-        System.out.println("\tand the extra developer options are:");
+        System.out.println("\tThe extra developer options are:");
         System.out.println("\t\t" + generate_api_arg + ": apply rules to generate internal API.");
         System.out.println("\t\t" + execute_test_arg + ": executes FastDDSGen tests.");
     }
