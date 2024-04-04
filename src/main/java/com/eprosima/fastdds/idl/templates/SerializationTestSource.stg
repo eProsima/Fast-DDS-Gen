@@ -31,7 +31,7 @@ $fileHeader(ctx=ctx,  file=[ctx.filename, "SerializationTest.cpp"], description=
 #include "$ctx.filename$PubSubTypes.h"
 #include "$ctx.filename$Serialization.h"
 #include <fastcdr/Cdr.h>
-#include <fastrtps/rtps/common/SerializedPayload.h>
+#include <fastdds/rtps/common/SerializedPayload.h>
 
 $definitions; separator="\n"$
 
