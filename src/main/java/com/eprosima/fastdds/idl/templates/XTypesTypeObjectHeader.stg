@@ -81,7 +81,7 @@ register_type_identifier(typename) ::= <<
  *        Hash TypeIdentifiers require to fill the TypeObject information and hash it, consequently, the TypeObject is
  *        indirectly registered as well.
  */
-void register_$typename$_type_identifier();
+eProsima_user_DllExport void register_$typename$_type_identifier();
 
 >>
 
