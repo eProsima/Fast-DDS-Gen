@@ -53,6 +53,86 @@ public:
 
 };
 
+bool compare_type_identifiers(
+        const TypeIdentifier& a_identifier,
+        const TypeIdentifier& another_identifier)
+{
+
+    if (a_identifier._d() != another_identifier._d())
+    {
+        return false;
+    }
+
+    switch (a_identifier._d())
+    {
+        case TI_STRING8_SMALL:
+        case TI_STRING16_SMALL:
+            return (a_identifier.string_sdefn() == another_identifier.string_sdefn());
+            break;
+
+        case TI_STRING8_LARGE:
+        case TI_STRING16_LARGE:
+            return (a_identifier.string_ldefn() == another_identifier.string_ldefn());
+            break;
+
+        case TI_PLAIN_SEQUENCE_SMALL:
+            return (a_identifier.seq_sdefn().header() == another_identifier.seq_sdefn().header() &&
+                   a_identifier.seq_sdefn().bound() == another_identifier.seq_sdefn().bound() &&
+                   *a_identifier.seq_sdefn().element_identifier() == *another_identifier.seq_sdefn().element_identifier());
+            break;
+
+        case TI_PLAIN_SEQUENCE_LARGE:
+            return (a_identifier.seq_ldefn().header() == another_identifier.seq_ldefn().header() &&
+                   a_identifier.seq_ldefn().bound() == another_identifier.seq_ldefn().bound() &&
+                   *a_identifier.seq_ldefn().element_identifier() == *another_identifier.seq_ldefn().element_identifier());
+
+            return (a_identifier.seq_ldefn() == another_identifier.seq_ldefn());
+            break;
+
+        case TI_PLAIN_ARRAY_SMALL:
+            return (a_identifier.array_sdefn().header() == another_identifier.array_sdefn().header() &&
+                   a_identifier.array_sdefn().array_bound_seq() == another_identifier.array_sdefn().array_bound_seq() &&
+                   *a_identifier.array_sdefn().element_identifier() == *another_identifier.array_sdefn().element_identifier());
+            break;
+
+        case TI_PLAIN_ARRAY_LARGE:
+            return (a_identifier.array_ldefn().header() == another_identifier.array_ldefn().header() &&
+                   a_identifier.array_ldefn().array_bound_seq() == another_identifier.array_ldefn().array_bound_seq() &&
+                   *a_identifier.array_ldefn().element_identifier() == *another_identifier.array_ldefn().element_identifier());
+            break;
+
+        case TI_PLAIN_MAP_SMALL:
+            return (a_identifier.map_sdefn().header() == another_identifier.map_sdefn().header() &&
+                   a_identifier.map_sdefn().bound() == another_identifier.map_sdefn().bound() &&
+                   *a_identifier.map_sdefn().element_identifier() == *another_identifier.map_sdefn().element_identifier() &&
+                   a_identifier.map_sdefn().key_flags() == another_identifier.map_sdefn().key_flags() &&
+                   *a_identifier.map_sdefn().key_identifier() == *another_identifier.map_sdefn().key_identifier());
+            break;
+
+        case TI_PLAIN_MAP_LARGE:
+            return (a_identifier.map_ldefn().header() == another_identifier.map_ldefn().header() &&
+                   a_identifier.map_ldefn().bound() == another_identifier.map_ldefn().bound() &&
+                   *a_identifier.map_ldefn().element_identifier() == *another_identifier.map_ldefn().element_identifier() &&
+                   a_identifier.map_ldefn().key_flags() == another_identifier.map_ldefn().key_flags() &&
+                   *a_identifier.map_ldefn().key_identifier() == *another_identifier.map_ldefn().key_identifier());
+            break;
+
+        case TI_STRONGLY_CONNECTED_COMPONENT:
+            return (a_identifier.sc_component_id() == another_identifier.sc_component_id());
+            break;
+
+        case EK_COMPLETE:
+        case EK_MINIMAL:
+            return (a_identifier.equivalence_hash() == another_identifier.equivalence_hash());
+            break;
+
+        default:
+            return a_identifier.extended_defn() == another_identifier.extended_defn();
+
+            break;
+    }
+}
+
 $definitions;separator="\n"$
 
 int main(
@@ -630,15 +710,15 @@ check_struct_member(member, parent) ::= <<
     $get_type_identifier(type=member.typecode, var="member_type_ids")$
     if (TK_NONE != member_type_ids.type_identifier2()._d())
     {
-        EXPECT_TRUE(member_type_ids.type_identifier1() == type_objects.minimal_type_object.minimal().struct_type().member_seq()[pos].common().member_type_id() ||
-            member_type_ids.type_identifier1() == type_objects.complete_type_object.complete().struct_type().member_seq()[pos].common().member_type_id());
-        EXPECT_TRUE(member_type_ids.type_identifier2() == type_objects.minimal_type_object.minimal().struct_type().member_seq()[pos].common().member_type_id() ||
-            member_type_ids.type_identifier2() == type_objects.complete_type_object.complete().struct_type().member_seq()[pos].common().member_type_id());
+        EXPECT_TRUE(compare_type_identifiers(member_type_ids.type_identifier1(), type_objects.minimal_type_object.minimal().struct_type().member_seq()[pos].common().member_type_id()) ||
+                compare_type_identifiers(member_type_ids.type_identifier1(), type_objects.complete_type_object.complete().struct_type().member_seq()[pos].common().member_type_id()));
+        EXPECT_TRUE(compare_type_identifiers(member_type_ids.type_identifier2(), type_objects.minimal_type_object.minimal().struct_type().member_seq()[pos].common().member_type_id()) ||
+                compare_type_identifiers(member_type_ids.type_identifier2(), type_objects.complete_type_object.complete().struct_type().member_seq()[pos].common().member_type_id()));
     }
     else
     {
-        EXPECT_EQ(member_type_ids.type_identifier1(), type_objects.minimal_type_object.minimal().struct_type().member_seq()[pos].common().member_type_id());
-        EXPECT_EQ(member_type_ids.type_identifier1(), type_objects.complete_type_object.complete().struct_type().member_seq()[pos].common().member_type_id());
+        EXPECT_TRUE(compare_type_identifiers(member_type_ids.type_identifier1(), type_objects.minimal_type_object.minimal().struct_type().member_seq()[pos].common().member_type_id()));
+        EXPECT_TRUE(compare_type_identifiers(member_type_ids.type_identifier1(), type_objects.complete_type_object.complete().struct_type().member_seq()[pos].common().member_type_id()));
     }
     EXPECT_EQ("$member.name$", type_objects.complete_type_object.complete().struct_type().member_seq()[pos].detail().name().to_string());
     EXPECT_EQ(member_name_hashed, type_objects.minimal_type_object.minimal().struct_type().member_seq()[pos].detail().name_hash());
@@ -751,17 +831,17 @@ check_union_member(member, parent) ::= <<
     EXPECT_EQ($member.name$_expected_flags, type_objects.complete_type_object.complete().union_type().member_seq()[pos].common().member_flags());
     TypeIdentifierPair member_type_ids;
     $get_type_identifier(type=member.typecode, var="member_type_ids")$
-    EXPECT_TRUE(member_type_ids.type_identifier1() == type_objects.minimal_type_object.minimal().union_type().member_seq()[pos].common().type_id() ||
-        member_type_ids.type_identifier1() == type_objects.complete_type_object.complete().union_type().member_seq()[pos].common().type_id());
+    EXPECT_TRUE(compare_type_identifiers(member_type_ids.type_identifier1(), type_objects.minimal_type_object.minimal().union_type().member_seq()[pos].common().type_id()) ||
+        compare_type_identifiers(member_type_ids.type_identifier1(), type_objects.complete_type_object.complete().union_type().member_seq()[pos].common().type_id()));
     if (TK_NONE == member_type_ids.type_identifier2()._d())
     {
-        EXPECT_EQ(type_objects.minimal_type_object.minimal().union_type().member_seq()[pos].common().type_id(),
-                type_objects.complete_type_object.complete().union_type().member_seq()[pos].common().type_id());
+        EXPECT_TRUE(compare_type_identifiers(type_objects.minimal_type_object.minimal().union_type().member_seq()[pos].common().type_id(),
+                type_objects.complete_type_object.complete().union_type().member_seq()[pos].common().type_id()));
     }
     else
     {
-        EXPECT_TRUE(member_type_ids.type_identifier2() == type_objects.minimal_type_object.minimal().union_type().member_seq()[pos].common().type_id() ||
-            member_type_ids.type_identifier2() == type_objects.complete_type_object.complete().union_type().member_seq()[pos].common().type_id());
+        EXPECT_TRUE(compare_type_identifiers(member_type_ids.type_identifier2(), type_objects.minimal_type_object.minimal().union_type().member_seq()[pos].common().type_id()) ||
+            compare_type_identifiers(member_type_ids.type_identifier2(), type_objects.complete_type_object.complete().union_type().member_seq()[pos].common().type_id()));
     }
     $member.labels: { label | $check_label(label=label)$}; separator="\n"$
     ASSERT_EQ($member.labelsSize$, type_objects.minimal_type_object.minimal().union_type().member_seq()[pos].common().label_seq().size());
