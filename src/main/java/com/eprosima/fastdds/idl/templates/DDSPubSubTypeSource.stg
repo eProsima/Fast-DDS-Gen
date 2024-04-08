@@ -19,11 +19,15 @@ import "eprosima.stg"
 main(ctx, definitions) ::= <<
 $fileHeader(ctx=ctx,  file=[ctx.filename, "PubSubTypes.cpp"], description=["This header file contains the implementation of the serialization functions."])$
 
+#include "$ctx.filename$PubSubTypes.h"
 
+#include <fastdds/dds/log/Log.hpp>
 #include <fastdds/rtps/common/CdrSerialization.hpp>
 
-#include "$ctx.filename$PubSubTypes.h"
 #include "$ctx.filename$CdrAux.hpp"
+$if (ctx.generateTypeObjectSupport)$
+#include "$ctx.filename$TypeObjectSupport.hpp"
+$endif$
 
 using SerializedPayload_t = eprosima::fastrtps::rtps::SerializedPayload_t;
 using InstanceHandle_t = eprosima::fastrtps::rtps::InstanceHandle_t;
@@ -31,60 +35,17 @@ using DataRepresentationId_t = eprosima::fastdds::dds::DataRepresentationId_t;
 
 $definitions; separator="\n"$
 
+$if(ctx.thereIsStructOrUnion)$
+// Include auxiliary functions like for serializing/deserializing.
+#include "$ctx.filename$CdrAux.ipp"
+$endif$
+
 >>
 
 module(ctx, parent, module, definition_list) ::= <<
 namespace $module.name$ {
     $definition_list$
-} //End of namespace $module.name$
-
->>
-
-definition_list(definitions) ::= <<
-$definitions; separator="\n"$
-
->>
-
-annotation(ctx, annotation) ::= <<>>
-
-interface(ctx, parent, interface, export_list) ::= <<
-$export_list$
->>
-
-export_list(exports) ::= <<
-$exports; separator="\n"$
-
->>
-
-exception(ctx, parent, exception) ::= <<>>
-
-operation(ctx, parent, operation, param_list, operation_type) ::= <<
-
-$operation_type$
-$param_list$
-
->>
-
-param_list(parameters) ::= <<>>
-
-param(parameter, parameter_type) ::= <<
-
-$parameter_type$
-
->>
-
-const_decl(ctx, parent, const, const_type) ::= <<
-
-$const_type$
-
->>
-
-fwd_decl(ctx, parent, type) ::= <<>>
-
-typedef_decl(ctx, parent, typedefs, typedefs_type, declarator_type) ::= <<
-
-$declarator_type$
-$typedefs_type$
+} // namespace $module.name$
 
 >>
 
@@ -278,49 +239,28 @@ bool $struct.name$PubSubType::getKey(
     return true;
 }
 
->>
-
-member_type(ctx, member, type_member, declarators) ::= <<
-
-$type_member$
-$declarators$
-
->>
-
-union_type(ctx, parent, union, switch_type) ::= <<
-
-$switch_type$
+void $struct.name$PubSubType::register_type_object_representation() const
+{
+    $if (ctx.generateTypeObjectSupport)$
+    register_$ctx.filename$_type_objects();
+    $else$
+    EPROSIMA_LOG_WARNING(XTYPES_TYPE_REPRESENTATION,
+        "TypeObject type representation support disabled in generated code");
+    $endif$
+}
 
 >>
 
-element_type(ctx, element, type_element, declarator) ::= <<
+//{ Fast DDS-Gen extensions
+module_conversion(ctx, parent, modules, definition_list) ::= <<
+$modules : { module |
+namespace $module.name$ {
+}; separator="\n"$
 
-$type_element$
-$declarator$
+$definition_list$
 
+$reverse(modules) : { module |
+\} // namespace $module.name$
+}; separator="\n"$
 >>
-
-enum_type(ctx, parent, enum) ::= <<>>
-
-bitmask_type(ctx, parent, bitmask) ::= <<>>
-
-bitset_type(ctx, parent, bitset) ::= <<>>
-
-sequence_type(ctx, sequence, type_sequence) ::= <<
-
-$type_sequence$
-
->>
-
-map_type(ctx, map, key_type, value_type) ::= <<
-
-$key_type$
-$value_type$
-
->>
-
-string_type(ctx, string) ::= <<>>
-
-wide_string_type(ctx, wstring) ::= <<>>
-
-array_declarator(ctx, array, array_type) ::= <<>>
+//}

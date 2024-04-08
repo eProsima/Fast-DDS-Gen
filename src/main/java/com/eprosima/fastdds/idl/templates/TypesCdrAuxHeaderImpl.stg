@@ -15,6 +15,7 @@
 group TypesCdrAuxHeader;
 
 import "eprosima.stg"
+import "com/eprosima/fastcdr/idl/templates/FastCdrCommon.stg"
 
 main(ctx, definitions, extensions) ::= <<
 $fileHeader(ctx=ctx, file=[ctx.filename, "CdrAux.ipp"], description=["This source file contains some declarations of CDR related functions."])$
@@ -43,58 +44,6 @@ $definitions; separator="\n"$
 
 #endif // _FAST_DDS_GENERATED_$ctx.headerGuardName$CDRAUX_IPP_
 $"\n"$
->>
-
-module(ctx, parent, module, definition_list) ::= <<
-$definition_list$
->>
-
-definition_list(definitions) ::= <<
-$definitions; separator="\n"$
-
->>
-
-annotation(ctx, annotation) ::= <<>>
-
-interface(ctx, parent, interface, export_list) ::= <<
-$export_list$
->>
-
-export_list(exports) ::= <<
-$exports; separator="\n"$
-
->>
-
-fwd_decl(ctx, parent, type) ::= <<>>
-
-exception(ctx, parent, exception) ::= <<>>
-
-operation(ctx, parent, operation, param_list, operation_type) ::= <<
-
-$operation_type$
-$param_list$
-
->>
-
-param_list(parameters) ::= <<>>
-
-param(parameter, parameter_type) ::= <<
-
-$parameter_type$
-
->>
-
-const_decl(ctx, parent, const, const_type) ::= <<
-
-$const_type$
-
->>
-
-typedef_decl(ctx, parent, typedefs, typedefs_type, declarator_type) ::= <<
-
-$declarator_type$
-$typedefs_type$
-
 >>
 
 struct_type(ctx, parent, struct, extensions, member_list) ::= <<
@@ -173,12 +122,10 @@ eProsima_user_DllExport void deserialize(
             $if(struct.annotationFinal || struct.annotationAppendable)$eprosima::fastcdr::EncodingAlgorithmFlag::PLAIN_CDR$elseif(struct.annotationMutable)$eprosima::fastcdr::EncodingAlgorithmFlag::PL_CDR$endif$,
             [&data](eprosima::fastcdr::Cdr& dcdr, const eprosima::fastcdr::MemberId& mid) -> bool
             {
+                $if(struct.allMembers)$
                 bool ret_value = true;
                 switch (mid.id)
                 {
-                    $if(!struct.allMembers)$
-                    static_cast<void>(dcdr);
-                    $endif$
                     $struct.allMembers : { member |
                     case $if(struct.annotationMutable)$$member.id$$else$$member.index$$endif$:
                         $if(!member.annotationNonSerialized)$
@@ -191,6 +138,12 @@ eProsima_user_DllExport void deserialize(
                         break;
                 }
                 return ret_value;
+                $else$
+                static_cast<void>(data);
+                static_cast<void>(dcdr);
+                static_cast<void>(mid);
+                return false;
+                $endif$
             });
 }
 
@@ -222,13 +175,6 @@ void serialize_key(
 }
 
 $endif$
-
->>
-
-member_type(ctx, member, type_member, declarators) ::= <<
-
-$type_member$
-$declarators$
 
 >>
 
@@ -306,12 +252,12 @@ eProsima_user_DllExport size_t calculate_serialized_size(
 
     switch (data._d())
     {
-        $union.membersDefaultAtEnd:{ member | $if(member.printable)$$member.labels:{ label |case $label$:}; separator="\n"$
+        $union.members :{ member |
+        $member.labels:{ label |case $label$:}; separator="\n"$
         $if(member.default)$default:$endif$
             calculated_size += calculator.calculate_member_serialized_size(eprosima::fastcdr::MemberId($if(union.annotationMutable)$$member.id$$else$$member.index$$endif$),
                         data.$member.name$(), current_alignment);
             break;
-        $endif$
         }; separator="\n"$
         $if(!union.defaultMember)$
         default:
@@ -346,12 +292,11 @@ eProsima_user_DllExport void serialize(
 
     switch (data._d())
     {
-        $union.membersDefaultAtEnd:{ member | $if(member.printable)$
+        $union.members :{ member |
         $member.labels:{ label |case $label$:}; separator="\n"$
         $if(member.default)$default:$endif$
             scdr << eprosima::fastcdr::MemberId($if(union.annotationMutable)$$member.id$$else$$member.index$$endif$) << data.$member.name$();
             break;
-        $endif$
         }; separator="\n"$
         $if(!union.defaultMember)$
         default:
@@ -377,67 +322,55 @@ eProsima_user_DllExport void deserialize(
             [&data](eprosima::fastcdr::Cdr& dcdr, const eprosima::fastcdr::MemberId& mid) -> bool
             {
                 bool ret_value = true;
-                switch (mid.id)
+                if (0 == mid.id)
                 {
-                    case 0:
-                        dcdr \>> data._d();
-                        break;
-                    default:
-                        switch (data._d())
-                        {
-                            $union.membersDefaultAtEnd:{ member | $if(member.printable)$
-                            $member.labels:{ label |case $label$:}; separator="\n"$
-                            $if(member.default)$default:$endif$
-                                $if(union.annotationMutable || member.annotationOptional)$
-                                if (mid != $member.id$)
-                                {
-                                    throw BadParamException("Deserializing union member $member.name$ the MemberId doesn't match");
-                                \}
-                                $endif$
-                                dcdr \>> data.$member.name$();
+                    $union.discriminator.typecode.cppTypename$ discriminator;
+                    dcdr \>> discriminator;
+
+                    switch (discriminator)
+                    {
+                        $union.members:{ member |
+                        $member.labels:{ label |case $label$:}; separator="\n"$
+                        $if(member.default)$default:$endif$
+                            {
+                                $member_type_declaration(member)$ $member.name$_value$member_default_init(member)$;
+                                data.$member.name$(std::move($member.name$_value));
+                                data._d(discriminator);
                                 break;
+                            \}
+                        }; separator="\n"$
+                        $if(!union.defaultMember)$
+                        default:
+                            data._default();
+                            break;
+                        $endif$
+                    }
+                }
+                else
+                {
+                    switch (data._d())
+                    {
+                        $union.members :{ member |
+                        $member.labels:{ label |case $label$:}; separator="\n"$
+                        $if(member.default)$default:$endif$
+                            $if(union.annotationMutable || member.annotationOptional)$
+                            if (mid != $member.id$)
+                            {
+                                throw BadParamException("Deserializing union member $member.name$ the MemberId doesn't match");
+                            \}
                             $endif$
-                            }; separator="\n"$
-                            $if(!union.defaultMember)$
-                            default:
-                                break;
-                            $endif$
-                        }
-                        $if(!union.annotationMutable)$ret_value = false;$endif$
-                        break;
+                            dcdr \>> data.$member.name$();
+                            break;
+                        }; separator="\n"$
+                        $if(!union.defaultMember)$
+                        default:
+                            break;
+                        $endif$
+                    }
+                    $if(!union.annotationMutable)$ret_value = false;$endif$
                 }
                 return ret_value;
             });
 }
 $endif$
 >>
-
-element_type(ctx, element, type_element, declarator) ::= <<
-
-$type_element$
-$declarator$
-
->>
-
-enum_type(ctx, parent, enum) ::= <<>>
-
-bitmask_type(ctx, parent, bitmask) ::= <<>>
-
-sequence_type(ctx, sequence, type_sequence) ::= <<
-
-$type_sequence$
-
->>
-
-map_type(ctx, map, key_type, value_type) ::= <<
-
-$key_type$
-$value_type$
-
->>
-
-string_type(ctx, string) ::= <<>>
-
-wide_string_type(ctx, wstring) ::= <<>>
-
-array_declarator(ctx, array, array_type) ::= <<>>

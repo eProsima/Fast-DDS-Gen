@@ -59,3 +59,13 @@ member_array_cstring_destructor(ctx, name, loopvar, dims) ::= <<$if(rest(dims))$
 {
     free(str);
 }$endif$>>
+
+member_default_init(member) ::= <%
+$if(member.annotationDefault)$
+ {$member.annotationDefaultValue$}
+$elseif(!member.annotationOptional && !member.annotationExternal)$
+$if(member.typecode.initialValue)$
+ {$member.typecode.initialValue$}
+$endif$
+$endif$
+%>
