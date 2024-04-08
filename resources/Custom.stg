@@ -8,6 +8,10 @@ $definitions; separator="\n"$
 
 module(ctx, parent, module, definition_list) ::= <<
 
+// In case of define C++ namespaces here (like `namespace $module.name$ {`, you should add property
+// `Context.using_explicitly_modules_custom_property` to the related TemplateGroup. Example:
+//     tmanager.addGroup("Custom.stg").enable_custom_property(Context.using_explicitly_modules_custom_property);
+
 $definition_list$
 
 >>
