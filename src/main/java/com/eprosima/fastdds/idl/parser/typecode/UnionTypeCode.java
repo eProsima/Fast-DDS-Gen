@@ -49,7 +49,7 @@ public class UnionTypeCode extends com.eprosima.idl.parser.typecode.UnionTypeCod
             detect_recursive_ = true;
             current_alignment = MemberedTypeCode.xcdr_extra_header_serialized_size(current_alignment, union_ext_kind);
 
-            current_alignment += ((TypeCode)getDiscriminator()).maxSerializedSize(current_alignment);
+            current_alignment += ((TypeCode)getDiscriminator().getTypecode()).maxSerializedSize(current_alignment);
 
             for (Member member : getMembers())
             {

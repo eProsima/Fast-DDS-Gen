@@ -1,0 +1,100 @@
+// Copyright 2023 Proyectos y Sistemas de Mantenimiento SL (eProsima).
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+group XTypesTypeObjectHeader;
+
+import "eprosima.stg"
+
+main(ctx, definitions) ::= <<
+$fileHeader(ctx=ctx, file=[ctx.filename, "TypeObjectSupport.hpp"], description=["Header file containing the API required to register the TypeObject representation of the described types in the IDL file"])$
+
+#ifndef _FAST_DDS_GENERATED_$ctx.headerGuardName$_TYPE_OBJECT_SUPPORT_HPP_
+#define _FAST_DDS_GENERATED_$ctx.headerGuardName$_TYPE_OBJECT_SUPPORT_HPP_
+
+$ctx.directIncludeDependencies : { include | #include "$include$TypeObjectSupport.hpp"}; separator="\n"$
+
+#if defined(_WIN32)
+#if defined(EPROSIMA_USER_DLL_EXPORT)
+#define eProsima_user_DllExport __declspec( dllexport )
+#else
+#define eProsima_user_DllExport
+#endif  // EPROSIMA_USER_DLL_EXPORT
+#else
+#define eProsima_user_DllExport
+#endif  // _WIN32
+
+/**
+ * @brief Register every TypeObject representation defined in the IDL file in Fast DDS TypeObjectRegistry.
+ */
+$! TODO: ensure no conflict between IDL files with same name but different directory !$
+eProsima_user_DllExport void register_$ctx.filename$_type_objects();
+
+#ifndef DOXYGEN_SHOULD_SKIP_THIS_PUBLIC
+
+$definitions; separator=""$
+
+#endif // DOXYGEN_SHOULD_SKIP_THIS_PUBLIC
+
+#endif // _FAST_DDS_GENERATED_$ctx.headerGuardName$_TYPE_OBJECT_SUPPORT_HPP_
+
+>>
+
+module(ctx, parent, module, definition_list) ::= <<
+namespace $module.name$ {
+$definition_list$
+} // namespace $module.name$
+
+>>
+
+definition_list(definitions) ::= <<
+$definitions; separator="\n"$
+>>
+
+annotation(ctx, annotation) ::= <<
+$register_type_identifier(typename=annotation.CScopedname)$
+>>
+
+struct_type(ctx, parent, struct, member_list) ::= <<
+$register_type_identifier(typename=struct.CScopedname)$
+>>
+
+union_type(ctx, parent, union, extensions, switch_type) ::= <<
+$register_type_identifier(typename=union.CScopedname)$
+>>
+
+/***** Utils *****/
+register_type_identifier(typename) ::= <<
+/**
+ * @brief Register $typename$ related TypeIdentifier.
+ *        Fully-descriptive TypeIdentifiers are directly registered.
+ *        Hash TypeIdentifiers require to fill the TypeObject information and hash it, consequently, the TypeObject is
+ *        indirectly registered as well.
+ */
+eProsima_user_DllExport void register_$typename$_type_identifier();
+
+>>
+
+//{ Fast DDS-Gen extensions
+module_conversion(ctx, parent, modules, definition_list) ::= <<
+$modules : { module |
+namespace $module.name$ {
+}; separator="\n"$
+
+$definition_list$
+
+$reverse(modules) : { module |
+\} // namespace $module.name$
+}; separator="\n"$
+>>
+//}

@@ -39,27 +39,13 @@ public interface Context
 
     public String getHeaderGuardName ();
 
-    public boolean isGenerateTypeObject();
-
-    public boolean isGenerateTypesC();
-
     public boolean isGenerateTypesROS2();
+
+    public boolean isGenerateTypeObjectSupport();
 
     public boolean isCdr();
 
     public boolean isFastcdr();
-
-    public boolean isCdr_v1();
-
-    public boolean isCdr_v2();
-
-    public boolean isCdr_both();
-
-    public void isSetCdrv1Templates();
-
-    public void isUnsetCdrv1Templates();
-
-    public boolean isCdrv1TemplatesEnabled();
 
     /*** End ***/
 }

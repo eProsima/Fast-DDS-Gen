@@ -42,10 +42,7 @@ public class StringTypeCode extends com.eprosima.idl.parser.typecode.StringTypeC
                 current_alignment += 4 + TypeCode.cdr_alignment(current_alignment, 4) + maxsize + 1;
                 break;
             case Kind.KIND_WSTRING:
-                current_alignment += 4 + TypeCode.cdr_alignment(current_alignment, 4) + (maxsize *
-                        (ctx instanceof com.eprosima.fastcdr.idl.context.Context && ((com.eprosima.fastcdr.idl.context.Context)ctx).isCdrv1TemplatesEnabled()
-                         ? 4 : 2
-                        ));
+                current_alignment += 4 + TypeCode.cdr_alignment(current_alignment, 4) + (maxsize * 2);
                 break;
         }
 
@@ -58,16 +55,5 @@ public class StringTypeCode extends com.eprosima.idl.parser.typecode.StringTypeC
             long align64) throws RuntimeGenerationException
     {
         throw new RuntimeGenerationException("StringTypeCode::maxPlainTypeSerializedSize(): Strings are not plain types.");
-    }
-
-    @Override
-    public String getCppTypename()
-    {
-        if (Kind.KIND_STRING == getKind() && isIsBounded() && ctx instanceof com.eprosima.fastcdr.idl.context.Context && ((com.eprosima.fastcdr.idl.context.Context)ctx).isCdrv1TemplatesEnabled())
-        {
-            return "eprosima::fastcdr::fixed_string<" + getMaxsize() + ">";
-        }
-
-        return super.getCppTypename();
     }
 }
