@@ -150,7 +150,7 @@ public class fastddsgen
 
             if (!arg.startsWith("-"))
             {
-                m_idlFiles.add(arg);
+                m_idlFiles.add(Paths.get(arg).normalize().toString());
             }
             else if (arg.equals("-example"))
             {
