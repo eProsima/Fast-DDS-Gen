@@ -157,7 +157,7 @@ public class fastddsgen
 
             if (!arg.startsWith("-"))
             {
-                m_idlFiles.add(arg);
+                m_idlFiles.add(Paths.get(arg).normalize().toString());
             }
             else if (arg.equals("-example"))
             {
@@ -230,7 +230,7 @@ public class fastddsgen
                 {
                     throw new BadArgumentException("Missing arguments for -extrastg");
                 }
-            } 
+            }
             else if (arg.equals("-ppDisable"))
             {
                 m_ppDisable = true;
@@ -382,7 +382,7 @@ public class fastddsgen
                             getVersion(), m_publishercode, m_subscribercode);
 
             // Load string templates
-            System.out.println("Loading templates from " + System.getProperty("java.class.path"));           
+            System.out.println("Loading templates from " + System.getProperty("java.class.path"));
             // Add path of custom templates to manager search path
             String extraPaths = "";
             for (Map.Entry<String, String> entry : m_customStgOutput.entrySet())
@@ -397,7 +397,7 @@ public class fastddsgen
                     extraPaths += ":./";
                 }
             }
-        	
+
             String templatePaths = "com/eprosima/fastdds/idl/templates:com/eprosima/fastcdr/idl/templates" + extraPaths;
             System.out.println("Template resource folders: " + templatePaths);
             TemplateManager.setGroupLoaderDirectories(templatePaths);
@@ -734,7 +734,7 @@ public class fastddsgen
                 tmanager.addGroup("TypesSwigInterface");
                 tmanager.addGroup("DDSPubSubTypeSwigInterface");
             }
-            
+
             // Load custom templates into manager
             if (processCustomTemplates)
             {
@@ -808,7 +808,7 @@ public class fastddsgen
                         }
                     }
                 }
-            	
+
                 System.out.println("Generating Type definition files...");
                 if ((returnedValue) && (returnedValue =
                         Utils.writeFile(m_outputDir + ctx.getFilename() + ".h",
