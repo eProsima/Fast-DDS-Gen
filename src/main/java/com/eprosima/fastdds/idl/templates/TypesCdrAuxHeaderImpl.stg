@@ -259,7 +259,7 @@ eProsima_user_DllExport size_t calculate_serialized_size(
                         data.$member.name$(), current_alignment);
             break;
         }; separator="\n"$
-        $if(!union.defaultMember)$
+        $if(union.needDefaultCase)$
         default:
             break;
         $endif$
@@ -298,7 +298,7 @@ eProsima_user_DllExport void serialize(
             scdr << eprosima::fastcdr::MemberId($if(union.annotationMutable)$$member.id$$else$$member.index$$endif$) << data.$member.name$();
             break;
         }; separator="\n"$
-        $if(!union.defaultMember)$
+        $if(union.needDefaultCase)$
         default:
             break;
         $endif$
@@ -339,7 +339,7 @@ eProsima_user_DllExport void deserialize(
                                 break;
                             \}
                         }; separator="\n"$
-                        $if(!union.defaultMember)$
+                        $if(union.needDefaultCase)$
                         default:
                             data._default();
                             break;
@@ -362,7 +362,7 @@ eProsima_user_DllExport void deserialize(
                             dcdr \>> data.$member.name$();
                             break;
                         }; separator="\n"$
-                        $if(!union.defaultMember)$
+                        $if(union.needDefaultCase)$
                         default:
                             break;
                         $endif$

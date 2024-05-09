@@ -473,7 +473,7 @@ public:
 
     $union.members: { member | $public_union_member_declaration(union, member)$}; separator="\n"$
 
-    $if(!union.defaultMember)$
+    $if(union.needDefaultCase)$
     void _default()
     {
         if (member_destructor_)
