@@ -564,7 +564,7 @@ BitsetTypeFlag bitset_flags_$bitset.name$ = 0;
 $complete_type_detail(type=bitset, type_kind= " Bitset", name=name)$
 CompleteBitsetHeader header_$bitset.name$ = TypeObjectUtils::build_complete_bitset_header(detail_$bitset.name$);
 CompleteBitfieldSeq field_seq_$bitset.name$;
-$bitset.bitfields: { bitfield | $bitfield_member(bitfield=bitfield, parent=bitset, name=name)$}; separator="\n"$
+$bitset.allBitfields: { bitfield | $bitfield_member(bitfield=bitfield, parent=bitset, name=name)$}; separator="\n"$
 CompleteBitsetType bitset_type_$bitset.name$ = TypeObjectUtils::build_complete_bitset_type(bitset_flags_$bitset.name$, header_$bitset.name$, field_seq_$bitset.name$);
 if (eprosima::fastdds::dds::RETCODE_BAD_PARAMETER ==
         TypeObjectUtils::build_and_register_bitset_type_object(bitset_type_$bitset.name$, type_name_$bitset.name$.to_string()))
