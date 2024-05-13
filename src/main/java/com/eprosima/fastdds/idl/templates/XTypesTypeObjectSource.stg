@@ -563,21 +563,8 @@ register_sequence_type(sequence, name) ::= <<
 $! TODO(jlbueno): annotated collections generate TypeObject instead of TypeIdentifier
                   pending implementation of annotated collection support !$
 $plain_collection_header(type=sequence.contentTypeCode, message="Sequence element", name=name, collection_name=sequence_name(sequence))$
-std::string type_id_kind_$sequence_name(sequence)$("$sequence.typeIdentifier$");
-if (type_id_kind_$sequence_name(sequence)$ == "TI_PLAIN_SEQUENCE_SMALL")
 {
-    SBound bound = $if (sequence.unbound)$0$else$static_cast<SBound>($sequence.evaluatedMaxsize$)$endif$;
-    PlainSequenceSElemDefn seq_sdefn = TypeObjectUtils::build_plain_sequence_s_elem_defn(header_$sequence_name(sequence)$, bound,
-                eprosima::fastcdr::external<TypeIdentifier>(element_identifier_$sequence_name(sequence)$));
-    if (eprosima::fastdds::dds::RETCODE_BAD_PARAMETER ==
-            TypeObjectUtils::build_and_register_s_sequence_type_identifier(seq_sdefn, "$sequence_name(sequence)$"))
-    {
-        EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
-            "$sequence_name(sequence)$ already registered in TypeObjectRegistry for a different type.");
-    }
-}
-else
-{
+$if(sequence.isTypeIdentifierKindLarge)$
     LBound bound = $sequence.evaluatedMaxsize$;
     PlainSequenceLElemDefn seq_ldefn = TypeObjectUtils::build_plain_sequence_l_elem_defn(header_$sequence_name(sequence)$, bound,
                 eprosima::fastcdr::external<TypeIdentifier>(element_identifier_$sequence_name(sequence)$));
@@ -587,6 +574,17 @@ else
         EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
             "$sequence_name(sequence)$ already registered in TypeObjectRegistry for a different type.");
     }
+$else$
+    SBound bound = $if (sequence.unbound)$0$else$static_cast<SBound>($sequence.evaluatedMaxsize$)$endif$;
+    PlainSequenceSElemDefn seq_sdefn = TypeObjectUtils::build_plain_sequence_s_elem_defn(header_$sequence_name(sequence)$, bound,
+                eprosima::fastcdr::external<TypeIdentifier>(element_identifier_$sequence_name(sequence)$));
+    if (eprosima::fastdds::dds::RETCODE_BAD_PARAMETER ==
+            TypeObjectUtils::build_and_register_s_sequence_type_identifier(seq_sdefn, "$sequence_name(sequence)$"))
+    {
+        EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
+            "$sequence_name(sequence)$ already registered in TypeObjectRegistry for a different type.");
+    }
+$endif$
 }
 $get_type_identifier_registry(typename=sequence_name(sequence), name=name)$
 if (return_code_$name$ != eprosima::fastdds::dds::RETCODE_OK)
@@ -601,24 +599,8 @@ register_array_type(array, name) ::= <<
 $! TODO(jlbueno): annotated collections generate TypeObject instead of TypeIdentifier
                   pending implementation of annotated collection support !$
 $plain_collection_header(type=array.contentTypeCode, message="Array element", name=name, collection_name=array_name(array))$
-std::string type_id_kind_$array_name(array)$("$array.typeIdentifier$");
-if (type_id_kind_$array_name(array)$ == "TI_PLAIN_ARRAY_SMALL")
 {
-    SBoundSeq array_bound_seq;
-    $array.evaluatedDimensions: { dimension |
-    TypeObjectUtils::add_array_dimension(array_bound_seq, static_cast<SBound>($dimension$));
-    }; separator="\n"$
-    PlainArraySElemDefn array_sdefn = TypeObjectUtils::build_plain_array_s_elem_defn(header_$array_name(array)$, array_bound_seq,
-                eprosima::fastcdr::external<TypeIdentifier>(element_identifier_$array_name(array)$));
-    if (eprosima::fastdds::dds::RETCODE_BAD_PARAMETER ==
-            TypeObjectUtils::build_and_register_s_array_type_identifier(array_sdefn, "$array_name(array)$"))
-    {
-        EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
-            "$array_name(array)$ already registered in TypeObjectRegistry for a different type.");
-    }
-}
-else
-{
+$if(array.isTypeIdentifierKindLarge)$
     LBoundSeq array_bound_seq;
     $array.evaluatedDimensions: { dimension |
     TypeObjectUtils::add_array_dimension(array_bound_seq, static_cast<LBound>($dimension$));
@@ -631,6 +613,20 @@ else
         EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
             "$array_name(array)$ already registered in TypeObjectRegistry for a different type.");
     }
+$else$
+    SBoundSeq array_bound_seq;
+    $array.evaluatedDimensions: { dimension |
+    TypeObjectUtils::add_array_dimension(array_bound_seq, static_cast<SBound>($dimension$));
+    }; separator="\n"$
+    PlainArraySElemDefn array_sdefn = TypeObjectUtils::build_plain_array_s_elem_defn(header_$array_name(array)$, array_bound_seq,
+                eprosima::fastcdr::external<TypeIdentifier>(element_identifier_$array_name(array)$));
+    if (eprosima::fastdds::dds::RETCODE_BAD_PARAMETER ==
+            TypeObjectUtils::build_and_register_s_array_type_identifier(array_sdefn, "$array_name(array)$"))
+    {
+        EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
+            "$array_name(array)$ already registered in TypeObjectRegistry for a different type.");
+    }
+$endif$
 }
 $get_type_identifier_registry(typename=array_name(array), name=name)$
 if (return_code_$name$ != eprosima::fastdds::dds::RETCODE_OK)
@@ -693,22 +689,8 @@ $! TODO(jlbueno) Annotated collections not yet supported !$
 CollectionElementFlag element_flags_$map_name(map)$ = 0;
 CollectionElementFlag key_flags_$map_name(map)$ = 0;
 PlainCollectionHeader header_$map_name(map)$ = TypeObjectUtils::build_plain_collection_header(equiv_kind_$map_name(map)$, element_flags_$map_name(map)$);
-std::string type_id_kind_$map_name(map)$("$map.typeIdentifier$");
-if (type_id_kind_$map_name(map)$ == "TI_PLAIN_MAP_SMALL")
 {
-    SBound bound = $if (map.unbound)$0$else$static_cast<SBound>($map.evaluatedMaxsize$)$endif$;
-    PlainMapSTypeDefn map_sdefn = TypeObjectUtils::build_plain_map_s_type_defn(header_$map_name(map)$, bound,
-                eprosima::fastcdr::external<TypeIdentifier>(element_identifier_$map_name(map)$), key_flags_$map_name(map)$,
-                eprosima::fastcdr::external<TypeIdentifier>(key_identifier_$map_name(map)$));
-    if (eprosima::fastdds::dds::RETCODE_BAD_PARAMETER ==
-            TypeObjectUtils::build_and_register_s_map_type_identifier(map_sdefn, "$map_name(map)$"))
-    {
-        EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
-            "$map_name(map)$ already registered in TypeObjectRegistry for a different type.");
-    }
-}
-else
-{
+$if(map.isTypeIdentifierKindLarge)$
     LBound bound = $map.evaluatedMaxsize$;
     PlainMapLTypeDefn map_ldefn = TypeObjectUtils::build_plain_map_l_type_defn(header_$map_name(map)$, bound,
                 eprosima::fastcdr::external<TypeIdentifier>(element_identifier_$map_name(map)$), key_flags_$map_name(map)$,
@@ -719,6 +701,18 @@ else
         EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
             "$map_name(map)$ already registered in TypeObjectRegistry for a different type.");
     }
+$else$
+    SBound bound = $if (map.unbound)$0$else$static_cast<SBound>($map.evaluatedMaxsize$)$endif$;
+    PlainMapSTypeDefn map_sdefn = TypeObjectUtils::build_plain_map_s_type_defn(header_$map_name(map)$, bound,
+                eprosima::fastcdr::external<TypeIdentifier>(element_identifier_$map_name(map)$), key_flags_$map_name(map)$,
+                eprosima::fastcdr::external<TypeIdentifier>(key_identifier_$map_name(map)$));
+    if (eprosima::fastdds::dds::RETCODE_BAD_PARAMETER ==
+            TypeObjectUtils::build_and_register_s_map_type_identifier(map_sdefn, "$map_name(map)$"))
+    {
+        EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
+            "$map_name(map)$ already registered in TypeObjectRegistry for a different type.");
+    }
+$endif$
 }
 $get_type_identifier_registry(typename=map_name(map), name=name)$
 if (return_code_$name$ != eprosima::fastdds::dds::RETCODE_OK)
@@ -800,21 +794,8 @@ bitflag_member(bitflag, parent, name) ::= <<
 >>
 
 register_wstring_type(wstring, name) ::= <<
-std::string type_id_kind_$wstring_name(wstring)$("$wstring.typeIdentifier$");
-if (type_id_kind_$wstring_name(wstring)$ == "TI_STRING16_SMALL")
 {
-    SBound bound = $if (!wstring.isBounded)$0$else$static_cast<SBound>($wstring.evaluatedMaxsize$)$endif$;
-    StringSTypeDefn string_sdefn = TypeObjectUtils::build_string_s_type_defn(bound);
-    if (eprosima::fastdds::dds::RETCODE_BAD_PARAMETER ==
-            TypeObjectUtils::build_and_register_s_string_type_identifier(string_sdefn,
-            "$wstring_name(wstring)$", true))
-    {
-        EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
-            "$wstring_name(wstring)$ already registered in TypeObjectRegistry for a different type.");
-    }
-}
-else if (type_id_kind_$wstring_name(wstring)$ == "TI_STRING16_LARGE")
-{
+$if(wstring.isTypeIdentifierKindLarge)$
     LBound bound = $wstring.evaluatedMaxsize$;
     StringLTypeDefn string_ldefn = TypeObjectUtils::build_string_l_type_defn(bound);
     if (eprosima::fastdds::dds::RETCODE_BAD_PARAMETER ==
@@ -824,12 +805,17 @@ else if (type_id_kind_$wstring_name(wstring)$ == "TI_STRING16_LARGE")
         EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
             "$wstring_name(wstring)$ already registered in TypeObjectRegistry for a different type.");
     }
-}
-else
-{
-    EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
-                "$wstring_name(wstring)$: Unknown WString kind.");
-    return;
+$else$
+    SBound bound = $if (!wstring.isBounded)$0$else$static_cast<SBound>($wstring.evaluatedMaxsize$)$endif$;
+    StringSTypeDefn string_sdefn = TypeObjectUtils::build_string_s_type_defn(bound);
+    if (eprosima::fastdds::dds::RETCODE_BAD_PARAMETER ==
+            TypeObjectUtils::build_and_register_s_string_type_identifier(string_sdefn,
+            "$wstring_name(wstring)$", true))
+    {
+        EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
+            "$wstring_name(wstring)$ already registered in TypeObjectRegistry for a different type.");
+    }
+$endif$
 }
 $get_type_identifier_registry(typename=wstring_name(wstring), name=name)$
 if (return_code_$name$ != eprosima::fastdds::dds::RETCODE_OK)
@@ -841,21 +827,8 @@ if (return_code_$name$ != eprosima::fastdds::dds::RETCODE_OK)
 >>
 
 register_string_type(string, name) ::= <<
-std::string type_id_kind_$string_name(string)$("$string.typeIdentifier$");
-if (type_id_kind_$string_name(string)$ == "TI_STRING8_SMALL")
 {
-    SBound bound = $if (!string.isBounded)$0$else$static_cast<SBound>($string.evaluatedMaxsize$)$endif$;
-    StringSTypeDefn string_sdefn = TypeObjectUtils::build_string_s_type_defn(bound);
-    if (eprosima::fastdds::dds::RETCODE_BAD_PARAMETER ==
-            TypeObjectUtils::build_and_register_s_string_type_identifier(string_sdefn,
-            "$string_name(string)$"))
-    {
-        EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
-            "$string_name(string)$ already registered in TypeObjectRegistry for a different type.");
-    }
-}
-else if (type_id_kind_$string_name(string)$ == "TI_STRING8_LARGE")
-{
+$if(string.isTypeIdentifierKindLarge)$
     LBound bound = $string.evaluatedMaxsize$;
     StringLTypeDefn string_ldefn = TypeObjectUtils::build_string_l_type_defn(bound);
     if (eprosima::fastdds::dds::RETCODE_BAD_PARAMETER ==
@@ -865,12 +838,17 @@ else if (type_id_kind_$string_name(string)$ == "TI_STRING8_LARGE")
         EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
             "$string_name(string)$ already registered in TypeObjectRegistry for a different type.");
     }
-}
-else
-{
-    EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
-                "$string_name(string)$: Unknown String kind.");
-    return;
+$else$
+    SBound bound = $if (!string.isBounded)$0$else$static_cast<SBound>($string.evaluatedMaxsize$)$endif$;
+    StringSTypeDefn string_sdefn = TypeObjectUtils::build_string_s_type_defn(bound);
+    if (eprosima::fastdds::dds::RETCODE_BAD_PARAMETER ==
+            TypeObjectUtils::build_and_register_s_string_type_identifier(string_sdefn,
+            "$string_name(string)$"))
+    {
+        EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
+            "$string_name(string)$ already registered in TypeObjectRegistry for a different type.");
+    }
+$endif$
 }
 $get_type_identifier_registry(typename=string_name(string), name=name)$
 if (return_code_$name$ != eprosima::fastdds::dds::RETCODE_OK)
