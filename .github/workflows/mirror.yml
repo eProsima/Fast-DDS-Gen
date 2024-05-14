@@ -7,14 +7,15 @@ on:
       - '2.5.x'
 jobs:
   mirror_job_master:
+    if: github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
     name: Mirror master branch to compatible minor version branches
     strategy:
       fail-fast: false
       matrix:
         dest_branch:
-          - '3.3.x'
-          - '3.x'
+          - '4.0.x'
+          - '4.x'
     steps:
     - name: Mirror action step
       id: mirror
@@ -24,8 +25,9 @@ jobs:
         source: 'master'
         dest: ${{ matrix.dest_branch }}
   mirror_job_3_3_x:
+    if: github.ref == 'refs/heads/3.3.x'
     runs-on: ubuntu-latest
-    name: Mirror 3.3.x branch to compatible minor version branches
+    name: Mirror master branch to compatible minor version branches
     strategy:
       fail-fast: false
       matrix:
@@ -37,9 +39,10 @@ jobs:
       uses: eProsima/eProsima-CI/external/mirror-branch-action@v0
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
-        source: '3.2.x'
+        source: 'master'
         dest: ${{ matrix.dest_branch }}
   mirror_job_2_5_x:
+    if: github.ref == 'refs/heads/2.5.x'
     runs-on: ubuntu-latest
     name: Mirror 2.5.x branch to compatible minor version branches
     strategy:
