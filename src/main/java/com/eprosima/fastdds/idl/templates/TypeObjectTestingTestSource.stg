@@ -537,7 +537,7 @@ TEST(TypeObjectTests, TestStructureTypeObject_$struct.cScopedname$)
     $if (!struct.scope.empty)$$struct.scope$::$endif$register_$struct.CScopedname$_type_identifier(type_id);
     EXPECT_NE(TypeIdentifier(), type_id);
 
-    $check_struct_type(struct=struct)$ 
+    $check_struct_type(struct=struct)$
 }
 >>
 
@@ -658,7 +658,7 @@ TEST(TypeObjectTests, TestUnionTypeObject_$union.name$)
     $if (!union.scope.empty)$$union.scope$::$endif$register_$union.CScopedname$_type_identifier(type_id);
     EXPECT_NE(TypeIdentifier(), type_id);
 
-    $check_union_type(union=union)$ 
+    $check_union_type(union=union)$
 }
 >>
 
@@ -806,7 +806,7 @@ TEST(TypeObjectTests, TestEnumTypeObject_$enum.name$)
     // Enum Types does not have a specific register function: register every type in IDL file.
     register_$ctx.filename$_type_objects();
 
-    $check_enum_type(enum=enum)$ 
+    $check_enum_type(enum=enum)$
 }
 >>
 
@@ -878,7 +878,7 @@ TEST(TypeObjectTests, TestBitmaskTypeObject_$bitmask.name$)
     // Bitmask Types does not have a specific register function: register every type in IDL file.
     register_$ctx.filename$_type_objects();
 
-    $check_bitmask_type(bitmask=bitmask)$ 
+    $check_bitmask_type(bitmask=bitmask)$
 }
 >>
 
@@ -941,7 +941,7 @@ TEST(TypeObjectTests, TestBitsetTypeObject_$bitset.name$)
     // Bitset Types does not have a specific register function: register every type in IDL file.
     register_$ctx.filename$_type_objects();
 
-    $check_bitset_type(bitset=bitset)$ 
+    $check_bitset_type(bitset=bitset)$
 }
 >>
 
@@ -958,7 +958,7 @@ EXPECT_EQ(0u, type_objects.minimal_type_object.minimal().bitset_type().bitset_fl
 EXPECT_EQ(0u, type_objects.complete_type_object.complete().bitset_type().bitset_flags());
 $check_type_detail_annotations(object=bitset, type="bitset_type().header().detail()")$
 EXPECT_EQ("$bitset.scopedname$", type_objects.complete_type_object.complete().bitset_type().header().detail().type_name().to_string());
-$bitset.members: { member | $check_bitfield(bitfield=member, parent=bitset)$}; separator="\n"$
+$bitset.definedBitfields: { bitfield | $check_bitfield(bitfield=bitfield, parent=bitset)$}; separator="\n"$
 ASSERT_EQ($bitset.membersSize$, type_objects.minimal_type_object.minimal().bitset_type().field_seq().size());
 for (size_t i = 1; i < type_objects.minimal_type_object.minimal().bitset_type().field_seq().size(); ++i)
 {
@@ -975,7 +975,6 @@ for (size_t i = 1; i < type_objects.complete_type_object.complete().bitset_type(
 
 check_bitfield(bitfield, parent) ::= <<
 {
-    $if(bitfield.name)$
     size_t pos = 0;
     bool found = false;
     for (; pos < type_objects.complete_type_object.complete().bitset_type().field_seq().size(); ++pos)
@@ -998,7 +997,6 @@ check_bitfield(bitfield, parent) ::= <<
     EXPECT_EQ("$bitfield.name$", type_objects.complete_type_object.complete().bitset_type().field_seq()[pos].detail().name().to_string());
     EXPECT_EQ(TypeObjectUtils::name_hash("$bitfield.name$"), type_objects.minimal_type_object.minimal().bitset_type().field_seq()[pos].name_hash());
     $check_member_detail_annotations(member=bitfield, type="bitset_type().field_seq()[pos].detail()", parent=parent)$
-    $endif$
 }
 >>
 

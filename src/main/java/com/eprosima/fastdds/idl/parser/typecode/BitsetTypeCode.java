@@ -41,7 +41,7 @@ public class BitsetTypeCode extends com.eprosima.idl.parser.typecode.BitsetTypeC
     {
         long initial_alignment = current_alignment;
 
-        int full_bit_size = getFullBitSize();
+        int full_bit_size = getBitSize();
 
         if (9 > full_bit_size)
         {
