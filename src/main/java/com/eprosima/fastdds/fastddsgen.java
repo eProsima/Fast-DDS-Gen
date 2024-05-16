@@ -42,6 +42,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
@@ -150,7 +151,7 @@ public class fastddsgen
 
             if (!arg.startsWith("-"))
             {
-                m_idlFiles.add(arg);
+                m_idlFiles.add(Paths.get(arg).normalize().toString());
             }
             else if (arg.equals("-example"))
             {
