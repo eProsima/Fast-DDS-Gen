@@ -49,6 +49,6 @@ jobs:
       foonathan_memory_vendor_branch: ${{ inputs.foonathan_memory_vendor_branch || 'master' }}
       fastcdr_branch: ${{ matrix.fastcdr_version }}
       fastdds_branch: ${{ inputs.fastdds_branch || github.head_ref }}
-      fastdds_python_branch: ${{ inputs.fastdds_python_branch || 'main' }}
-      fastddsgen_branch: ${{ inputs.fastddsgen_branch || github.ref || 'master' }}
-      fastdds_fallback_branch: ${{ 'master' }}
+      fastdds_python_branch: ${{ inputs.fastdds_python_branch || '1.4.x' }}
+      fastddsgen_branch: ${{ inputs.fastddsgen_branch || github.ref || '3.3.x' }}
+      fastdds_fallback_branch: ${{ '2.14.x' }}
