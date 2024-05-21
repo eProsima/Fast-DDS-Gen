@@ -26,9 +26,6 @@ $fileHeader(ctx=ctx, file=[ctx.filename, ".hpp"], description=["This header file
 $if(ctx.thereIsArray)$
 #include <array>
 $endif$
-$if(ctx.thereIsBitset)$
-#include <bitset>
-$endif$
 #include <cstdint>
 $if(ctx.thereIsUnion)$
 #include <functional>
@@ -528,83 +525,14 @@ private:
 
 bitset_type(ctx, parent, bitset, extensions) ::= <<
 /*!
- * @brief This class represents the structure $bitset.name$ defined by the user in the IDL file.
+ * @brief This structure represents the bitset $bitset.name$ defined by the user in the IDL file.
  * @ingroup $ctx.trimfilename$
  */
-class $bitset.name$$if(bitset.inheritance)$ : public $public_bitset_inheritances(bitset.inheritance)$$endif$
+struct $bitset.name$
 {
-public:
-
-    /*!
-     * @brief Default constructor.
-     */
-    eProsima_user_DllExport $bitset.name$()
-    $if(bitset.inheritance)$
-    : $struct_inherit_default_init(bitset.inheritance)$
-    $endif$
-    {
-    }
-
-    /*!
-     * @brief Default destructor.
-     */
-    eProsima_user_DllExport ~$bitset.name$()
-    {
-    }
-
-    /*!
-     * @brief Copy constructor.
-     * @param x Reference to the object $bitset.scopedname$ that will be copied.
-     */
-    eProsima_user_DllExport $bitset.name$(
-            const $bitset.name$& x)
-    $if(bitset.inheritance)$
-    : $struct_inherit_copy_init(bitset.inheritance)$
-    $endif$
-    {
-        m_bitset = x.m_bitset;
-    }
-
-    /*!
-     * @brief Move constructor.
-     * @param x Reference to the object $bitset.scopedname$ that will be copied.
-     */
-    eProsima_user_DllExport $bitset.name$(
-            $bitset.name$&& x) noexcept
-    $if(bitset.inheritance)$
-    : $struct_inherit_move_init(bitset.inheritance)$
-    $endif$
-    {
-        m_bitset = x.m_bitset;
-    }
-
-    /*!
-     * @brief Copy assignment.
-     * @param x Reference to the object $bitset.scopedname$ that will be copied.
-     */
-    eProsima_user_DllExport $bitset.name$& operator =(
-            const $bitset.name$& x)
-    {
-        $if(bitset.inheritance)$    $bitset.inheritance.scopedname$::operator =(x);$endif$
-
-        m_bitset = x.m_bitset;
-
-        return *this;
-    }
-
-    /*!
-     * @brief Move assignment.
-     * @param x Reference to the object $bitset.scopedname$ that will be copied.
-     */
-    eProsima_user_DllExport $bitset.name$& operator =(
-            $bitset.name$&& x) noexcept
-    {
-        $if(bitset.inheritance)$    $bitset.inheritance.scopedname$::operator =(std::move(x));$endif$
-
-        m_bitset = x.m_bitset;
-
-        return *this;
-    }
+    $bitset.bitfields:{ bitfield |
+    $bitfield.spec.cppTypename$ $bitfield.name$ : $bitfield.spec.bitSize$;
+    }; separator="\n"$
 
     /*!
      * @brief Comparison operator.
@@ -613,9 +541,7 @@ public:
     eProsima_user_DllExport bool operator ==(
             const $bitset.name$& x) const
     {
-        $if(bitset.inheritance)$    if ($bitset.inheritance.scopedname$::operator !=(x)) return false;$endif$
-
-        return m_bitset == x.m_bitset;
+        return ($bitset.definedBitfields : { bitfield | $bitfield.name$ == x.$bitfield.name$}; separator=" &&\n           "$);
     }
 
     /*!
@@ -627,47 +553,6 @@ public:
     {
         return !(*this == x);
     }
-
-    $bitset.bitfields:{ bitset | $public_bitfield_declaration(bitset)$}; separator="\n"$
-
-    eProsima_user_DllExport std::bitset<$bitset.fullBitSize$> bitset() const
-    {
-        std::string str_value;
-
-        $if(bitset.inheritance)$
-        str_value = static_cast<const $bitset.inheritance.scopedname$*>(this)->bitset().to_string() + str_value;
-        $endif$
-
-        str_value = m_bitset.to_string() + str_value;
-
-        return std::bitset<$bitset.fullBitSize$>(str_value);
-    }
-
-    eProsima_user_DllExport void bitset(
-            const std::bitset<$bitset.fullBitSize$>& bitset)
-    {
-        std::string str_value {bitset.to_string()};
-        size_t base_diff {0};
-        size_t last_post {std::string::npos};
-
-        $if(bitset.inheritance)$
-        {
-            base_diff += $bitset.inheritance.fullBitSize$;
-            std::bitset<$bitset.inheritance.fullBitSize$> internal_bitset(str_value.substr(str_value.length() - base_diff, last_post));
-            static_cast<$bitset.inheritance.scopedname$*>(this)->bitset(internal_bitset);
-            last_post = base_diff;
-        }
-        $endif$
-
-        base_diff += $bitset.bitSize$;
-        m_bitset = std::bitset<$bitset.bitSize$>(str_value.substr(str_value.length() - base_diff, last_post));
-    }
-
-    $extensions : { extension | $extension$}; separator="\n"$
-
-private:
-
-    std::bitset<$bitset.bitSize$> m_bitset;
 };
 >>
 
@@ -702,8 +587,6 @@ class $type.name$;
 /***** Utils *****/
 
 public_struct_inheritances(parent) ::= <<$parent.scopedname$>>
-
-public_bitset_inheritances(parent) ::= <<$parent.scopedname$>>
 
 public_member_declaration(member) ::= <<
 $if(member.annotationOptional || member.annotationExternal)$
@@ -783,52 +666,6 @@ eProsima_user_DllExport $member_type_declaration(member)$& $member.name$()
 {
     return m_$member.name$;
 }
->>
-
-public_bitfield_declaration(member) ::= <<
-$if(member.name)$
-/*!
- * @brief This function sets a value in member $member.name$
- * @param _$member.name$ New value for member $member.name$
- */
-eProsima_user_DllExport void $member.name$(
-        $member.spec.cppTypename$ _$member.name$)
-{
-    int base = $member.basePosition$;
-$if(member.spec.typecode.isType_7)$
-    m_bitset.set(base, _$member.name$);
-$else$
-    int size = $member.spec.bitSize$;
-    for (int i = base; i < base + size; ++i)
-    {
-        m_bitset.set(i, !!(_$member.name$ & 0x01));
-        _$member.name$ = _$member.name$ \>> 1;
-    }
-$endif$
-
-}
-
-/*!
- * @brief This function returns the value of member $member.name$
- * @return Value of member $member.name$
- */
-eProsima_user_DllExport $member.spec.cppTypename$ $member.name$() const
-{
-    int base = $member.basePosition$;
-$if(member.spec.typecode.isType_7)$
-    return m_bitset.test(base);
-$else$
-    int size = $member.spec.bitSize$;
-    std::bitset<$member.spec.bitSize$> aux;
-    for (int i = 0; i < size; ++i)
-    {
-        aux.set(i, m_bitset.test(i + base));
-    }
-    return static_cast<$member.spec.cppTypename$>(aux.to_ullong());
-$endif$
-
-}
-$endif$
 >>
 
 private_member_declaration(member) ::= <<

@@ -183,14 +183,14 @@ $if(ctx.anyCdr)$
 template<>
 eProsima_user_DllExport size_t calculate_serialized_size(
         eprosima::fastcdr::CdrSizeCalculator& calculator,
-        const $bitset.scopedname$& data,
+        const $bitset.scopedname$&,
         size_t& current_alignment)
 {
     $if(!bitset.scope.empty)$
     using namespace $bitset.scope$;
     $endif$
 
-    return calculator.calculate_serialized_size(data.bitset(), current_alignment);
+    return calculator.calculate_serialized_size(std::bitset<$bitset.bitSize$>{}, current_alignment);
 }
 $endif$
 
@@ -204,7 +204,16 @@ eProsima_user_DllExport void serialize(
     using namespace $bitset.scope$;
     $endif$
 
-    scdr << data.bitset();
+    std::bitset<$bitset.bitSize$> bitset;
+
+    $reverse(bitset.bitfields):{ bitfield |
+    bitset <<= $bitfield.spec.bitSize$;
+    $if(bitfield.isDefined)$
+    bitset |= (data.$bitfield.name$ & $bitfield.bitmask$);
+    $endif$
+    }; separator="\n"$
+
+    scdr << bitset;
 }
 
 template<>
@@ -216,14 +225,18 @@ eProsima_user_DllExport void deserialize(
     using namespace $bitset.scope$;
     $endif$
 
-    std::bitset<$bitset.fullBitSize$> bitset;
+    std::bitset<$bitset.bitSize$> bitset;
     dcdr \>> bitset;
-    data.bitset(bitset);
+
+    $bitset.bitfields:{ bitfield |
+    $if(bitfield.isDefined)$
+    data.$bitfield.name$ = static_cast<$bitfield.spec.cppTypename$>(bitset.to_ullong() & $bitfield.bitmask$);
+    $endif$
+    bitset \>>= $bitfield.spec.bitSize$;
+    }; separator="\n"$
 }
 $endif$
 >>
-
-public_bitfield_definition(member) ::= <<>>
 
 union_type(ctx, parent, union, switch_type) ::= <<
 $switch_type$

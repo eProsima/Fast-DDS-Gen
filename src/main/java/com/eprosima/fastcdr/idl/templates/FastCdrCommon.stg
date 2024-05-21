@@ -66,6 +66,8 @@ $if(member.annotationDefault)$
 $elseif(!member.annotationOptional && !member.annotationExternal)$
 $if(member.typecode.initialValue)$
  {$member.typecode.initialValue$}
+$elseif(member.typecode.isBitsetType)$
+ {}
 $endif$
 $endif$
 %>
