@@ -498,6 +498,7 @@ $endif$
 test_typedef(typedefs) ::= <<
 TEST(TypeObjectTests, TestTypedefTypeObject_$typedefs.name$)
 {
+    // Alias Types does not have a specific register function: register every type in IDL file.
     register_$ctx.filename$_type_objects();
 
     $check_alias_type(typedefs=typedefs)$
@@ -531,7 +532,10 @@ $check_member_detail_annotations(member=typedefs, type="alias_type().body()", pa
 test_structure(struct) ::= <<
 TEST(TypeObjectTests, TestStructureTypeObject_$struct.cScopedname$)
 {
-    register_$ctx.filename$_type_objects();
+    TypeIdentifier type_id;
+    // Register specific structure TypeObject
+    $if (!struct.scope.empty)$$struct.scope$::$endif$register_$struct.CScopedname$_type_identifier(type_id);
+    EXPECT_NE(TypeIdentifier(), type_id);
 
     $check_struct_type(struct=struct)$ 
 }
@@ -649,7 +653,10 @@ check_struct_member(member, parent) ::= <<
 test_union(union) ::= <<
 TEST(TypeObjectTests, TestUnionTypeObject_$union.name$)
 {
-    register_$ctx.filename$_type_objects();
+    TypeIdentifier type_id;
+    // Register specific union TypeObject
+    $if (!union.scope.empty)$$union.scope$::$endif$register_$union.CScopedname$_type_identifier(type_id);
+    EXPECT_NE(TypeIdentifier(), type_id);
 
     $check_union_type(union=union)$ 
 }
@@ -796,6 +803,7 @@ check_label(label) ::= <<
 test_enum(enum) ::= <<
 TEST(TypeObjectTests, TestEnumTypeObject_$enum.name$)
 {
+    // Enum Types does not have a specific register function: register every type in IDL file.
     register_$ctx.filename$_type_objects();
 
     $check_enum_type(enum=enum)$ 
@@ -867,6 +875,7 @@ check_enum_literal(literal, parent) ::= <<
 test_bitmask(bitmask) ::= <<
 TEST(TypeObjectTests, TestBitmaskTypeObject_$bitmask.name$)
 {
+    // Bitmask Types does not have a specific register function: register every type in IDL file.
     register_$ctx.filename$_type_objects();
 
     $check_bitmask_type(bitmask=bitmask)$ 
@@ -929,6 +938,7 @@ check_bitmask_flag(bitflag, parent) ::= <<
 test_bitset(bitset) ::= <<
 TEST(TypeObjectTests, TestBitsetTypeObject_$bitset.name$)
 {
+    // Bitset Types does not have a specific register function: register every type in IDL file.
     register_$ctx.filename$_type_objects();
 
     $check_bitset_type(bitset=bitset)$ 
@@ -995,7 +1005,10 @@ check_bitfield(bitfield, parent) ::= <<
 test_annotation(annotation) ::= <<
 TEST(TypeObjectTests, TestAnnotationTypeObject_$annotation.name$)
 {
-    register_$ctx.filename$_type_objects();
+    TypeIdentifier type_id;
+    // Register specific annotation TypeObject
+    $if (!annotation.scope.empty)$$annotation.scope$::$endif$register_$annotation.CScopedname$_type_identifier(type_id);
+    EXPECT_NE(TypeIdentifier(), type_id);
 
     $check_annotation_type(annotation=annotation)$
 }
@@ -1071,6 +1084,7 @@ check_annotation_parameter_member(parameter) ::= <<
 test_array(array) ::= <<
 TEST(TypeObjectTests, TestArrayTypeObject_$array_name(array)$)
 {
+    // Array Types does not have a specific register function: register every type in IDL file.
     register_$ctx.filename$_type_objects();
 
     $check_array_type(array=array)$
@@ -1157,6 +1171,7 @@ EXPECT_NE(std::find($type$.begin(), $type$.end(), $dimension$), $type$.end());
 test_sequence(sequence) ::= <<
 TEST(TypeObjectTests, TestSequenceTypeObject_$sequence_name(sequence=sequence)$)
 {
+    // Sequence Types does not have a specific register function: register every type in IDL file.
     register_$ctx.filename$_type_objects();
 
     $check_sequence_type(sequence=sequence)$
@@ -1234,6 +1249,7 @@ else
 test_map(map) ::= <<
 TEST(TypeObjectTests, TestMapTypeObject_$map_name(map)$)
 {
+    // Map Types does not have a specific register function: register every type in IDL file.
     register_$ctx.filename$_type_objects();
 
     $check_map_type(map=map)$
@@ -1363,6 +1379,7 @@ else
 test_string(string) ::= <<
 TEST(TypeObjectTests, TestStringTypeObject_$string_name(string=string)$)
 {
+    // String Types does not have a specific register function: register every type in IDL file.
     register_$ctx.filename$_type_objects();
 
     $check_string_type(string=string)$
@@ -1388,6 +1405,7 @@ else
 test_wstring(wstring) ::= <<
 TEST(TypeObjectTests, TestWstringTypeObject_$wstring_name(wstring=wstring)$)
 {
+    // Wide String Types does not have a specific register function: register every type in IDL file.
     register_$ctx.filename$_type_objects();
 
     $check_wstring_type(wstring=wstring)$

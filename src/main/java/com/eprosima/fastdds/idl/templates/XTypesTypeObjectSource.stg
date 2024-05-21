@@ -44,6 +44,7 @@ void register_$ctx.filename$_type_objects()
     static std::once_flag once_flag;
     std::call_once(once_flag, []()
             {
+                TypeIdentifier type_id;
                 $ctx.definitions: { def | $register_type(ctx=ctx, object=def)$}; separator=""$
             });
 }
@@ -64,18 +65,21 @@ $definitions; separator=""$
 %>
 
 annotation(ctx, annotation) ::= <<
-void register_$annotation.CScopedname$_type_identifier()
+void register_$annotation.CScopedname$_type_identifier(
+        TypeIdentifier& type_id)
 {
-    $register_annotation_type(annotation=annotation)$
+    $register_annotation_type(annotation=annotation, name=[])$
 }
 
 >>
 
 struct_type(ctx, parent, struct, member_list) ::= <<
-void register_$struct.CScopedname$_type_identifier()
+// TypeIdentifier is returned by reference: dependent structures/unions are registered in this same method
+void register_$struct.CScopedname$_type_identifier(
+        TypeIdentifier& type_id)
 {
     $if (struct.nonForwardedContent)$
-    $register_struct_type(struct)$
+    $register_struct_type(struct=struct, name=[])$
     $else$
     EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
                         "$struct.scopedname$ contains forward declarations (not yet supported).");
@@ -85,10 +89,12 @@ void register_$struct.CScopedname$_type_identifier()
 >>
 
 union_type(ctx, parent, union, extensions, switch_type) ::= <<
-void register_$union.CScopedname$_type_identifier()
+// TypeIdentifier is returned by reference: dependent structures/unions are registered in this same method
+void register_$union.CScopedname$_type_identifier(
+        TypeIdentifier& type_id)
 {
     $if (union.nonForwardedContent)$
-    $register_union_type(union)$
+    $register_union_type(union=union, name=[])$
     $else$
     EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
                         "$union.scopedname$ contains forward declarations (not yet supported).");
@@ -101,10 +107,10 @@ void register_$union.CScopedname$_type_identifier()
 register_type(ctx, object) ::= <<
 $if (object.isTypeDeclaration)$
 $if ((object.typeCode.isStructType || object.typeCode.isUnionType) && !object.typeCode.forwarded)$
-$if (!object.scope.empty)$$object.scope$::$endif$register_$object.CScopedname$_type_identifier();
+$if (!object.scope.empty)$$object.scope$::$endif$register_$object.CScopedname$_type_identifier(type_id);
 $endif$
 $elseif (object.isAnnotation)$
-$if (!object.scope.empty)$$object.scope$::$endif$register_$object.CScopedname$_type_identifier();
+$if (!object.scope.empty)$$object.scope$::$endif$register_$object.CScopedname$_type_identifier(type_id);
 $endif$
 >>
 
@@ -156,9 +162,7 @@ $endif$
         $get_type_identifier_registry(typename=annotation.scopedname, name=name)$
         if (return_code_$name$ != eprosima::fastdds::dds::RETCODE_OK)
         {
-            EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
-                        "$typename$: Given Annotation TypeIdentifier unknown to TypeObjectRegistry.");
-            return;
+            $register_annotation_type(annotation=annotation.annotationDeclaration, name=[name])$
         }
         if (!tmp_applied_annotation_parameter_seq_$member.name$.empty())
         {
@@ -176,6 +180,7 @@ $endif$
         {
             EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
                     "$typename$: Given Annotation TypeIdentifier is inconsistent.");
+            type_id = TypeIdentifier();
             return;
         }
         TypeObjectUtils::add_applied_annotation(tmp_ann_custom_$member.name$, applied_annotation_$member.name$);
@@ -222,7 +227,7 @@ $complete_type_detail(type=alias, type_kind=" Alias", name=name)$
 CompleteAliasHeader header_$alias.name$ = TypeObjectUtils::build_complete_alias_header(detail_$alias.name$);
 AliasMemberFlag related_flags_$alias.name$ = 0;
 $get_type_identifier(type=alias.typedefContentTypeCode, name=name)$
-$check_register_type_identifier(type=alias.typedefContentTypeCode, message=[alias.scopedname, " related"], name=name)$
+$check_register_type_identifier(type=alias.typedefContentTypeCode, message=[alias.scopedname, " related"], name=[name])$
 CommonAliasBody common_$alias.name$;
 $check_first_returned_type_identifier_pair(name=name)$
 {
@@ -236,6 +241,7 @@ else
 {
     EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
             "$alias.scopedname$ related TypeIdentifier inconsistent.");
+    type_id = TypeIdentifier();
     return;
 }
 eprosima::fastcdr::optional<AppliedBuiltinMemberAnnotations> member_ann_builtin_$alias.name$;
@@ -254,6 +260,7 @@ EPROSIMA_LOG_WARNING(XTYPES_TYPE_REPRESENTATION,
 $elseif (annotation.isHashId)$
 EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
         "$alias.scopedname$ Alias: @hashid builtin annotation does not apply to aliases");
+type_id = TypeIdentifier();
 return;
 $endif$
 }; separator="\n"$
@@ -275,11 +282,12 @@ if (return_code_$name$ != eprosima::fastdds::dds::RETCODE_OK)
 {
     EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
                 "$alias.scopedname$: Given Alias TypeIdentifier unknown to TypeObjectRegistry.");
+    type_id = TypeIdentifier();
     return;
 }
 >>
 
-register_annotation_type(annotation) ::= <<
+register_annotation_type(annotation, name) ::= <<
 AnnotationTypeFlag annotation_flag_$annotation.name$ = 0;
 QualifiedTypeName annotation_name_$annotation.name$ = "$annotation.scopedname$";
 CompleteAnnotationHeader header_$annotation.name$ = TypeObjectUtils::build_complete_annotation_header(annotation_name_$annotation.name$);
@@ -290,11 +298,21 @@ $endif$
 CompleteAnnotationType annotation_type_$annotation.name$ = TypeObjectUtils::build_complete_annotation_type(annotation_flag_$annotation.name$, header_$annotation.name$,
         member_seq_$annotation.name$);
 if (eprosima::fastdds::dds::RETCODE_BAD_PARAMETER ==
-        TypeObjectUtils::build_and_register_annotation_type_object(annotation_type_$annotation.name$, annotation_name_$annotation.name$.to_string()))
+        TypeObjectUtils::build_and_register_annotation_type_object(annotation_type_$annotation.name$, annotation_name_$annotation.name$.to_string(), type_id))
 {
     EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
         "$annotation.scopedname$ already registered in TypeObjectRegistry for a different type.");
 }
+$if (first(name))$
+$get_type_identifier_registry(typename=annotation.scopedname, name=name)$
+if (return_code_$name$ != eprosima::fastdds::dds::RETCODE_OK)
+{
+    EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
+                "$annotation.scopedname$: Given Alias TypeIdentifier unknown to TypeObjectRegistry.");
+    type_id = TypeIdentifier();
+    return;
+}
+$endif$
 >>
 
 annotation_parameter(param, parent) ::= <<
@@ -316,6 +334,7 @@ annotation_parameter(param, parent) ::= <<
         $else$
         EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
                 "$param.name$ annotation parameter TypeIdentifier unknown to TypeObjectRegistry.");
+        type_id = TypeIdentifier();
         return;
         $endif$
     }
@@ -332,6 +351,7 @@ annotation_parameter(param, parent) ::= <<
     {
         EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
                 "$param.name$ annotation parameter TypeIdentifier inconsistent.");
+        type_id = TypeIdentifier();
         return;
     }
     MemberName name_$param.name$ = "$param.name$";
@@ -341,7 +361,7 @@ annotation_parameter(param, parent) ::= <<
 }
 >>
 
-register_struct_type(struct) ::= <<
+register_struct_type(struct, name) ::= <<
 {
     StructTypeFlag struct_flags_$struct.name$ = TypeObjectUtils::build_struct_type_flag($extensibility(object=struct)$
             $struct.annotationNested$, $struct.annotationAutoidHash$);
@@ -354,7 +374,7 @@ register_struct_type(struct) ::= <<
         $if(struct.inheritance.isAliasType)$
         $register_alias_type(alias=struct.inheritance, name=struct.name)$
         $else$
-        $register_struct_type(struct.inheritance)$
+        $register_struct_type(struct=struct.inheritance, name=[struct.name])$
         $endif$
     }
     $endif$
@@ -373,6 +393,7 @@ register_struct_type(struct) ::= <<
     {
         EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
                 "$struct.scopedname$ Structure: base_type TypeIdentifier registered in TypeObjectRegistry is inconsistent.");
+        type_id = TypeIdentifier();
         return;
     }
     $else$
@@ -384,7 +405,7 @@ register_struct_type(struct) ::= <<
     $endif$
     CompleteStructType struct_type_$struct.name$ = TypeObjectUtils::build_complete_struct_type(struct_flags_$struct.name$, header_$struct.name$, member_seq_$struct.name$);
     if (eprosima::fastdds::dds::RETCODE_BAD_PARAMETER ==
-            TypeObjectUtils::build_and_register_struct_type_object(struct_type_$struct.name$, type_name_$struct.name$.to_string()))
+            TypeObjectUtils::build_and_register_struct_type_object(struct_type_$struct.name$, type_name_$struct.name$.to_string(), type_id))
     {
         EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
                 "$struct.scopedname$ already registered in TypeObjectRegistry for a different type.");
@@ -394,15 +415,20 @@ register_struct_type(struct) ::= <<
     {
         EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
                     "$struct.scopedname$: Given Struct TypeIdentifier unknown to TypeObjectRegistry.");
+        type_id = TypeIdentifier();
         return;
     }
+    $if (first(name))$
+    return_code_$name$ = return_code_$struct.name$;
+    type_ids_$name$ = type_ids_$struct.name$;
+    $endif$
 }
 >>
 
 struct_member(member, parent) ::= <<
 {
     $get_type_identifier(type=member.typecode, name=parent.name)$
-    $check_register_type_identifier(type=member.typecode, message=[member.name, " Structure member"], name=parent.name)$
+    $check_register_type_identifier(type=member.typecode, message=[member.name, " Structure member"], name=[parent.name])$
     StructMemberFlag member_flags_$member.name$ = TypeObjectUtils::build_struct_member_flag($try_construct(object=member)$
             $member.annotationOptional$, $member.annotationMustUnderstand$, $member.annotationKey$, $member.annotationExternal$);
     CommonStructMember common_$member.name$;
@@ -419,6 +445,7 @@ struct_member(member, parent) ::= <<
     {
         EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
                 "Structure $member.name$ member TypeIdentifier inconsistent.");
+        type_id = TypeIdentifier();
         return;
     }
     $complete_member_detail(member=member, parent=parent, type_kind="Structure", name=parent.name)$
@@ -427,7 +454,7 @@ struct_member(member, parent) ::= <<
 }
 >>
 
-register_union_type(union) ::= <<
+register_union_type(union, name) ::= <<
 {
     ReturnCode_t return_code_$union.name$;
     TypeIdentifierPair type_ids_$union.name$;
@@ -447,6 +474,7 @@ register_union_type(union) ::= <<
         $else$
         EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
                 "Union discriminator TypeIdentifier unknown to TypeObjectRegistry.");
+        type_id = TypeIdentifier();
         return;
         $endif$
     }
@@ -463,6 +491,7 @@ register_union_type(union) ::= <<
     {
         EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
                 "$union.scopedname$ discriminator TypeIdentifier inconsistent.");
+        type_id = TypeIdentifier();
         return;
     }
     type_ann_builtin_$union.name$.reset();
@@ -475,7 +504,7 @@ register_union_type(union) ::= <<
     CompleteUnionType union_type_$union.name$ = TypeObjectUtils::build_complete_union_type(union_flags_$union.name$, header_$union.name$, discriminator_$union.name$,
             member_seq_$union.name$);
     if (eprosima::fastdds::dds::RETCODE_BAD_PARAMETER ==
-            TypeObjectUtils::build_and_register_union_type_object(union_type_$union.name$, type_name_$union.name$.to_string()))
+            TypeObjectUtils::build_and_register_union_type_object(union_type_$union.name$, type_name_$union.name$.to_string(), type_id))
     {
         EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
                 "$union.scopedname$ already registered in TypeObjectRegistry for a different type.");
@@ -485,15 +514,20 @@ register_union_type(union) ::= <<
     {
         EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
                     "$union.scopedname$: Given Union TypeIdentifier unknown to TypeObjectRegistry.");
+        type_id = TypeIdentifier();
         return;
     }
+    $if (first(name))$
+    return_code_$name$ = return_code_$union.name$;
+    type_ids_$name$ = type_ids_$union.name$;
+    $endif$
 }
 >>
 
 union_member(member, parent) ::= <<
 {
     $get_type_identifier(type=member.typecode, name=parent.name)$
-    $check_register_type_identifier(type=member.typecode, message=[member.name, " Union member"], name=parent.name)$
+    $check_register_type_identifier(type=member.typecode, message=[member.name, " Union member"], name=[parent.name])$
     UnionMemberFlag member_flags_$member.name$ = TypeObjectUtils::build_union_member_flag($try_construct(object=member)$
             $member.default$, $member.annotationExternal$);
     UnionCaseLabelSeq label_seq_$member.name$;
@@ -516,6 +550,7 @@ union_member(member, parent) ::= <<
     {
         EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
                 "Union $member.name$ member TypeIdentifier inconsistent.");
+        type_id = TypeIdentifier();
         return;
     }
     $complete_member_detail(member=member, parent=parent, type_kind="Union", name=parent.name)$
@@ -542,6 +577,7 @@ if (return_code_$name$ != eprosima::fastdds::dds::RETCODE_OK)
 {
     EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
                 "$bitset.scopedname$: Given Bitset TypeIdentifier unknown to TypeObjectRegistry.");
+    type_id = TypeIdentifier();
     return;
 }
 >>
@@ -591,6 +627,7 @@ if (return_code_$name$ != eprosima::fastdds::dds::RETCODE_OK)
 {
     EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
                 "$sequence_name(sequence)$: Given Sequence TypeIdentifier unknown to TypeObjectRegistry.");
+    type_id = TypeIdentifier();
     return;
 }
 >>
@@ -633,6 +670,7 @@ if (return_code_$name$ != eprosima::fastdds::dds::RETCODE_OK)
 {
     EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
                 "$array_name(array)$: Given Array TypeIdentifier unknown to TypeObjectRegistry.");
+    type_id = TypeIdentifier();
     return;
 }
 >>
@@ -641,7 +679,7 @@ register_map_type(map, name) ::= <<
 $! TODO(jlbueno): annotated collections generate TypeObject instead of TypeIdentifier
                   pending implementation of annotated collection support !$
 $get_type_identifier(type=map.valueTypeCode, name=name)$
-$check_register_type_identifier(type=map.valueTypeCode, message="Map element", name=name)$
+$check_register_type_identifier(type=map.valueTypeCode, message="Map element", name=[name])$
 TypeIdentifier* element_identifier_$map_name(map)$ {nullptr};
 $check_first_returned_type_identifier_pair(name=name)$
 {
@@ -655,10 +693,11 @@ else
 {
     EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
         "$map_name(map)$ inconsistent element TypeIdentifier.");
+    type_id = TypeIdentifier();
     return;
 }
 $get_type_identifier(type=map.keyTypeCode, name=name)$
-$check_register_type_identifier(type=map.keyTypeCode, message="Map key", name=name)$
+$check_register_type_identifier(type=map.keyTypeCode, message="Map key", name=[name])$
 TypeIdentifier* key_identifier_$map_name(map)$ {nullptr};
 $check_first_returned_type_identifier_pair(name=name)$
 {
@@ -672,6 +711,7 @@ else
 {
     EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
         "$map_name(map)$ inconsistent key TypeIdentifier.");
+    type_id = TypeIdentifier();
     return;
 }
 EquivalenceKind equiv_kind_$map_name(map)$ = EK_BOTH;
@@ -719,6 +759,7 @@ if (return_code_$name$ != eprosima::fastdds::dds::RETCODE_OK)
 {
     EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
                 "$map_name(map)$: Given Map TypeIdentifier unknown to TypeObjectRegistry.");
+    type_id = TypeIdentifier();
     return;
 }
 >>
@@ -744,6 +785,7 @@ if (return_code_$name$ != eprosima::fastdds::dds::RETCODE_OK)
 {
     EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
                 "$enum.scopedname$: Given Enum TypeIdentifier unknown to TypeObjectRegistry.");
+    type_id = TypeIdentifier();
     return;
 }
 >>
@@ -778,6 +820,7 @@ if (return_code_$name$ != eprosima::fastdds::dds::RETCODE_OK)
 {
     EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
                 "$bitmask.scopedname$: Given Enum TypeIdentifier unknown to TypeObjectRegistry.");
+    type_id = TypeIdentifier();
     return;
 }
 >>
@@ -822,6 +865,7 @@ if (return_code_$name$ != eprosima::fastdds::dds::RETCODE_OK)
 {
     EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
                 "$wstring_name(wstring)$: Given WString TypeIdentifier unknown to TypeObjectRegistry.");
+    type_id = TypeIdentifier();
     return;
 }
 >>
@@ -855,6 +899,7 @@ if (return_code_$name$ != eprosima::fastdds::dds::RETCODE_OK)
 {
     EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
                 "$string_name(string)$: Given String TypeIdentifier unknown to TypeObjectRegistry.");
+    type_id = TypeIdentifier();
     return;
 }
 >>
@@ -912,6 +957,7 @@ $member.annotationList : { annotation |
 $if (annotation.isUnit || annotation.isMin || annotation.isMax || annotation.isRange || annotation.isHashId)$
 EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
         "$message$");
+type_id = TypeIdentifier();
 return;
 $elseif (!annotation.isBuiltin)$
 $applied_annotation_sequence(annotation=annotation, typename=[parent.scopedname, " ", member.name, " member"], member=member, name=name)$
@@ -986,9 +1032,9 @@ if (return_code_$name$ != eprosima::fastdds::dds::RETCODE_OK)
     $if (type.isAliasType)$
     $register_alias_type(alias=type, name=name)$
     $elseif (type.isStructType)$
-    $register_struct_type(struct=type)$
+    $register_struct_type(struct=type, name=name)$
     $elseif (type.isUnionType)$
-    $register_union_type(union=type)$
+    $register_union_type(union=type, name=name)$
     $elseif (type.isBitsetType)$
     $register_bitset_type(bitset=type, name=name)$
     $elseif (type.isSequenceType)$
@@ -1008,6 +1054,7 @@ if (return_code_$name$ != eprosima::fastdds::dds::RETCODE_OK)
     $else$
     EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
             "$message$ TypeIdentifier unknown to TypeObjectRegistry.");
+    type_id = TypeIdentifier();
     return;
     $endif$
 }
@@ -1039,7 +1086,7 @@ $endif$
 
 plain_collection_header(type, message, name, collection_name) ::= <<
 $get_type_identifier(type=type, name=name)$
-$check_register_type_identifier(type=type, message=message, name=name)$
+$check_register_type_identifier(type=type, message=message, name=[name])$
 TypeIdentifier* element_identifier_$collection_name$ {nullptr};
 $check_first_returned_type_identifier_pair(name=name)$
 {
@@ -1053,6 +1100,7 @@ else
 {
     EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
         "$message$ TypeIdentifier inconsistent.");
+    type_id = TypeIdentifier();
     return;
 }
 EquivalenceKind equiv_kind_$collection_name$ = EK_COMPLETE;

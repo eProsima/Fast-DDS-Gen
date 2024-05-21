@@ -22,6 +22,8 @@ $fileHeader(ctx=ctx, file=[ctx.filename, "TypeObjectSupport.hpp"], description=[
 #ifndef _FAST_DDS_GENERATED_$ctx.headerGuardName$_TYPE_OBJECT_SUPPORT_HPP_
 #define _FAST_DDS_GENERATED_$ctx.headerGuardName$_TYPE_OBJECT_SUPPORT_HPP_
 
+#include <fastdds/dds/xtypes/type_representation/TypeObject.hpp>
+
 $ctx.directIncludeDependencies : { include | #include "$include$TypeObjectSupport.hpp"}; separator="\n"$
 
 #if defined(_WIN32)
@@ -80,8 +82,13 @@ register_type_identifier(typename) ::= <<
  *        Fully-descriptive TypeIdentifiers are directly registered.
  *        Hash TypeIdentifiers require to fill the TypeObject information and hash it, consequently, the TypeObject is
  *        indirectly registered as well.
+ *
+ * @param[out] TypeIdentifier of the registered type.
+ *             The returned TypeIdentifier corresponds to the complete TypeIdentifier in case of hashed TypeIdentifiers.
+ *             Invalid TypeIdentifier is returned in case of error.
  */
-eProsima_user_DllExport void register_$typename$_type_identifier();
+eProsima_user_DllExport void register_$typename$_type_identifier(
+        eprosima::fastdds::dds::xtypes::TypeIdentifier& type_id);
 
 >>
 
