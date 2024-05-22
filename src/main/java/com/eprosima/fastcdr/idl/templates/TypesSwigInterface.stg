@@ -19,7 +19,15 @@ import "com/eprosima/fastdds/idl/templates/eprosima.stg"
 main(ctx, definitions) ::= <<
 $fileHeader(ctx=ctx, file=[ctx.filename, ".i"], description=["This header file contains the SWIG interface of the described types in the IDL file."])$
 
-%module $ctx.filename$
+%module(moduleimport="if __import__('os').name == 'nt': import win32api; win32api.LoadLibrary('$ctx.filename$.dll')\nif __package__ or '.' in __name__:\n    from . import _$ctx.filename$Wrapper\nelse:\n    import _$ctx.filename$Wrapper") $ctx.filename$
+
+// If using windows in debug, it would try to use python_d, which would not be found.
+%begin %{
+#ifdef _MSC_VER
+#define SWIG_PYTHON_INTERPRETER_NO_DEBUG
+#endif
+#include <exception>
+%}
 
 // SWIG helper modules
 %include "stdint.i"
