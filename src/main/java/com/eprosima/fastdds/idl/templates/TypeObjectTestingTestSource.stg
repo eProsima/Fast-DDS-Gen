@@ -69,35 +69,305 @@ fwd_decl(ctx, parent, type) ::= <<>>
 typedef_decl(ctx, parent, typedefs, typedefs_type, declarator_type) ::= <<
 $declarator_type$
 $typedefs_type$
-$test_typedef(typedefs=typedefs)$
+
+TEST(TypeObjectTests, TestTypedefTypeObject_$typedefs.name$)
+{
+    ReturnCode_t ret_code {eprosima::fastdds::dds::RETCODE_OK};
+    TypeIdentifierPair type_ids;
+
+    // Register specific alias TypeObject
+    $typedefs.scope$::register_$typedefs.name$_type_identifier(type_ids);
+
+    $check_type_identifier_consistency(result="type_ids")$
+    $check_direct_hash_type_identifier(typeid="type_ids")$
+    TypeObjectPair type_objects;
+    $get_type_object_registry(typename=typedefs.scopedname, result="type_objects")$
+    EXPECT_EQ(TK_ALIAS, type_objects.minimal_type_object.minimal()._d());
+    EXPECT_EQ(TK_ALIAS, type_objects.complete_type_object.complete()._d());
+    EXPECT_EQ(0u, type_objects.minimal_type_object.minimal().alias_type().alias_flags());
+    EXPECT_EQ(0u, type_objects.complete_type_object.complete().alias_type().alias_flags());
+    $check_type_detail_annotations(object=typedefs, type="alias_type().header().detail()")$
+    EXPECT_EQ("$typedefs.scopedname$", type_objects.complete_type_object.complete().alias_type().header().detail().type_name().to_string());
+    EXPECT_EQ(0u, type_objects.minimal_type_object.minimal().alias_type().body().common().related_flags());
+    EXPECT_EQ(0u, type_objects.complete_type_object.complete().alias_type().body().common().related_flags());
+    TypeIdentifierPair related_type_ids;
+    $get_type_identifier(type=typedefs.typedefContentTypeCode, var="related_type_ids")$
+    EXPECT_TRUE(related_type_ids.type_identifier1() == type_objects.minimal_type_object.minimal().alias_type().body().common().related_type() ||
+        related_type_ids.type_identifier2() == type_objects.minimal_type_object.minimal().alias_type().body().common().related_type());
+    EXPECT_TRUE(related_type_ids.type_identifier1() == type_objects.complete_type_object.complete().alias_type().body().common().related_type() ||
+        related_type_ids.type_identifier2() == type_objects.complete_type_object.complete().alias_type().body().common().related_type());
+    $check_member_detail_annotations(member=typedefs, type="alias_type().body()", parent=typedefs)$
+}
 >>
 
 struct_type(ctx, parent, struct, member_list) ::= <<
 namespace $struct.cScopedname$_namespace {
 $member_list$
 } // $struct.cScopedname$_namespace
-$test_structure(struct=struct)$
+
+TEST(TypeObjectTests, TestStructureTypeObject_$struct.cScopedname$)
+{
+    ReturnCode_t ret_code {eprosima::fastdds::dds::RETCODE_OK};
+    TypeIdentifierPair type_ids;
+
+    // Register specific structure TypeObject
+    $struct.scope$::register_$struct.name$_type_identifier(type_ids);
+
+    $check_type_identifier_consistency(result="type_ids")$
+    $check_direct_hash_type_identifier(typeid="type_ids")$
+    TypeObjectPair type_objects;
+    $get_type_object_registry(typename=struct.scopedname, result="type_objects")$
+    EXPECT_EQ(TK_STRUCTURE, type_objects.minimal_type_object.minimal()._d());
+    EXPECT_EQ(TK_STRUCTURE, type_objects.complete_type_object.complete()._d());
+    $expected_type_flags(object=struct)$
+    EXPECT_EQ($struct.name$_expected_flags, type_objects.minimal_type_object.minimal().struct_type().struct_flags());
+    EXPECT_EQ($struct.name$_expected_flags, type_objects.complete_type_object.complete().struct_type().struct_flags());
+    $if(struct.inheritance)$
+    TypeIdentifierPair base_type_ids;
+    $get_type_identifier_registry(typename=struct.inheritance.scopedname, result="base_type_ids")$
+    $check_direct_hash_type_identifier(typeid="base_type_ids")$
+    EXPECT_TRUE(base_type_ids.type_identifier1() == type_objects.minimal_type_object.minimal().struct_type().header().base_type() ||
+        base_type_ids.type_identifier1() == type_objects.complete_type_object.complete().struct_type().header().base_type());
+    EXPECT_TRUE(base_type_ids.type_identifier2() == type_objects.minimal_type_object.minimal().struct_type().header().base_type() ||
+        base_type_ids.type_identifier2() == type_objects.complete_type_object.complete().struct_type().header().base_type());
+    TypeObjectPair base_type_objects;
+    $get_type_object_registry(typename=struct.inheritance.scopedname, result="base_type_objects")$
+    $else$
+    TypeIdentifier invalid_type_id;
+    EXPECT_EQ(invalid_type_id, type_objects.minimal_type_object.minimal().struct_type().header().base_type());
+    EXPECT_EQ(invalid_type_id, type_objects.complete_type_object.complete().struct_type().header().base_type());
+    $endif$
+    $check_type_detail_annotations(object=struct, type="struct_type().header().detail()")$
+    EXPECT_EQ("$struct.scopedname$", type_objects.complete_type_object.complete().struct_type().header().detail().type_name().to_string());
+    $if (struct.members)$
+    MemberId member_id = 0;
+    $if (struct.inheritance)$
+        member_id = $struct.firstMember.id$;
+    $endif$
+    $struct.members: { member | $check_struct_member(member=member, parent=struct)$}; separator="\n"$
+    $endif$
+    ASSERT_EQ($struct.membersSize$, type_objects.minimal_type_object.minimal().struct_type().member_seq().size());
+    for (size_t i = 1; i < type_objects.minimal_type_object.minimal().struct_type().member_seq().size(); ++i)
+    {
+        EXPECT_LT(type_objects.minimal_type_object.minimal().struct_type().member_seq()[i-1].common().member_id(),
+                type_objects.minimal_type_object.minimal().struct_type().member_seq()[i].common().member_id());
+    }
+    ASSERT_EQ($struct.membersSize$, type_objects.complete_type_object.complete().struct_type().member_seq().size());
+    for (size_t i = 1; i < type_objects.complete_type_object.complete().struct_type().member_seq().size(); ++i)
+    {
+        EXPECT_LT(type_objects.complete_type_object.complete().struct_type().member_seq()[i-1].common().member_id(),
+                type_objects.complete_type_object.complete().struct_type().member_seq()[i].common().member_id());
+    }
+}
 >>
 
 union_type(ctx, parent, union, switch_type) ::= <<
 $switch_type$
-$test_union(union=union)$
+
+TEST(TypeObjectTests, TestUnionTypeObject_$union.name$)
+{
+    ReturnCode_t ret_code {eprosima::fastdds::dds::RETCODE_OK};
+    TypeIdentifierPair type_ids;
+
+    // Register specific union TypeObject
+    $union.scope$::register_$union.name$_type_identifier(type_ids);
+
+    $check_type_identifier_consistency(result="type_ids")$
+    $check_direct_hash_type_identifier(typeid="type_ids")$
+    TypeObjectPair type_objects;
+    $get_type_object_registry(typename=union.scopedname, result="type_objects")$
+    EXPECT_EQ(TK_UNION, type_objects.minimal_type_object.minimal()._d());
+    EXPECT_EQ(TK_UNION, type_objects.complete_type_object.complete()._d());
+    $expected_type_flags(object=union)$
+    EXPECT_EQ($union.name$_expected_flags, type_objects.minimal_type_object.minimal().union_type().union_flags());
+    EXPECT_EQ($union.name$_expected_flags, type_objects.complete_type_object.complete().union_type().union_flags());
+    $check_type_detail_annotations(object=union, type="union_type().header().detail()")$
+    EXPECT_EQ("$union.scopedname$", type_objects.complete_type_object.complete().union_type().header().detail().type_name().to_string());
+    $expected_member_flags(object=union.discriminator, typename=union.discriminator.name)$
+    EXPECT_EQ($union.discriminator.name$_expected_flags, type_objects.minimal_type_object.minimal().union_type().discriminator().common().member_flags());
+    EXPECT_EQ($union.discriminator.name$_expected_flags, type_objects.complete_type_object.complete().union_type().discriminator().common().member_flags());
+    TypeIdentifierPair discriminator_type_ids;
+    $if(union.discriminator.typecode.primitive && !union.discriminator.typecode.isEnumType && !union.discriminator.typecode.isAliasType)$
+    $if (union.discriminator.typecode.isByteType)$
+    $get_type_identifier_registry(typename="_byte", result="discriminator_type_ids")$
+    $else$
+    $get_type_identifier_registry(typename=["_", union.discriminator.typecode.cppTypenameForTypeId], result="discriminator_type_ids")$
+    $endif$
+    $else$
+    $get_type_identifier_registry(typename=union.discriminator.typecode.scopedname, result="discriminator_type_ids")$
+    $endif$
+    EXPECT_TRUE(discriminator_type_ids.type_identifier1() == type_objects.minimal_type_object.minimal().union_type().discriminator().common().type_id() ||
+        discriminator_type_ids.type_identifier1() == type_objects.complete_type_object.complete().union_type().discriminator().common().type_id());
+    if (TK_NONE == discriminator_type_ids.type_identifier2()._d())
+    {
+        EXPECT_EQ(type_objects.minimal_type_object.minimal().union_type().discriminator().common().type_id(),
+                type_objects.complete_type_object.complete().union_type().discriminator().common().type_id());
+    }
+    else
+    {
+        EXPECT_TRUE(discriminator_type_ids.type_identifier2() == type_objects.minimal_type_object.minimal().union_type().discriminator().common().type_id() ||
+            discriminator_type_ids.type_identifier2() == type_objects.complete_type_object.complete().union_type().discriminator().common().type_id());
+    }
+    $check_type_detail_annotations(object=union.discriminator, type="union_type().discriminator()")$
+    MemberId member_id = 1;
+    $union.members: { member | $check_union_member(member=member, parent=union)$}; separator="\n"$
+    ASSERT_EQ($union.membersSize$, type_objects.minimal_type_object.minimal().union_type().member_seq().size());
+    for (size_t i = 1; i < type_objects.minimal_type_object.minimal().union_type().member_seq().size(); ++i)
+    {
+        EXPECT_LT(type_objects.minimal_type_object.minimal().union_type().member_seq()[i-1].common().member_id(),
+                type_objects.minimal_type_object.minimal().union_type().member_seq()[i].common().member_id());
+    }
+    ASSERT_EQ($union.membersSize$, type_objects.complete_type_object.complete().union_type().member_seq().size());
+    for (size_t i = 1; i < type_objects.complete_type_object.complete().union_type().member_seq().size(); ++i)
+    {
+        EXPECT_LT(type_objects.complete_type_object.complete().union_type().member_seq()[i-1].common().member_id(),
+                type_objects.complete_type_object.complete().union_type().member_seq()[i].common().member_id());
+    }
+}
 >>
 
 enum_type(ctx, parent, enum) ::= <<
-$test_enum(enum=enum)$
+TEST(TypeObjectTests, TestEnumTypeObject_$enum.name$)
+{
+    ReturnCode_t ret_code;
+    TypeIdentifierPair type_ids;
+
+    // Register specific enum TypeObject
+    $enum.scope$::register_$enum.name$_type_identifier(type_ids);
+
+    $check_type_identifier_consistency(result="type_ids")$
+    $check_direct_hash_type_identifier(typeid="type_ids")$
+    TypeObjectPair type_objects;
+    $get_type_object_registry(typename=enum.scopedname, result="type_objects")$
+    EXPECT_EQ(TK_ENUM, type_objects.minimal_type_object.minimal()._d());
+    EXPECT_EQ(TK_ENUM, type_objects.complete_type_object.complete()._d());
+    EXPECT_EQ(0u, type_objects.minimal_type_object.minimal().enumerated_type().enum_flags());
+    EXPECT_EQ(0u, type_objects.complete_type_object.complete().enumerated_type().enum_flags());
+    EXPECT_EQ($enum.bitBound$, type_objects.minimal_type_object.minimal().enumerated_type().header().common().bit_bound());
+    EXPECT_EQ($enum.bitBound$, type_objects.complete_type_object.complete().enumerated_type().header().common().bit_bound());
+    $check_type_detail_annotations(object=enum, type="enumerated_type().header().detail()")$
+    EXPECT_EQ("$enum.scopedname$", type_objects.complete_type_object.complete().enumerated_type().header().detail().type_name().to_string());
+    int32_t enum_literal_id = 0;
+    $enum.members: { member | $check_enum_literal(literal=member, parent=enum)$}; separator="\n"$
+    ASSERT_EQ($enum.membersSize$, type_objects.minimal_type_object.minimal().enumerated_type().literal_seq().size());
+    for (size_t i = 1; i < type_objects.minimal_type_object.minimal().enumerated_type().literal_seq().size(); ++i)
+    {
+        EXPECT_LT(type_objects.minimal_type_object.minimal().enumerated_type().literal_seq()[i-1].common().value(),
+                type_objects.minimal_type_object.minimal().enumerated_type().literal_seq()[i].common().value());
+    }
+    ASSERT_EQ($enum.membersSize$, type_objects.complete_type_object.complete().enumerated_type().literal_seq().size());
+    for (size_t i = 1; i < type_objects.complete_type_object.complete().enumerated_type().literal_seq().size(); ++i)
+    {
+        EXPECT_LT(type_objects.complete_type_object.complete().enumerated_type().literal_seq()[i-1].common().value(),
+                type_objects.complete_type_object.complete().enumerated_type().literal_seq()[i].common().value());
+    }
+}
 >>
 
 bitmask_type(ctx, parent, bitmask) ::= <<
-$test_bitmask(bitmask=bitmask)$
+TEST(TypeObjectTests, TestBitmaskTypeObject_$bitmask.name$)
+{
+    ReturnCode_t ret_code;
+    TypeIdentifierPair type_ids;
+
+    // Register specific bitmask TypeObject
+    $bitmask.scope$::register_$bitmask.name$_type_identifier(type_ids);
+
+    $check_type_identifier_consistency(result="type_ids")$
+    $check_direct_hash_type_identifier(typeid="type_ids")$
+    TypeObjectPair type_objects;
+    $get_type_object_registry(typename=bitmask.scopedname, result="type_objects")$
+    EXPECT_EQ(TK_BITMASK, type_objects.minimal_type_object.minimal()._d());
+    EXPECT_EQ(TK_BITMASK, type_objects.complete_type_object.complete()._d());
+    EXPECT_EQ(0u, type_objects.minimal_type_object.minimal().bitmask_type().bitmask_flags());
+    EXPECT_EQ(0u, type_objects.complete_type_object.complete().bitmask_type().bitmask_flags());
+    EXPECT_EQ($bitmask.bitBound$, type_objects.minimal_type_object.minimal().bitmask_type().header().common().bit_bound());
+    EXPECT_EQ($bitmask.bitBound$, type_objects.complete_type_object.complete().bitmask_type().header().common().bit_bound());
+    $check_type_detail_annotations(object=bitmask, type="bitmask_type().header().detail()")$
+    EXPECT_EQ("$bitmask.scopedname$", type_objects.complete_type_object.complete().bitmask_type().header().detail().type_name().to_string());
+    $bitmask.members: { member | $check_bitmask_flag(bitflag=member, parent=bitmask)$}; separator="\n"$
+    ASSERT_EQ($bitmask.membersSize$, type_objects.minimal_type_object.minimal().bitmask_type().flag_seq().size());
+    for (size_t i = 1; i < type_objects.minimal_type_object.minimal().bitmask_type().flag_seq().size(); ++i)
+    {
+        EXPECT_LT(type_objects.minimal_type_object.minimal().bitmask_type().flag_seq()[i-1].common().position(),
+                type_objects.minimal_type_object.minimal().bitmask_type().flag_seq()[i].common().position());
+    }
+    ASSERT_EQ($bitmask.membersSize$, type_objects.complete_type_object.complete().bitmask_type().flag_seq().size());
+    for (size_t i = 1; i < type_objects.complete_type_object.complete().bitmask_type().flag_seq().size(); ++i)
+    {
+        EXPECT_LT(type_objects.complete_type_object.complete().bitmask_type().flag_seq()[i-1].common().position(),
+                type_objects.complete_type_object.complete().bitmask_type().flag_seq()[i].common().position());
+    }
+}
 >>
 
 bitset_type(ctx, parent, bitset, extensions) ::= <<
-$test_bitset(bitset=bitset)$
+TEST(TypeObjectTests, TestBitsetTypeObject_$bitset.name$)
+{
+    ReturnCode_t ret_code;
+    TypeIdentifierPair type_ids;
+
+    // Register specific bitset TypeObject
+    $bitset.scope$::register_$bitset.name$_type_identifier(type_ids);
+
+    $check_type_identifier_consistency(result="type_ids")$
+    $check_direct_hash_type_identifier(typeid="type_ids")$
+    TypeObjectPair type_objects;
+    $get_type_object_registry(typename=bitset.scopedname, result="type_objects")$
+    EXPECT_EQ(TK_BITSET, type_objects.minimal_type_object.minimal()._d());
+    EXPECT_EQ(TK_BITSET, type_objects.complete_type_object.complete()._d());
+    EXPECT_EQ(0u, type_objects.minimal_type_object.minimal().bitset_type().bitset_flags());
+    EXPECT_EQ(0u, type_objects.complete_type_object.complete().bitset_type().bitset_flags());
+    $check_type_detail_annotations(object=bitset, type="bitset_type().header().detail()")$
+    EXPECT_EQ("$bitset.scopedname$", type_objects.complete_type_object.complete().bitset_type().header().detail().type_name().to_string());
+    $bitset.definedBitfields: { bitfield | $check_bitfield(bitfield=bitfield, parent=bitset)$}; separator="\n"$
+    ASSERT_EQ($bitset.membersSize$, type_objects.minimal_type_object.minimal().bitset_type().field_seq().size());
+    for (size_t i = 1; i < type_objects.minimal_type_object.minimal().bitset_type().field_seq().size(); ++i)
+    {
+        EXPECT_LT(type_objects.minimal_type_object.minimal().bitset_type().field_seq()[i-1].common().position(),
+                type_objects.minimal_type_object.minimal().bitset_type().field_seq()[i].common().position());
+    }
+    ASSERT_EQ($bitset.membersSize$, type_objects.complete_type_object.complete().bitset_type().field_seq().size());
+    for (size_t i = 1; i < type_objects.complete_type_object.complete().bitset_type().field_seq().size(); ++i)
+    {
+        EXPECT_LT(type_objects.complete_type_object.complete().bitset_type().field_seq()[i-1].common().position(),
+                type_objects.complete_type_object.complete().bitset_type().field_seq()[i].common().position());
+    }
+}
 >>
 
 annotation(ctx, annotation) ::= <<
-$test_annotation(annotation=annotation)$
+TEST(TypeObjectTests, TestAnnotationTypeObject_$annotation.name$)
+{
+    ReturnCode_t ret_code;
+    TypeIdentifierPair type_ids;
+
+    // Register specific annotation TypeObject
+    $annotation.scope$::register_$annotation.name$_type_identifier(type_ids);
+
+    $check_type_identifier_consistency(result="type_ids")$
+    $check_direct_hash_type_identifier(typeid="type_ids")$
+    TypeObjectPair type_objects;
+    $get_type_object_registry(typename=annotation.scopedname, result="type_objects")$
+    EXPECT_EQ(TK_ANNOTATION, type_objects.minimal_type_object.minimal()._d());
+    EXPECT_EQ(TK_ANNOTATION, type_objects.complete_type_object.complete()._d());
+    EXPECT_EQ(0u, type_objects.minimal_type_object.minimal().annotation_type().annotation_flag());
+    EXPECT_EQ(0u, type_objects.complete_type_object.complete().annotation_type().annotation_flag());
+    EXPECT_EQ("$annotation.scopedname$", type_objects.complete_type_object.complete().annotation_type().header().annotation_name().to_string());
+    $annotation.members: { member | $check_annotation_parameter_member(parameter=member)$}; separator="\n"$
+    ASSERT_EQ($annotation.membersSize$, type_objects.minimal_type_object.minimal().annotation_type().member_seq().size());
+    for (size_t i = 1; i < type_objects.minimal_type_object.minimal().annotation_type().member_seq().size(); ++i)
+    {
+        EXPECT_LT(type_objects.minimal_type_object.minimal().annotation_type().member_seq()[i-1].name_hash(),
+                type_objects.minimal_type_object.minimal().annotation_type().member_seq()[i].name_hash());
+    }
+    ASSERT_EQ($annotation.membersSize$, type_objects.complete_type_object.complete().annotation_type().member_seq().size());
+    for (size_t i = 1; i < type_objects.complete_type_object.complete().annotation_type().member_seq().size(); ++i)
+    {
+        EXPECT_LT(type_objects.complete_type_object.complete().annotation_type().member_seq()[i-1].name(),
+                type_objects.complete_type_object.complete().annotation_type().member_seq()[i].name());
+    }
+}
 >>
 
 module(ctx, parent, module, definition_list) ::= <<
@@ -121,7 +391,7 @@ element_type(ctx, element, type_element, declarator) ::= <<>>
 
 sequence_type(ctx, sequence, type_sequence) ::= <<
 $type_sequence$
-$test_sequence(sequence=sequence)$
+$! $test_sequence(sequence=sequence)$ !$
 >>
 
 map_type(ctx, map, key_type, value_type) ::= <<
@@ -133,26 +403,22 @@ namespace value {
 $value_type$
 } // namespace value
 } // $map_name(map=map)$_namespace
-$test_map(map=map)$
+$! $test_map(map=map)$ !$
 >>
 
 string_type(ctx, string) ::= <<
-$test_string(string=string)$
+$! $test_string(string=string)$ !$
 >>
 
 wide_string_type(ctx, wstring) ::= <<
-$test_wstring(wstring=wstring)$
+$! $test_wstring(wstring=wstring)$ !$
 >>
 
 array_declarator(ctx, array) ::= <<
-$test_array(array=array)$
+$! $test_array(array=array)$ !$
 >>
 
-get_type_identifier_registry(typename, result) ::= <<
-ret_code =
-    eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->type_object_registry().get_type_identifiers(
-    "$typename$", $result$);
-ASSERT_EQ(eprosima::fastdds::dds::RETCODE_OK, ret_code);
+check_type_identifier_consistency(result) ::= <<
 EXPECT_NO_THROW(TypeObjectUtilsTest::type_identifier_consistency($result$.type_identifier1()));
 if (TK_NONE != $result$.type_identifier2()._d())
 {
@@ -162,6 +428,14 @@ else
 {
     EXPECT_THROW(TypeObjectUtilsTest::type_identifier_consistency($result$.type_identifier2()), InvalidArgumentError);
 }
+>>
+
+get_type_identifier_registry(typename, result) ::= <<
+ret_code =
+    eprosima::fastdds::dds::DomainParticipantFactory::get_instance()->type_object_registry().get_type_identifiers(
+    "$typename$", $result$);
+ASSERT_EQ(eprosima::fastdds::dds::RETCODE_OK, ret_code);
+$check_type_identifier_consistency(result)$
 >>
 
 get_type_object_registry(typename, result) ::= <<
@@ -495,102 +769,6 @@ $object.name$_expected_flags |= TypeFlagBits::IS_AUTOID_HASH;
 $endif$
 >>
 
-test_typedef(typedefs) ::= <<
-TEST(TypeObjectTests, TestTypedefTypeObject_$typedefs.name$)
-{
-    // Alias Types does not have a specific register function: register every type in IDL file.
-    register_$ctx.filename$_type_objects();
-
-    $check_alias_type(typedefs=typedefs)$
-}
->>
-
-check_alias_type(typedefs) ::= <<
-ReturnCode_t ret_code;
-TypeIdentifierPair type_ids;
-$get_type_identifier_registry(typename=typedefs.scopedname, result="type_ids")$
-$check_direct_hash_type_identifier(typeid="type_ids")$
-TypeObjectPair type_objects;
-$get_type_object_registry(typename=typedefs.scopedname, result="type_objects")$
-EXPECT_EQ(TK_ALIAS, type_objects.minimal_type_object.minimal()._d());
-EXPECT_EQ(TK_ALIAS, type_objects.complete_type_object.complete()._d());
-EXPECT_EQ(0u, type_objects.minimal_type_object.minimal().alias_type().alias_flags());
-EXPECT_EQ(0u, type_objects.complete_type_object.complete().alias_type().alias_flags());
-$check_type_detail_annotations(object=typedefs, type="alias_type().header().detail()")$
-EXPECT_EQ("$typedefs.scopedname$", type_objects.complete_type_object.complete().alias_type().header().detail().type_name().to_string());
-EXPECT_EQ(0u, type_objects.minimal_type_object.minimal().alias_type().body().common().related_flags());
-EXPECT_EQ(0u, type_objects.complete_type_object.complete().alias_type().body().common().related_flags());
-TypeIdentifierPair related_type_ids;
-$get_type_identifier(type=typedefs.typedefContentTypeCode, var="related_type_ids")$
-EXPECT_TRUE(related_type_ids.type_identifier1() == type_objects.minimal_type_object.minimal().alias_type().body().common().related_type() ||
-    related_type_ids.type_identifier2() == type_objects.minimal_type_object.minimal().alias_type().body().common().related_type());
-EXPECT_TRUE(related_type_ids.type_identifier1() == type_objects.complete_type_object.complete().alias_type().body().common().related_type() ||
-    related_type_ids.type_identifier2() == type_objects.complete_type_object.complete().alias_type().body().common().related_type());
-$check_member_detail_annotations(member=typedefs, type="alias_type().body()", parent=typedefs)$
->>
-
-test_structure(struct) ::= <<
-TEST(TypeObjectTests, TestStructureTypeObject_$struct.cScopedname$)
-{
-    TypeIdentifier type_id;
-    // Register specific structure TypeObject
-    $if (!struct.scope.empty)$$struct.scope$::$endif$register_$struct.CScopedname$_type_identifier(type_id);
-    EXPECT_NE(TypeIdentifier(), type_id);
-
-    $check_struct_type(struct=struct)$
-}
->>
-
-check_struct_type(struct) ::= <<
-ReturnCode_t ret_code;
-TypeIdentifierPair type_ids;
-$get_type_identifier_registry(typename=struct.scopedname, result="type_ids")$
-$check_direct_hash_type_identifier(typeid="type_ids")$
-TypeObjectPair type_objects;
-$get_type_object_registry(typename=struct.scopedname, result="type_objects")$
-EXPECT_EQ(TK_STRUCTURE, type_objects.minimal_type_object.minimal()._d());
-EXPECT_EQ(TK_STRUCTURE, type_objects.complete_type_object.complete()._d());
-$expected_type_flags(object=struct)$
-EXPECT_EQ($struct.name$_expected_flags, type_objects.minimal_type_object.minimal().struct_type().struct_flags());
-EXPECT_EQ($struct.name$_expected_flags, type_objects.complete_type_object.complete().struct_type().struct_flags());
-$if(struct.inheritance)$
-TypeIdentifierPair base_type_ids;
-$get_type_identifier_registry(typename=struct.inheritance.scopedname, result="base_type_ids")$
-$check_direct_hash_type_identifier(typeid="base_type_ids")$
-EXPECT_TRUE(base_type_ids.type_identifier1() == type_objects.minimal_type_object.minimal().struct_type().header().base_type() ||
-    base_type_ids.type_identifier1() == type_objects.complete_type_object.complete().struct_type().header().base_type());
-EXPECT_TRUE(base_type_ids.type_identifier2() == type_objects.minimal_type_object.minimal().struct_type().header().base_type() ||
-    base_type_ids.type_identifier2() == type_objects.complete_type_object.complete().struct_type().header().base_type());
-TypeObjectPair base_type_objects;
-$get_type_object_registry(typename=struct.inheritance.scopedname, result="base_type_objects")$
-$else$
-TypeIdentifier invalid_type_id;
-EXPECT_EQ(invalid_type_id, type_objects.minimal_type_object.minimal().struct_type().header().base_type());
-EXPECT_EQ(invalid_type_id, type_objects.complete_type_object.complete().struct_type().header().base_type());
-$endif$
-$check_type_detail_annotations(object=struct, type="struct_type().header().detail()")$
-EXPECT_EQ("$struct.scopedname$", type_objects.complete_type_object.complete().struct_type().header().detail().type_name().to_string());
-$if (struct.members)$
-MemberId member_id = 0;
-$if (struct.inheritance)$
-    member_id = $struct.firstMember.id$;
-$endif$
-$struct.members: { member | $check_struct_member(member=member, parent=struct)$}; separator="\n"$
-$endif$
-ASSERT_EQ($struct.membersSize$, type_objects.minimal_type_object.minimal().struct_type().member_seq().size());
-for (size_t i = 1; i < type_objects.minimal_type_object.minimal().struct_type().member_seq().size(); ++i)
-{
-    EXPECT_LT(type_objects.minimal_type_object.minimal().struct_type().member_seq()[i-1].common().member_id(),
-            type_objects.minimal_type_object.minimal().struct_type().member_seq()[i].common().member_id());
-}
-ASSERT_EQ($struct.membersSize$, type_objects.complete_type_object.complete().struct_type().member_seq().size());
-for (size_t i = 1; i < type_objects.complete_type_object.complete().struct_type().member_seq().size(); ++i)
-{
-    EXPECT_LT(type_objects.complete_type_object.complete().struct_type().member_seq()[i-1].common().member_id(),
-            type_objects.complete_type_object.complete().struct_type().member_seq()[i].common().member_id());
-}
->>
-
 check_struct_member(member, parent) ::= <<
 {
     size_t pos = 0;
@@ -647,74 +825,6 @@ check_struct_member(member, parent) ::= <<
     EXPECT_EQ("$member.name$", type_objects.complete_type_object.complete().struct_type().member_seq()[pos].detail().name().to_string());
     EXPECT_EQ(member_name_hashed, type_objects.minimal_type_object.minimal().struct_type().member_seq()[pos].detail().name_hash());
     $check_member_detail_annotations(member=member, type="struct_type().member_seq()[pos].detail()", parent=parent)$
-}
->>
-
-test_union(union) ::= <<
-TEST(TypeObjectTests, TestUnionTypeObject_$union.name$)
-{
-    TypeIdentifier type_id;
-    // Register specific union TypeObject
-    $if (!union.scope.empty)$$union.scope$::$endif$register_$union.CScopedname$_type_identifier(type_id);
-    EXPECT_NE(TypeIdentifier(), type_id);
-
-    $check_union_type(union=union)$
-}
->>
-
-check_union_type(union) ::= <<
-ReturnCode_t ret_code;
-TypeIdentifierPair type_ids;
-$get_type_identifier_registry(typename=union.scopedname, result="type_ids")$
-$check_direct_hash_type_identifier(typeid="type_ids")$
-TypeObjectPair type_objects;
-$get_type_object_registry(typename=union.scopedname, result="type_objects")$
-EXPECT_EQ(TK_UNION, type_objects.minimal_type_object.minimal()._d());
-EXPECT_EQ(TK_UNION, type_objects.complete_type_object.complete()._d());
-$expected_type_flags(object=union)$
-EXPECT_EQ($union.name$_expected_flags, type_objects.minimal_type_object.minimal().union_type().union_flags());
-EXPECT_EQ($union.name$_expected_flags, type_objects.complete_type_object.complete().union_type().union_flags());
-$check_type_detail_annotations(object=union, type="union_type().header().detail()")$
-EXPECT_EQ("$union.scopedname$", type_objects.complete_type_object.complete().union_type().header().detail().type_name().to_string());
-$expected_member_flags(object=union.discriminator, typename=union.discriminator.name)$
-EXPECT_EQ($union.discriminator.name$_expected_flags, type_objects.minimal_type_object.minimal().union_type().discriminator().common().member_flags());
-EXPECT_EQ($union.discriminator.name$_expected_flags, type_objects.complete_type_object.complete().union_type().discriminator().common().member_flags());
-TypeIdentifierPair discriminator_type_ids;
-$if(union.discriminator.typecode.primitive && !union.discriminator.typecode.isEnumType && !union.discriminator.typecode.isAliasType)$
-$if (union.discriminator.typecode.isByteType)$
-$get_type_identifier_registry(typename="_byte", result="discriminator_type_ids")$
-$else$
-$get_type_identifier_registry(typename=["_", union.discriminator.typecode.cppTypenameForTypeId], result="discriminator_type_ids")$
-$endif$
-$else$
-$get_type_identifier_registry(typename=union.discriminator.typecode.scopedname, result="discriminator_type_ids")$
-$endif$
-EXPECT_TRUE(discriminator_type_ids.type_identifier1() == type_objects.minimal_type_object.minimal().union_type().discriminator().common().type_id() ||
-    discriminator_type_ids.type_identifier1() == type_objects.complete_type_object.complete().union_type().discriminator().common().type_id());
-if (TK_NONE == discriminator_type_ids.type_identifier2()._d())
-{
-    EXPECT_EQ(type_objects.minimal_type_object.minimal().union_type().discriminator().common().type_id(),
-            type_objects.complete_type_object.complete().union_type().discriminator().common().type_id());
-}
-else
-{
-    EXPECT_TRUE(discriminator_type_ids.type_identifier2() == type_objects.minimal_type_object.minimal().union_type().discriminator().common().type_id() ||
-        discriminator_type_ids.type_identifier2() == type_objects.complete_type_object.complete().union_type().discriminator().common().type_id());
-}
-$check_type_detail_annotations(object=union.discriminator, type="union_type().discriminator()")$
-MemberId member_id = 1;
-$union.members: { member | $check_union_member(member=member, parent=union)$}; separator="\n"$
-ASSERT_EQ($union.membersSize$, type_objects.minimal_type_object.minimal().union_type().member_seq().size());
-for (size_t i = 1; i < type_objects.minimal_type_object.minimal().union_type().member_seq().size(); ++i)
-{
-    EXPECT_LT(type_objects.minimal_type_object.minimal().union_type().member_seq()[i-1].common().member_id(),
-            type_objects.minimal_type_object.minimal().union_type().member_seq()[i].common().member_id());
-}
-ASSERT_EQ($union.membersSize$, type_objects.complete_type_object.complete().union_type().member_seq().size());
-for (size_t i = 1; i < type_objects.complete_type_object.complete().union_type().member_seq().size(); ++i)
-{
-    EXPECT_LT(type_objects.complete_type_object.complete().union_type().member_seq()[i-1].common().member_id(),
-            type_objects.complete_type_object.complete().union_type().member_seq()[i].common().member_id());
 }
 >>
 
@@ -800,47 +910,6 @@ check_label(label) ::= <<
 }
 >>
 
-test_enum(enum) ::= <<
-TEST(TypeObjectTests, TestEnumTypeObject_$enum.name$)
-{
-    // Enum Types does not have a specific register function: register every type in IDL file.
-    register_$ctx.filename$_type_objects();
-
-    $check_enum_type(enum=enum)$
-}
->>
-
-check_enum_type(enum) ::= <<
-ReturnCode_t ret_code;
-TypeIdentifierPair type_ids;
-$get_type_identifier_registry(typename=enum.scopedname, result="type_ids")$
-$check_direct_hash_type_identifier(typeid="type_ids")$
-TypeObjectPair type_objects;
-$get_type_object_registry(typename=enum.scopedname, result="type_objects")$
-EXPECT_EQ(TK_ENUM, type_objects.minimal_type_object.minimal()._d());
-EXPECT_EQ(TK_ENUM, type_objects.complete_type_object.complete()._d());
-EXPECT_EQ(0u, type_objects.minimal_type_object.minimal().enumerated_type().enum_flags());
-EXPECT_EQ(0u, type_objects.complete_type_object.complete().enumerated_type().enum_flags());
-EXPECT_EQ($enum.bitBound$, type_objects.minimal_type_object.minimal().enumerated_type().header().common().bit_bound());
-EXPECT_EQ($enum.bitBound$, type_objects.complete_type_object.complete().enumerated_type().header().common().bit_bound());
-$check_type_detail_annotations(object=enum, type="enumerated_type().header().detail()")$
-EXPECT_EQ("$enum.scopedname$", type_objects.complete_type_object.complete().enumerated_type().header().detail().type_name().to_string());
-int32_t enum_literal_id = 0;
-$enum.members: { member | $check_enum_literal(literal=member, parent=enum)$}; separator="\n"$
-ASSERT_EQ($enum.membersSize$, type_objects.minimal_type_object.minimal().enumerated_type().literal_seq().size());
-for (size_t i = 1; i < type_objects.minimal_type_object.minimal().enumerated_type().literal_seq().size(); ++i)
-{
-    EXPECT_LT(type_objects.minimal_type_object.minimal().enumerated_type().literal_seq()[i-1].common().value(),
-            type_objects.minimal_type_object.minimal().enumerated_type().literal_seq()[i].common().value());
-}
-ASSERT_EQ($enum.membersSize$, type_objects.complete_type_object.complete().enumerated_type().literal_seq().size());
-for (size_t i = 1; i < type_objects.complete_type_object.complete().enumerated_type().literal_seq().size(); ++i)
-{
-    EXPECT_LT(type_objects.complete_type_object.complete().enumerated_type().literal_seq()[i-1].common().value(),
-            type_objects.complete_type_object.complete().enumerated_type().literal_seq()[i].common().value());
-}
->>
-
 check_enum_literal(literal, parent) ::= <<
 {
     size_t pos = 0;
@@ -872,46 +941,6 @@ check_enum_literal(literal, parent) ::= <<
 }
 >>
 
-test_bitmask(bitmask) ::= <<
-TEST(TypeObjectTests, TestBitmaskTypeObject_$bitmask.name$)
-{
-    // Bitmask Types does not have a specific register function: register every type in IDL file.
-    register_$ctx.filename$_type_objects();
-
-    $check_bitmask_type(bitmask=bitmask)$
-}
->>
-
-check_bitmask_type(bitmask) ::= <<
-ReturnCode_t ret_code;
-TypeIdentifierPair type_ids;
-$get_type_identifier_registry(typename=bitmask.scopedname, result="type_ids")$
-$check_direct_hash_type_identifier(typeid="type_ids")$
-TypeObjectPair type_objects;
-$get_type_object_registry(typename=bitmask.scopedname, result="type_objects")$
-EXPECT_EQ(TK_BITMASK, type_objects.minimal_type_object.minimal()._d());
-EXPECT_EQ(TK_BITMASK, type_objects.complete_type_object.complete()._d());
-EXPECT_EQ(0u, type_objects.minimal_type_object.minimal().bitmask_type().bitmask_flags());
-EXPECT_EQ(0u, type_objects.complete_type_object.complete().bitmask_type().bitmask_flags());
-EXPECT_EQ($bitmask.bitBound$, type_objects.minimal_type_object.minimal().bitmask_type().header().common().bit_bound());
-EXPECT_EQ($bitmask.bitBound$, type_objects.complete_type_object.complete().bitmask_type().header().common().bit_bound());
-$check_type_detail_annotations(object=bitmask, type="bitmask_type().header().detail()")$
-EXPECT_EQ("$bitmask.scopedname$", type_objects.complete_type_object.complete().bitmask_type().header().detail().type_name().to_string());
-$bitmask.members: { member | $check_bitmask_flag(bitflag=member, parent=bitmask)$}; separator="\n"$
-ASSERT_EQ($bitmask.membersSize$, type_objects.minimal_type_object.minimal().bitmask_type().flag_seq().size());
-for (size_t i = 1; i < type_objects.minimal_type_object.minimal().bitmask_type().flag_seq().size(); ++i)
-{
-    EXPECT_LT(type_objects.minimal_type_object.minimal().bitmask_type().flag_seq()[i-1].common().position(),
-            type_objects.minimal_type_object.minimal().bitmask_type().flag_seq()[i].common().position());
-}
-ASSERT_EQ($bitmask.membersSize$, type_objects.complete_type_object.complete().bitmask_type().flag_seq().size());
-for (size_t i = 1; i < type_objects.complete_type_object.complete().bitmask_type().flag_seq().size(); ++i)
-{
-    EXPECT_LT(type_objects.complete_type_object.complete().bitmask_type().flag_seq()[i-1].common().position(),
-            type_objects.complete_type_object.complete().bitmask_type().flag_seq()[i].common().position());
-}
->>
-
 check_bitmask_flag(bitflag, parent) ::= <<
 {
     size_t pos = 0;
@@ -935,42 +964,7 @@ check_bitmask_flag(bitflag, parent) ::= <<
 }
 >>
 
-test_bitset(bitset) ::= <<
-TEST(TypeObjectTests, TestBitsetTypeObject_$bitset.name$)
-{
-    // Bitset Types does not have a specific register function: register every type in IDL file.
-    register_$ctx.filename$_type_objects();
-
-    $check_bitset_type(bitset=bitset)$
-}
->>
-
 check_bitset_type(bitset) ::= <<
-ReturnCode_t ret_code;
-TypeIdentifierPair type_ids;
-$get_type_identifier_registry(typename=bitset.scopedname, result="type_ids")$
-$check_direct_hash_type_identifier(typeid="type_ids")$
-TypeObjectPair type_objects;
-$get_type_object_registry(typename=bitset.scopedname, result="type_objects")$
-EXPECT_EQ(TK_BITSET, type_objects.minimal_type_object.minimal()._d());
-EXPECT_EQ(TK_BITSET, type_objects.complete_type_object.complete()._d());
-EXPECT_EQ(0u, type_objects.minimal_type_object.minimal().bitset_type().bitset_flags());
-EXPECT_EQ(0u, type_objects.complete_type_object.complete().bitset_type().bitset_flags());
-$check_type_detail_annotations(object=bitset, type="bitset_type().header().detail()")$
-EXPECT_EQ("$bitset.scopedname$", type_objects.complete_type_object.complete().bitset_type().header().detail().type_name().to_string());
-$bitset.definedBitfields: { bitfield | $check_bitfield(bitfield=bitfield, parent=bitset)$}; separator="\n"$
-ASSERT_EQ($bitset.membersSize$, type_objects.minimal_type_object.minimal().bitset_type().field_seq().size());
-for (size_t i = 1; i < type_objects.minimal_type_object.minimal().bitset_type().field_seq().size(); ++i)
-{
-    EXPECT_LT(type_objects.minimal_type_object.minimal().bitset_type().field_seq()[i-1].common().position(),
-            type_objects.minimal_type_object.minimal().bitset_type().field_seq()[i].common().position());
-}
-ASSERT_EQ($bitset.membersSize$, type_objects.complete_type_object.complete().bitset_type().field_seq().size());
-for (size_t i = 1; i < type_objects.complete_type_object.complete().bitset_type().field_seq().size(); ++i)
-{
-    EXPECT_LT(type_objects.complete_type_object.complete().bitset_type().field_seq()[i-1].common().position(),
-            type_objects.complete_type_object.complete().bitset_type().field_seq()[i].common().position());
-}
 >>
 
 check_bitfield(bitfield, parent) ::= <<
@@ -997,45 +991,6 @@ check_bitfield(bitfield, parent) ::= <<
     EXPECT_EQ("$bitfield.name$", type_objects.complete_type_object.complete().bitset_type().field_seq()[pos].detail().name().to_string());
     EXPECT_EQ(TypeObjectUtils::name_hash("$bitfield.name$"), type_objects.minimal_type_object.minimal().bitset_type().field_seq()[pos].name_hash());
     $check_member_detail_annotations(member=bitfield, type="bitset_type().field_seq()[pos].detail()", parent=parent)$
-}
->>
-
-test_annotation(annotation) ::= <<
-TEST(TypeObjectTests, TestAnnotationTypeObject_$annotation.name$)
-{
-    TypeIdentifier type_id;
-    // Register specific annotation TypeObject
-    $if (!annotation.scope.empty)$$annotation.scope$::$endif$register_$annotation.CScopedname$_type_identifier(type_id);
-    EXPECT_NE(TypeIdentifier(), type_id);
-
-    $check_annotation_type(annotation=annotation)$
-}
->>
-
-check_annotation_type(annotation) ::= <<
-ReturnCode_t ret_code;
-TypeIdentifierPair type_ids;
-$get_type_identifier_registry(typename=annotation.scopedname, result="type_ids")$
-$check_direct_hash_type_identifier(typeid="type_ids")$
-TypeObjectPair type_objects;
-$get_type_object_registry(typename=annotation.scopedname, result="type_objects")$
-EXPECT_EQ(TK_ANNOTATION, type_objects.minimal_type_object.minimal()._d());
-EXPECT_EQ(TK_ANNOTATION, type_objects.complete_type_object.complete()._d());
-EXPECT_EQ(0u, type_objects.minimal_type_object.minimal().annotation_type().annotation_flag());
-EXPECT_EQ(0u, type_objects.complete_type_object.complete().annotation_type().annotation_flag());
-EXPECT_EQ("$annotation.scopedname$", type_objects.complete_type_object.complete().annotation_type().header().annotation_name().to_string());
-$annotation.members: { member | $check_annotation_parameter_member(parameter=member)$}; separator="\n"$
-ASSERT_EQ($annotation.membersSize$, type_objects.minimal_type_object.minimal().annotation_type().member_seq().size());
-for (size_t i = 1; i < type_objects.minimal_type_object.minimal().annotation_type().member_seq().size(); ++i)
-{
-    EXPECT_LT(type_objects.minimal_type_object.minimal().annotation_type().member_seq()[i-1].name_hash(),
-            type_objects.minimal_type_object.minimal().annotation_type().member_seq()[i].name_hash());
-}
-ASSERT_EQ($annotation.membersSize$, type_objects.complete_type_object.complete().annotation_type().member_seq().size());
-for (size_t i = 1; i < type_objects.complete_type_object.complete().annotation_type().member_seq().size(); ++i)
-{
-    EXPECT_LT(type_objects.complete_type_object.complete().annotation_type().member_seq()[i-1].name(),
-            type_objects.complete_type_object.complete().annotation_type().member_seq()[i].name());
 }
 >>
 
