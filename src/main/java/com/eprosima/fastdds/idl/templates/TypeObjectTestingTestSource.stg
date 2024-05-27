@@ -19,6 +19,31 @@ import "eprosima.stg"
 main(ctx, definitions) ::= <<
 $fileHeader(ctx=ctx,  file=[ctx.filename, "TypeObjectTestingTest.cpp"], description=["This file contains TypeObject test code."])$
 
+//{{{ Hack to jump the eprosima::fastcdr::external::operator==() generic which compares pointers and compare the objects.
+#include <fastcdr/xcdr/external.hpp>
+
+namespace eprosima {
+namespace fastdds {
+namespace dds {
+namespace xtypes {
+class TypeIdentifier;
+} // namespace xtypes
+} // namespace dds
+} // namespace fastdds
+} // namespace eprosima
+
+bool type_identifier_equal(
+        const eprosima::fastdds::dds::xtypes::TypeIdentifier& x1,
+        const eprosima::fastdds::dds::xtypes::TypeIdentifier& x2);
+
+template<>
+bool eprosima::fastcdr::external<eprosima::fastdds::dds::xtypes::TypeIdentifier>::operator ==(
+        const eprosima::fastcdr::external<eprosima::fastdds::dds::xtypes::TypeIdentifier>& x) const
+{
+    return type_identifier_equal(*this->get(), *x.get());
+}
+//}}}
+
 #include <fastdds/dds/core/ReturnCode.hpp>
 #include <fastdds/dds/domain/DomainParticipantFactory.hpp>
 #include <fastdds/dds/xtypes/exception/Exception.hpp>
@@ -34,6 +59,13 @@ $ctx.directIncludeDependencies : {include | #include "$include$.hpp"}; separator
 
 using ReturnCode_t = eprosima::fastdds::dds::ReturnCode_t;
 using namespace eprosima::fastdds::dds::xtypes;
+
+bool type_identifier_equal(
+        const TypeIdentifier& x1,
+        const TypeIdentifier& x2)
+{
+    return x1 == x2;
+}
 
 class TypeObjectUtilsTest : public TypeObjectUtils
 {
@@ -233,7 +265,7 @@ TEST(TypeObjectTests, TestEnumTypeObject_$enum.name$)
     TypeIdentifierPair type_ids;
 
     // Register specific enum TypeObject
-    $enum.scope$::register_$enum.name$_type_identifier(type_ids);
+    $if(enum.scope)$::$endif$$enum.scope$::register_$enum.name$_type_identifier(type_ids);
 
     $check_type_identifier_consistency(result="type_ids")$
     $check_direct_hash_type_identifier(typeid="type_ids")$
