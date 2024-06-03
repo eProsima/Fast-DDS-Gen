@@ -187,7 +187,6 @@ void register_$struct.name$_type_identifier(
     {
         StructTypeFlag struct_flags_$struct.name$ = TypeObjectUtils::build_struct_type_flag($extensibility(object=struct)$
                 $struct.annotationNested$, $struct.annotationAutoidHash$);
-        static_cast<void>(return_code_$struct.name$);
         $if (struct.inheritance)$
         $get_type_identifier(type=struct.inheritance, name=struct.name)$
         if (return_code_$struct.name$ != eprosima::fastdds::dds::RETCODE_OK)
@@ -314,7 +313,6 @@ void register_$union.name$_type_identifier(
     $get_type_identifier_registry(typename=union.scopedname, name=union.name)$
     if (eprosima::fastdds::dds::RETCODE_OK != return_code_$union.name$)
     {
-        ReturnCode_t return_code_$union.name$;
         UnionTypeFlag union_flags_$union.name$ = TypeObjectUtils::build_union_type_flag($extensibility(object=union)$
                 $union.annotationNested$, $union.annotationAutoidHash$);
         $complete_type_detail(type=union, type_kind=" Union", name=union.name)$
