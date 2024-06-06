@@ -917,7 +917,15 @@ if (eprosima::fastdds::dds::RETCODE_OK != return_code_$name$)
 
 extensibility(object) ::= <%
 $if (object.annotationExtensibilityNotApplied)$
-    eprosima::fastdds::dds::xtypes::ExtensibilityKind::NOT_APPLIED,
+    $if(object.isStructType)$
+    $if(object.inheritance)$
+    $extensibility(object.inheritance)$
+    $else$
+    eprosima::fastdds::dds::xtypes::ExtensibilityKind::APPENDABLE,
+    $endif$
+    $else$
+    eprosima::fastdds::dds::xtypes::ExtensibilityKind::APPENDABLE,
+    $endif$
 $elseif (object.annotationAppendable)$
     eprosima::fastdds::dds::xtypes::ExtensibilityKind::APPENDABLE,
 $elseif (object.annotationFinal)$
