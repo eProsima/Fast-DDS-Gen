@@ -929,13 +929,13 @@ $endif$
 
 try_construct(object) ::= <%
 $if (!object.annotationTryConstruct)$
-    eprosima::fastdds::dds::xtypes::TryConstructKind::NOT_APPLIED,
+    eprosima::fastdds::dds::xtypes::TryConstructFailAction::DISCARD,
 $elseif (object.annotationDiscard)$
-    eprosima::fastdds::dds::xtypes::TryConstructKind::DISCARD,
+    eprosima::fastdds::dds::xtypes::TryConstructFailAction::DISCARD,
 $elseif (object.annotationUseDefault)$
-    eprosima::fastdds::dds::xtypes::TryConstructKind::USE_DEFAULT,
+    eprosima::fastdds::dds::xtypes::TryConstructFailAction::USE_DEFAULT,
 $elseif (object.annotationTrim)$
-    eprosima::fastdds::dds::xtypes::TryConstructKind::TRIM,
+    eprosima::fastdds::dds::xtypes::TryConstructFailAction::TRIM,
 $endif$
 %>
 

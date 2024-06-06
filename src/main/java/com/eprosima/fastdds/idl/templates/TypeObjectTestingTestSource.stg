@@ -764,6 +764,8 @@ $typename$_expected_flags |= MemberFlagBits::TRY_CONSTRUCT2;
 $elseif(object.annotationTrim)$
 $typename$_expected_flags |= MemberFlagBits::TRY_CONSTRUCT1 | MemberFlagBits::TRY_CONSTRUCT2;
 $endif$
+$else$
+$typename$_expected_flags |= MemberFlagBits::TRY_CONSTRUCT1;
 $endif$
 $if(object.annotationExternal)$
 $typename$_expected_flags |= MemberFlagBits::IS_EXTERNAL;
