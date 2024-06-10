@@ -33,8 +33,8 @@ $ctx.directIncludeDependencies : {include | #include "$include$PubSubJNII.h"}; s
 #include <fastcdr/FastBuffer.h>
 #include <fastcdr/Cdr.h>
 
-using namespace eprosima::fastrtps;
-using namespace eprosima::fastrtps::rtps;
+using namespace eprosima::fastdds;
+using namespace eprosima::fastdds::rtps;
 
 #ifndef JNIEXPORT
 #define JNIEXPORT

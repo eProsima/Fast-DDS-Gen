@@ -49,7 +49,7 @@ TEST_P($struct.formatedCppTypename$Test, encoding)
             << (true == test_empty_external ? " with an empty external" : "")
             << " using encoding " << (eprosima::fastdds::dds::DataRepresentationId_t::XCDR_DATA_REPRESENTATION == cdr_version ? "XCDRv1" : "XCDRv2") <<
             " ========================================" << std::endl;
-    using eprosima::fastrtps::rtps::SerializedPayload_t;
+    using eprosima::fastdds::rtps::SerializedPayload_t;
 
     $struct.name$PubSubType $struct.name$_type_support;
     $struct.name$ $struct.name$_serialization_topic;
