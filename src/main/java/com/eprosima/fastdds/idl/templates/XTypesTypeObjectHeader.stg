@@ -36,12 +36,6 @@ $ctx.directIncludeDependencies : { include | #include "$include$TypeObjectSuppor
 #define eProsima_user_DllExport
 #endif  // _WIN32
 
-/**
- * @brief Register every TypeObject representation defined in the IDL file in Fast DDS TypeObjectRegistry.
- */
-$! TODO: ensure no conflict between IDL files with same name but different directory !$
-eProsima_user_DllExport void register_$ctx.filename$_type_objects();
-
 #ifndef DOXYGEN_SHOULD_SKIP_THIS_PUBLIC
 
 $definitions; separator=""$
@@ -64,15 +58,44 @@ $definitions; separator="\n"$
 >>
 
 annotation(ctx, annotation) ::= <<
-$register_type_identifier(typename=annotation.CScopedname)$
+
+namespace $annotation.name$ {
+    $annotation.enums : { enum | $enum_type(ctx=ctx, parent=annotation, enum=enum)$}; separator="\n"$
+
+    $annotation.typeDefs : { typedef | $typedef_decl(ctx=ctx, parent=annotation, typedefs=typedef, typedefs_type="", declarator_type="")$}; separator="\n"$
+
+    $annotation.constDecls : { const | $const_decl(ctx=ctx, parent=annotation, const=const, const_type="")$}; separator="\n"$
+
+} // namespace $annotation.name$
+
+$register_type_identifier(typename=annotation.name)$
+>>
+
+bitmask_type(ctx, parent, bitmask) ::= <<
+$register_type_identifier(typename=bitmask.name)$
+>>
+
+bitset_type(ctx, parent, bitset) ::= <<
+$register_type_identifier(typename=bitset.name)$
+>>
+
+enum_type(ctx, parent, enum) ::= <<
+$register_type_identifier(typename=enum.name)$
 >>
 
 struct_type(ctx, parent, struct, member_list) ::= <<
-$register_type_identifier(typename=struct.CScopedname)$
+$register_type_identifier(typename=struct.name)$
+>>
+
+typedef_decl(ctx, parent, typedefs, typedefs_type, declarator_type) ::= <<
+$typedefs : { typedef |
+$register_type_identifier(typename=typedef.name)$
+
+}; separator="\n"$
 >>
 
 union_type(ctx, parent, union, extensions, switch_type) ::= <<
-$register_type_identifier(typename=union.CScopedname)$
+$register_type_identifier(typename=union.name)$
 >>
 
 /***** Utils *****/
@@ -88,7 +111,7 @@ register_type_identifier(typename) ::= <<
  *             Invalid TypeIdentifier is returned in case of error.
  */
 eProsima_user_DllExport void register_$typename$_type_identifier(
-        eprosima::fastdds::dds::xtypes::TypeIdentifier& type_id);
+        eprosima::fastdds::dds::xtypes::TypeIdentifierPair& type_ids);
 
 >>
 

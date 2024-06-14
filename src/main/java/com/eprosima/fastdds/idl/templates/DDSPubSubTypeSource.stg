@@ -239,10 +239,10 @@ bool $struct.name$PubSubType::getKey(
     return true;
 }
 
-void $struct.name$PubSubType::register_type_object_representation() const
+void $struct.name$PubSubType::register_type_object_representation()
 {
     $if (ctx.generateTypeObjectSupport)$
-    register_$ctx.filename$_type_objects();
+    register_$struct.name$_type_identifier(type_identifiers_);
     $else$
     EPROSIMA_LOG_WARNING(XTYPES_TYPE_REPRESENTATION,
         "TypeObject type representation support disabled in generated code");
