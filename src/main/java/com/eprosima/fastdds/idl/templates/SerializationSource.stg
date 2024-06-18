@@ -19,7 +19,7 @@ import "eprosima.stg"
 main(ctx, definitions) ::= <<
 $fileHeader(ctx=ctx,  file=[ctx.filename, "SerializationSource.cpp"], description=["This file contains serialization code."])$
 
-#include "$ctx.filename$Serialization.h"
+#include "$ctx.filename$Serialization.hpp"
 
 #include <cassert>
 #include <cinttypes>
@@ -34,7 +34,7 @@ $fileHeader(ctx=ctx,  file=[ctx.filename, "SerializationSource.cpp"], descriptio
 bool g_$ctx.filename$_test_null_opt = false;
 bool g_$ctx.filename$_test_empty_ext = false;
 
-$ctx.directIncludeDependencies:{ header | #include "$header$Serialization.h"}; separator="\n"$
+$ctx.directIncludeDependencies:{ header | #include "$header$Serialization.hpp"}; separator="\n"$
 
 $definitions; separator="\n"$
 

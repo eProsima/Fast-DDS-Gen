@@ -28,10 +28,10 @@ $fileHeader(ctx=ctx,  file=[ctx.filename, "SerializationTest.cpp"], description=
 
 #include <gtest/gtest.h>
 
-#include "$ctx.filename$PubSubTypes.h"
-#include "$ctx.filename$Serialization.h"
+#include "$ctx.filename$PubSubTypes.hpp"
+#include "$ctx.filename$Serialization.hpp"
 #include <fastcdr/Cdr.h>
-#include <fastdds/rtps/common/SerializedPayload.h>
+#include <fastdds/rtps/common/SerializedPayload.hpp>
 
 $definitions; separator="\n"$
 

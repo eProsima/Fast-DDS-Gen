@@ -20,8 +20,8 @@ main(ctx, definitions) ::= <<
 $fileHeader(ctx=ctx,  file=[ctx.filename, "Publisher.cpp"], description=["This file contains the implementation of the publisher functions."])$
 
 
-#include "$ctx.filename$Publisher.h"
-#include "$ctx.filename$PubSubTypes.h"
+#include "$ctx.filename$Publisher.hpp"
+#include "$ctx.filename$PubSubTypes.hpp"
 
 #include <fastdds/dds/domain/DomainParticipantFactory.hpp>
 #include <fastdds/dds/publisher/Publisher.hpp>

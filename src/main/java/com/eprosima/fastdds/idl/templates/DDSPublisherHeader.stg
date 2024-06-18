@@ -17,11 +17,11 @@ group ProtocolHeader;
 import "eprosima.stg"
 
 main(ctx, definitions) ::= <<
-$fileHeader(ctx=ctx,  file=[ctx.filename, "Publisher.h"], description=["This header file contains the declaration of the publisher functions."])$
+$fileHeader(ctx=ctx,  file=[ctx.filename, "Publisher.hpp"], description=["This header file contains the declaration of the publisher functions."])$
 
 
-#ifndef _FAST_DDS_GENERATED_$ctx.headerGuardName$_PUBLISHER_H_
-#define _FAST_DDS_GENERATED_$ctx.headerGuardName$_PUBLISHER_H_
+#ifndef FAST_DDS_GENERATED__$ctx.headerGuardName$_PUBLISHER_HPP
+#define FAST_DDS_GENERATED__$ctx.headerGuardName$_PUBLISHER_HPP
 
 #include <fastdds/dds/domain/DomainParticipant.hpp>
 #include <fastdds/dds/publisher/DataWriter.hpp>
@@ -66,5 +66,5 @@ private:
     listener_;
 };
 
-#endif // _FAST_DDS_GENERATED_$ctx.headerGuardName$_PUBLISHER_H_
+#endif // FAST_DDS_GENERATED__$ctx.headerGuardName$_PUBLISHER_HPP
 >>

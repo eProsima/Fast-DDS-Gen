@@ -17,10 +17,10 @@ group ProtocolHeader;
 import "eprosima.stg"
 
 main(ctx, definitions) ::= <<
-$fileHeader(ctx=ctx,  file=[ctx.filename, "Serialization.h"], description=["This file contains serialization definitions."])$
+$fileHeader(ctx=ctx,  file=[ctx.filename, "Serialization.hpp"], description=["This file contains serialization definitions."])$
 
-#ifndef _FAST_DDS_GENERATED_$ctx.headerGuardName$_SERIALIZATION_H_
-#define _FAST_DDS_GENERATED_$ctx.headerGuardName$_SERIALIZATION_H_
+#ifndef FAST_DDS_GENERATED__$ctx.headerGuardName$_SERIALIZATION_HPP
+#define FAST_DDS_GENERATED__$ctx.headerGuardName$_SERIALIZATION_HPP
 
 #include "$ctx.filename$.hpp"
 
@@ -29,7 +29,7 @@ $definitions; separator="\n"$
 extern bool g_$ctx.filename$_test_null_opt;
 extern bool g_$ctx.filename$_test_empty_ext;
 
-#endif //_FAST_DDS_GENERATED_$ctx.headerGuardName$_SERIALIZATION_H_
+#endif //FAST_DDS_GENERATED__$ctx.headerGuardName$_SERIALIZATION_HPP
 >>
 
 struct_type(ctx, parent, struct, member_list) ::= <<

@@ -943,7 +943,7 @@ public class fastddsgen
                     project.addCommonTestingFile(relative_dir + ctx.getFilename() + "Serialization.cpp");
 
                     System.out.println("Generating Serialization Header file...");
-                    String fileNameH = output_dir + ctx.getFilename() + "Serialization.h";
+                    String fileNameH = output_dir + ctx.getFilename() + "Serialization.hpp";
                     returnedValue =
                             Utils.writeFile(fileNameH, maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/SerializationHeader.stg"), m_replace);
 
@@ -993,9 +993,9 @@ public class fastddsgen
                         }
                     }
                     returnedValue &=
-                        Utils.writeFile(output_dir + ctx.getFilename() + "PubSubTypes.h",
+                        Utils.writeFile(output_dir + ctx.getFilename() + "PubSubTypes.hpp",
                                 maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/DDSPubSubTypeHeader.stg"), m_replace);
-                    project.addCommonIncludeFile(relative_dir + ctx.getFilename() + "PubSubTypes.h");
+                    project.addCommonIncludeFile(relative_dir + ctx.getFilename() + "PubSubTypes.hpp");
                     if (ctx.existsLastStructure())
                     {
                         m_atLeastOneStructure = true;
@@ -1019,28 +1019,28 @@ public class fastddsgen
                         {
                             System.out.println("Generating Publisher files...");
                             if (returnedValue =
-                                    Utils.writeFile(output_dir + ctx.getFilename() + "Publisher.h",
+                                    Utils.writeFile(output_dir + ctx.getFilename() + "Publisher.hpp",
                                         maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/DDSPublisherHeader.stg"), m_replace))
                             {
                                 if (returnedValue =
                                         Utils.writeFile(output_dir + ctx.getFilename() + "Publisher.cxx",
                                             maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/DDSPublisherSource.stg"), m_replace))
                                 {
-                                    project.addProjectIncludeFile(relative_dir + ctx.getFilename() + "Publisher.h");
+                                    project.addProjectIncludeFile(relative_dir + ctx.getFilename() + "Publisher.hpp");
                                     project.addProjectSrcFile(relative_dir + ctx.getFilename() + "Publisher.cxx");
                                 }
                             }
 
                             System.out.println("Generating Subscriber files...");
                             if (returnedValue =
-                                    Utils.writeFile(output_dir + ctx.getFilename() + "Subscriber.h",
+                                    Utils.writeFile(output_dir + ctx.getFilename() + "Subscriber.hpp",
                                         maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/DDSSubscriberHeader.stg"), m_replace))
                             {
                                 if (returnedValue =
                                         Utils.writeFile(output_dir + ctx.getFilename() + "Subscriber.cxx",
                                             maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/DDSSubscriberSource.stg"), m_replace))
                                 {
-                                    project.addProjectIncludeFile(relative_dir + ctx.getFilename() + "Subscriber.h");
+                                    project.addProjectIncludeFile(relative_dir + ctx.getFilename() + "Subscriber.hpp");
                                     project.addProjectSrcFile(relative_dir + ctx.getFilename() + "Subscriber.cxx");
                                 }
                             }
@@ -1103,11 +1103,11 @@ public class fastddsgen
                     }
                 }
 
-                if (Utils.writeFile(output_dir + ctx.getFilename() + "PubSubJNII.h",
+                if (Utils.writeFile(output_dir + ctx.getFilename() + "PubSubJNII.hpp",
                         maintemplates.getTemplate("JNIHeader"),
                         m_replace))
                 {
-                    project.addJniIncludeFile(relative_dir + ctx.getFilename() + "PubSubJNII.h");
+                    project.addJniIncludeFile(relative_dir + ctx.getFilename() + "PubSubJNII.hpp");
                 }
                 else
                 {
@@ -1490,7 +1490,7 @@ public class fastddsgen
         String javafile = (m_outputDir != null ? m_outputDir : "") +
                 (!m_package.isEmpty() ? m_package.replace('.', File.separatorChar) + File.separator : "") +
                 Util.getIDLFileNameOnly(idlFilename) + "PubSub.java";
-        String headerfile = m_outputDir + Util.getIDLFileNameOnly(idlFilename) + "PubSubJNI.h";
+        String headerfile = m_outputDir + Util.getIDLFileNameOnly(idlFilename) + "PubSubJNI.hpp";
         int exitVal = -1;
         String javac = null;
         String javah = null;

@@ -50,7 +50,7 @@ bool eprosima::fastcdr::external<eprosima::fastdds::dds::xtypes::TypeIdentifier>
 #include <fastdds/dds/xtypes/type_representation/ITypeObjectRegistry.hpp>
 #include <fastdds/dds/xtypes/type_representation/TypeObject.hpp>
 #include <fastdds/dds/xtypes/type_representation/TypeObjectUtils.hpp>
-#include <fastdds/utils/md5.h>
+#include <fastdds/utils/md5.hpp>
 #include <gtest/gtest.h>
 
 $ctx.directIncludeDependencies : {include | #include "$include$.hpp"}; separator="\n"$

@@ -25,8 +25,8 @@ $fileHeader(ctx=ctx,  file=[ctx.filename, "Subscriber.cpp"], description=["This 
 #include <fastdds/dds/subscriber/Subscriber.hpp>
 #include <fastdds/dds/subscriber/qos/DataReaderQos.hpp>
 
-#include "$ctx.filename$Subscriber.h"
-#include "$ctx.filename$PubSubTypes.h"
+#include "$ctx.filename$Subscriber.hpp"
+#include "$ctx.filename$PubSubTypes.hpp"
 
 using namespace eprosima::fastdds::dds;
 
