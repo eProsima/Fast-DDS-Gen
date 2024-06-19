@@ -561,7 +561,7 @@ enum_type(ctx, parent, enum) ::= <<
  * @brief This class represents the enumeration $enum.name$ defined by the user in the IDL file.
  * @ingroup $ctx.trimfilename$
  */
-enum class $enum.name$ : uint32_t
+enum class $enum.name$ : int32_t
 {
     $enum.members:{ member | $member.name$}; separator=",\n"$
 };
