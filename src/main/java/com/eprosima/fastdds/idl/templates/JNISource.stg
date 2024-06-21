@@ -183,7 +183,7 @@ class $struct.name$PubSubJNI : public TopicDataType, public SubscriberListener
                 Domain::removeSubscriber(subscriber_);
         }
 
-        bool serialize(void *data, SerializedPayload_t *payload)
+        bool serialize(const void* const data, SerializedPayload_t *payload)
         {
             $struct.scopedname$ *p_type = ($struct.scopedname$*) data;
             eprosima::fastcdr::FastBuffer fastbuffer((char*) payload->data, payload->max_size);
@@ -220,7 +220,7 @@ class $struct.name$PubSubJNI : public TopicDataType, public SubscriberListener
             delete(($struct.scopedname$*)data);
         }
 
-        bool getKey(void *data, InstanceHandle_t* handle, bool force_md5)
+        bool getKey(const void* const data, InstanceHandle_t* handle, bool force_md5)
         {
             if(!m_isGetKeyDefined)
                 return false;

@@ -3,22 +3,6 @@ name: Fast DDS Gen Ubuntu CI
 on:
   workflow_dispatch:
     inputs:
-      foonathan_memory_vendor_branch:
-        description: 'foonathan_memory_vendor branch to be used'
-        required: true
-        type: string
-      fastcdr_branch:
-        description: 'Fast CDR branches to be used'
-        required: true
-        type: string
-      fastdds_branch:
-        description: 'Fast-DDS branch to be used'
-        required: true
-        type: string
-      fastdds_python_branch:
-        description: 'Fast-DDS-Python branch to be used'
-        required: true
-        type: string
       fastddsgen_branch:
         description: 'Fast-DDS-Gen branch to be used'
         required: true
@@ -45,9 +29,4 @@ jobs:
     with:
       os_image: ${{ matrix.os_image }}
       java_version: ${{ matrix.java_version }}
-      foonathan_memory_vendor_branch: ${{ inputs.foonathan_memory_vendor_branch || 'master' }}
-      fastcdr_branch: ${{ inputs.fastcdr_branch || 'master' }}
-      fastdds_branch: ${{ inputs.fastdds_branch || github.head_ref }}
-      fastdds_python_branch: ${{ inputs.fastdds_python_branch || 'main' }}
       fastddsgen_branch: ${{ inputs.fastddsgen_branch || github.ref || 'master' }}
-      fastdds_fallback_branch: ${{ 'master' }}

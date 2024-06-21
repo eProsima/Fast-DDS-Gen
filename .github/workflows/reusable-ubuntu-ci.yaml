@@ -11,29 +11,9 @@ on:
         description: 'The Java version to be used'
         required: true
         type: string
-      foonathan_memory_vendor_branch:
-        description: 'foonathan_memory_vendor branch to be used'
-        required: true
-        type: string
-      fastcdr_branch:
-        description: 'Fast CDR branch to be used'
-        required: true
-        type: string
-      fastdds_branch:
-        description: 'Fast DDS branch to be used'
-        required: true
-        type: string
-      fastdds_python_branch:
-        description: 'Fast DDS Python branch to be used'
-        required: true
-        type: string
       fastddsgen_branch:
         description: 'Fast DDS Gen branch to be used'
         required: true
-        type: string
-      fastdds_fallback_branch:
-        description: 'Fast DDS fallback branch in case `fastdds_branch` does not exist (e.g. master or 3.0.x-devel)'
-        required: false
         type: string
 
 defaults:
@@ -76,32 +56,48 @@ jobs:
       - name: Install python packages
         uses: eProsima/eProsima-CI/multiplatform/install_colcon@v0
 
-      - name: Determine the Fast DDS branch to be used
-        run: |
-          FASTDDS_REPO=https://github.com/eProsima/Fast-DDS.git
-          # Attempt to use PR's source branch
-          TEMP_BRANCH=${{ inputs.fastdds_branch }}
-          RESPONSE_CODE=$(git ls-remote --heads $FASTDDS_REPO $TEMP_BRANCH | wc -l)
-          if [[ ${RESPONSE_CODE} == "0" ]]
-          then
-            echo "PR source branch '$TEMP_BRANCH' branch DOES NOT exist using default branch '${{ inputs.fastdds_fallback_branch }}'"
-            # Attempt to use PR's fallback branch
-            TEMP_BRANCH=${{ inputs.fastdds_fallback_branch }}
-            RESPONSE_CODE=$(git ls-remote --heads $FASTDDS_REPO $TEMP_BRANCH | wc -l)
-            if [[ ${RESPONSE_CODE} == "0" ]]
-            then
-              echo "PR fallback branch '$TEMP_BRANCH' branch DOES NOT exist"
-              exit 1
-            fi
-          fi
-          echo "FASTDDS_BRANCH=$TEMP_BRANCH" >> $GITHUB_ENV
+      - name: Get Foonathan Memory Vendor branch
+        id: get_foonathan_memory_vendor_branch
+        uses: eProsima/eProsima-CI/ubuntu/get_related_branch_from_repo@v0
+        with:
+          remote_repository: eProsima/foonathan_memory_vendor
+          fallback_branch: master
+
+      - name: Get Fast CDR branch
+        id: get_fastcdr_branch
+        uses: eProsima/eProsima-CI/ubuntu/get_related_branch_from_repo@v0
+        with:
+          remote_repository: eProsima/Fast-CDR
+          fallback_branch: master
+
+      - name: Get Fast DDS branch
+        id: get_fastdds_branch
+        uses: eProsima/eProsima-CI/ubuntu/get_related_branch_from_repo@v0
+        with:
+          remote_repository: eProsima/Fast-DDS
+          fallback_branch: master
+
+      - name: Get Fast DDS Python branch
+        id: get_fastdds_python_branch
+        uses: eProsima/eProsima-CI/ubuntu/get_related_branch_from_repo@v0
+        with:
+          remote_repository: eProsima/Fast-DDS-python
+          fallback_branch: main
+
+      - name: Get Discovery Server branch
+        id: get_discovery_server_branch
+        uses: eProsima/eProsima-CI/ubuntu/get_related_branch_from_repo@v0
+        with:
+          remote_repository: eProsima/Discovery-Server
+          fallback_branch: master
 
       - uses: ./src/fastddsgen/.github/actions/fetch-fastddsgen-repos
         with:
-          foonathan-memory-vendor-branch: ${{ inputs.foonathan_memory_vendor_branch }}
-          fastcdr-branch: ${{ inputs.fastcdr_branch }}
-          fastdds-branch: ${{ env.FASTDDS_BRANCH }}
-          fastdds-python-branch: ${{ inputs.fastdds_python_branch }}
+          foonathan-memory-vendor-branch: ${{ steps.get_foonathan_memory_vendor_branch.outputs.deduced_branch }}
+          fastcdr-branch: ${{ steps.get_fastcdr_branch.outputs.deduced_branch }}
+          fastdds-branch: ${{ steps.get_fastdds_branch.outputs.deduced_branch }}
+          fastdds-python-branch: ${{ steps.get_fastdds_python_branch.outputs.deduced_branch }}
+          discovery-server-branch: ${{ steps.get_discovery_server_branch.outputs.deduced_branch }}
 
       - name: Build fastddsgen
         run: |
@@ -109,13 +105,17 @@ jobs:
           ./gradlew assemble
           echo "$(pwd)/scripts" >> ${{ github.path }}
 
-      - name: Regenerate IDL files for Fast-DDS and Fast-DDS-python
+      - name: Regenerate IDL files for Fast DDS, Fast DDS Python, and Discovery Server
         run: |
           cd src/Fast-DDS
           ./utils/scripts/update_generated_code_from_idl.sh
           cd -
 
           cd src/Fast-DDS-python
+          ./utils/scripts/update_generated_code_from_idl.sh
+          cd -
+
+          cd src/Discovery-Server
           ./utils/scripts/update_generated_code_from_idl.sh
           cd -
 
