@@ -15,6 +15,13 @@ on:
         description: 'Fast DDS Gen branch to be used'
         required: true
         type: string
+      use-ccache:
+        description: 'Use CCache to speed up the build'
+        required: false
+        type: boolean
+        default: false
+env:
+  ccache-mixin: ${{ inputs.use-ccache == true && 'ccache' || '' }}
 
 defaults:
   run:

@@ -7,6 +7,11 @@ on:
         description: 'Fast-DDS-Gen branch to be used'
         required: true
         type: string
+      use-ccache:
+        description: 'Use CCache to speed up the build'
+        required: false
+        type: boolean
+        default: false
 
   pull_request:
 
@@ -30,3 +35,4 @@ jobs:
       os_image: ${{ matrix.os_image }}
       java_version: ${{ matrix.java_version }}
       fastddsgen_branch: ${{ inputs.fastddsgen_branch || github.ref || 'master' }}
+      use-ccache: ${{ ((inputs.use-ccache == true) && true) || false }}
