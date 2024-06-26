@@ -15,6 +15,13 @@ on:
         description: 'Fast DDS Gen branch to be used'
         required: true
         type: string
+      use-ccache:
+        description: 'Use CCache to speed up the build'
+        required: false
+        type: boolean
+        default: false
+env:
+  ccache-mixin: ${{ inputs.use-ccache == true && 'ccache' || '' }}
 
 defaults:
   run:
@@ -36,6 +43,12 @@ jobs:
         uses: eProsima/eProsima-CI/external/get-cmake@v0
         with:
           cmakeVersion: 3.22.6
+
+      - name: Setup CCache
+        uses: eProsima/eProsima-CI/external/setup-ccache-action@v0
+        if: ${{ inputs.use-ccache == true }}
+        with:
+          api_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install apt packages
         uses: eProsima/eProsima-CI/ubuntu/install_apt_packages@v0
@@ -117,7 +130,7 @@ jobs:
       - name: Build workspace
         run: |
           cmake --version
-          colcon build --event-handlers=console_direct+ --mixin rel-with-deb-info --metas src/fastddsgen/.github/fastddsgen.meta
+          colcon build --event-handlers=console_direct+ --mixin rel-with-deb-info ${{ env.ccache-mixin }} --metas src/fastddsgen/.github/fastddsgen.meta
 
       - name: Test fastddsgen
         run: |
