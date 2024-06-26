@@ -20,8 +20,8 @@ import "FastCdrCommon.stg"
 main(ctx, definitions) ::= <<
 $fileHeader(ctx=ctx, file=[ctx.filename, ".hpp"], description=["This header file contains the declaration of the described types in the IDL file."])$
 
-#ifndef _FAST_DDS_GENERATED_$ctx.headerGuardName$_HPP_
-#define _FAST_DDS_GENERATED_$ctx.headerGuardName$_HPP_
+#ifndef FAST_DDS_GENERATED__$ctx.headerGuardName$_HPP
+#define FAST_DDS_GENERATED__$ctx.headerGuardName$_HPP
 
 $if(ctx.thereIsArray)$
 #include <array>
