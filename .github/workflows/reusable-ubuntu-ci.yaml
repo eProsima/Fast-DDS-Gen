@@ -37,11 +37,6 @@ jobs:
         with:
           cmakeVersion: 3.22.6
 
-      - name: Setup CCache
-        uses: eProsima/eProsima-CI/external/setup-ccache-action@v0
-        with:
-          api_token: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Install apt packages
         uses: eProsima/eProsima-CI/ubuntu/install_apt_packages@v0
         with:
@@ -122,7 +117,7 @@ jobs:
       - name: Build workspace
         run: |
           cmake --version
-          colcon build --event-handlers=console_direct+ --mixin rel-with-deb-info ccache --metas src/fastddsgen/.github/fastddsgen.meta
+          colcon build --event-handlers=console_direct+ --mixin rel-with-deb-info --metas src/fastddsgen/.github/fastddsgen.meta
 
       - name: Test fastddsgen
         run: |
