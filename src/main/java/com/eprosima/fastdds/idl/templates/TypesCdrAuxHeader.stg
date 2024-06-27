@@ -19,8 +19,8 @@ import "eprosima.stg"
 main(ctx, definitions, extensions) ::= <<
 $fileHeader(ctx=ctx, file=[ctx.filename, "CdrAux.hpp"], description=["This source file contains some definitions of CDR related functions."])$
 
-#ifndef _FAST_DDS_GENERATED_$ctx.headerGuardName$CDRAUX_HPP_
-#define _FAST_DDS_GENERATED_$ctx.headerGuardName$CDRAUX_HPP_
+#ifndef FAST_DDS_GENERATED__$ctx.headerGuardName$CDRAUX_HPP
+#define FAST_DDS_GENERATED__$ctx.headerGuardName$CDRAUX_HPP
 
 #include "$ctx.filename$.hpp"
 
@@ -43,7 +43,7 @@ $definitions; separator="\n"$
 } // namespace fastcdr
 } // namespace eprosima
 
-#endif // _FAST_DDS_GENERATED_$ctx.headerGuardName$CDRAUX_HPP_
+#endif // FAST_DDS_GENERATED__$ctx.headerGuardName$CDRAUX_HPP
 $"\n"$
 >>
 
