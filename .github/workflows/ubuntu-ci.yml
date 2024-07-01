@@ -59,7 +59,7 @@ jobs:
           - 'openjdk-11-jdk'
           - 'openjdk-19-jdk'
 
-    if: ${{ !(github.event_name == 'pull_request') || !contains(github.event.pull_request.labels.*.name, 'conflicts') || false }}
+    if: ${{ !(github.event_name == 'pull_request') || !contains(github.event.pull_request.labels.*.name, 'conflicts') }}
     uses: ./.github/workflows/reusable-ubuntu-ci.yml
     with:
       # It would be desirable to have a matrix of ubuntu OS for this job, but due to the issue opened in this ticket:
@@ -72,6 +72,6 @@ jobs:
       fastcdr-branch: ${{ inputs.fastcdr-branch || 'master' }}
       fastdds-python-branch: ${{ inputs.fastdds-python-branch || 'main' }}
       discovery-server-branch: ${{ inputs.discovery-server-branch || 'master' }}
-      run-build: ${{ !(github.event_name == 'pull_request') || !contains(github.event.pull_request.labels.*.name, 'skip-ci') || false }}
-      run-tests: ${{ (inputs.run-tests == true) || ((github.event_name == 'pull_request') && (!contains(github.event.pull_request.labels.*.name, 'no-test'))) || false }}
+      run-build: ${{ !(github.event_name == 'pull_request') || !contains(github.event.pull_request.labels.*.name, 'skip-ci') }}
+      run-tests: ${{ (inputs.run-tests == true) || ((github.event_name == 'pull_request') && (!contains(github.event.pull_request.labels.*.name, 'no-test'))) }}
       use-ccache: ${{ (inputs.use-ccache == true) || false }}
