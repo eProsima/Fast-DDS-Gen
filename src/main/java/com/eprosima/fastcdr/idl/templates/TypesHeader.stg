@@ -295,7 +295,9 @@ public:
      */
     eProsima_user_DllExport $union.name$()
     {
-        $if(union.defaultMember)$
+        $if(union.defaultAnnotatedMember)$
+        $union.defaultAnnotatedMember.name$_();
+        $elseif(union.defaultMember)$
         $union.defaultMember.name$_();
         $endif$
     }
@@ -510,7 +512,7 @@ private:
         \}
     }; separator="\n"$
 
-    $union.discriminator.typecode.cppTypename$ m__d {$union.defaultvalue$};
+    $union.discriminator.typecode.cppTypename$ m__d {$if(union.defaultAnnotatedValue)$$union.defaultAnnotatedValue$$else$$union.defaultvalue$$endif$};
 
     union
     {

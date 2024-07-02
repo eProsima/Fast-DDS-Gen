@@ -877,7 +877,7 @@ $endif$
 }; separator="\n"$
 if (!tmp_ann_custom_$type.name$.empty())
 {
-    ann_custom_$type.name$ = tmp_ann_custom_$type.name$;
+    ann_custom_$name$ = tmp_ann_custom_$type.name$;
 }
 $endif$
 >>

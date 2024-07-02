@@ -1,0 +1,77 @@
+name: Fast DDS Gen Ubuntu CI
+
+on:
+  workflow_dispatch:
+    inputs:
+      fastddsgen-branch:
+        description: 'Fast DDS Gen branch to be used'
+        required: true
+        type: string
+      fastdds-branch:
+        description: 'Branch or tag of Fast DDS repository'
+        required: false
+        type: string
+        default: 'master'
+      fastcdr-branch:
+        description: 'Branch or tag of Fast CDR repository'
+        required: false
+        type: string
+        default: 'master'
+      fastdds-python-branch:
+        description: 'Branch or tag of Fast DDS Python repository'
+        required: false
+        type: string
+        default: 'main'
+      discovery-server-branch:
+        description: 'Branch or tag of Discovery Server repository'
+        required: false
+        type: string
+        default: 'master'
+      run-tests:
+        description: 'Run test suite of Fast DDS Gen'
+        required: false
+        type: boolean
+        default: true
+      use-ccache:
+        description: 'Use CCache to speed up the build'
+        required: false
+        type: boolean
+        default: false
+
+  pull_request:
+    types:
+      - review_requested
+    paths-ignore:
+      - '**.md'
+      - '**.txt'
+      - '!**/CMakeLists.txt'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ubuntu-ci:
+    strategy:
+      fail-fast: false
+      matrix:
+        java-version:
+          - 'openjdk-11-jdk'
+          - 'openjdk-19-jdk'
+
+    if: ${{ !(github.event_name == 'pull_request') || !contains(github.event.pull_request.labels.*.name, 'conflicts') }}
+    uses: ./.github/workflows/reusable-ubuntu-ci.yml
+    with:
+      # It would be desirable to have a matrix of ubuntu OS for this job, but due to the issue opened in this ticket:
+      # https://github.com/orgs/community/discussions/128118 , it has been set as a single OS job.
+      os-version: 'ubuntu-22.04'
+      java-version: ${{ matrix.java-version }}
+      label: 'ubuntu-ci-${{ matrix.java-version }}'
+      fastddsgen-branch: ${{ inputs.fastddsgen-branch || github.ref }}
+      fastdds-branch: ${{ inputs.fastdds-branch || 'master' }}
+      fastcdr-branch: ${{ inputs.fastcdr-branch || 'master' }}
+      fastdds-python-branch: ${{ inputs.fastdds-python-branch || 'main' }}
+      discovery-server-branch: ${{ inputs.discovery-server-branch || 'master' }}
+      run-build: ${{ !(github.event_name == 'pull_request') || !contains(github.event.pull_request.labels.*.name, 'skip-ci') }}
+      run-tests: ${{ (inputs.run-tests == true) || ((github.event_name == 'pull_request') && (!contains(github.event.pull_request.labels.*.name, 'no-test'))) }}
+      use-ccache: ${{ (inputs.use-ccache == true) || false }}
