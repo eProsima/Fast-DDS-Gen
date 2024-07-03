@@ -342,7 +342,7 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
     {
         ArrayList<Entry<String, TypeCode>> typecodes = new ArrayList<Entry<String, TypeCode>>();
 
-        for (TypeDeclaration type : m_types.values())
+        for (TypeDeclaration type : getTypes())
         {
             if (type.getTypeCode() instanceof MemberedTypeCode && !(type.getTypeCode() instanceof EnumTypeCode))
             {
