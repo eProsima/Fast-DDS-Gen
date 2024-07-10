@@ -26,7 +26,7 @@ on:
         description: 'Branch or tag of Discovery Server repository'
         required: false
         type: string
-        default: 'v1.2.2'
+        default: '1.2.x'
       run-tests:
         description: 'Run test suite of Fast DDS Gen'
         required: false
@@ -74,7 +74,7 @@ jobs:
       fastdds-branch: ${{ inputs.fastdds-branch || '2.14.x' }}
       fastcdr-branch: ${{ inputs.fastcdr-branch || matrix.fastcdr-branch }}
       fastdds-python-branch: ${{ inputs.fastdds-python-branch || '1.4.x' }}
-      discovery-server-branch: ${{ inputs.discovery-server-branch || 'v1.2.2' }}
+      discovery-server-branch: ${{ inputs.discovery-server-branch || '1.2.x' }}
       run-build: ${{ !(github.event_name == 'pull_request') || !contains(github.event.pull_request.labels.*.name, 'skip-ci') }}
       run-tests: ${{ (inputs.run-tests == true) || ((github.event_name == 'pull_request') && (!contains(github.event.pull_request.labels.*.name, 'no-test'))) }}
       use-ccache: ${{ (inputs.use-ccache == true) || false }}

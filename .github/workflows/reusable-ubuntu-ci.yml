@@ -38,7 +38,7 @@ on:
         description: 'Branch or tag of Discovery Server repository'
         required: false
         type: string
-        default: 'v1.2.2'
+        default: '1.2.x'
       run-build:
         description: 'Build Fast DDS Gen'
         required: false
