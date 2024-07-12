@@ -25,7 +25,7 @@ $fileHeader(ctx=ctx,  file=[ctx.filename, "PubSubTypes.i"], description=["This h
 #include "$ctx.filename$PubSubTypes.hpp"
 %}
 
-#define GEN_API_VER 2
+#define FASTDDS_GEN_API_VER 3
 
 %include "$ctx.filename$PubSubTypes.hpp"
 

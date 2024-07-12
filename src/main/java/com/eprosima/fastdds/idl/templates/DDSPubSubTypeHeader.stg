@@ -33,10 +33,10 @@ $fileHeader(ctx=ctx,  file=[ctx.filename, "PubSubTypes.hpp"], description=["This
 
 $ctx.directIncludeDependencies : {include | #include "$include$PubSubTypes.hpp"}; separator="\n"$
 
-#if !defined(GEN_API_VER) || (GEN_API_VER != 2)
+#if !defined(FASTDDS_GEN_API_VER) || (FASTDDS_GEN_API_VER != 3)
 #error \
     Generated $ctx.filename$ is not compatible with current installed Fast DDS. Please, regenerate it with fastddsgen.
-#endif  // GEN_API_VER
+#endif  // FASTDDS_GEN_API_VER
 
 $definitions; separator="\n"$
 
