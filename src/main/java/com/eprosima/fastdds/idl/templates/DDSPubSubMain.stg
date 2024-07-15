@@ -1,4 +1,4 @@
-// Copyright 2016 Proyectos y Sistemas de Mantenimiento SL (eProsima).
+// Copyright 2024 Proyectos y Sistemas de Mantenimiento SL (eProsima).
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,65 +17,96 @@ group ProtocolHeader;
 import "eprosima.stg"
 
 main(ctx, definitions) ::= <<
-$fileHeader(ctx=ctx,  file=[ctx.filename, "PubSubMain.cpp"], description=["This file acts as a main entry point to the application."])$
+$fileHeader(ctx=ctx,  file=[ctx.filename, "main.cxx"], description=["This file acts as a main entry point to the application."])$
 
+#include <csignal>
+#include <iostream>
+#include <stdexcept>
+#include <thread>
 
-#include "$ctx.filename$Publisher.hpp"
-#include "$ctx.filename$Subscriber.hpp"
+#include <fastdds/dds/log/Log.hpp>
+
+#include "$ctx.filename$Application.hpp"
+
+using eprosima::fastdds::dds::Log;
+
+std::function<void(int)> stop_handler;
+void signal_handler(
+        int signum)
+{
+    stop_handler(signum);
+}
+
+std::string parse_signal(
+        const int& signum)
+{
+    switch (signum)
+    {
+        case SIGINT:
+            return "SIGINT";
+        case SIGTERM:
+            return "SIGTERM";
+#ifndef _WIN32
+        case SIGQUIT:
+            return "SIGQUIT";
+        case SIGHUP:
+            return "SIGHUP";
+#endif // _WIN32
+        default:
+            return "UNKNOWN SIGNAL";
+    }
+}
 
 int main(
         int argc,
         char** argv)
 {
-    int type = 0;
+    auto ret = EXIT_SUCCESS;
+    int domain_id = 0;
+    std::shared_ptr<$ctx.filename$Application> app;
 
-    if (argc == 2)
-    {
-        if (strcmp(argv[1], "publisher") == 0)
-        {
-            type = 1;
-        }
-        else if (strcmp(argv[1], "subscriber") == 0)
-        {
-            type = 2;
-        }
-    }
-
-    if (type == 0)
+    if (argc != 2 || (strcmp(argv[1], "publisher") != 0 && strcmp(argv[1], "subscriber") != 0))
     {
         std::cout << "Error: Incorrect arguments." << std::endl;
         std::cout << "Usage: " << std::endl << std::endl;
         std::cout << argv[0] << " publisher|subscriber" << std::endl << std::endl;
-        return 0;
+        ret = EXIT_FAILURE;
     }
-
-    std::cout << "Starting " << std::endl;
-
-    // Register the type being used
-
-    switch (type)
+    else
     {
-        case 1:
+        try
         {
-            $ctx.filename$Publisher mypub;
-            if (mypub.init())
-            {
-                mypub.run();
-            }
-            break;
+            app = $ctx.filename$Application::make_app(domain_id, argv[1]);
         }
-        case 2:
+        catch (const std::runtime_error& e)
         {
-            $ctx.filename$Subscriber mysub;
-            if (mysub.init())
-            {
-                mysub.run();
-            }
-            break;
+            EPROSIMA_LOG_ERROR(app_name, e.what());
+            ret = EXIT_FAILURE;
         }
+
+        std::thread thread(&$ctx.filename$Application::run, app);
+
+        std::cout << argv[1] << " running. Please press Ctrl+C to stop the " << argv[1] << " at any time." << std::endl;
+
+        stop_handler = [&](int signum)
+                {
+                    std::cout << "\n" << parse_signal(signum) << " received, stopping " << argv[1]
+                              << " execution." << std::endl;
+                    app->stop();
+                };
+
+        signal(SIGINT, signal_handler);
+        signal(SIGTERM, signal_handler);
+#ifndef _WIN32
+        signal(SIGQUIT, signal_handler);
+        signal(SIGHUP, signal_handler);
+#endif // _WIN32
+
+        thread.join();
     }
 
-    return 0;
+    Log::Reset();
+    return ret;
 }
 
 >>

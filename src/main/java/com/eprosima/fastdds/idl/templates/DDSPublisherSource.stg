@@ -1,4 +1,4 @@
-// Copyright 2016 Proyectos y Sistemas de Mantenimiento SL (eProsima).
+// Copyright 2024 Proyectos y Sistemas de Mantenimiento SL (eProsima).
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,106 +17,109 @@ group ProtocolHeader;
 import "eprosima.stg"
 
 main(ctx, definitions) ::= <<
-$fileHeader(ctx=ctx,  file=[ctx.filename, "Publisher.cpp"], description=["This file contains the implementation of the publisher functions."])$
+$fileHeader(ctx=ctx,  file=[ctx.filename, "PublisherApp.cxx"], description=["This file contains the implementation of the publisher functions."])$
 
+#include "$ctx.filename$PublisherApp.hpp"
 
-#include "$ctx.filename$Publisher.hpp"
-#include "$ctx.filename$PubSubTypes.hpp"
+#include <condition_variable>
+#include <csignal>
+#include <stdexcept>
+#include <thread>
 
 #include <fastdds/dds/domain/DomainParticipantFactory.hpp>
-#include <fastdds/dds/publisher/Publisher.hpp>
-#include <fastdds/dds/publisher/qos/PublisherQos.hpp>
+#include <fastdds/dds/log/Log.hpp>
 #include <fastdds/dds/publisher/DataWriter.hpp>
+#include <fastdds/dds/publisher/Publisher.hpp>
 #include <fastdds/dds/publisher/qos/DataWriterQos.hpp>
+#include <fastdds/dds/publisher/qos/PublisherQos.hpp>
 
-#include <thread>
-#include <chrono>
+#include "$ctx.filename$PubSubTypes.hpp"
 
 using namespace eprosima::fastdds::dds;
 
-$ctx.filename$Publisher::$ctx.filename$Publisher()
+$ctx.filename$PublisherApp::$ctx.filename$PublisherApp(
+        const int& domain_id)
     : participant_(nullptr)
     , publisher_(nullptr)
     , topic_(nullptr)
     , writer_(nullptr)
     , type_(new $ctx.m_lastStructureTopicDataTypeName$PubSubType())
+    , matched_(0)
+    , samples_sent_(0)
+    , stop_(false)
 {
-}
+    //
 
-$ctx.filename$Publisher::~$ctx.filename$Publisher()
-{
-    if (writer_ != nullptr)
-    {
-        publisher_->delete_datawriter(writer_);
-    }
-    if (publisher_ != nullptr)
-    {
-        participant_->delete_publisher(publisher_);
-    }
-    if (topic_ != nullptr)
-    {
-        participant_->delete_topic(topic_);
-    }
-    DomainParticipantFactory::get_instance()->delete_participant(participant_);
-}
-
-bool $ctx.filename$Publisher::init()
-{
-    /* Initialize data_ here */
-
-    //CREATE THE PARTICIPANT
-    DomainParticipantQos pqos;
-    pqos.name("Participant_pub");
-    participant_ = DomainParticipantFactory::get_instance()->create_participant(0, pqos);
+    // Create the participant
+    DomainParticipantQos pqos = PARTICIPANT_QOS_DEFAULT;
+    pqos.name("$ctx.m_lastStructureScopedName$_pub_participant");
+    participant_ = DomainParticipantFactory::get_instance()->create_participant(
+        domain_id, pqos, nullptr, StatusMask::none());
     if (participant_ == nullptr)
     {
-        return false;
+        throw std::runtime_error("$ctx.m_lastStructureScopedName$ Participant initialization failed");
     }
 
-    //REGISTER THE TYPE
+    // Register the type
     type_.register_type(participant_);
 
-    //CREATE THE PUBLISHER
-    publisher_ = participant_->create_publisher(PUBLISHER_QOS_DEFAULT, nullptr);
+    // Create the publisher
+    PublisherQos pub_qos = PUBLISHER_QOS_DEFAULT;
+    participant_->get_default_publisher_qos(pub_qos);
+    publisher_ = participant_->create_publisher(pub_qos, nullptr, StatusMask::none());
     if (publisher_ == nullptr)
     {
-        return false;
+        throw std::runtime_error("$ctx.m_lastStructureScopedName$ Publisher initialization failed");
     }
 
-    //CREATE THE TOPIC
-    topic_ = participant_->create_topic(
-        "$ctx.filename$Topic",
-        type_.get_type_name(),
-        TOPIC_QOS_DEFAULT);
+    // Create the topic
+    TopicQos topic_qos = TOPIC_QOS_DEFAULT;
+    participant_->get_default_topic_qos(topic_qos);
+    topic_ = participant_->create_topic("$ctx.filename$Topic", type_.get_type_name(), topic_qos);
     if (topic_ == nullptr)
     {
-        return false;
+        throw std::runtime_error("$ctx.m_lastStructureScopedName$ Topic initialization failed");
     }
 
-    // CREATE THE WRITER
-    writer_ = publisher_->create_datawriter(topic_, DATAWRITER_QOS_DEFAULT, &listener_);
+    // Create the data writer
+    DataWriterQos writer_qos = DATAWRITER_QOS_DEFAULT;
+    publisher_->get_default_datawriter_qos(writer_qos);
+    writer_qos.reliability().kind = ReliabilityQosPolicyKind::RELIABLE_RELIABILITY_QOS;
+    writer_qos.durability().kind = DurabilityQosPolicyKind::TRANSIENT_LOCAL_DURABILITY_QOS;
+    writer_qos.history().kind = HistoryQosPolicyKind::KEEP_ALL_HISTORY_QOS;
+    writer_ = publisher_->create_datawriter(topic_, writer_qos, this, StatusMask::all());
     if (writer_ == nullptr)
     {
-        return false;
+        throw std::runtime_error("$ctx.m_lastStructureScopedName$ DataWriter initialization failed");
     }
-
-    std::cout << "$ctx.m_lastStructureScopedName$ DataWriter created." << std::endl;
-    return true;
 }
 
-void $ctx.filename$Publisher::PubListener::on_publication_matched(
-        eprosima::fastdds::dds::DataWriter*,
-        const eprosima::fastdds::dds::PublicationMatchedStatus& info)
+$ctx.filename$PublisherApp::~$ctx.filename$PublisherApp()
+{
+    if (nullptr != participant_)
+    {
+        // Delete DDS entities contained within the DomainParticipant
+        participant_->delete_contained_entities();
+
+        // Delete DomainParticipant
+        DomainParticipantFactory::get_instance()->delete_participant(participant_);
+    }
+}
+
+void $ctx.filename$PublisherApp::on_publication_matched(
+        DataWriter* /*writer*/,
+        const PublicationMatchedStatus& info)
 {
     if (info.current_count_change == 1)
     {
-        matched = info.total_count;
-        std::cout << "DataWriter matched." << std::endl;
+        matched_ = info.current_count;
+        std::cout << "$ctx.m_lastStructureScopedName$ Publisher matched." << std::endl;
+        cv_.notify_one();
     }
     else if (info.current_count_change == -1)
     {
-        matched = info.total_count;
-        std::cout << "DataWriter unmatched." << std::endl;
+        matched_ = info.current_count;
+        std::cout << "$ctx.m_lastStructureScopedName$ Publisher unmatched." << std::endl;
     }
     else
     {
@@ -125,40 +128,52 @@ void $ctx.filename$Publisher::PubListener::on_publication_matched(
     }
 }
 
-void $ctx.filename$Publisher::run()
+void $ctx.filename$PublisherApp::run()
 {
-    std::cout << "$ctx.m_lastStructureScopedName$ DataWriter waiting for DataReaders." << std::endl;
-    while (listener_.matched == 0)
+    while (!is_stopped())
     {
-        std::this_thread::sleep_for(std::chrono::milliseconds(250)); // Sleep 250 ms
+        if (publish())
+        {
+            std::cout << "Sample '" << std::to_string(++samples_sent_) << "' SENT" << std::endl;
+        }
+        // Wait for period or stop event
+        std::unique_lock<std::mutex> period_lock(mutex_);
+        cv_.wait_for(period_lock, std::chrono::milliseconds(period_ms_), [&]()
+                {
+                    return is_stopped();
+                });
     }
-
-    // Publication code
-
-    $ctx.m_lastStructureScopedName$ st;
-
-    /* Initialize your structure here */
-
-    int msgsent = 0;
-    char ch = 'y';
-    do
-    {
-        if (ch == 'y')
-        {
-            writer_->write(&st);
-            ++msgsent;
-            std::cout << "Sending sample, count=" << msgsent << ", send another sample?(y-yes,n-stop): ";
-        }
-        else if (ch == 'n')
-        {
-            std::cout << "Stopping execution " << std::endl;
-            break;
-        }
-        else
-        {
-            std::cout << "Command " << ch << " not recognized, please enter \"y/n\":";
-        }
-    } while (std::cin \>> ch);
 }
 
+
+bool $ctx.filename$PublisherApp::publish()
+{
+    bool ret = false;
+    // Wait for the data endpoints discovery
+    std::unique_lock<std::mutex> matched_lock(mutex_);
+    cv_.wait(matched_lock, [&]()
+            {
+                // at least one has been discovered
+                return ((matched_ > 0) || is_stopped());
+            });
+
+    if (!is_stopped())
+    {
+        /* Initialize your structure here */
+        $ctx.m_lastStructureScopedName$ sample_;
+        ret = (RETCODE_OK == writer_->write(&sample_));
+    }
+    return ret;
+}
+
+bool $ctx.filename$PublisherApp::is_stopped()
+{
+    return stop_.load();
+}
+
+void $ctx.filename$PublisherApp::stop()
+{
+    stop_.store(true);
+    cv_.notify_one();
+}
 >>

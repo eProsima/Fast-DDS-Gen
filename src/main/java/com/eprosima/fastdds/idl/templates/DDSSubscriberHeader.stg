@@ -1,4 +1,4 @@
-// Copyright 2016 Proyectos y Sistemas de Mantenimiento SL (eProsima).
+// Copyright 2024 Proyectos y Sistemas de Mantenimiento SL (eProsima).
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,57 +17,60 @@ group ProtocolHeader;
 import "eprosima.stg"
 
 main(ctx, definitions) ::= <<
-$fileHeader(ctx=ctx,  file=[ctx.filename, "Subscriber.hpp"], description=["This header file contains the declaration of the subscriber functions."])$
+$fileHeader(ctx=ctx,  file=[ctx.filename, "SubscriberApp.hpp"], description=["This header file contains the declaration of the subscriber functions."])$
 
+#ifndef FAST_DDS_GENERATED__$ctx.headerGuardName$SUBSCRIBERAPP_HPP
+#define FAST_DDS_GENERATED__$ctx.headerGuardName$SUBSCRIBERAPP_HPP
 
-#ifndef FAST_DDS_GENERATED__$ctx.headerGuardName$_SUBSCRIBER_HPP
-#define FAST_DDS_GENERATED__$ctx.headerGuardName$_SUBSCRIBER_HPP
+#include <condition_variable>
 
 #include <fastdds/dds/domain/DomainParticipant.hpp>
-#include <fastdds/dds/subscriber/DataReader.hpp>
 #include <fastdds/dds/subscriber/DataReaderListener.hpp>
-#include <fastdds/dds/subscriber/Subscriber.hpp>
+#include <fastdds/dds/topic/TypeSupport.hpp>
 
-class $ctx.filename$Subscriber
+#include "$ctx.filename$.hpp"
+#include "$ctx.filename$Application.hpp"
+
+class $ctx.filename$SubscriberApp : public $ctx.filename$Application,
+        public eprosima::fastdds::dds::DataReaderListener
 {
 public:
 
-    $ctx.filename$Subscriber();
+    $ctx.filename$SubscriberApp(
+            const int& domain_id);
 
-    virtual ~$ctx.filename$Subscriber();
+    virtual ~$ctx.filename$SubscriberApp();
 
-    bool init();
+    //! Subscription callback
+    void on_data_available(
+            eprosima::fastdds::dds::DataReader* reader) override;
 
-    void run();
+    //! Subscriber matched method
+    void on_subscription_matched(
+            eprosima::fastdds::dds::DataReader* reader,
+            const eprosima::fastdds::dds::SubscriptionMatchedStatus& info) override;
+
+    //! Run subscriber
+    void run() override;
+
+    //! Trigger the end of execution
+    void stop() override;
 
 private:
+
+    //! Return the current state of execution
+    bool is_stopped();
 
     eprosima::fastdds::dds::DomainParticipant* participant_;
     eprosima::fastdds::dds::Subscriber* subscriber_;
     eprosima::fastdds::dds::Topic* topic_;
     eprosima::fastdds::dds::DataReader* reader_;
     eprosima::fastdds::dds::TypeSupport type_;
-
-    class SubListener : public eprosima::fastdds::dds::DataReaderListener
-    {
-    public:
-
-        SubListener() = default;
-
-        ~SubListener() override = default;
-
-        void on_data_available(
-                eprosima::fastdds::dds::DataReader* reader) override;
-
-        void on_subscription_matched(
-                eprosima::fastdds::dds::DataReader* reader,
-                const eprosima::fastdds::dds::SubscriptionMatchedStatus& info) override;
-
-        int matched = 0;
-        uint32_t samples = 0;
-    }
-    listener_;
+    uint16_t samples_received_;
+    std::atomic<bool> stop_;
+    mutable std::mutex terminate_cv_mtx_;
+    std::condition_variable terminate_cv_;
 };
 
-#endif // FAST_DDS_GENERATED__$ctx.headerGuardName$_SUBSCRIBER_HPP
+#endif // FAST_DDS_GENERATED__$ctx.headerGuardName$SUBSCRIBERAPP_HPP
 >>

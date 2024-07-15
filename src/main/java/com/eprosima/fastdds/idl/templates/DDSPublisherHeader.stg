@@ -1,4 +1,4 @@
-// Copyright 2016 Proyectos y Sistemas de Mantenimiento SL (eProsima).
+// Copyright 2024 Proyectos y Sistemas de Mantenimiento SL (eProsima).
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,54 +17,60 @@ group ProtocolHeader;
 import "eprosima.stg"
 
 main(ctx, definitions) ::= <<
-$fileHeader(ctx=ctx,  file=[ctx.filename, "Publisher.hpp"], description=["This header file contains the declaration of the publisher functions."])$
+$fileHeader(ctx=ctx,  file=[ctx.filename, "PublisherApp.hpp"], description=["This header file contains the declaration of the publisher functions."])$
 
+#ifndef FAST_DDS_GENERATED__$ctx.headerGuardName$PUBLISHERAPP_HPP
+#define FAST_DDS_GENERATED__$ctx.headerGuardName$PUBLISHERAPP_HPP
 
-#ifndef FAST_DDS_GENERATED__$ctx.headerGuardName$_PUBLISHER_HPP
-#define FAST_DDS_GENERATED__$ctx.headerGuardName$_PUBLISHER_HPP
+#include <condition_variable>
 
 #include <fastdds/dds/domain/DomainParticipant.hpp>
-#include <fastdds/dds/publisher/DataWriter.hpp>
 #include <fastdds/dds/publisher/DataWriterListener.hpp>
-#include <fastdds/dds/publisher/Publisher.hpp>
 #include <fastdds/dds/topic/TypeSupport.hpp>
 
-class $ctx.filename$Publisher
+#include "$ctx.filename$Application.hpp"
+
+class $ctx.filename$PublisherApp : public $ctx.filename$Application,
+        public eprosima::fastdds::dds::DataWriterListener
 {
 public:
 
-    $ctx.filename$Publisher();
+    $ctx.filename$PublisherApp(
+            const int& domain_id);
 
-    virtual ~$ctx.filename$Publisher();
+    ~$ctx.filename$PublisherApp();
 
-    bool init();
+    //! Publisher matched method
+    void on_publication_matched(
+            eprosima::fastdds::dds::DataWriter* writer,
+            const eprosima::fastdds::dds::PublicationMatchedStatus& info) override;
 
-    void run();
+    //! Run publisher
+    void run() override;
+
+    //! Trigger the end of execution
+    void stop() override;
 
 private:
+
+    //! Return the current state of execution
+    bool is_stopped();
+
+    //! Publish a sample
+    bool publish();
 
     eprosima::fastdds::dds::DomainParticipant* participant_;
     eprosima::fastdds::dds::Publisher* publisher_;
     eprosima::fastdds::dds::Topic* topic_;
     eprosima::fastdds::dds::DataWriter* writer_;
     eprosima::fastdds::dds::TypeSupport type_;
-
-    class PubListener : public eprosima::fastdds::dds::DataWriterListener
-    {
-    public:
-
-        PubListener() = default;
-
-        ~PubListener() override = default;
-
-        void on_publication_matched(
-                eprosima::fastdds::dds::DataWriter* writer,
-                const eprosima::fastdds::dds::PublicationMatchedStatus& info) override;
-
-        int matched = 0;
-    }
-    listener_;
+    std::condition_variable cv_;
+    int32_t matched_;
+    std::mutex mutex_;
+    const uint32_t period_ms_ = 100; // in ms
+    uint16_t samples_sent_;
+    std::atomic<bool> stop_;
 };
 
-#endif // FAST_DDS_GENERATED__$ctx.headerGuardName$_PUBLISHER_HPP
+#endif // FAST_DDS_GENERATED__$ctx.headerGuardName$PUBLISHERAPP_HPP
 >>
