@@ -52,9 +52,7 @@ $ctx.directIncludeDependencies : {include | %include "$include$.i"}; separator="
 %}
 
 %include <fastcdr/config.h>
-#if FASTCDR_VERSION_MAJOR > 1
 %import(module="fastdds") "fastcdr/xcdr/optional.hpp"
-#endif
 %import(module="fastdds") "fastdds/dds/core/LoanableCollection.hpp"
 %import(module="fastdds") "fastdds/dds/core/LoanableTypedCollection.hpp"
 %import(module="fastdds") "fastdds/dds/core/LoanableSequence.hpp"
@@ -147,9 +145,6 @@ $endif$
 
 member_getters(struct_name, member) ::= <<
 $if(member.annotationOptional)$
-#if FASTCDR_VERSION_MAJOR == 1
-%ignore $struct_name$::$member.name$($member.typecode.cppTypename$&&);
-#else
 %ignore eprosima::fastcdr::optional::value;
 %ignore eprosima::fastcdr::optional::reset;
 %template($member.typecode.noScopedCppTypename$Opt) eprosima::fastcdr::optional<$member.typecode.cppTypename$>;
@@ -163,7 +158,6 @@ $if(member.annotationOptional)$
   }
 }
 %ignore $struct_name$::$member.name$(eprosima::fastcdr::optional<$member.typecode.cppTypename$>&&);
-#endif
 $else$
 %ignore $struct_name$::$member.name$($member.typecode.cppTypename$&&);
 $endif$
