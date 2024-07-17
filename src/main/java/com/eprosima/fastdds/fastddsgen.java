@@ -787,6 +787,10 @@ public class fastddsgen
 
             if (m_exampleOption != null)
             {
+                // Load Application templates
+                tmanager.addGroup("com/eprosima/fastdds/idl/templates/DDSApplicationHeader.stg");
+                tmanager.addGroup("com/eprosima/fastdds/idl/templates/DDSApplicationSource.stg");
+
                 // Load Publisher templates
                 tmanager.addGroup("com/eprosima/fastdds/idl/templates/DDSPublisherHeader.stg");
                 tmanager.addGroup("com/eprosima/fastdds/idl/templates/DDSPublisherSource.stg");
@@ -795,7 +799,7 @@ public class fastddsgen
                 tmanager.addGroup("com/eprosima/fastdds/idl/templates/DDSSubscriberHeader.stg");
                 tmanager.addGroup("com/eprosima/fastdds/idl/templates/DDSSubscriberSource.stg");
 
-                // Load PubSubMain template
+                // Load main template
                 tmanager.addGroup("com/eprosima/fastdds/idl/templates/DDSPubSubMain.stg");
             }
 
@@ -1017,40 +1021,54 @@ public class fastddsgen
 
                         if (m_exampleOption != null)
                         {
-                            System.out.println("Generating Publisher files...");
+                            System.out.println("Generating Application files...");
                             if (returnedValue =
-                                    Utils.writeFile(output_dir + ctx.getFilename() + "Publisher.hpp",
-                                        maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/DDSPublisherHeader.stg"), m_replace))
+                                    Utils.writeFile(output_dir + ctx.getFilename() + "Application.hpp",
+                                        maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/DDSApplicationHeader.stg"), m_replace))
                             {
                                 if (returnedValue =
-                                        Utils.writeFile(output_dir + ctx.getFilename() + "Publisher.cxx",
-                                            maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/DDSPublisherSource.stg"), m_replace))
+                                        Utils.writeFile(output_dir + ctx.getFilename() + "Application.cxx",
+                                            maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/DDSApplicationSource.stg"), m_replace))
                                 {
-                                    project.addProjectIncludeFile(relative_dir + ctx.getFilename() + "Publisher.hpp");
-                                    project.addProjectSrcFile(relative_dir + ctx.getFilename() + "Publisher.cxx");
+                                    project.addProjectIncludeFile(relative_dir + ctx.getFilename() + "Application.hpp");
+                                    project.addProjectSrcFile(relative_dir + ctx.getFilename() + "Application.cxx");
                                 }
                             }
 
-                            System.out.println("Generating Subscriber files...");
+                            System.out.println("Generating PublisherApp files...");
                             if (returnedValue =
-                                    Utils.writeFile(output_dir + ctx.getFilename() + "Subscriber.hpp",
+                                    Utils.writeFile(output_dir + ctx.getFilename() + "PublisherApp.hpp",
+                                        maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/DDSPublisherHeader.stg"), m_replace))
+                            {
+                                if (returnedValue =
+                                        Utils.writeFile(output_dir + ctx.getFilename() + "PublisherApp.cxx",
+                                            maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/DDSPublisherSource.stg"), m_replace))
+                                {
+                                    project.addProjectIncludeFile(relative_dir + ctx.getFilename() + "PublisherApp.hpp");
+                                    project.addProjectSrcFile(relative_dir + ctx.getFilename() + "PublisherApp.cxx");
+                                }
+                            }
+
+                            System.out.println("Generating SubscriberApp files...");
+                            if (returnedValue =
+                                    Utils.writeFile(output_dir + ctx.getFilename() + "SubscriberApp.hpp",
                                         maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/DDSSubscriberHeader.stg"), m_replace))
                             {
                                 if (returnedValue =
-                                        Utils.writeFile(output_dir + ctx.getFilename() + "Subscriber.cxx",
+                                        Utils.writeFile(output_dir + ctx.getFilename() + "SubscriberApp.cxx",
                                             maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/DDSSubscriberSource.stg"), m_replace))
                                 {
-                                    project.addProjectIncludeFile(relative_dir + ctx.getFilename() + "Subscriber.hpp");
-                                    project.addProjectSrcFile(relative_dir + ctx.getFilename() + "Subscriber.cxx");
+                                    project.addProjectIncludeFile(relative_dir + ctx.getFilename() + "SubscriberApp.hpp");
+                                    project.addProjectSrcFile(relative_dir + ctx.getFilename() + "SubscriberApp.cxx");
                                 }
                             }
 
                             System.out.println("Generating main file...");
                             if (returnedValue =
-                                    Utils.writeFile(output_dir + ctx.getFilename() + "PubSubMain.cxx",
+                                    Utils.writeFile(output_dir + ctx.getFilename() + "main.cxx",
                                         maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/DDSPubSubMain.stg"), m_replace))
                             {
-                                project.addProjectSrcFile(relative_dir + ctx.getFilename() + "PubSubMain.cxx");
+                                project.addProjectSrcFile(relative_dir + ctx.getFilename() + "main.cxx");
                             }
                         }
                     }
