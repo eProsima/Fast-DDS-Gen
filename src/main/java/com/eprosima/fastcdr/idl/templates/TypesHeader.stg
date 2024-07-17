@@ -558,7 +558,7 @@ enum_type(ctx, parent, enum) ::= <<
  */
 enum class $enum.name$ : int32_t
 {
-    $enum.members:{ member | $member.name$}; separator=",\n"$
+    $enum.members:{ member | $member.name$$if(member.annotationValue)$ = $member.annotationValueValue$$endif$}; separator=",\n"$
 };
 >>
 
