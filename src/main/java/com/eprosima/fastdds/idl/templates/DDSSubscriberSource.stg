@@ -38,7 +38,8 @@ using namespace eprosima::fastdds::dds;
 
 $ctx.filename$SubscriberApp::$ctx.filename$SubscriberApp(
         const int& domain_id)
-    : participant_(nullptr)
+    : factory_(nullptr)
+    , participant_(nullptr)
     , subscriber_(nullptr)
     , topic_(nullptr)
     , reader_(nullptr)
@@ -49,8 +50,8 @@ $ctx.filename$SubscriberApp::$ctx.filename$SubscriberApp(
     // Create the participant
     DomainParticipantQos pqos = PARTICIPANT_QOS_DEFAULT;
     pqos.name("$ctx.m_lastStructureScopedName$_sub_participant");
-    participant_ = DomainParticipantFactory::get_instance()->create_participant(
-        domain_id, pqos, nullptr, StatusMask::none());
+    factory_ = DomainParticipantFactory::get_shared_instance();
+    participant_ = factory_->create_participant(domain_id, pqos, nullptr, StatusMask::none());
     if (participant_ == nullptr)
     {
         throw std::runtime_error("$ctx.m_lastStructureScopedName$ Participant initialization failed");
@@ -98,7 +99,7 @@ $ctx.filename$SubscriberApp::~$ctx.filename$SubscriberApp()
         participant_->delete_contained_entities();
 
         // Delete DomainParticipant
-        DomainParticipantFactory::get_instance()->delete_participant(participant_);
+        factory_->delete_participant(participant_);
     }
 }
 
@@ -138,7 +139,7 @@ void $ctx.filename$SubscriberApp::on_data_available(
 void $ctx.filename$SubscriberApp::run()
 {
     std::unique_lock<std::mutex> lck(terminate_cv_mtx_);
-    terminate_cv_.wait(lck, [&]
+    terminate_cv_.wait(lck, [this]
             {
                 return is_stopped();
             });

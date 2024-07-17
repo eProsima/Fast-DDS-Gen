@@ -25,6 +25,7 @@ $fileHeader(ctx=ctx,  file=[ctx.filename, "PublisherApp.hpp"], description=["Thi
 #include <condition_variable>
 
 #include <fastdds/dds/domain/DomainParticipant.hpp>
+#include <fastdds/dds/domain/DomainParticipantFactory.hpp>
 #include <fastdds/dds/publisher/DataWriterListener.hpp>
 #include <fastdds/dds/topic/TypeSupport.hpp>
 
@@ -59,6 +60,7 @@ private:
     //! Publish a sample
     bool publish();
 
+    std::shared_ptr<eprosima::fastdds::dds::DomainParticipantFactory> factory_;
     eprosima::fastdds::dds::DomainParticipant* participant_;
     eprosima::fastdds::dds::Publisher* publisher_;
     eprosima::fastdds::dds::Topic* topic_;

@@ -25,6 +25,7 @@ $fileHeader(ctx=ctx,  file=[ctx.filename, "SubscriberApp.hpp"], description=["Th
 #include <condition_variable>
 
 #include <fastdds/dds/domain/DomainParticipant.hpp>
+#include <fastdds/dds/domain/DomainParticipantFactory.hpp>
 #include <fastdds/dds/subscriber/DataReaderListener.hpp>
 #include <fastdds/dds/topic/TypeSupport.hpp>
 
@@ -61,6 +62,7 @@ private:
     //! Return the current state of execution
     bool is_stopped();
 
+    std::shared_ptr<eprosima::fastdds::dds::DomainParticipantFactory> factory_;
     eprosima::fastdds::dds::DomainParticipant* participant_;
     eprosima::fastdds::dds::Subscriber* subscriber_;
     eprosima::fastdds::dds::Topic* topic_;

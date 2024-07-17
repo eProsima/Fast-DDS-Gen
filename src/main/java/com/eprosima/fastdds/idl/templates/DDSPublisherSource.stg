@@ -39,7 +39,8 @@ using namespace eprosima::fastdds::dds;
 
 $ctx.filename$PublisherApp::$ctx.filename$PublisherApp(
         const int& domain_id)
-    : participant_(nullptr)
+    : factory_(nullptr)
+    , participant_(nullptr)
     , publisher_(nullptr)
     , topic_(nullptr)
     , writer_(nullptr)
@@ -53,8 +54,8 @@ $ctx.filename$PublisherApp::$ctx.filename$PublisherApp(
     // Create the participant
     DomainParticipantQos pqos = PARTICIPANT_QOS_DEFAULT;
     pqos.name("$ctx.m_lastStructureScopedName$_pub_participant");
-    participant_ = DomainParticipantFactory::get_instance()->create_participant(
-        domain_id, pqos, nullptr, StatusMask::none());
+    factory_ = DomainParticipantFactory::get_shared_instance();
+    participant_ = factory_->create_participant(domain_id, pqos, nullptr, StatusMask::none());
     if (participant_ == nullptr)
     {
         throw std::runtime_error("$ctx.m_lastStructureScopedName$ Participant initialization failed");
@@ -102,7 +103,7 @@ $ctx.filename$PublisherApp::~$ctx.filename$PublisherApp()
         participant_->delete_contained_entities();
 
         // Delete DomainParticipant
-        DomainParticipantFactory::get_instance()->delete_participant(participant_);
+        factory_->delete_participant(participant_);
     }
 }
 
@@ -112,13 +113,19 @@ void $ctx.filename$PublisherApp::on_publication_matched(
 {
     if (info.current_count_change == 1)
     {
-        matched_ = info.current_count;
+        {
+            std::lock_guard<std::mutex> lock(mutex_);
+            matched_ = info.current_count;
+        }
         std::cout << "$ctx.m_lastStructureScopedName$ Publisher matched." << std::endl;
         cv_.notify_one();
     }
     else if (info.current_count_change == -1)
     {
-        matched_ = info.current_count;
+        {
+            std::lock_guard<std::mutex> lock(mutex_);
+            matched_ = info.current_count;
+        }
         std::cout << "$ctx.m_lastStructureScopedName$ Publisher unmatched." << std::endl;
     }
     else
@@ -138,7 +145,7 @@ void $ctx.filename$PublisherApp::run()
         }
         // Wait for period or stop event
         std::unique_lock<std::mutex> period_lock(mutex_);
-        cv_.wait_for(period_lock, std::chrono::milliseconds(period_ms_), [&]()
+        cv_.wait_for(period_lock, std::chrono::milliseconds(period_ms_), [this]()
                 {
                     return is_stopped();
                 });
