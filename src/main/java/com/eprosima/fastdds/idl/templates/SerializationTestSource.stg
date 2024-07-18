@@ -64,30 +64,28 @@ TEST_P($struct.formatedCppTypename$Test, encoding)
 
     if (test_null_optional || !test_empty_external)
     {
-        uint32_t payloadSize = static_cast<uint32_t>(pst.getSerializedSizeProvider(&$struct.name$_serialization_topic,
-                    cdr_version)());
+        uint32_t payloadSize = pst.calculate_serialized_size(&$struct.name$_serialization_topic, cdr_version);
 
         SerializedPayload_t payload(payloadSize);
 
-        ASSERT_TRUE(pst.serialize(&$struct.name$_serialization_topic, &payload, cdr_version));
+        ASSERT_TRUE(pst.serialize(&$struct.name$_serialization_topic, payload, cdr_version));
 
-        ASSERT_TRUE(pst.deserialize(&payload, &$struct.name$_deserialization_topic));
+        ASSERT_TRUE(pst.deserialize(payload, &$struct.name$_deserialization_topic));
 
-        uint32_t payloadOutSize = static_cast<uint32_t>(pst.getSerializedSizeProvider(&$struct.name$_deserialization_topic,
-                    cdr_version)());
+        uint32_t payloadOutSize = pst.calculate_serialized_size(&$struct.name$_deserialization_topic, cdr_version);
 
         ASSERT_GT(compare$struct.name$(&$struct.name$_serialization_topic, &$struct.name$_deserialization_topic), 0);
         ASSERT_EQ(payloadOutSize, payloadSize);
-        ASSERT_GE($struct.name$_type_support.m_typeSize + 4, payloadSize);
+        ASSERT_GE($struct.name$_type_support.max_serialized_type_size + 4, payloadSize);
         ASSERT_EQ(payload.length, payloadSize);
     }
     else
     {
-        ASSERT_EQ(0, pst.getSerializedSizeProvider(&$struct.name$_serialization_topic, cdr_version)());
+        ASSERT_EQ(0, pst.calculate_serialized_size(&$struct.name$_serialization_topic, cdr_version));
 
         SerializedPayload_t payload(1000);
 
-        ASSERT_FALSE(pst.serialize(&$struct.name$_serialization_topic, &payload, cdr_version));
+        ASSERT_FALSE(pst.serialize(&$struct.name$_serialization_topic, payload, cdr_version));
     }
 
     $if((ctx.generateTypesC))$
