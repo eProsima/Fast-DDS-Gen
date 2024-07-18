@@ -158,17 +158,21 @@ void serialize_key(
     static_cast<void>(scdr);
     static_cast<void>(data);
     $if(struct.hasKey)$
-        $struct.members : { member |
+        $struct.membersById : { member |
             $if(member.annotationKey)$
                 $if(member.typecode.isStructType)$
-                    $if(member.typecode.hasKey)$
-                        serialize_key(scdr, data.$member.name$());
-                    $else$
-                        scdr << data.$member.name$();
-                    $endif$
+                    serialize_key(scdr, data.$member.name$());
                 $else$
                     scdr << data.$member.name$();
                 $endif$
+            $endif$
+        }; separator="\n"$
+    $else$
+        $struct.membersById : { member |
+            $if(member.typecode.isStructType)$
+                serialize_key(scdr, data.$member.name$());
+            $else$
+                scdr << data.$member.name$();
             $endif$
         }; separator="\n"$
     $endif$
