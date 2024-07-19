@@ -151,6 +151,7 @@ void serialize_key(
         eprosima::fastcdr::Cdr& scdr,
         const $struct.scopedname$& data)
 {
+    $if(!struct.inheritance)$
     $if(!struct.scope.empty)$
     using namespace $struct.scope$;
     $endif$
@@ -204,6 +205,12 @@ void serialize_key(
             $endif$
             $endif$
         }; separator="\n"$
+    $endif$
+    $else$
+    extern void serialize_key(
+            Cdr& scdr,
+            const $struct.inheritance.scopedname$& data);
+    serialize_key(scdr, static_cast<const $struct.inheritance.scopedname$&>(data));
     $endif$
 }
 
