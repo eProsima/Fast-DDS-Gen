@@ -154,25 +154,54 @@ void serialize_key(
     $if(!struct.scope.empty)$
     using namespace $struct.scope$;
     $endif$
+    $struct.membersById : { member |
+        $if(member.typecode.isStructType)$
+        extern void serialize_key(
+                Cdr& scdr,
+                const $member.typecode.scopedname$& data);
+        $endif$
+    }; separator="\n"$
 
     static_cast<void>(scdr);
     static_cast<void>(data);
     $if(struct.hasKey)$
         $struct.membersById : { member |
             $if(member.annotationKey)$
-                $if(member.typecode.isStructType)$
-                    serialize_key(scdr, data.$member.name$());
-                $else$
-                    scdr << data.$member.name$();
-                $endif$
+            $if(member.annotationOptional)$
+                if (data.$member.name$().has_value())
+                {
+            $if(member.typecode.isStructType)$
+                    serialize_key(scdr, data.$member.name$().value());
+            $else$
+                    scdr << data.$member.name$().value();
             $endif$
-        }; separator="\n"$
-    $else$
-        $struct.membersById : { member |
+                \}
+            $else$
             $if(member.typecode.isStructType)$
                 serialize_key(scdr, data.$member.name$());
             $else$
                 scdr << data.$member.name$();
+            $endif$
+            $endif$
+            $endif$
+        }; separator="\n"$
+    $else$
+        $struct.membersById : { member |
+            $if(member.annotationOptional)$
+                if (data.$member.name$().has_value())
+                {
+            $if(member.typecode.isStructType)$
+                    serialize_key(scdr, data.$member.name$().value());
+            $else$
+                    scdr << data.$member.name$().value();
+            $endif$
+                \}
+            $else$
+            $if(member.typecode.isStructType)$
+                serialize_key(scdr, data.$member.name$());
+            $else$
+                scdr << data.$member.name$();
+            $endif$
             $endif$
         }; separator="\n"$
     $endif$
