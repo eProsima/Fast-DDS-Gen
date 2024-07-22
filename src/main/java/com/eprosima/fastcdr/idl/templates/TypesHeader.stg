@@ -174,9 +174,7 @@ public:
         $endif$
     {
         $if(struct.members)$
-        $struct.members:{ member |
-            m_$member.name$ = x.m_$member.name$;
-        }; separator="\n"$
+        $struct.members:{ member | m_$member.name$ = x.m_$member.name$;}; separator="\n"$
         $else$
         static_cast<void>(x);
         $endif$
@@ -210,9 +208,7 @@ public:
         $if(struct.inheritance)$$struct.inheritance.scopedname$::operator =(x);$endif$
 
         $if(struct.members)$
-        $struct.members:{ member |
-            m_$member.name$ = x.m_$member.name$;
-        }; separator="\n"$
+        $struct.members:{ member | m_$member.name$ = x.m_$member.name$;}; separator="\n"$
         $else$
         static_cast<void>(x);
         $endif$
@@ -255,7 +251,7 @@ public:
         static_cast<void>(x);
         return true;
         $else$
-        return ($struct.members:{ member | m_$member.name$ == x.m_$member.name$}; separator=" &&\n           "$);
+        return ($struct.members:{ member | m_$member.name$ == x.m_$member.name$}; separator=" &&\n               "$);
         $endif$
     }
 
@@ -272,7 +268,6 @@ public:
     $struct.members:{ member | $public_member_declaration(member)$}; separator="\n"$
 
     $extensions : { extension | $extension$}; separator="\n"$
-
 private:
 
     $struct.members:{ member | $private_member_declaration(member=member)$}; separator="\n"$
@@ -485,7 +480,6 @@ public:
     $endif$
 
     $extensions : {extension | $extension$}; separator="\n"$
-
 private:
 
     $union.members: { member |
@@ -592,12 +586,9 @@ public_struct_inheritances(parent) ::= <<$parent.scopedname$>>
 
 public_member_declaration(member) ::= <<
 $if(member.annotationOptional || member.annotationExternal)$
-$public_member_common_declaration(member=member)$
-$elseif(member.typecode.primitive)$
-$public_member_primitive_declaration(member=member)$
-$else$
-$public_member_common_declaration(member=member)$
-$endif$
+$public_member_common_declaration(member=member)$$elseif(member.typecode.primitive)$
+$public_member_primitive_declaration(member=member)$$else$
+$public_member_common_declaration(member=member)$$endif$
 >>
 
 public_member_primitive_declaration(member) ::= <<
@@ -669,7 +660,6 @@ eProsima_user_DllExport $member_type_declaration(member)$& $member.name$()
     return m_$member.name$;
 }
 >>
-
 private_member_declaration(member) ::= <<
 $member_type_declaration(member)$ m_$member.name$$member_default_init(member)$;
 >>
