@@ -11,7 +11,7 @@ on:
         description: 'Branch or tag of Fast DDS repository'
         required: false
         type: string
-        default: '2.6.x'
+        default: 'mergify/bp/2.6.x/pr-5093'
       fastcdr-branch:
         description: 'Branch or tag of Fast CDR repository'
         required: false
@@ -21,7 +21,7 @@ on:
         description: 'Branch or tag of Fast DDS Python repository'
         required: false
         type: string
-        default: '1.0.x'
+        default: 'mergify/bp/1.0.x/pr-170'
       discovery-server-branch:
         description: 'Branch or tag of Discovery Server repository'
         required: false
@@ -61,9 +61,9 @@ jobs:
       java-version: 'openjdk-11-jdk'
       label: 'ubuntu-ci-openjdk-11-jdk'
       fastddsgen-branch: ${{ inputs.fastddsgen-branch || github.ref }}
-      fastdds-branch: ${{ inputs.fastdds-branch || '2.6.x' }}
+      fastdds-branch: ${{ inputs.fastdds-branch || 'mergify/bp/2.6.x/pr-5093' }}
       fastcdr-branch: ${{ inputs.fastcdr-branch || '1.0.x' }}
-      fastdds-python-branch: ${{ inputs.fastdds-python-branch || '1.0.x' }}
+      fastdds-python-branch: ${{ inputs.fastdds-python-branch || 'mergify/bp/1.0.x/pr-170' }}
       discovery-server-branch: ${{ inputs.discovery-server-branch || 'v1.2.1' }}
       run-build: ${{ !(github.event_name == 'pull_request') || !contains(github.event.pull_request.labels.*.name, 'skip-ci') }}
       run-tests: ${{ (inputs.run-tests == true) || ((github.event_name == 'pull_request') && (!contains(github.event.pull_request.labels.*.name, 'no-test'))) }}
