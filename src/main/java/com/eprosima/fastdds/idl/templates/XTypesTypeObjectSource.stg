@@ -725,7 +725,7 @@ $endif$
 enum_literal(literal, parent, name) ::= <<
 {
     EnumeratedLiteralFlag flags_$literal.name$ = TypeObjectUtils::build_enumerated_literal_flag($literal.annotationDefaultLiteral$);
-    CommonEnumeratedLiteral common_$literal.name$ = TypeObjectUtils::build_common_enumerated_literal($literal.index$, flags_$literal.name$);
+    CommonEnumeratedLiteral common_$literal.name$ = TypeObjectUtils::build_common_enumerated_literal($if(literal.annotationValue)$$literal.annotationValueValue$$else$$literal.index$$endif$, flags_$literal.name$);
     $empty_ann_builtin_complete_member_detail(member=literal, parent=parent, message=[parent.scopedname, " Enumerated ", literal.name, " literal: only @default_literal and @value builtin annotations apply to literals"], name=name)$
     CompleteEnumeratedLiteral literal_$literal.name$ = TypeObjectUtils::build_complete_enumerated_literal(common_$literal.name$, detail_$literal.name$);
     TypeObjectUtils::add_complete_enumerated_literal(literal_seq_$parent.name$, literal_$literal.name$);
