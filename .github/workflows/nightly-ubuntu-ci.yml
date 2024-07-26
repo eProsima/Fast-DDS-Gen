@@ -18,7 +18,7 @@ jobs:
       os-version: 'ubuntu-22.04'
       java-version: ${{ matrix.java-version }}
       label: 'nightly-ubuntu-ci-master'
-      fastdds-gen-branch: 'master'
+      fastddsgen-branch: 'master'
       fastdds-branch: 'master'
       fastcdr-branch: 'master'
       fastdds-python-branch: 'main'
@@ -42,7 +42,7 @@ jobs:
       os-version: 'ubuntu-22.04'
       java-version: ${{ matrix.java-version }}
       label: 'nightly-ubuntu-ci-3.3.x'
-      fastdds-gen-branch: '3.3.x'
+      fastddsgen-branch: '3.3.x'
       fastdds-branch: '2.14.x'
       fastcdr-branch: ${{ matrix.fastcdr-branch }}
       fastdds-python-branch: '1.4.x'
@@ -57,7 +57,7 @@ jobs:
       os-version: 'ubuntu-22.04'
       java-version: 'openjdk-11-jdk'
       label: 'nightly-ubuntu-ci-2.5.x'
-      fastdds-gen-branch: '2.5.x'
+      fastddsgen-branch: '2.5.x'
       fastdds-branch: '2.10.x'
       fastcdr-branch: '1.0.x'
       fastdds-python-branch: '1.2.x'
