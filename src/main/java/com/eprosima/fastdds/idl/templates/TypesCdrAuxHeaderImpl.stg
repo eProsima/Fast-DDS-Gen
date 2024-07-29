@@ -168,21 +168,10 @@ void serialize_key(
     $if(struct.hasKey)$
         $struct.membersById : { member |
             $if(member.annotationKey)$
-            $if(member.annotationOptional)$
-                if (data.$member.name$().has_value())
-                {
-            $if(member.typecode.isStructType)$
-                    serialize_key(scdr, data.$member.name$().value());
-            $else$
-                    scdr << data.$member.name$().value();
-            $endif$
-                \}
-            $else$
             $if(member.typecode.isStructType)$
                 serialize_key(scdr, data.$member.name$());
             $else$
                 scdr << data.$member.name$();
-            $endif$
             $endif$
             $endif$
         }; separator="\n"$
