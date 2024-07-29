@@ -151,26 +151,55 @@ void serialize_key(
         eprosima::fastcdr::Cdr& scdr,
         const $struct.scopedname$& data)
 {
+    $if(!struct.inheritance)$
     $if(!struct.scope.empty)$
     using namespace $struct.scope$;
     $endif$
+    $struct.membersById : { member |
+        $if(member.typecode.isStructType)$
+        extern void serialize_key(
+                Cdr& scdr,
+                const $member.typecode.scopedname$& data);
+        $endif$
+    }; separator="\n"$
 
     static_cast<void>(scdr);
     static_cast<void>(data);
     $if(struct.hasKey)$
-        $struct.members : { member |
+        $struct.membersById : { member |
             $if(member.annotationKey)$
-                $if(member.typecode.isStructType)$
-                    $if(member.typecode.hasKey)$
-                        serialize_key(scdr, data.$member.name$());
-                    $else$
-                        scdr << data.$member.name$();
-                    $endif$
-                $else$
-                    scdr << data.$member.name$();
-                $endif$
+            $if(member.typecode.isStructType)$
+                serialize_key(scdr, data.$member.name$());
+            $else$
+                scdr << data.$member.name$();
+            $endif$
             $endif$
         }; separator="\n"$
+    $else$
+        $struct.membersById : { member |
+            $if(member.annotationOptional)$
+                if (data.$member.name$().has_value())
+                {
+            $if(member.typecode.isStructType)$
+                    serialize_key(scdr, $if(member.annotationExternal)$*$endif$data.$member.name$().value());
+            $else$
+                    scdr << data.$member.name$().value();
+            $endif$
+                \}
+            $else$
+            $if(member.typecode.isStructType)$
+                serialize_key(scdr, $if(member.annotationExternal)$*$endif$data.$member.name$());
+            $else$
+                scdr << data.$member.name$();
+            $endif$
+            $endif$
+        }; separator="\n"$
+    $endif$
+    $else$
+    extern void serialize_key(
+            Cdr& scdr,
+            const $struct.inheritance.scopedname$& data);
+    serialize_key(scdr, static_cast<const $struct.inheritance.scopedname$&>(data));
     $endif$
 }
 
