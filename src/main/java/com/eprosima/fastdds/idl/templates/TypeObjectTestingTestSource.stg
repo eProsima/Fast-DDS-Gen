@@ -176,20 +176,10 @@ TEST(TypeObjectTests, TestStructureTypeObject_$struct.cScopedname$)
     $if (struct.inheritance)$
         member_id = $struct.firstMember.id$;
     $endif$
-    $struct.members: { member | $check_struct_member(member=member, parent=struct)$}; separator="\n"$
+    $struct.members: { member | $check_struct_member(member=member, parent=struct, pos=i0)$}; separator="\n"$
     $endif$
     ASSERT_EQ($struct.membersSize$, type_objects.minimal_type_object.minimal().struct_type().member_seq().size());
-    for (size_t i = 1; i < type_objects.minimal_type_object.minimal().struct_type().member_seq().size(); ++i)
-    {
-        EXPECT_LT(type_objects.minimal_type_object.minimal().struct_type().member_seq()[i-1].common().member_id(),
-                type_objects.minimal_type_object.minimal().struct_type().member_seq()[i].common().member_id());
-    }
     ASSERT_EQ($struct.membersSize$, type_objects.complete_type_object.complete().struct_type().member_seq().size());
-    for (size_t i = 1; i < type_objects.complete_type_object.complete().struct_type().member_seq().size(); ++i)
-    {
-        EXPECT_LT(type_objects.complete_type_object.complete().struct_type().member_seq()[i-1].common().member_id(),
-                type_objects.complete_type_object.complete().struct_type().member_seq()[i].common().member_id());
-    }
 }
 >>
 
@@ -242,19 +232,9 @@ TEST(TypeObjectTests, TestUnionTypeObject_$union.name$)
     }
     $check_type_detail_annotations(object=union.discriminator, type="union_type().discriminator()")$
     MemberId member_id = 1;
-    $union.members: { member | $check_union_member(member=member, parent=union)$}; separator="\n"$
+    $union.members: { member | $check_union_member(member=member, parent=union, pos=i0)$}; separator="\n"$
     ASSERT_EQ($union.membersSize$, type_objects.minimal_type_object.minimal().union_type().member_seq().size());
-    for (size_t i = 1; i < type_objects.minimal_type_object.minimal().union_type().member_seq().size(); ++i)
-    {
-        EXPECT_LT(type_objects.minimal_type_object.minimal().union_type().member_seq()[i-1].common().member_id(),
-                type_objects.minimal_type_object.minimal().union_type().member_seq()[i].common().member_id());
-    }
     ASSERT_EQ($union.membersSize$, type_objects.complete_type_object.complete().union_type().member_seq().size());
-    for (size_t i = 1; i < type_objects.complete_type_object.complete().union_type().member_seq().size(); ++i)
-    {
-        EXPECT_LT(type_objects.complete_type_object.complete().union_type().member_seq()[i-1].common().member_id(),
-                type_objects.complete_type_object.complete().union_type().member_seq()[i].common().member_id());
-    }
 }
 >>
 
@@ -803,19 +783,10 @@ $object.name$_expected_flags |= TypeFlagBits::IS_AUTOID_HASH;
 $endif$
 >>
 
-check_struct_member(member, parent) ::= <<
+check_struct_member(member, parent, pos) ::= <<
 {
-    size_t pos = 0;
-    bool found = false;
-    for (; pos < type_objects.complete_type_object.complete().struct_type().member_seq().size(); ++pos)
-    {
-        if (strcmp("$member.name$", type_objects.complete_type_object.complete().struct_type().member_seq()[pos].detail().name()) == 0)
-        {
-            found = true;
-            break;
-        }
-    }
-    ASSERT_TRUE(found);
+    size_t pos = $pos$;
+    ASSERT_EQ(0, strcmp("$member.name$", type_objects.complete_type_object.complete().struct_type().member_seq()[pos].detail().name()));
     NameHash member_name_hashed = TypeObjectUtils::name_hash("$member.name$");
     $if(member.annotationId)$
     member_id = $member.annotationIdValue$;
@@ -862,19 +833,10 @@ check_struct_member(member, parent) ::= <<
 }
 >>
 
-check_union_member(member, parent) ::= <<
+check_union_member(member, parent, pos) ::= <<
 {
-    size_t pos = 0;
-    bool found = false;
-    for (; pos < type_objects.complete_type_object.complete().union_type().member_seq().size(); ++pos)
-    {
-        if (strcmp("$member.name$", type_objects.complete_type_object.complete().union_type().member_seq()[pos].detail().name()) == 0)
-        {
-            found = true;
-            break;
-        }
-    }
-    ASSERT_TRUE(found);
+    size_t pos = $pos$;
+    ASSERT_EQ(0, strcmp("$member.name$", type_objects.complete_type_object.complete().union_type().member_seq()[pos].detail().name()));
     NameHash member_name_hashed = TypeObjectUtils::name_hash("$member.name$");
     $if(member.annotationId)$
     member_id = $member.annotationIdValue$;

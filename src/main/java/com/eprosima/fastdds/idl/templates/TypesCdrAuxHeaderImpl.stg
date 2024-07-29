@@ -181,14 +181,14 @@ void serialize_key(
                 if (data.$member.name$().has_value())
                 {
             $if(member.typecode.isStructType)$
-                    serialize_key(scdr, data.$member.name$().value());
+                    serialize_key(scdr, $if(member.annotationExternal)$*$endif$data.$member.name$().value());
             $else$
                     scdr << data.$member.name$().value();
             $endif$
                 \}
             $else$
             $if(member.typecode.isStructType)$
-                serialize_key(scdr, data.$member.name$());
+                serialize_key(scdr, $if(member.annotationExternal)$*$endif$data.$member.name$());
             $else$
                 scdr << data.$member.name$();
             $endif$
