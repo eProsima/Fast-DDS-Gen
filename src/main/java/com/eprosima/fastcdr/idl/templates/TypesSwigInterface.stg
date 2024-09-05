@@ -171,7 +171,7 @@ $if(member.typecode.isSequenceType)$
 $template_sequence(member.typecode)$
 $elseif(member.typecode.isMapType)$
 %ignore $struct_name$::$member.name$() const;
-%template($member.typecode.keyTypeCode.name$_$member.typecode.valueTypeCode.cppTypename$_map) std::map<$if(member.typecode.keyTypeCode.isEnumType)$enum $endif$$member.typecode.keyTypeCode.cppTypename$,$if(member.typecode.valueTypeCode.isEnumType)$enum $endif$$member.typecode.valueTypeCode.cppTypename$>;
+%template($member.typecode.keyTypeCode.cppTypename$_$member.typecode.valueTypeCode.noScopedCppTypename$_map) std::map<$if(member.typecode.keyTypeCode.isEnumType)$enum $endif$$member.typecode.keyTypeCode.cppTypename$,$if(member.typecode.valueTypeCode.isEnumType)$enum $endif$$member.typecode.valueTypeCode.cppTypename$>;
 $elseif(member.typecode.isType_f)$
 %ignore $struct_name$::$member.name$() const;
 %template($member.typecode.contentTypeCode.noScopedCppTypename$_$member.typecode.evaluatedDimensions$_array) std::array<$if(member.typecode.contentTypeCode.isEnumType)$enum $endif$$member.typecode.contentTypeCode.cppTypename$,$member.typecode.evaluatedDimensions$>;
