@@ -369,6 +369,7 @@ public class fastddsgen
             else if (arg.equals(ros2_names_arg))
             {
                 m_type_ros2 = true;
+                TypeCode.default_extensibility = TypeCode.ExtensibilityKind.FINAL;
             }
             else if (arg.equals(cnames_arg))
             {
