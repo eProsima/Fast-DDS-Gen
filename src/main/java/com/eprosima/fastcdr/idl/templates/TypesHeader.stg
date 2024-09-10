@@ -296,23 +296,9 @@ public:
     eProsima_user_DllExport $union.name$()
     {
         $if(union.defaultAnnotatedMember)$
-        selected_member_ = $union.defaultAnnotatedMember.id$;
-        $if(union.defaultAnnotatedMember.typecode.primitive)$
-        member_destructor_ = nullptr;
-        m_$union.defaultAnnotatedMember.name$ = $member_default_init(union.defaultAnnotatedMember)$;
-        $else$
-        member_destructor_ = [&]() {$union_member_destroy_call(union.defaultAnnotatedMember)$\};
-        new(&m_$union.defaultAnnotatedMember.name$) $member_type_declaration(union.defaultAnnotatedMember)$();
-        $endif$;
+        $union_member_initialization(union.defaultAnnotatedMember)$
         $elseif(union.defaultMember)$
-        selected_member_ = $union.defaultMember.id$;
-        $if(union.defaultMember.typecode.primitive)$
-        member_destructor_ = nullptr;
-        m_$union.defaultMember.name$ = $member_default_init(union.defaultMember)$;
-        $else$
-        member_destructor_ = [&]() {$union_member_destroy_call(union.defaultMember)$\};
-        new(&m_$union.defaultMember.name$) $member_type_declaration(union.defaultMember)$();
-        $endif$;
+        $union_member_initialization(union.defaultMember)$
         $endif$
     }
 
@@ -512,14 +498,7 @@ private:
                     member_destructor_();
                 \}
 
-                selected_member_ = $member.id$;
-                $if(member.typecode.primitive)$
-                member_destructor_ = nullptr;
-                m_$member.name$ = $member_default_init(member)$;
-                $else$
-                member_destructor_ = [&]() {$union_member_destroy_call(member)$\};
-                new(&m_$member.name$) $member_type_declaration(member)$();
-                $endif$;
+                $union_member_initialization(member)$
             \}
 
             return m_$member.name$;
@@ -841,6 +820,17 @@ $if(const.typeCode.isFloat32Type)$
 f
 $endif$
 %>
+
+union_member_initialization(member) ::= <<
+selected_member_ = $member.id$;
+$if(member.typecode.primitive)$
+member_destructor_ = nullptr;
+m_$member.name$ = $member_default_init(member)$;
+$else$
+member_destructor_ = [&]() {$union_member_destroy_call(member)$\};
+new(&m_$member.name$) $member_type_declaration(member)$();
+$endif$
+>>
 
 //{ Fast DDS-Gen extensions
 module_conversion(ctx, parent, modules, definition_list) ::= <<
