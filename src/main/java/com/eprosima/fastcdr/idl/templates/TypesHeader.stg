@@ -123,7 +123,7 @@ public:
 
 const_decl(ctx, parent, const, const_type) ::= <<
 $const_type$
-const $const.typeCode.cppTypename$ $const.name$ = $const.value$;
+const $const.typeCode.cppTypename$ $const.name$ = $const.value$$const_value_prefix(const)$;
 >>
 
 typedef_decl(ctx, parent, typedefs, typedefs_type, declarator_type) ::= <<
@@ -819,6 +819,12 @@ $if(member.default)$
 m__d = $defaultvalue$;
 $else$
 m__d = $first(member.labels)$;
+$endif$
+%>
+
+const_value_prefix(const) ::= <%
+$if(const.typeCode.isFloat32Type)$
+f
 $endif$
 %>
 
