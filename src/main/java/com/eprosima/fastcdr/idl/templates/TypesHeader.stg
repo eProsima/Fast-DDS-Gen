@@ -296,9 +296,9 @@ public:
     eProsima_user_DllExport $union.name$()
     {
         $if(union.defaultAnnotatedMember)$
-        $union.defaultAnnotatedMember.name$_();
+        $union_member_initialization(union.defaultAnnotatedMember)$
         $elseif(union.defaultMember)$
-        $union.defaultMember.name$_();
+        $union_member_initialization(union.defaultMember)$
         $endif$
     }
 
@@ -498,14 +498,7 @@ private:
                     member_destructor_();
                 \}
 
-                selected_member_ = $member.id$;
-                $if(member.typecode.primitive)$
-                member_destructor_ = nullptr;
-                m_$member.name$ = $member_default_init(member)$;
-                $else$
-                member_destructor_ = [&]() {$union_member_destroy_call(member)$\};
-                new(&m_$member.name$) $member_type_declaration(member)$();
-                $endif$;
+                $union_member_initialization(member)$
             \}
 
             return m_$member.name$;
@@ -827,6 +820,17 @@ $if(const.typeCode.isFloat32Type)$
 f
 $endif$
 %>
+
+union_member_initialization(member) ::= <<
+selected_member_ = $member.id$;
+$if(member.typecode.primitive)$
+member_destructor_ = nullptr;
+m_$member.name$ = $member_default_init(member)$;
+$else$
+member_destructor_ = [&]() {$union_member_destroy_call(member)$\};
+new(&m_$member.name$) $member_type_declaration(member)$();
+$endif$
+>>
 
 //{ Fast DDS-Gen extensions
 module_conversion(ctx, parent, modules, definition_list) ::= <<
