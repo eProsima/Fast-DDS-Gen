@@ -212,3 +212,10 @@ jobs:
           source ${{ github.workspace }}/install/local_setup.bash
           cd ${{ github.workspace }}/src/fastddsgen
           ./gradlew test
+
+      - name: Test fastddsgen with python arg
+        if: ${{ inputs.run-tests == true }}
+        run: |
+          source ${{ github.workspace }}/install/local_setup.bash
+          cd ${{ github.workspace }}/src/fastddsgen/thirdparty/dds-types-test/IDL
+          find . -path "*.idl*" -exec fastddsgen -python {} +
