@@ -217,5 +217,5 @@ jobs:
         if: ${{ inputs.run-tests == true }}
         run: |
           source ${{ github.workspace }}/install/local_setup.bash
-          cd ${{ github.workspace }}/src/fastddsgen/thirdparty/dds-types-test/IDL
+          cd ${{ github.workspace }}/src/fastddsgen/thirdparty/idl-parser/test/idls
           find . -path "*.idl*" -exec fastddsgen -python {} +
