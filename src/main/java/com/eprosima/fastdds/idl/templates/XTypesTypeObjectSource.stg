@@ -385,8 +385,6 @@ $endif$
 get_type_identifier(type, name) ::= <<
 $if (type.isAliasType)$
 $get_type_identifier_registry(typename=type.scopedname, name=name)$
-$elseif (type.isByteType)$
-$get_type_identifier_registry(typename="_byte", name=name)$
 $elseif (type.primitive && !type.isEnumType)$
 $get_type_identifier_registry(typename=["_", type.cppTypenameForTypeId], name=name)$
 $elseif (type.isStringType)$
