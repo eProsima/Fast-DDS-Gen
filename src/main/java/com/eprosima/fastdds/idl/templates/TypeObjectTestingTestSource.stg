@@ -245,7 +245,7 @@ TEST(TypeObjectTests, TestEnumTypeObject_$enum.name$)
     TypeIdentifierPair type_ids;
 
     // Register specific enum TypeObject
-    $if(enum.scope)$::$endif$$enum.scope$::register_$enum.name$_type_identifier(type_ids);
+    $if(!enum.scope.empty)$::$endif$$enum.scope$::register_$enum.name$_type_identifier(type_ids);
 
     $check_type_identifier_consistency(result="type_ids")$
     $check_direct_hash_type_identifier(typeid="type_ids")$
