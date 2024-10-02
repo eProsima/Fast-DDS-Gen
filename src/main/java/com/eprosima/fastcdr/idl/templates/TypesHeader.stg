@@ -402,16 +402,25 @@ public:
     {
         bool ret_value {false};
 
-        if (m__d == x.m__d &&
-                selected_member_ == x.selected_member_)
+        if (x.selected_member_ == selected_member_)
         {
-            switch (selected_member_)
+            if (0x0FFFFFFFu != selected_member_)
             {
-                $union.members:{ member |
-                case $member.id$:
-                    ret_value = (m_$member.name$ == x.m_$member.name$);
-                    break;
-                }; separator="\n"$
+                if (x.m__d == m__d)
+                {
+                    switch (selected_member_)
+                    {
+                        $union.members:{ member |
+                            case $member.id$:
+                                ret_value = (x.m_$member.name$ == m_$member.name$);
+                                break;
+                        }; separator="\n"$
+                    }
+                }
+            }
+            else
+            {
+                ret_value = true;
             }
         }
 
