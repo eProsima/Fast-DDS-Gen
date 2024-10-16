@@ -19,7 +19,11 @@ import "eprosima.stg"
 main(ctx, definitions) ::= <<
 $fileHeader(ctx=ctx,  file=[ctx.filename, "SubscriberApp.cxx"], description=["This file contains the implementation of the subscriber functions."])$
 
+$if(ctx.generateFlatOutputDir)$
 #include "$ctx.filename$SubscriberApp.hpp"
+$else$
+#include "$ctx.relativeDirectory$$ctx.filename$SubscriberApp.hpp"
+$endif$
 
 #include <condition_variable>
 #include <stdexcept>
@@ -32,7 +36,11 @@ $fileHeader(ctx=ctx,  file=[ctx.filename, "SubscriberApp.cxx"], description=["Th
 #include <fastdds/dds/subscriber/SampleInfo.hpp>
 #include <fastdds/dds/subscriber/Subscriber.hpp>
 
+$if(ctx.generateFlatOutputDir)$
 #include "$ctx.filename$PubSubTypes.hpp"
+$else$
+#include "$ctx.relativeDirectory$$ctx.filename$PubSubTypes.hpp"
+$endif$
 
 using namespace eprosima::fastdds::dds;
 

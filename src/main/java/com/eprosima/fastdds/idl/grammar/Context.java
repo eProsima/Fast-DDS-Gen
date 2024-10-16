@@ -64,10 +64,11 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
             boolean generate_typesc,
             boolean generate_type_ros2,
             boolean is_generating_api,
-            boolean generate_typeobjectsupport
+            boolean generate_typeobjectsupport,
+            boolean flat_output_dir
             )
     {
-        super(tmanager, file, includePaths, generate_typesc);
+        super(tmanager, file, includePaths, generate_typesc, flat_output_dir);
         m_fileNameUpper = getFilename().toUpperCase();
         m_subscribercode = subscribercode;
         m_publishercode = publishercode;
@@ -81,6 +82,7 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
         m_type_ros2 = generate_type_ros2;
         is_generating_api_ = is_generating_api;
         generate_typeobject_support_ = generate_typeobjectsupport;
+        flat_output_dir_ = flat_output_dir;
 
         // Create default @Key annotation.
         AnnotationDeclaration keyann = this.createAnnotationDeclaration(Annotation.eprosima_key_str, null);
@@ -569,6 +571,8 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
 
     private boolean generate_typeobject_support_ = true;
 
+    private boolean flat_output_dir_ = false;
+
     @Override
     public boolean isGenerateTypesROS2()
     {
@@ -579,6 +583,12 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
     public boolean isGenerateTypeObjectSupport()
     {
         return generate_typeobject_support_;
+    }
+
+    @Override
+    public boolean isGenerateFlatOutputDir()
+    {
+        return flat_output_dir_;
     }
 
     public String getHeaderGuardName ()

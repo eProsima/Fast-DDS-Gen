@@ -17,16 +17,28 @@ group ProtocolHeader;
 import "eprosima.stg"
 
 main(ctx, definitions) ::= <<
-$fileHeader(ctx=ctx,  file=[ctx.filename, "PubSubTypes.cpp"], description=["This header file contains the implementation of the serialization functions."])$
+$fileHeader(ctx=ctx,  file=[ctx.filename, "PubSubTypes.cxx"], description=["This header file contains the implementation of the serialization functions."])$
 
+$if(ctx.generateFlatOutputDir)$
 #include "$ctx.filename$PubSubTypes.hpp"
+$else$
+#include "$ctx.relativeDirectory$$ctx.filename$PubSubTypes.hpp"
+$endif$
 
 #include <fastdds/dds/log/Log.hpp>
 #include <fastdds/rtps/common/CdrSerialization.hpp>
 
+$if(ctx.generateFlatOutputDir)$
 #include "$ctx.filename$CdrAux.hpp"
+$else$
+#include "$ctx.relativeDirectory$$ctx.filename$CdrAux.hpp"
+$endif$
 $if (ctx.generateTypeObjectSupport)$
+$if(ctx.generateFlatOutputDir)$
 #include "$ctx.filename$TypeObjectSupport.hpp"
+$else$
+#include "$ctx.relativeDirectory$$ctx.filename$TypeObjectSupport.hpp"
+$endif$
 $endif$
 
 using SerializedPayload_t = eprosima::fastdds::rtps::SerializedPayload_t;
@@ -37,7 +49,11 @@ $definitions; separator="\n"$
 
 $if(ctx.thereIsStructOrUnion)$
 // Include auxiliary functions like for serializing/deserializing.
+$if(ctx.generateFlatOutputDir)$
 #include "$ctx.filename$CdrAux.ipp"
+$else$
+#include "$ctx.relativeDirectory$$ctx.filename$CdrAux.ipp"
+$endif$
 $endif$
 
 >>

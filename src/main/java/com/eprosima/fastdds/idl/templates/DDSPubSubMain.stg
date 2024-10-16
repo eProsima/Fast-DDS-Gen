@@ -28,7 +28,11 @@ $fileHeader(ctx=ctx,  file=[ctx.filename, "main.cxx"], description=["This file a
 
 #include <fastdds/dds/log/Log.hpp>
 
+$if(ctx.generateFlatOutputDir)$
 #include "$ctx.filename$Application.hpp"
+$else$
+#include "$ctx.relativeDirectory$$ctx.filename$Application.hpp"
+$endif$
 
 using eprosima::fastdds::dds::Log;
 

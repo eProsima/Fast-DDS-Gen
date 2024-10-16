@@ -19,7 +19,11 @@ import "eprosima.stg"
 main(ctx, definitions) ::= <<
 $fileHeader(ctx=ctx, file=[ctx.filename, "TypeObjectSupport.cxx"], description=["Source file containing the implementation to register the TypeObject representation of the described types in the IDL file"])$
 
+$if(ctx.generateFlatOutputDir)$
 #include "$ctx.filename$TypeObjectSupport.hpp"
+$else$
+#include "$ctx.relativeDirectory$$ctx.filename$TypeObjectSupport.hpp"
+$endif$
 
 #include <mutex>
 #include <string>
@@ -33,7 +37,11 @@ $fileHeader(ctx=ctx, file=[ctx.filename, "TypeObjectSupport.cxx"], description=[
 #include <fastdds/dds/xtypes/type_representation/TypeObject.hpp>
 #include <fastdds/dds/xtypes/type_representation/TypeObjectUtils.hpp>
 
+$if(ctx.generateFlatOutputDir)$
 #include "$ctx.filename$.hpp"
+$else$
+#include "$ctx.relativeDirectory$$ctx.filename$.hpp"
+$endif$
 
 $ctx.directIncludeDependencies : {include | #include "$include$.hpp"}; separator="\n"$
 

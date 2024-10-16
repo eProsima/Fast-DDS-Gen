@@ -23,7 +23,11 @@ $fileHeader(ctx=ctx, file=[ctx.filename, "CdrAux.ipp"], description=["This sourc
 #ifndef FAST_DDS_GENERATED__$ctx.headerGuardName$CDRAUX_IPP
 #define FAST_DDS_GENERATED__$ctx.headerGuardName$CDRAUX_IPP
 
+$if(ctx.generateFlatOutputDir)$
 #include "$ctx.filename$CdrAux.hpp"
+$else$
+#include "$ctx.relativeDirectory$$ctx.filename$CdrAux.hpp"
+$endif$
 
 $if(ctx.cdr)$
 #include <fastcdr/Cdr.h>
