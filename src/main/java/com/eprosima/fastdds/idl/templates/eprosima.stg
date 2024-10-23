@@ -144,7 +144,7 @@ $definition_list$
 
 //{ Anonymous collections generator name
 sequence_name(sequence) ::= <%
-$if(sequence.contentTypeCode.primitive && !sequence.contentTypeCode.isEnumType)$
+$if(sequence.contentTypeCode.primitive && !sequence.contentTypeCode.isEnumType && !sequence.contentTypeCode.isAliasType)$
 anonymous_sequence_$sequence.contentTypeCode.cppTypenameForTypeId$_$if(sequence.unbound)$unbounded$else$$sequence.evaluatedMaxsize$$endif$
 $elseif (sequence.contentTypeCode.isStringType)$
 anonymous_sequence_$string_name(string=sequence.contentTypeCode)$_$if(sequence.unbound)$unbounded$else$$sequence.evaluatedMaxsize$$endif$
