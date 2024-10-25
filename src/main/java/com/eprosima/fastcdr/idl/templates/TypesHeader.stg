@@ -836,7 +836,15 @@ $if(member.typecode.primitive)$
 member_destructor_ = nullptr;
 m_$member.name$ = $member_default_init(member)$;
 $else$
-member_destructor_ = [&]() {$union_member_destroy_call(member)$\};
+member_destructor_ = [&]()
+{
+    $if(member.typecode.isAliasType)$
+    $if(member.typecode.hasScope)$
+    using namespace $member.typecode.scope$;
+    $endif$
+    $endif$
+    $union_member_destroy_call(member)$
+};
 new(&m_$member.name$) $member_type_declaration(member)$();
 $endif$
 >>
