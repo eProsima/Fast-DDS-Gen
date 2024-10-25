@@ -182,7 +182,11 @@ void register_$struct.name$_type_identifier(
     $if (struct.nonForwardedContent)$
 
     ReturnCode_t return_code_$struct.name$ {eprosima::fastdds::dds::RETCODE_OK};
+    $if (ctx.GenerateTypesROS2)$
+    $get_type_identifier_registry(typename=struct.ROS2Scopedname, name=struct.name)$
+    $else$
     $get_type_identifier_registry(typename=struct.scopedname, name=struct.name)$
+    $endif$
     if (eprosima::fastdds::dds::RETCODE_OK != return_code_$struct.name$)
     {
         StructTypeFlag struct_flags_$struct.name$ = TypeObjectUtils::build_struct_type_flag($extensibility(object=struct)$
@@ -397,6 +401,8 @@ $elseif (type.isSequenceType)$
 $get_type_identifier_registry(typename=sequence_name(sequence=type), name=name)$
 $elseif (type.isMapType)$
 $get_type_identifier_registry(typename=map_name(map=type), name=name)$
+$elseif (type.isStructType && ctx.GenerateTypesROS2)$
+$get_type_identifier_registry(typename=type.ROS2Scopedname, name=name)$
 $else$
 $get_type_identifier_registry(typename=type.scopedname, name=name)$
 $endif$
@@ -796,7 +802,11 @@ $endif$
 >>
 
 complete_type_detail(type, type_kind, name) ::= <<
+$if (type.isStructType && ctx.GenerateTypesROS2)$
+QualifiedTypeName type_name_$type.name$ = "$type.ROS2Scopedname$";
+$else$
 QualifiedTypeName type_name_$type.name$ = "$type.scopedname$";
+$endif$
 eprosima::fastcdr::optional<AppliedBuiltinTypeAnnotations> type_ann_builtin_$type.name$;
 eprosima::fastcdr::optional<AppliedAnnotationSeq> ann_custom_$type.name$;
 $type_annotations(type=type, type_kind=type_kind, name=name)$
