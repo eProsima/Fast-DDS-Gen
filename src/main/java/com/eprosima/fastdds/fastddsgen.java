@@ -40,8 +40,10 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.IOError;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -273,7 +275,10 @@ public class fastddsgen
             {
                 if (count < args.length)
                 {
-                    m_includePaths.add(include_path_arg.concat(args[count++]));
+                    String pathStr = args[count++];
+                    if (!isIncludePathDuplicated(pathStr)) {
+                        m_includePaths.add(include_path_arg.concat(pathStr));
+                    }
                 }
                 else
                 {
@@ -560,8 +565,31 @@ public class fastddsgen
         System.out.println(m_appName + " version " + version);
     }
 
-
-
+    private boolean isIncludePathDuplicated(String pathToCheck) {
+        try {
+            Path path = Paths.get(pathToCheck);
+            String absPath = path.toAbsolutePath().toString();
+            boolean isDuplicateFound = false;
+            for (String includePath : m_includePaths) {
+                // include paths are prefixed with "-I"
+                if (includePath.length() <= 2) {
+                    continue;
+                }
+                String absIncludePath = Paths.get(includePath.substring(2)).toAbsolutePath().toString();
+                if (absPath.toLowerCase().equals(absIncludePath.toLowerCase())) {
+                    isDuplicateFound = true;
+                    break;
+                }
+            }
+            if (isDuplicateFound) {
+                return true;
+            }
+        } catch (InvalidPathException | IOError | SecurityException ex) {
+            // path operations failed, just returning false
+        }
+        return false;
+    }
+        
     /*
      * ----------------------------------------------------------------------------------------
      * Arguments
