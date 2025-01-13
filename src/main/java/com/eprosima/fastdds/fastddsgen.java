@@ -562,7 +562,7 @@ public class fastddsgen
         try 
         {
             Path path = Paths.get(pathToCheck);
-            tring absPath = path.toAbsolutePath().toString();
+            String absPath = path.toAbsolutePath().toString();
             boolean isDuplicateFound = false;
             for (String includePath : m_includePaths) 
             {
