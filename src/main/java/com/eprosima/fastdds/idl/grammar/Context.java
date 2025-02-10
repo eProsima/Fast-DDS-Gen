@@ -711,7 +711,15 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
         return operationObject;
     }
 
-
+    @Override
+    public Param createParam(
+            String name,
+            TypeCode typecode,
+            Param.Kind kind)
+    {
+        Param paramObject = new Param(name, typecode, kind);
+        return paramObject;
+    }
 
     //// Java block ////
     // Java package name.
