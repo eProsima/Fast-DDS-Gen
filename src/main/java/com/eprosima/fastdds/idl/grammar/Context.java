@@ -702,6 +702,17 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
         return super.getAnnotationDeclaration(name);
     }
 
+    @Override
+    public Operation createOperation(
+            String name,
+            Token token)
+    {
+        Operation operationObject = new Operation(getScopeFile(), isInScopedFile(), null, name, token);
+        return operationObject;
+    }
+
+
+
     //// Java block ////
     // Java package name.
     private String m_package = "";
