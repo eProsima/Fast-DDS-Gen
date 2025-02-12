@@ -54,6 +54,10 @@ $if(ctx.thereIsUnion)$
 #include <fastcdr/exceptions/BadParamException.h>
 $endif$
 
+$if(ctx.thereIsException)$
+#include <fastdds/dds/rpc/exceptions/RpcOperationError.hpp>
+$endif$
+
 $ctx.directIncludeDependencies : {include | #include "$include$.hpp"}; separator="\n"$
 
 #if defined(_WIN32)
@@ -106,6 +110,70 @@ namespace $annotation.name$ {
 
 } // namespace $annotation.name$
 $endif$
+>>
+
+exception(ctx, parent, exception) ::= <<
+/*!
+ * @brief This class implements the user exception $exception.scopedname$
+ * @ingroup $ctx.trimfilename$
+ */
+class $exception.name$ : public eprosima::fastdds::dds::rpc::RpcOperationError
+{
+public:
+
+    /**
+     * Default constructor.
+     */
+    $exception.name$()
+        : $exception.name$("$exception.name$")
+    {
+    }
+
+    /**
+     * Constructor.
+     */
+    $exception.name$(
+            const std::string& message)
+        : eprosima::fastdds::dds::rpc::RpcOperationError(message)
+    {
+    }
+
+    /**
+     * Constructor.
+     */
+    $exception.name$(
+            const char* message)
+        : eprosima::fastdds::dds::rpc::RpcOperationError(message)
+    {
+    }
+
+    /**
+     * Copy constructor.
+     */
+    $exception.name$(
+            const $exception.name$& other) noexcept = default;
+
+    /**
+     * Copy assignment.
+     */
+    $exception.name$& operator =(
+            const $exception.name$& other) noexcept = default;
+
+    /**
+     * Destructor.
+     */
+    virtual ~$exception.name$() noexcept = default;
+
+    //! @brief This function throws the object as exception.
+    virtual void raise() const;
+
+    $exception.members:{ member |$public_member_declaration(member=member)$}; separator="\n"$
+
+private:
+    // Exception members
+    $exception.members:{ member |$private_member_declaration(member=member)$}; separator="\n"$
+};
+
 >>
 
 interface(ctx, parent, interface, export_list) ::= <<
