@@ -1,4 +1,4 @@
-[![DDS Router](resources/images/github_banner_fastddsgen.png)](https://www.eprosima.com/middleware/fast-dds)
+[![Fast DDS-Gen](resources/images/github_banner_fastddsgen.png)](https://www.eprosima.com/middleware/fast-dds)
 
 <br>
 
