@@ -77,7 +77,7 @@ $declarator$
 
 enum_type(ctx, parent, enum) ::= <<>>
 
-exception(ctx, parent, exception) ::= <<>>
+exception(ctx, parent, exception, struct, member_list) ::= <<>>
 
 export_list(exports) ::= <%
 $exports; separator="\n"$

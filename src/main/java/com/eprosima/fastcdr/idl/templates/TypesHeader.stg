@@ -112,7 +112,7 @@ namespace $annotation.name$ {
 $endif$
 >>
 
-exception(ctx, parent, exception) ::= <<
+exception(ctx, parent, exception, struct, member_list, extensions) ::= <<
 /*!
  * @brief This class implements the user exception $exception.scopedname$
  * @ingroup $ctx.trimfilename$
@@ -156,14 +156,14 @@ public:
      */
     virtual ~$exception.name$() noexcept = default;
 
-    //! @brief This function throws the object as exception.
-    virtual void raise() const;
+    $struct.members:{ member | $public_member_declaration(member)$}; separator="\n"$
 
-    $exception.members:{ member |$public_member_declaration(member=member)$}; separator="\n"$
+    $extensions : { extension | $extension$}; separator="\n"$
 
 private:
-    // Exception members
-    $exception.members:{ member |$private_member_declaration(member=member)$}; separator="\n"$
+
+    $struct.members:{ member | $private_member_declaration(member=member)$}; separator="\n"$
+
 };
 
 >>
