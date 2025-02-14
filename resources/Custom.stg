@@ -95,7 +95,7 @@ interface(ctx, parent, interface, export_list) ::= <<>>
 
 export_list(exports) ::= <<>>
 
-exception(ctx, parent, exception) ::= <<>>
+exception(ctx, parent, exception, struct, member_list) ::= <<>>
 
 operation(ctx, parent, operation, param_list, operation_type) ::= <<
 

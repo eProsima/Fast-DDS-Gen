@@ -306,6 +306,20 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
         }
     }
 
+    @Override
+    public com.eprosima.idl.parser.tree.Exception createException(
+            String name,
+            Token token)
+    {
+        if (isInScopedFile())
+        {
+            there_is_at_least_one_exception = true;
+        }
+
+        return super.createException(name, token);
+    }
+
+
     public boolean isClient()
     {
         return m_subscribercode;
@@ -457,6 +471,11 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
     public boolean isThereIsStructOrUnion()
     {
         return there_is_at_least_one_struct || there_is_at_least_one_union;
+    }
+
+    public boolean isThereIsException()
+    {
+        return there_is_at_least_one_exception;
     }
 
     /*** Functions inherited from FastCDR Context ***/
@@ -757,4 +776,6 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
     private boolean there_is_at_least_one_struct = false;
 
     private boolean there_is_at_least_one_union = false;
+
+    private boolean there_is_at_least_one_exception = false;
 }
