@@ -438,9 +438,11 @@ eProsima_user_DllExport size_t calculate_serialized_size(
                                 eprosima::fastcdr::EncodingAlgorithmFlag::PLAIN_CDR,
                                 current_alignment)};
 
+    std::string msg = data.what();
+    calculator.calculate_member_serialized_size(eprosima::fastcdr::MemberId(0), msg, current_alignment);
 
     $exception.members : { member | $if(!member.annotationNonSerialized)$
-    calculated_size += calculator.calculate_member_serialized_size(eprosima::fastcdr::MemberId($member.index$),
+    calculated_size += calculator.calculate_member_serialized_size(eprosima::fastcdr::MemberId($member.index$ + 1),
             data.$member.name$(), current_alignment);
     $endif$}; separator="\n"$
 
@@ -466,13 +468,12 @@ eProsima_user_DllExport void serialize(
             eprosima::fastcdr::EncodingAlgorithmFlag::PLAIN_CDR2 :
             eprosima::fastcdr::EncodingAlgorithmFlag::PLAIN_CDR);
 
+    scdr << eprosima::fastcdr::MemberId(0) << data.what();
     $if(exception.members)$
     scdr$exception.members : { member | $if(!member.annotationNonSerialized)$
-        << eprosima::fastcdr::MemberId($member.index$) << data.$member.name$()
+        << eprosima::fastcdr::MemberId($member.index$ + 1) << data.$member.name$()
     $endif$
     }; separator=""$;
-    $else$
-    static_cast<void>(data);
     $endif$
 
     scdr.end_serialize_type(current_state);
@@ -492,12 +493,20 @@ eProsima_user_DllExport void deserialize(
             eprosima::fastcdr::EncodingAlgorithmFlag::PLAIN_CDR,
             [&data](eprosima::fastcdr::Cdr& dcdr, const eprosima::fastcdr::MemberId& mid) -> bool
             {
-                $if(exception.members)$
                 bool ret_value = true;
                 switch (mid.id)
                 {
+                    case 0:
+                    {
+                        std::string msg;
+                        dcdr \>> msg;
+                        $exception.name$ tmp{msg};
+                        data = tmp;
+                        break;
+                    }
+
                     $exception.members : { member |
-                    case $member.index$:
+                    case $member.index$ + 1:
                         $if(!member.annotationNonSerialized)$
                             dcdr \>> data.$member.name$();
                         $endif$
@@ -508,12 +517,6 @@ eProsima_user_DllExport void deserialize(
                         break;
                 }
                 return ret_value;
-                $else$
-                static_cast<void>(data);
-                static_cast<void>(dcdr);
-                static_cast<void>(mid);
-                return false;
-                $endif$
             });
 }
 
