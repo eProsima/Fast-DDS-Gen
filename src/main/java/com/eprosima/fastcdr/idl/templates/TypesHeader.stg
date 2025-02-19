@@ -117,7 +117,7 @@ exception(ctx, parent, exception, extensions) ::= <<
  * @brief This class implements the user exception $exception.scopedname$
  * @ingroup $ctx.trimfilename$
  */
-class $exception.name$ : public eprosima::fastdds::dds::rpc::RpcOperationError
+class $ctx.fileNameUpper$_DllAPI $exception.name$ : public eprosima::fastdds::dds::rpc::RpcOperationError
 {
 public:
 
