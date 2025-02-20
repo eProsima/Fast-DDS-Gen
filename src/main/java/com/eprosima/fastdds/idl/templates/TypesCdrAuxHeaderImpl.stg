@@ -418,7 +418,6 @@ $endif$
 >>
 
 exception(ctx, parent, exception) ::= <<
-$if(ctx.anyCdr)$
 template<>
 eProsima_user_DllExport size_t calculate_serialized_size(
         eprosima::fastcdr::CdrSizeCalculator& calculator,
@@ -450,9 +449,7 @@ eProsima_user_DllExport size_t calculate_serialized_size(
 
     return calculated_size;
 }
-$endif$
 
-$if(ctx.cdr)$
 template<>
 eProsima_user_DllExport void serialize(
         eprosima::fastcdr::Cdr& scdr,
@@ -519,7 +516,5 @@ eProsima_user_DllExport void deserialize(
                 return ret_value;
             });
 }
-
-$endif$
 
 >>
