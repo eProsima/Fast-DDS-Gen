@@ -1014,7 +1014,7 @@ public class fastddsgen
                         }
                     }
 
-                    if (ctx.isThereIsStructOrUnion())
+                    if (ctx.isThereIsStructOrUnion() || ctx.isThereIsException())
                     {
                         if (returnedValue &=
                                 Utils.writeFile(output_dir + ctx.getFilename() + "CdrAux.hpp",

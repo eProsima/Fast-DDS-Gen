@@ -416,3 +416,105 @@ eProsima_user_DllExport void deserialize(
 }
 $endif$
 >>
+
+exception(ctx, parent, exception) ::= <<
+template<>
+eProsima_user_DllExport size_t calculate_serialized_size(
+        eprosima::fastcdr::CdrSizeCalculator& calculator,
+        const $exception.scopedname$& data,
+        size_t& current_alignment)
+{
+    $if(!exception.scope.empty)$
+    using namespace $exception.scope$;
+    $endif$
+
+    static_cast<void>(data);
+
+    eprosima::fastcdr::EncodingAlgorithmFlag previous_encoding = calculator.get_encoding();
+    size_t calculated_size {calculator.begin_calculate_type_serialized_size(
+                                eprosima::fastcdr::CdrVersion::XCDRv2 == calculator.get_cdr_version() ?
+                                eprosima::fastcdr::EncodingAlgorithmFlag::PLAIN_CDR2 :
+                                eprosima::fastcdr::EncodingAlgorithmFlag::PLAIN_CDR,
+                                current_alignment)};
+
+    std::string msg = data.what();
+    calculator.calculate_member_serialized_size(eprosima::fastcdr::MemberId(0), msg, current_alignment);
+
+    $exception.members : { member | $if(!member.annotationNonSerialized)$
+    calculated_size += calculator.calculate_member_serialized_size(eprosima::fastcdr::MemberId($member.index$ + 1),
+            data.$member.name$(), current_alignment);
+    $endif$}; separator="\n"$
+
+    calculated_size += calculator.end_calculate_type_serialized_size(previous_encoding, current_alignment);
+
+    return calculated_size;
+}
+
+template<>
+eProsima_user_DllExport void serialize(
+        eprosima::fastcdr::Cdr& scdr,
+        const $exception.scopedname$& data)
+{
+    $if(!exception.scope.empty)$
+    using namespace $exception.scope$;
+    $endif$
+
+    eprosima::fastcdr::Cdr::state current_state(scdr);
+    scdr.begin_serialize_type(current_state,
+            eprosima::fastcdr::CdrVersion::XCDRv2 == scdr.get_cdr_version() ?
+            eprosima::fastcdr::EncodingAlgorithmFlag::PLAIN_CDR2 :
+            eprosima::fastcdr::EncodingAlgorithmFlag::PLAIN_CDR);
+
+    scdr << eprosima::fastcdr::MemberId(0) << data.what();
+    $if(exception.members)$
+    scdr$exception.members : { member | $if(!member.annotationNonSerialized)$
+        << eprosima::fastcdr::MemberId($member.index$ + 1) << data.$member.name$()
+    $endif$
+    }; separator=""$;
+    $endif$
+
+    scdr.end_serialize_type(current_state);
+}
+
+template<>
+eProsima_user_DllExport void deserialize(
+        eprosima::fastcdr::Cdr& cdr,
+        $exception.scopedname$& data)
+{
+    $if(!exception.scope.empty)$
+    using namespace $exception.scope$;
+    $endif$
+
+    cdr.deserialize_type(eprosima::fastcdr::CdrVersion::XCDRv2 == cdr.get_cdr_version() ?
+            eprosima::fastcdr::EncodingAlgorithmFlag::PLAIN_CDR2 :
+            eprosima::fastcdr::EncodingAlgorithmFlag::PLAIN_CDR,
+            [&data](eprosima::fastcdr::Cdr& dcdr, const eprosima::fastcdr::MemberId& mid) -> bool
+            {
+                bool ret_value = true;
+                switch (mid.id)
+                {
+                    case 0:
+                    {
+                        std::string msg;
+                        dcdr \>> msg;
+                        $exception.name$ tmp{msg};
+                        data = tmp;
+                        break;
+                    }
+
+                    $exception.members : { member |
+                    case $member.index$ + 1:
+                        $if(!member.annotationNonSerialized)$
+                            dcdr \>> data.$member.name$();
+                        $endif$
+                        break;
+                    }; separator="\n"$
+                    default:
+                        ret_value = false;
+                        break;
+                }
+                return ret_value;
+            });
+}
+
+>>
