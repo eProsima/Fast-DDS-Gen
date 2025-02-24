@@ -195,7 +195,7 @@ $if(member.typecode.isStringType && member.typecode.isBounded)$
 {
     void $member.name$(const std::string& value)
     {
-        eprosima::fastcdr::fixed_string<$member.typecode.maxsize$> tmp;
+        eprosima::fastcdr::fixed_string<$member.typecode.maxsize$> tmp(value);
         \$self->$member.name$(tmp);
     }
 }
