@@ -189,13 +189,13 @@ $else$
 %ignore $struct_name$::$member.name$();
 %rename("%s") $struct_name$::$member.name$() const;
 
-$if(typecode.isStringType && typecode.isBounded)$
-%template($typecode.noScopedCppTypename$_fixed_string_$typecode.maxSize$) eprosima::fastcdr::fixed_string<$typecode.maxSize$>;
+$if(member.typecode.isStringType && member.typecode.isBounded)$
+%template($member.typecode.noScopedCppTypename$_fixed_string_$member.typecode.maxSize$) eprosima::fastcdr::fixed_string<$member.typecode.maxSize$>;
 %extend $struct_name$
 {
     void $member.name$(const std::string& value)
     {
-        eprosima::fastcdr::fixed_string<$typecode.maxSize$> tmp;
+        eprosima::fastcdr::fixed_string<$member.typecode.maxSize$> tmp;
         \$self->$member.name$(tmp);
     }
 }
