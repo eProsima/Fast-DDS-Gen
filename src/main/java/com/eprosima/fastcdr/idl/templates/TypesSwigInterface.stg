@@ -44,9 +44,18 @@ $ctx.directIncludeDependencies : {include | %include "$include$.i"}; separator="
 %}
 
 %include <fastcdr/config.h>
+<<<<<<< HEAD
 #if FASTCDR_VERSION_MAJOR > 1
 %import(module="fastdds") "fastcdr/xcdr/optional.hpp"
 #endif
+=======
+$if(ctx.thereIsOptionalAnnotation)$
+%import(module="fastdds") "fastcdr/xcdr/optional.hpp"
+$endif$
+$if(ctx.thereIsString)$
+%import(module="fastdds") "fastcdr/cdr/fixed_size_string.hpp"
+$endif$
+>>>>>>> 8eaca9a (Fix python code generation for bounded strings (#440))
 %import(module="fastdds") "fastdds/dds/core/LoanableCollection.hpp"
 %import(module="fastdds") "fastdds/dds/core/LoanableTypedCollection.hpp"
 %import(module="fastdds") "fastdds/dds/core/LoanableSequence.hpp"
@@ -204,6 +213,18 @@ $endif$
 $else$
 %ignore $struct_name$::$member.name$();
 %rename("%s") $struct_name$::$member.name$() const;
+
+$if(member.typecode.isStringType && member.typecode.isBounded)$
+%template(fixed_string_$member.typecode.maxsize$) eprosima::fastcdr::fixed_string<$member.typecode.maxsize$>;
+%extend $struct_name$
+{
+    void $member.name$(const std::string& value)
+    {
+        eprosima::fastcdr::fixed_string<$member.typecode.maxsize$> tmp(value);
+        \$self->$member.name$(tmp);
+    }
+}
+$endif$
 
 $endif$
 
