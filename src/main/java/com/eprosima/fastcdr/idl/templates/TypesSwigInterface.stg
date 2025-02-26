@@ -211,6 +211,7 @@ $else$
 %rename("%s") $struct_name$::$member.name$() const;
 
 $if(member.typecode.isStringType && member.typecode.isBounded)$
+#if FASTCDR_VERSION_MAJOR > 1
 %template(fixed_string_$member.typecode.maxsize$) eprosima::fastcdr::fixed_string<$member.typecode.maxsize$>;
 %extend $struct_name$
 {
@@ -220,6 +221,7 @@ $if(member.typecode.isStringType && member.typecode.isBounded)$
         \$self->$member.name$(tmp);
     }
 }
+#endif
 $endif$
 
 $endif$
