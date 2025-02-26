@@ -44,18 +44,14 @@ $ctx.directIncludeDependencies : {include | %include "$include$.i"}; separator="
 %}
 
 %include <fastcdr/config.h>
-<<<<<<< HEAD
 #if FASTCDR_VERSION_MAJOR > 1
-%import(module="fastdds") "fastcdr/xcdr/optional.hpp"
-#endif
-=======
 $if(ctx.thereIsOptionalAnnotation)$
 %import(module="fastdds") "fastcdr/xcdr/optional.hpp"
 $endif$
 $if(ctx.thereIsString)$
 %import(module="fastdds") "fastcdr/cdr/fixed_size_string.hpp"
 $endif$
->>>>>>> 8eaca9a (Fix python code generation for bounded strings (#440))
+#endif
 %import(module="fastdds") "fastdds/dds/core/LoanableCollection.hpp"
 %import(module="fastdds") "fastdds/dds/core/LoanableTypedCollection.hpp"
 %import(module="fastdds") "fastdds/dds/core/LoanableSequence.hpp"
