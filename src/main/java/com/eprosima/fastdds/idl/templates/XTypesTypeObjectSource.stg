@@ -491,7 +491,7 @@ text_$name$ = "$verbatim_param.value$";
 $endif$
 }; separator="\n"$
 verbatim_$name$ = TypeObjectUtils::build_applied_verbatim_annotation(placement_$name$, language_$name$, text_$name$);
-type_ann_builtin_$annotation_name$ = TypeObjectUtils::build_applied_builtin_type_annotations(verbatim_$name$);
+type_ann_builtin_$name$ = TypeObjectUtils::build_applied_builtin_type_annotations(verbatim_$name$);
 >>
 
 annotation_parameter(param, parent) ::= <<
