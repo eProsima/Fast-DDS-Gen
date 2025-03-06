@@ -33,7 +33,7 @@ $endif$
 $if(ctx.thereIsMap)$
 #include <map>
 $endif$
-$if(ctx.thereIsInputFeed)$
+$if(ctx.thereIsInputFeed || ctx.thereIsOutputFeed)$
 #include <memory>
 $endif$
 $if(ctx.thereIsString)$
@@ -59,6 +59,9 @@ $endif$
 
 $if(ctx.thereIsException)$
 #include <fastdds/dds/rpc/exceptions/RpcOperationError.hpp>
+$endif$
+$if(ctx.thereIsOutputFeed)$
+#include <fastdds/dds/rpc/interfaces/RpcClientReader.hpp>
 $endif$
 $if(ctx.thereIsInputFeed)$
 #include <fastdds/dds/rpc/interfaces/RpcClientWriter.hpp>
