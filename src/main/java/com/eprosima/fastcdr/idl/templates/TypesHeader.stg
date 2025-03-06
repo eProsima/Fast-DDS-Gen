@@ -189,6 +189,20 @@ public:
 };
 >>
 
+operationRetType(operation) ::= <%
+$if(operation.annotationFeed)$
+std::shared_ptr<eprosima::fastdds::dds::rpc::RpcClientReader<$paramRetType(operation.rettype)$> >
+$else$
+eprosima::fastdds::dds::rpc::RpcFuture<$paramRetType(operation.rettype)$>
+$endif$
+%>
+
+operation(ctx, parent, operation, param_list, operation_type) ::= <<
+virtual $operationRetType(operation)$ $operation.name$(
+        $paramDeclarations(params=operation.parameters)$) = 0;
+
+>>
+
 const_decl(ctx, parent, const, const_type) ::= <<
 $const_type$
 const $const.typeCode.cppTypename$ $const.name$ = $const.value$$const_value_prefix(const)$;

@@ -14,6 +14,34 @@
 
 group FastCdrCommon;
 
+paramRetType(typecode) ::= <%
+$if(typecode)$
+$typecode.cppTypename$
+$else$
+void
+$endif$
+%>
+
+paramTypeByRef(typecode) ::= <%
+$typecode.cppTypename$&
+%>
+
+paramTypeByValue(typecode, feed) ::= <%
+$if(feed)$
+std::shared_ptr<RpcClientWriter<$typecode.cppTypename$> >&
+$else$
+$if(typecode.primitive)$
+$typecode.cppTypename$
+$else$
+const $typecode.cppTypename$&
+$endif$
+$endif$
+%>
+
+paramDeclarations(params, initialSeparator="") ::= <<
+$if(params)$$initialSeparator$$endif$$params : {param | /*$param.comment$*/ $if(param.output)$$paramTypeByRef(typecode=param.typecode)$$else$$paramTypeByValue(typecode=param.typecode, feed=param.annotationFeed)$$endif$ $param.name$}; anchor, separator=",\n"$
+>>
+
 object_serialization(ctx, object) ::= <<
 scdr << eprosima::fastcdr::MemberId($object.id$) << $object.name$();
 >>
