@@ -21,9 +21,10 @@ import org.antlr.v4.runtime.Token;
 
 public class Operation extends com.eprosima.idl.parser.tree.Operation
 {
-    public Operation(String scopeFile, boolean isInScope, String scope, String name, Token tk)
+    public Operation(Context ctx, String scopeFile, boolean isInScope, String scope, String name, Token tk)
     {
         super(scopeFile, isInScope, scope, name, tk);
+        m_context = ctx;
     }
 
     /**
@@ -52,12 +53,23 @@ public class Operation extends com.eprosima.idl.parser.tree.Operation
     public void add(com.eprosima.idl.parser.tree.Param param)
     {
         Param p = (Param)param;
-        // Fail if para is out and feed
-        if (p.isAnnotationFeed() && p.isOutput())
+        // Process feed annotation
+        if (p.isAnnotationFeed())
         {
-            throw new ParseException(null, "Output parameter " + p.getName() + " has '@feed' annotation.");
+            if (p.isOutput())
+            {
+                // Fail if parameter is out and feed
+                throw new ParseException(null, "Output parameter " + p.getName() + " has '@feed' annotation.");
+            }
+            else
+            {
+                // Take note that there is at least one input feed
+                m_context.setThereIsInputFeed(true);
+            }
         }
 
         super.add(param);
     }
+
+    private Context m_context;
 }

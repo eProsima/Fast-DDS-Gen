@@ -33,6 +33,9 @@ $endif$
 $if(ctx.thereIsMap)$
 #include <map>
 $endif$
+$if(ctx.thereIsInputFeed)$
+#include <memory>
+$endif$
 $if(ctx.thereIsString)$
 #include <string>
 $endif$
@@ -56,6 +59,9 @@ $endif$
 
 $if(ctx.thereIsException)$
 #include <fastdds/dds/rpc/exceptions/RpcOperationError.hpp>
+$endif$
+$if(ctx.thereIsInputFeed)$
+#include <fastdds/dds/rpc/interfaces/RpcClientWriter.hpp>
 $endif$
 
 $ctx.directIncludeDependencies : {include | #include "$include$.hpp"}; separator="\n"$

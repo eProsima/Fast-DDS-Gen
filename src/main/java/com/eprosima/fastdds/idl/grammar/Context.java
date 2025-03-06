@@ -478,6 +478,17 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
         return there_is_at_least_one_exception;
     }
 
+    public void setThereIsInputFeed(
+            boolean value)
+    {
+        there_is_at_least_one_input_feed = value;
+    }
+
+    public boolean isThereIsInputFeed()
+    {
+        return there_is_at_least_one_input_feed;
+    }
+
     /*** Functions inherited from FastCDR Context ***/
 
     @Override
@@ -726,7 +737,7 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
             String name,
             Token token)
     {
-        Operation operationObject = new Operation(getScopeFile(), isInScopedFile(), null, name, token);
+        Operation operationObject = new Operation(this, getScopeFile(), isInScopedFile(), null, name, token);
         return operationObject;
     }
 
@@ -778,4 +789,6 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
     private boolean there_is_at_least_one_union = false;
 
     private boolean there_is_at_least_one_exception = false;
+
+    private boolean there_is_at_least_one_input_feed = false;
 }
