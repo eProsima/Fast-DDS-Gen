@@ -500,6 +500,17 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
         return there_is_at_least_one_output_feed;
     }
 
+    public boolean setThereIsNonFeedOperation(
+            boolean value)
+    {
+        return there_is_at_least_one_non_feed_operation = value;
+    }
+
+    public boolean isThereIsNonFeedOperation()
+    {
+        return there_is_at_least_one_non_feed_operation;
+    }
+
     /*** Functions inherited from FastCDR Context ***/
 
     @Override
@@ -814,4 +825,6 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
     private boolean there_is_at_least_one_input_feed = false;
 
     private boolean there_is_at_least_one_output_feed = false;
+
+    private boolean there_is_at_least_one_non_feed_operation = false;
 }

@@ -66,6 +66,9 @@ $endif$
 $if(ctx.thereIsInputFeed)$
 #include <fastdds/dds/rpc/interfaces/RpcClientWriter.hpp>
 $endif$
+$if(ctx.thereIsNonFeedOperation)$
+#include <fastdds/dds/rpc/interfaces/RpcFuture.hpp>
+$endif$
 
 $ctx.directIncludeDependencies : {include | #include "$include$.hpp"}; separator="\n"$
 

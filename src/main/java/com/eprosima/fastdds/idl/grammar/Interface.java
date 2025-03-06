@@ -35,6 +35,10 @@ public class Interface extends com.eprosima.idl.parser.tree.Interface
             {
                 m_context.setThereIsOutputFeed(true);
             }
+            else
+            {
+                m_context.setThereIsNonFeedOperation(true);
+            }
         }
 
         super.add(exp);
