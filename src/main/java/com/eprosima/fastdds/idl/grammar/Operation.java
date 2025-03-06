@@ -15,6 +15,8 @@
 package com.eprosima.fastdds.idl.grammar;
 
 import com.eprosima.idl.parser.exception.RuntimeGenerationException;
+import com.eprosima.idl.parser.exception.ParseException;
+import com.eprosima.fastdds.idl.grammar.Param;
 import org.antlr.v4.runtime.Token;
 
 public class Operation extends com.eprosima.idl.parser.tree.Operation
@@ -44,5 +46,18 @@ public class Operation extends com.eprosima.idl.parser.tree.Operation
             }
         }
         return false;
+    }
+
+    @Override
+    public void add(com.eprosima.idl.parser.tree.Param param)
+    {
+        Param p = (Param)param;
+        // Fail if para is out and feed
+        if (p.isAnnotationFeed() && p.isOutput())
+        {
+            throw new ParseException(null, "Output parameter " + p.getName() + " has '@feed' annotation.");
+        }
+
+        super.add(param);
     }
 }
