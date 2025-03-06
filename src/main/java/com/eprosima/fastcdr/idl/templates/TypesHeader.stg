@@ -201,14 +201,6 @@ public:
 };
 >>
 
-operationRetType(operation) ::= <%
-$if(operation.annotationFeed)$
-std::shared_ptr<eprosima::fastdds::dds::rpc::RpcClientReader<$paramRetType(operation.rettype)$> >
-$else$
-eprosima::fastdds::dds::rpc::RpcFuture<$paramRetType(operation.rettype)$>
-$endif$
-%>
-
 operation(ctx, parent, operation, param_list, operation_type) ::= <<
 virtual $operationRetType(operation)$ $operation.name$(
         $paramDeclarations(params=operation.parameters)$) = 0;
@@ -942,6 +934,14 @@ member_destructor_ = [&]()
 new(&m_$member.name$) $member_type_declaration(member)$();
 $endif$
 >>
+
+operationRetType(operation) ::= <%
+$if(operation.annotationFeed)$
+std::shared_ptr<eprosima::fastdds::dds::rpc::RpcClientReader<$paramRetType(operation.rettype)$> >
+$else$
+eprosima::fastdds::dds::rpc::RpcFuture<$paramRetType(operation.rettype)$>
+$endif$
+%>
 
 //{ Fast DDS-Gen extensions
 module_conversion(ctx, parent, modules, definition_list) ::= <<
