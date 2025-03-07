@@ -28,7 +28,7 @@ $typecode.cppTypename$&
 
 paramTypeByValue(typecode, feed) ::= <%
 $if(feed)$
-std::shared_ptr<RpcClientWriter<$typecode.cppTypename$> >&
+std::shared_ptr<eprosima::fastdds::dds::rpc::RpcClientWriter<$typecode.cppTypename$> >&
 $else$
 $if(typecode.primitive)$
 $typecode.cppTypename$
