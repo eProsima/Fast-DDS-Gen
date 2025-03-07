@@ -15,13 +15,16 @@
 package com.eprosima.fastdds.idl.grammar;
 
 import com.eprosima.idl.parser.exception.RuntimeGenerationException;
+import com.eprosima.idl.parser.exception.ParseException;
+import com.eprosima.fastdds.idl.grammar.Param;
 import org.antlr.v4.runtime.Token;
 
 public class Operation extends com.eprosima.idl.parser.tree.Operation
 {
-    public Operation(String scopeFile, boolean isInScope, String scope, String name, Token tk)
+    public Operation(Context ctx, String scopeFile, boolean isInScope, String scope, String name, Token tk)
     {
         super(scopeFile, isInScope, scope, name, tk);
+        m_context = ctx;
     }
 
     /**
@@ -45,4 +48,28 @@ public class Operation extends com.eprosima.idl.parser.tree.Operation
         }
         return false;
     }
+
+    @Override
+    public void add(com.eprosima.idl.parser.tree.Param param)
+    {
+        Param p = (Param)param;
+        // Process feed annotation
+        if (p.isAnnotationFeed())
+        {
+            if (p.isOutput())
+            {
+                // Fail if parameter is out and feed
+                throw new ParseException(null, "Output parameter " + p.getName() + " has '@feed' annotation.");
+            }
+            else
+            {
+                // Take note that there is at least one input feed
+                m_context.setThereIsInputFeed(true);
+            }
+        }
+
+        super.add(param);
+    }
+
+    private Context m_context;
 }

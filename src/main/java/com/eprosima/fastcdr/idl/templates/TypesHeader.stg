@@ -33,6 +33,9 @@ $endif$
 $if(ctx.thereIsMap)$
 #include <map>
 $endif$
+$if(ctx.thereIsInputFeed || ctx.thereIsOutputFeed)$
+#include <memory>
+$endif$
 $if(ctx.thereIsString)$
 #include <string>
 $endif$
@@ -56,6 +59,15 @@ $endif$
 
 $if(ctx.thereIsException)$
 #include <fastdds/dds/rpc/exceptions/RpcOperationError.hpp>
+$endif$
+$if(ctx.thereIsOutputFeed)$
+#include <fastdds/dds/rpc/interfaces/RpcClientReader.hpp>
+$endif$
+$if(ctx.thereIsInputFeed)$
+#include <fastdds/dds/rpc/interfaces/RpcClientWriter.hpp>
+$endif$
+$if(ctx.thereIsNonFeedOperation)$
+#include <fastdds/dds/rpc/interfaces/RpcFuture.hpp>
 $endif$
 
 $ctx.directIncludeDependencies : {include | #include "$include$.hpp"}; separator="\n"$
@@ -187,6 +199,12 @@ public:
 
     $export_list$
 };
+>>
+
+operation(ctx, parent, operation, param_list, operation_type) ::= <<
+virtual $operationRetType(operation)$ $operation.name$(
+        $paramDeclarations(params=operation.parameters)$) = 0;
+
 >>
 
 const_decl(ctx, parent, const, const_type) ::= <<
@@ -916,6 +934,14 @@ member_destructor_ = [&]()
 new(&m_$member.name$) $member_type_declaration(member)$();
 $endif$
 >>
+
+operationRetType(operation) ::= <%
+$if(operation.annotationFeed)$
+std::shared_ptr<eprosima::fastdds::dds::rpc::RpcClientReader<$paramRetType(operation.rettype)$> >
+$else$
+eprosima::fastdds::dds::rpc::RpcFuture<$paramRetType(operation.rettype)$>
+$endif$
+%>
 
 //{ Fast DDS-Gen extensions
 module_conversion(ctx, parent, modules, definition_list) ::= <<
