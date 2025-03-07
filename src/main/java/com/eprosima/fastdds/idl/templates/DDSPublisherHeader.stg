@@ -29,7 +29,11 @@ $fileHeader(ctx=ctx,  file=[ctx.filename, "PublisherApp.hpp"], description=["Thi
 #include <fastdds/dds/publisher/DataWriterListener.hpp>
 #include <fastdds/dds/topic/TypeSupport.hpp>
 
+$if(ctx.generateFlatOutputDir)$
 #include "$ctx.filename$Application.hpp"
+$else$
+#include "$ctx.relativeDirectory$$ctx.filename$Application.hpp"
+$endif$
 
 class $ctx.filename$PublisherApp : public $ctx.filename$Application,
         public eprosima::fastdds::dds::DataWriterListener

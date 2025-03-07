@@ -22,7 +22,11 @@ $fileHeader(ctx=ctx, file=[ctx.filename, "CdrAux.hpp"], description=["This sourc
 #ifndef FAST_DDS_GENERATED__$ctx.headerGuardName$CDRAUX_HPP
 #define FAST_DDS_GENERATED__$ctx.headerGuardName$CDRAUX_HPP
 
+$if(ctx.generateFlatOutputDir)$
 #include "$ctx.filename$.hpp"
+$else$
+#include "$ctx.relativeDirectory$$ctx.filename$.hpp"
+$endif$
 
 $if(ctx.anyCdr)$
 $ctx.types:{ type | $if(type.inScope)$$if(type.typeCode.isStructType)$

@@ -43,6 +43,8 @@ public interface Context
 
     public boolean isGenerateTypeObjectSupport();
 
+    public boolean isGenerateFlatOutputDir();
+
     public boolean isCdr();
 
     public boolean isFastcdr();

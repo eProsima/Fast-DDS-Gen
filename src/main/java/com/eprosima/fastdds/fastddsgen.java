@@ -406,6 +406,12 @@ public class fastddsgen
             throw new BadArgumentException("No input files given");
         }
 
+        if (m_includePaths.isEmpty() && !m_flat_output_dir)
+        {
+            // Forcing flat output directory as no include path given so relative output directory can't be determined
+            m_flat_output_dir = true;
+        }
+
     }
 
     /*
@@ -759,17 +765,18 @@ public class fastddsgen
             TemplateManager tmanager = new TemplateManager();
 
             Context ctx = new Context(tmanager, idlFilename, m_includePaths, m_subscribercode, m_publishercode,
-                            m_localAppProduct, m_typesc, m_type_ros2, gen_api_, generate_typeobjectsupport_);
+                            m_localAppProduct, m_typesc, m_type_ros2, gen_api_, generate_typeobjectsupport_, m_flat_output_dir);
 
-            String relative_dir = ctx.getRelativeDir(dependant_idl_dir);
+            String relative_dir = ctx.getRelativeDir();
             String output_dir;
-            if (!m_flat_output_dir)
+            if (m_flat_output_dir)
             {
-                output_dir = m_outputDir + relative_dir;
+                relative_dir = "";
+                output_dir = m_outputDir;
             }
             else
             {
-                output_dir = m_outputDir;
+                output_dir = m_outputDir + relative_dir;
             }
 
             // Check the output directory exists or create it.

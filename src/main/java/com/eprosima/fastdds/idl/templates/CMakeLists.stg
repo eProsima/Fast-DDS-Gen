@@ -68,6 +68,7 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
 endif()
 $endif$
 
+include_directories(\${CMAKE_CURRENT_SOURCE_DIR})
 $solution.projects : { project | $pub_sub_execs(project=project, libraries=solution.libraries, test=test)$}; separator="\n"$
 
 $if (test)$

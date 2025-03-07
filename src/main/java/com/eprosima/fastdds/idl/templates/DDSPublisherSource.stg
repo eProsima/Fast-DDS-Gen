@@ -19,7 +19,11 @@ import "eprosima.stg"
 main(ctx, definitions) ::= <<
 $fileHeader(ctx=ctx,  file=[ctx.filename, "PublisherApp.cxx"], description=["This file contains the implementation of the publisher functions."])$
 
+$if(ctx.generateFlatOutputDir)$
 #include "$ctx.filename$PublisherApp.hpp"
+$else$
+#include "$ctx.relativeDirectory$$ctx.filename$PublisherApp.hpp"
+$endif$
 
 #include <condition_variable>
 #include <csignal>
@@ -33,7 +37,11 @@ $fileHeader(ctx=ctx,  file=[ctx.filename, "PublisherApp.cxx"], description=["Thi
 #include <fastdds/dds/publisher/qos/DataWriterQos.hpp>
 #include <fastdds/dds/publisher/qos/PublisherQos.hpp>
 
+$if(ctx.generateFlatOutputDir)$
 #include "$ctx.filename$PubSubTypes.hpp"
+$else$
+#include "$ctx.relativeDirectory$$ctx.filename$PubSubTypes.hpp"
+$endif$
 
 using namespace eprosima::fastdds::dds;
 

@@ -19,10 +19,22 @@ import "eprosima.stg"
 main(ctx, definitions) ::= <<
 $fileHeader(ctx=ctx,  file=[ctx.filename, "Application.cxx"], description=["This file contains the implementation of the application functions."])$
 
+$if(ctx.generateFlatOutputDir)$
 #include "$ctx.filename$Application.hpp"
+$else$
+#include "$ctx.relativeDirectory$$ctx.filename$Application.hpp"
+$endif$
 
+$if(ctx.generateFlatOutputDir)$
 #include "$ctx.filename$PublisherApp.hpp"
+$else$
+#include "$ctx.relativeDirectory$$ctx.filename$PublisherApp.hpp"
+$endif$
+$if(ctx.generateFlatOutputDir)$
 #include "$ctx.filename$SubscriberApp.hpp"
+$else$
+#include "$ctx.relativeDirectory$$ctx.filename$SubscriberApp.hpp"
+$endif$
 
 //! Factory method to create a publisher or subscriber
 std::shared_ptr<$ctx.filename$Application> $ctx.filename$Application::make_app(
