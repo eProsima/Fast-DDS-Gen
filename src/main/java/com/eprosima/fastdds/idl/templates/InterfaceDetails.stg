@@ -24,6 +24,7 @@ $fileHeader(ctx=ctx,  file=[ctx.filename, "_details.hpp"], description=["This he
 
 #include <fastcdr/xcdr/optional.hpp>
 #include <fastdds/dds/rpc/RemoteExceptionCode_t.hpp>
+#include <fastdds/dds/rpc/interfaces/RpcStatusCode.hpp>
 
 #include "$ctx.filename$.hpp"
 
@@ -51,6 +52,8 @@ namespace detail {
 
 //{ $interface.name$ interface
 
+$interface.all_operations : { operation | $operation_details(interface, operation)$ }; separator="\n"$
+
 //{ top level
 
 struct $interface.name$_Request
@@ -71,14 +74,75 @@ struct $interface.name$_Reply
 } // namespace detail
 >>
 
-operation_request_members(interface, operation) ::= <%
-eprosima::fastcdr::optional<$interface.name$_$operation.name$_In> $operation.name$;
-$operation.parameters : { parameter | $if (parameter.annotationFeed)$$operation_request_feed(interface, operation, parameter)$$endif$ }$
+operation_details(interface, operation) ::= <<
+//{ $operation.name$
+$operation_in_struct(interface, operation)$
+
+$operation.inputparam : { param | $if (param.annotationFeed)$$operation_feed_struct(interface, operation, param)$$endif$ }$
+
+$operation_out_struct(interface, operation)$
+
+$operation_result_struct(interface, operation)$
+
+//}  // $operation.name$
+
+>>
+
+operation_in_struct(interface, operation) ::= <<
+struct $interface.name$_$operation.name$_In
+{
+    $if(operation.inputparam)$
+    $operation.inputparam : { param | $if (!param.annotationFeed)$$parameter_declaration(param)$$endif$ }; separator="\n"$
+    $endif$
+};
+>>
+
+operation_feed_struct(interface, operation, param) ::= <<
+struct $interface.name$_$operation.name$_$param.name$_Feed
+{
+    eprosima::fastcdr::optional<$param.typecode.cppTypename$> value;
+    eprosima::fastcdr::optional<eprosima::fastdds::dds::rpc::RpcStatusCode> finished_;
+};
+>>
+
+operation_out_struct(interface, operation) ::= <<
+struct $interface.name$_$operation.name$_Out
+{
+    $if(operation.annotationFeed)$
+    eprosima::fastcdr::optional<$operation.rettypeparam.typecode.cppTypename$\> $operation.rettypeparam.name$;
+    eprosima::fastcdr::optional<bool\> finished_;
+    $else$
+    $if([operation.outputparam, operation.rettypeparam])$
+    $[operation.outputparam, operation.rettypeparam]:{param | $parameter_declaration(param)$}; separator="\n"$
+    $endif$
+    $endif$
+};
+>>
+
+operation_result_struct(interface, operation) ::= <<
+struct $interface.name$_$operation.name$_Result
+{
+    eprosima::fastcdr::optional<$interface.name$_$operation.name$_Out\> result;
+    $operation.exceptions : { exception |$operation_result_exception(typename=exception.scopedname, name=[exception.formatedScopedname, "_ex"])$}; separator="\n"$
+};
+>>
+
+parameter_declaration(param) ::= <%
+$param.typecode.cppTypename$ $param.name$;
 %>
 
-operation_request_feed(interface, operation, parameter) ::= <<
+operation_result_exception(typename, name) ::= <%
+eprosima::fastcdr::optional<$typename$> $name$;
+%>
 
-eprosima::fastcdr::optional<$interface.name$_$operation.name$_$parameter.name$_Feed\> $operation.name$_$parameter.name$;
+operation_request_members(interface, operation) ::= <%
+eprosima::fastcdr::optional<$interface.name$_$operation.name$_In> $operation.name$;
+$operation.inputparam : { param | $if (param.annotationFeed)$$operation_request_feed(interface, operation, param)$$endif$ }$
+%>
+
+operation_request_feed(interface, operation, param) ::= <<
+
+eprosima::fastcdr::optional<$interface.name$_$operation.name$_$param.name$_Feed\> $operation.name$_$param.name$;
 >>
 
 operation_reply_members(interface, operation) ::= <<
