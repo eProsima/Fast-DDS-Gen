@@ -55,6 +55,7 @@ namespace detail {
 
 struct $interface.name$_Request
 {
+    $interface.all_operations : { operation | $operation_request_members(interface, operation)$ }; separator="\n"$
 };
 
 struct $interface.name$_Reply
@@ -68,6 +69,16 @@ struct $interface.name$_Reply
 //}  // $interface.name$ interface
 
 } // namespace detail
+>>
+
+operation_request_members(interface, operation) ::= <%
+eprosima::fastcdr::optional<$interface.name$_$operation.name$_In> $operation.name$;
+$operation.parameters : { parameter | $if (parameter.annotationFeed)$$operation_request_feed(interface, operation, parameter)$$endif$ }$
+%>
+
+operation_request_feed(interface, operation, parameter) ::= <<
+
+eprosima::fastcdr::optional<$interface.name$_$operation.name$_$parameter.name$_Feed\> $operation.name$_$parameter.name$;
 >>
 
 operation_reply_members(interface, operation) ::= <<
