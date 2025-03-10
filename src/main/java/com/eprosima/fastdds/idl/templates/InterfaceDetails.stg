@@ -51,8 +51,6 @@ namespace detail {
 
 //{ $interface.name$ interface
 
-$export_list; separator="\n"$
-
 //{ top level
 
 struct $interface.name$_Request
@@ -61,6 +59,8 @@ struct $interface.name$_Request
 
 struct $interface.name$_Reply
 {
+    $interface.all_operations : { operation | $operation_reply_members(interface, operation)$ }; separator="\n"$
+    eprosima::fastcdr::optional<eprosima::fastdds::dds::rpc::RemoteExceptionCode_t\> remoteEx;
 };
 
 //}  // top level
@@ -68,4 +68,8 @@ struct $interface.name$_Reply
 //}  // $interface.name$ interface
 
 } // namespace detail
+>>
+
+operation_reply_members(interface, operation) ::= <<
+eprosima::fastcdr::optional<$interface.name$_$operation.name$_Result\> $operation.name$;
 >>
