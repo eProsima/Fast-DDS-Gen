@@ -802,6 +802,7 @@ public class fastddsgen
             // Load Types common templates
             if (generate_typesupport_)
             {
+                tmanager.addGroup("com/eprosima/fastdds/idl/templates/InterfaceDetails.stg");
                 tmanager.addGroup("com/eprosima/fastdds/idl/templates/TypesCdrAuxHeader.stg");
                 tmanager.addGroup("com/eprosima/fastdds/idl/templates/TypesCdrAuxHeaderImpl.stg");
                 tmanager.addGroup("com/eprosima/fastdds/idl/templates/DDSPubSubTypeHeader.stg");
@@ -1011,6 +1012,14 @@ public class fastddsgen
                                 project.addCommonSrcFile(relative_dir + ctx.getFilename() + "TypeObjectSupport.cxx");
                             }
                         }
+                    }
+
+                    if (ctx.isThereIsInterface())
+                    {
+                        // Generate Interface details
+                        returnedValue &=
+                            Utils.writeFile(output_dir + ctx.getFilename() + "_details.hpp",
+                                    maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/InterfaceDetails.stg"), m_replace);
                     }
 
                     if (ctx.isThereIsStructOrUnion() || ctx.isThereIsException())
