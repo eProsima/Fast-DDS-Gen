@@ -765,7 +765,7 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
             Token token)
     {
         Interface interfaceObject = new com.eprosima.fastdds.idl.grammar.Interface(
-                this, getScopeFile(), isInScopedFile(), null, name, token);
+                this, getScopeFile(), isInScopedFile(), getScope(), name, token);
         there_is_at_least_one_interface = true;
         return interfaceObject;
     }
