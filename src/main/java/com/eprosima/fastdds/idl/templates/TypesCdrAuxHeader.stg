@@ -23,6 +23,9 @@ $fileHeader(ctx=ctx, file=[ctx.filename, "CdrAux.hpp"], description=["This sourc
 #define FAST_DDS_GENERATED__$ctx.headerGuardName$CDRAUX_HPP
 
 #include "$ctx.filename$.hpp"
+$if(ctx.thereIsInterface)$
+#include "$ctx.filename$_details.hpp"
+$endif$
 
 $if(ctx.anyCdr)$
 $ctx.types:{ type | $if(type.inScope)$$if(type.typeCode.isStructType)$
