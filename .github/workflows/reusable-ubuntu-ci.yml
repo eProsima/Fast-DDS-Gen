@@ -54,6 +54,11 @@ on:
         required: false
         type: boolean
         default: false
+      add-label:
+        description: 'Add the CI-PENDING label to the PR'
+        required: false
+        type: boolean
+        default: false
 env:
     cdr-test-flag: ${{ inputs.fastcdr-branch == '1.1.x' &&  '-Dcdr_version=v1 -Dblacklist_tests=external,optional' || (inputs.fastcdr-branch == '2.x' &&  '-Dcdr_version=v2' || '-Dcdr_version=both' )}}
 defaults:
@@ -71,7 +76,7 @@ jobs:
           - 'RelWithDebInfo'
     steps:
       - name: Add ci-pending label if PR
-        if: ${{ github.event_name == 'pull_request' }}
+        if: ${{ github.event_name == 'pull_request' && inputs.add-label == true }}
         uses: eProsima/eProsima-CI/external/add_labels@v0
         with:
           labels: ci-pending
