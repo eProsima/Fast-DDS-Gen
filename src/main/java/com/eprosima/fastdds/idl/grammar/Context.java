@@ -480,6 +480,11 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
         return there_is_at_least_one_exception;
     }
 
+    public boolean isThereIsInterface()
+    {
+        return there_is_at_least_one_interface;
+    }
+
     public void setThereIsInputFeed(
             boolean value)
     {
@@ -781,7 +786,8 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
             Token token)
     {
         Interface interfaceObject = new com.eprosima.fastdds.idl.grammar.Interface(
-                this, getScopeFile(), isInScopedFile(), null, name, token);
+                this, getScopeFile(), isInScopedFile(), getScope(), name, token);
+        there_is_at_least_one_interface = true;
         return interfaceObject;
     }
 
@@ -848,4 +854,6 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
     private boolean there_is_at_least_one_output_feed = false;
 
     private boolean there_is_at_least_one_non_feed_operation = false;
+
+    private boolean there_is_at_least_one_interface = false;
 }
