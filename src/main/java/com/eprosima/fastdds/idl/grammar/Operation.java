@@ -16,6 +16,7 @@ package com.eprosima.fastdds.idl.grammar;
 
 import com.eprosima.idl.parser.exception.RuntimeGenerationException;
 import com.eprosima.idl.parser.exception.ParseException;
+import com.eprosima.fastdds.idl.parser.typecode.StructTypeCode;
 import com.eprosima.fastdds.idl.grammar.Param;
 import org.antlr.v4.runtime.Token;
 
@@ -69,6 +70,12 @@ public class Operation extends com.eprosima.idl.parser.tree.Operation
         }
 
         super.add(param);
+    }
+
+    public StructTypeCode getResultTypeCode()
+    {
+        // TODO(MiguelCompany): Implement this function
+        return null;
     }
 
     private Context m_context;
