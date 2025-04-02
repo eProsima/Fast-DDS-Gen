@@ -14,10 +14,14 @@
 
 package com.eprosima.fastdds.idl.grammar;
 
-import com.eprosima.idl.parser.exception.RuntimeGenerationException;
-import com.eprosima.idl.parser.exception.ParseException;
 import com.eprosima.fastdds.idl.parser.typecode.StructTypeCode;
 import com.eprosima.fastdds.idl.grammar.Param;
+import com.eprosima.idl.parser.exception.RuntimeGenerationException;
+import com.eprosima.idl.parser.exception.ParseException;
+import com.eprosima.idl.parser.typecode.Member;
+import com.eprosima.idl.parser.typecode.Kind;
+import com.eprosima.idl.parser.typecode.PrimitiveTypeCode;
+import com.eprosima.idl.parser.typecode.TypeCode.ExtensibilityKind;
 import org.antlr.v4.runtime.Token;
 
 public class Operation extends com.eprosima.idl.parser.tree.Operation
@@ -50,6 +54,17 @@ public class Operation extends com.eprosima.idl.parser.tree.Operation
         return false;
     }
 
+    /**
+     * Return whether the operation has been annotated as mutable
+     *
+     * @return true when the operation has been annotated as mutable, false otherwise.
+     */
+    public boolean isAnnotationMutable()
+    {
+        // TODO(MiguelCompany): Add support for @mutable annotation
+        return false;
+    }
+
     @Override
     public void add(com.eprosima.idl.parser.tree.Param param)
     {
@@ -72,11 +87,97 @@ public class Operation extends com.eprosima.idl.parser.tree.Operation
         super.add(param);
     }
 
-    public StructTypeCode getResultTypeCode()
+    public StructTypeCode getOutTypeCode()
     {
-        // TODO(MiguelCompany): Implement this function
-        return null;
+        if (m_out_type == null)
+        {
+            Interface parent = (Interface)getParent();
+            String scope = parent.getHasScope() ? parent.getScope() + "::detail" : "detail";
+
+            // Create Out type
+            StructTypeCode out_type = new StructTypeCode(
+                scope,
+                parent.getName() + "_" + getName() + "_Out");
+
+            // If the operation is marked as mutable, then the out type should be mutable as well
+            if (isAnnotationMutable())
+            {
+                out_type.get_extensibility(ExtensibilityKind.MUTABLE);
+            }
+            else
+            {
+                out_type.get_extensibility(ExtensibilityKind.FINAL);
+            }
+
+            if (isAnnotationFeed())
+            {
+                // Feeds have an optional return_ member, and an optional finished_ member
+                Member return_member = new Member(getRettype(), "return_");
+                return_member.addAnnotation(m_context, new Annotation(m_context.getAnnotationDeclaration("optional")));
+                out_type.addMember(return_member);
+                Member finished_member = new Member(m_context.createPrimitiveTypeCode(Kind.KIND_BOOLEAN), "finished_");
+                finished_member.addAnnotation(m_context, new Annotation(m_context.getAnnotationDeclaration("optional")));
+                out_type.addMember(finished_member);
+            }
+            else
+            {
+                // Add output parameters as members
+                getParameters().forEach(param -> {
+                    if (param.isOutput())
+                    {
+                        Member member = new Member(param.getTypecode(), param.getName());
+                        out_type.addMember(member);
+                    }
+                });
+                // Add return_ member if operation has a return type
+                if (getRettype() != null)
+                {
+                    Member return_member = new Member(getRettype(), "return_");
+                    out_type.addMember(return_member);
+                }
+            }
+
+            m_out_type = out_type;
+        }
+
+        return m_out_type;
     }
 
-    private Context m_context;
+    public StructTypeCode getResultTypeCode()
+    {
+        if (m_result_type == null)
+        {
+            Interface parent = (Interface)getParent();
+            String scope = parent.getHasScope() ? parent.getScope() + "::detail" : "detail";
+            StructTypeCode result_type = new StructTypeCode(
+                scope,
+                parent.getName() + "_" + getName() + "_Result");
+
+            // The result type should be a `@choice`, which means that it should have MUTABLE extensibility
+            result_type.get_extensibility(ExtensibilityKind.MUTABLE);
+
+            // Add out type as a member of the result type
+            Member result_member = new Member(getOutTypeCode(), "result");
+            result_member.addAnnotation(m_context, new Annotation(m_context.getAnnotationDeclaration("optional")));
+            result_member.addAnnotation(m_context, new Annotation(m_context.getAnnotationDeclaration("hashid")));
+            result_type.addMember(result_member);
+
+            // Add exceptions as optional members
+            getExceptions().forEach(exception -> {
+                String member_name = exception.getFormatedScopedname() + "_ex";
+                Member member = new Member(null /* exception.getTypeCode()*/, member_name);
+                member.addAnnotation(m_context, new Annotation(m_context.getAnnotationDeclaration("optional")));
+                member.addAnnotation(m_context, new Annotation(m_context.getAnnotationDeclaration("hashid")));
+                result_type.addMember(member);
+            });
+
+            m_result_type = result_type;
+        }
+
+        return m_result_type;
+    }
+
+    private Context m_context = null;
+    private StructTypeCode m_result_type = null;
+    private StructTypeCode m_out_type = null;
 }
