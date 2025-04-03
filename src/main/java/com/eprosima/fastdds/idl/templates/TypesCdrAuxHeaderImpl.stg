@@ -543,6 +543,7 @@ struct $interface.name$_Reply
     eprosima::fastcdr::optional<eprosima::fastdds::dds::rpc::RemoteExceptionCode_t\> remoteEx;
 };
 */
+$rpc_struct_serialization(interface.replyTypeCode)$
 
 //}  // top level
 
@@ -602,6 +603,7 @@ struct $interface.name$_$operation.name$_Out
     $endif$
 };
 */
+$rpc_struct_serialization(operation.outTypeCode)$
 >>
 
 operation_result_struct(interface, operation) ::= <<
@@ -613,6 +615,7 @@ struct $interface.name$_$operation.name$_Result
     $operation.exceptions : { exception |$operation_result_exception(typename=exception.scopedname, name=[exception.formatedScopedname, "_ex"])$}; separator="\n"$
 };
 */
+$rpc_struct_serialization(operation.resultTypeCode)$
 >>
 
 parameter_declaration(param) ::= <%
@@ -643,3 +646,109 @@ $interface.scope$::
 $endif$
 detail::$interface.name$
 %>
+
+rpc_struct_serialization(struct) ::= <<
+template<>
+eProsima_user_DllExport size_t calculate_serialized_size(
+        eprosima::fastcdr::CdrSizeCalculator& calculator,
+        const $struct.scopedname$& data,
+        size_t& current_alignment)
+{
+    $if(!struct.scope.empty)$
+    using namespace $struct.scope$;
+    $endif$
+
+    static_cast<void>(data);
+
+    eprosima::fastcdr::EncodingAlgorithmFlag previous_encoding = calculator.get_encoding();
+    size_t calculated_size {calculator.begin_calculate_type_serialized_size(
+                                eprosima::fastcdr::CdrVersion::XCDRv2 == calculator.get_cdr_version() ?
+                                $if(struct.annotationFinal)$eprosima::fastcdr::EncodingAlgorithmFlag::PLAIN_CDR2$elseif(struct.annotationAppendable)$eprosima::fastcdr::EncodingAlgorithmFlag::DELIMIT_CDR2$elseif(struct.annotationMutable)$eprosima::fastcdr::EncodingAlgorithmFlag::PL_CDR2$endif$ :
+                                $if(struct.annotationFinal || struct.annotationAppendable)$eprosima::fastcdr::EncodingAlgorithmFlag::PLAIN_CDR$elseif(struct.annotationMutable)$eprosima::fastcdr::EncodingAlgorithmFlag::PL_CDR$endif$,
+                                current_alignment)};
+
+
+    $struct.allMembers : { member | $if(!member.annotationNonSerialized)$
+    calculated_size += calculator.calculate_member_serialized_size(eprosima::fastcdr::MemberId($if(struct.annotationMutable)$$member.id$$else$$member.index$$endif$),
+            data.$member.name$, current_alignment);
+    $endif$}; separator="\n"$
+
+    calculated_size += calculator.end_calculate_type_serialized_size(previous_encoding, current_alignment);
+
+    return calculated_size;
+}
+
+template<>
+eProsima_user_DllExport void serialize(
+        eprosima::fastcdr::Cdr& scdr,
+        const $struct.scopedname$& data)
+{
+    $if(!struct.scope.empty)$
+    using namespace $struct.scope$;
+    $endif$
+
+    eprosima::fastcdr::Cdr::state current_state(scdr);
+    scdr.begin_serialize_type(current_state,
+            eprosima::fastcdr::CdrVersion::XCDRv2 == scdr.get_cdr_version() ?
+            $if(struct.annotationFinal)$eprosima::fastcdr::EncodingAlgorithmFlag::PLAIN_CDR2$elseif(struct.annotationAppendable)$eprosima::fastcdr::EncodingAlgorithmFlag::DELIMIT_CDR2$elseif(struct.annotationMutable)$eprosima::fastcdr::EncodingAlgorithmFlag::PL_CDR2$endif$ :
+            $if(struct.annotationFinal || struct.annotationAppendable)$eprosima::fastcdr::EncodingAlgorithmFlag::PLAIN_CDR$elseif(struct.annotationMutable)$eprosima::fastcdr::EncodingAlgorithmFlag::PL_CDR$endif$);
+
+    $if(struct.allMembers)$
+    scdr$struct.allMembers : { member | $if(!member.annotationNonSerialized)$
+        << eprosima::fastcdr::MemberId($if(struct.annotationMutable)$$member.id$$else$$member.index$$endif$) << data.$member.name$
+    $endif$
+    }; separator=""$;
+    $else$
+    static_cast<void>(data);
+    $endif$
+
+    scdr.end_serialize_type(current_state);
+}
+
+template<>
+eProsima_user_DllExport void deserialize(
+        eprosima::fastcdr::Cdr& cdr,
+        $struct.scopedname$& data)
+{
+    $if(!struct.scope.empty)$
+    using namespace $struct.scope$;
+    $endif$
+
+    cdr.deserialize_type(eprosima::fastcdr::CdrVersion::XCDRv2 == cdr.get_cdr_version() ?
+            $if(struct.annotationFinal)$eprosima::fastcdr::EncodingAlgorithmFlag::PLAIN_CDR2$elseif(struct.annotationAppendable)$eprosima::fastcdr::EncodingAlgorithmFlag::DELIMIT_CDR2$elseif(struct.annotationMutable)$eprosima::fastcdr::EncodingAlgorithmFlag::PL_CDR2$endif$ :
+            $if(struct.annotationFinal || struct.annotationAppendable)$eprosima::fastcdr::EncodingAlgorithmFlag::PLAIN_CDR$elseif(struct.annotationMutable)$eprosima::fastcdr::EncodingAlgorithmFlag::PL_CDR$endif$,
+            [&data](eprosima::fastcdr::Cdr& dcdr, const eprosima::fastcdr::MemberId& mid) -> bool
+            {
+                $if(struct.allMembers)$
+                bool ret_value = true;
+                switch (mid.id)
+                {
+                    $struct.allMembers : { member |
+                    case $if(struct.annotationMutable)$$member.id$$else$$member.index$$endif$:
+                        $if(!member.annotationNonSerialized)$
+                            dcdr \>> data.$member.name$;
+                        $endif$
+                        break;
+                    }; separator="\n"$
+                    default:
+                        ret_value = false;
+                        break;
+                }
+                return ret_value;
+                $else$
+                static_cast<void>(data);
+                static_cast<void>(dcdr);
+                static_cast<void>(mid);
+                return false;
+                $endif$
+            });
+}
+
+void serialize_key(
+        eprosima::fastcdr::Cdr& scdr,
+        const $struct.scopedname$& data)
+{
+    static_cast<void>(scdr);
+    static_cast<void>(data);
+}
+>>
