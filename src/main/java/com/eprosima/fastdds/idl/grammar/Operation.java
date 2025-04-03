@@ -165,7 +165,7 @@ public class Operation extends com.eprosima.idl.parser.tree.Operation
             // Add exceptions as optional members
             getExceptions().forEach(exception -> {
                 String member_name = exception.getFormatedScopedname() + "_ex";
-                Member member = new Member(null /* exception.getTypeCode()*/, member_name);
+                Member member = new Member(((Exception)exception).getTypeCode(), member_name);
                 member.addAnnotation(m_context, new Annotation(m_context.getAnnotationDeclaration("optional")));
                 member.addAnnotation(m_context, new Annotation(m_context.getAnnotationDeclaration("hashid")));
                 result_type.addMember(member);
