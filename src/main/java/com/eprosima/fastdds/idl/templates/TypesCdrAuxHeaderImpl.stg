@@ -587,6 +587,7 @@ struct $interface.name$_$operation.name$_$param.name$_Feed
     eprosima::fastcdr::optional<eprosima::fastdds::dds::rpc::RpcStatusCode> finished_;
 };
 */
+$rpc_struct_serialization(param.feedTypeCode)$
 >>
 
 operation_out_struct(interface, operation) ::= <<

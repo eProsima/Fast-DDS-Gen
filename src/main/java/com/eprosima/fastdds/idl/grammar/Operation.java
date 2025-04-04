@@ -123,6 +123,31 @@ public class Operation extends com.eprosima.idl.parser.tree.Operation
         return m_in_type;
     }
 
+    public StructTypeCode createFeedTypeCode(Param p)
+    {
+        // Add feed typecode to the parameter
+        Interface iface = (Interface)getParent();
+        String scope = iface.getHasScope() ? iface.getScope() + "::detail" : "detail";
+
+        StructTypeCode feed_type = new StructTypeCode(
+            scope,
+            iface.getName() + "_" + getName() + "_" + p.getName() + "_Feed");
+
+        feed_type.get_extensibility(ExtensibilityKind.FINAL);
+
+        // Add optional value member
+        Member value_member = new Member(p.getTypecode(), "value");
+        value_member.addAnnotation(m_context, new Annotation(m_context.getAnnotationDeclaration("optional")));
+        feed_type.addMember(value_member);
+
+        // Add optional finished_ member
+        Member finished_member = new Member(m_context.createPrimitiveTypeCode(Kind.KIND_LONG), "finished_");
+        finished_member.addAnnotation(m_context, new Annotation(m_context.getAnnotationDeclaration("optional")));
+        feed_type.addMember(finished_member);
+
+        return feed_type;
+    }
+
     public StructTypeCode getOutTypeCode()
     {
         if (m_out_type == null)
