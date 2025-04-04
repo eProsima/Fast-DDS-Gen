@@ -52,6 +52,47 @@ public class Interface extends com.eprosima.idl.parser.tree.Interface
     /*!
      * @brief This function is used in stringtemplates to generate the typesupport code for the interface.
      *
+     * @return The typecode of the request type.
+     */
+    public StructTypeCode getRequestTypeCode()
+    {
+        if (m_request_type == null)
+        {
+            String scope = getHasScope() ? getScope() + "::detail" : "detail";
+            StructTypeCode request_type = new StructTypeCode(scope, getName() + "_Request");
+
+            // The request type should be a `@choice`, which means that it should have MUTABLE extensibility,
+            // and also treat all fields as optional.
+            request_type.get_extensibility(ExtensibilityKind.MUTABLE);
+
+            getAll_operations().forEach(operation -> {
+                Operation op = (Operation)operation;
+                Member member = new Member(op.getInTypeCode(), op.getName());
+                // Add `@optional` and `@hashid` annotations
+                member.addAnnotation(m_context, new Annotation(m_context.getAnnotationDeclaration("optional")));
+                member.addAnnotation(m_context, new Annotation(m_context.getAnnotationDeclaration("hashid")));
+                request_type.addMember(member);
+                // Add input feed parameters
+                op.getParameters().forEach(param -> {
+                    Param p = (Param)param;
+                    if (p.isInput() && p.isAnnotationFeed())
+                    {
+                        Member feed_member = new Member(p.getFeedTypeCode(), op.getName() + "_" + p.getName());
+                        feed_member.addAnnotation(m_context, new Annotation(m_context.getAnnotationDeclaration("optional")));
+                        feed_member.addAnnotation(m_context, new Annotation(m_context.getAnnotationDeclaration("hashid")));
+                        request_type.addMember(feed_member);
+                    }
+                });
+            });
+
+            m_request_type = request_type;
+        }
+        return m_request_type;
+    }
+
+    /*!
+     * @brief This function is used in stringtemplates to generate the typesupport code for the interface.
+     *
      * @return The typecode of the reply type.
      */
     public StructTypeCode getReplyTypeCode()
@@ -100,7 +141,8 @@ public class Interface extends com.eprosima.idl.parser.tree.Interface
         return m_remoteExceptionCode_t_type;
     }
 
-    private Context m_context;
+    private Context m_context = null;
+    private StructTypeCode m_request_type = null;
     private StructTypeCode m_reply_type = null;
     static private EnumTypeCode m_remoteExceptionCode_t_type = null;
 }

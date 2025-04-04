@@ -534,6 +534,7 @@ struct $interface.name$_Request
     $interface.all_operations : { operation | $operation_request_members(interface, operation)$ }; separator="\n"$
 };
 */
+$rpc_struct_serialization(interface.requestTypeCode)$
 
 // Serialization methods for $detail_scoped_name(interface)$_Reply
 /*
