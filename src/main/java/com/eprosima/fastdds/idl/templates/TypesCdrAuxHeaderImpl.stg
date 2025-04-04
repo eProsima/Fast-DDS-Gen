@@ -575,6 +575,7 @@ struct $interface.name$_$operation.name$_In
     $endif$
 };
 */
+$rpc_struct_serialization(operation.inTypeCode)$
 >>
 
 operation_feed_struct(interface, operation, param) ::= <<

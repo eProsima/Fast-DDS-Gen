@@ -87,6 +87,42 @@ public class Operation extends com.eprosima.idl.parser.tree.Operation
         super.add(param);
     }
 
+    public StructTypeCode getInTypeCode()
+    {
+        if (m_in_type == null)
+        {
+            Interface parent = (Interface)getParent();
+            String scope = parent.getHasScope() ? parent.getScope() + "::detail" : "detail";
+
+            // Create In type
+            StructTypeCode in_type = new StructTypeCode(
+                scope,
+                parent.getName() + "_" + getName() + "_In");
+
+            // If the operation is marked as mutable, then the in type should be mutable as well
+            if (isAnnotationMutable())
+            {
+                in_type.get_extensibility(ExtensibilityKind.MUTABLE);
+            }
+            else
+            {
+                in_type.get_extensibility(ExtensibilityKind.FINAL);
+            }
+
+            // Add non-feed input parameters as members
+            getParameters().forEach(param -> {
+                if (param.isInput() && !((Param)param).isAnnotationFeed())
+                {
+                    Member member = new Member(param.getTypecode(), param.getName());
+                    in_type.addMember(member);
+                }
+            });
+
+            m_in_type = in_type;
+        }
+        return m_in_type;
+    }
+
     public StructTypeCode getOutTypeCode()
     {
         if (m_out_type == null)
@@ -178,6 +214,7 @@ public class Operation extends com.eprosima.idl.parser.tree.Operation
     }
 
     private Context m_context = null;
-    private StructTypeCode m_result_type = null;
+    private StructTypeCode m_in_type = null;
     private StructTypeCode m_out_type = null;
+    private StructTypeCode m_result_type = null;
 }
