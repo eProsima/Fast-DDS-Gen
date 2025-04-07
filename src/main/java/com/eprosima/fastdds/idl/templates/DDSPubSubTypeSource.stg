@@ -35,7 +35,7 @@ using DataRepresentationId_t = eprosima::fastdds::dds::DataRepresentationId_t;
 
 $definitions; separator="\n"$
 
-$if(ctx.thereIsStructOrUnion)$
+$if(ctx.thereIsStructOrUnion || ctx.thereIsInterface)$
 // Include auxiliary functions like for serializing/deserializing.
 #include "$ctx.filename$CdrAux.ipp"
 $endif$
@@ -238,6 +238,30 @@ void $struct.name$PubSubType::register_type_object_representation()
     $endif$
 }
 
+>>
+
+interface(ctx, parent, interface, export_list) ::= <<
+// { $interface.name$ interface
+
+class $interface.name$_RequestPubSubType : public eprosima::fastdds::dds::TopicDataType
+{
+};
+
+class $interface.name$_ReplyPubSubType : public eprosima::fastdds::dds::TopicDataType
+{
+};
+
+eprosima::fastdds::dds::rpc::ServiceTypeSupport create_$interface.name$_service_type_support()
+{
+    eprosima::fastdds::dds::TypeSupport request_type(
+        new $interface.name$_RequestPubSubType());
+    eprosima::fastdds::dds::TypeSupport reply_type(
+        new $interface.name$_ReplyPubSubType());
+    return eprosima::fastdds::dds::rpc::ServiceTypeSupport(
+        request_type, reply_type);
+}
+
+// }  // $interface.name$ interface
 >>
 
 //{ Fast DDS-Gen extensions
