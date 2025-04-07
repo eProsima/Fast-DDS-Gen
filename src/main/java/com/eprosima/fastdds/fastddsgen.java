@@ -807,6 +807,8 @@ public class fastddsgen
                 tmanager.addGroup("com/eprosima/fastdds/idl/templates/TypesCdrAuxHeaderImpl.stg");
                 tmanager.addGroup("com/eprosima/fastdds/idl/templates/DDSPubSubTypeHeader.stg");
                 tmanager.addGroup("com/eprosima/fastdds/idl/templates/DDSPubSubTypeSource.stg");
+                tmanager.addGroup("com/eprosima/fastdds/idl/templates/ClientHeader.stg");
+                tmanager.addGroup("com/eprosima/fastdds/idl/templates/ClientSource.stg");
 
                 if (generate_typeobjectsupport_)
                 {
@@ -1052,6 +1054,23 @@ public class fastddsgen
                                         output_dir + ctx.getFilename() + "PubSubTypes.i",
                                         maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/DDSPubSubTypeSwigInterface.stg"), m_replace);
                             }
+                        }
+                    }
+
+                    // Generate client code for interfaces
+                    if (ctx.isThereIsInterface())
+                    {
+                        if (returnedValue &=
+                                Utils.writeFile(output_dir + ctx.getFilename() + "Client.hpp",
+                                    maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/ClientHeader.stg"), m_replace))
+                        {
+                            project.addCommonIncludeFile(relative_dir + ctx.getFilename() + "Client.hpp");
+                        }
+                        if (returnedValue &=
+                                Utils.writeFile(output_dir + ctx.getFilename() + "Client.cxx",
+                                    maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/ClientSource.stg"), m_replace))
+                        {
+                            project.addCommonSrcFile(relative_dir + ctx.getFilename() + "Client.cxx");
                         }
                     }
 
