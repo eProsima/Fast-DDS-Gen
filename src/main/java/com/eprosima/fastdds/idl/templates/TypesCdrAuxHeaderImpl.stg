@@ -518,3 +518,240 @@ eProsima_user_DllExport void deserialize(
 }
 
 >>
+
+interface(ctx, parent, interface, export_list) ::= <<
+
+//{ $interface.scopedname$ interface
+
+$interface.all_operations : { operation | $operation_details(interface, operation)$ }; separator="\n"$
+
+//{ top level
+
+// Serialization methods for $detail_scoped_name(interface)$_Request
+/*
+struct $interface.name$_Request
+{
+    $interface.all_operations : { operation | $operation_request_members(interface, operation)$ }; separator="\n"$
+};
+*/
+$rpc_struct_serialization(interface.requestTypeCode)$
+
+// Serialization methods for $detail_scoped_name(interface)$_Reply
+/*
+struct $interface.name$_Reply
+{
+    $interface.all_operations : { operation | $operation_reply_members(interface, operation)$ }; separator="\n"$
+    eprosima::fastcdr::optional<eprosima::fastdds::dds::rpc::RemoteExceptionCode_t\> remoteEx;
+};
+*/
+$rpc_struct_serialization(interface.replyTypeCode)$
+
+//}  // top level
+
+//}  // $interface.scopedname$ interface
+
+>>
+
+operation_details(interface, operation) ::= <<
+//{ $operation.name$
+$operation_in_struct(interface, operation)$
+
+$operation.inputparam : { param | $if (param.annotationFeed)$$operation_feed_struct(interface, operation, param)$$endif$ }$
+
+$operation_out_struct(interface, operation)$
+
+$operation_result_struct(interface, operation)$
+
+//}  // $operation.name$
+
+>>
+
+operation_in_struct(interface, operation) ::= <<
+// Serialization methods for $detail_scoped_name(interface)$_$operation.name$_In
+/*
+struct $interface.name$_$operation.name$_In
+{
+    $if(operation.inputparam)$
+    $operation.inputparam : { param | $if (!param.annotationFeed)$$parameter_declaration(param)$$endif$ }; separator="\n"$
+    $endif$
+};
+*/
+$rpc_struct_serialization(operation.inTypeCode)$
+>>
+
+operation_feed_struct(interface, operation, param) ::= <<
+// Serialization methods for $detail_scoped_name(interface)$_$operation.name$_$param.name$_Feed
+/*
+struct $interface.name$_$operation.name$_$param.name$_Feed
+{
+    eprosima::fastcdr::optional<$param.typecode.cppTypename$> value;
+    eprosima::fastcdr::optional<eprosima::fastdds::dds::rpc::RpcStatusCode> finished_;
+};
+*/
+$rpc_struct_serialization(param.feedTypeCode)$
+>>
+
+operation_out_struct(interface, operation) ::= <<
+// Serialization methods for $detail_scoped_name(interface)$_$operation.name$_Out
+/*
+struct $interface.name$_$operation.name$_Out
+{
+    $if(operation.annotationFeed)$
+    eprosima::fastcdr::optional<$operation.rettypeparam.typecode.cppTypename$\> $operation.rettypeparam.name$;
+    eprosima::fastcdr::optional<bool\> finished_;
+    $else$
+    $if([operation.outputparam, operation.rettypeparam])$
+    $[operation.outputparam, operation.rettypeparam]:{param | $parameter_declaration(param)$}; separator="\n"$
+    $endif$
+    $endif$
+};
+*/
+$rpc_struct_serialization(operation.outTypeCode)$
+>>
+
+operation_result_struct(interface, operation) ::= <<
+// Serialization methods for $detail_scoped_name(interface)$_$operation.name$_Result
+/*
+struct $interface.name$_$operation.name$_Result
+{
+    eprosima::fastcdr::optional<$interface.name$_$operation.name$_Out\> result;
+    $operation.exceptions : { exception |$operation_result_exception(typename=exception.scopedname, name=[exception.formatedScopedname, "_ex"])$}; separator="\n"$
+};
+*/
+$rpc_struct_serialization(operation.resultTypeCode)$
+>>
+
+parameter_declaration(param) ::= <%
+$param.typecode.cppTypename$ $param.name$;
+%>
+
+operation_result_exception(typename, name) ::= <%
+eprosima::fastcdr::optional<$typename$> $name$;
+%>
+
+operation_request_members(interface, operation) ::= <%
+eprosima::fastcdr::optional<$interface.name$_$operation.name$_In> $operation.name$;
+$operation.inputparam : { param | $if (param.annotationFeed)$$operation_request_feed(interface, operation, param)$$endif$ }$
+%>
+
+operation_request_feed(interface, operation, param) ::= <<
+
+eprosima::fastcdr::optional<$interface.name$_$operation.name$_$param.name$_Feed\> $operation.name$_$param.name$;
+>>
+
+operation_reply_members(interface, operation) ::= <<
+eprosima::fastcdr::optional<$interface.name$_$operation.name$_Result\> $operation.name$;
+>>
+
+detail_scoped_name(interface) ::= <%
+$if(interface.hasScope)$
+$interface.scope$::
+$endif$
+detail::$interface.name$
+%>
+
+rpc_struct_serialization(struct) ::= <<
+template<>
+eProsima_user_DllExport size_t calculate_serialized_size(
+        eprosima::fastcdr::CdrSizeCalculator& calculator,
+        const $struct.scopedname$& data,
+        size_t& current_alignment)
+{
+    $if(!struct.scope.empty)$
+    using namespace $struct.scope$;
+    $endif$
+
+    static_cast<void>(data);
+
+    eprosima::fastcdr::EncodingAlgorithmFlag previous_encoding = calculator.get_encoding();
+    size_t calculated_size {calculator.begin_calculate_type_serialized_size(
+                                eprosima::fastcdr::CdrVersion::XCDRv2 == calculator.get_cdr_version() ?
+                                $if(struct.annotationFinal)$eprosima::fastcdr::EncodingAlgorithmFlag::PLAIN_CDR2$elseif(struct.annotationAppendable)$eprosima::fastcdr::EncodingAlgorithmFlag::DELIMIT_CDR2$elseif(struct.annotationMutable)$eprosima::fastcdr::EncodingAlgorithmFlag::PL_CDR2$endif$ :
+                                $if(struct.annotationFinal || struct.annotationAppendable)$eprosima::fastcdr::EncodingAlgorithmFlag::PLAIN_CDR$elseif(struct.annotationMutable)$eprosima::fastcdr::EncodingAlgorithmFlag::PL_CDR$endif$,
+                                current_alignment)};
+
+
+    $struct.allMembers : { member | $if(!member.annotationNonSerialized)$
+    calculated_size += calculator.calculate_member_serialized_size(eprosima::fastcdr::MemberId($if(struct.annotationMutable)$$member.id$$else$$member.index$$endif$),
+            data.$member.name$, current_alignment);
+    $endif$}; separator="\n"$
+
+    calculated_size += calculator.end_calculate_type_serialized_size(previous_encoding, current_alignment);
+
+    return calculated_size;
+}
+
+template<>
+eProsima_user_DllExport void serialize(
+        eprosima::fastcdr::Cdr& scdr,
+        const $struct.scopedname$& data)
+{
+    $if(!struct.scope.empty)$
+    using namespace $struct.scope$;
+    $endif$
+
+    eprosima::fastcdr::Cdr::state current_state(scdr);
+    scdr.begin_serialize_type(current_state,
+            eprosima::fastcdr::CdrVersion::XCDRv2 == scdr.get_cdr_version() ?
+            $if(struct.annotationFinal)$eprosima::fastcdr::EncodingAlgorithmFlag::PLAIN_CDR2$elseif(struct.annotationAppendable)$eprosima::fastcdr::EncodingAlgorithmFlag::DELIMIT_CDR2$elseif(struct.annotationMutable)$eprosima::fastcdr::EncodingAlgorithmFlag::PL_CDR2$endif$ :
+            $if(struct.annotationFinal || struct.annotationAppendable)$eprosima::fastcdr::EncodingAlgorithmFlag::PLAIN_CDR$elseif(struct.annotationMutable)$eprosima::fastcdr::EncodingAlgorithmFlag::PL_CDR$endif$);
+
+    $if(struct.allMembers)$
+    scdr$struct.allMembers : { member | $if(!member.annotationNonSerialized)$
+        << eprosima::fastcdr::MemberId($if(struct.annotationMutable)$$member.id$$else$$member.index$$endif$) << data.$member.name$
+    $endif$
+    }; separator=""$;
+    $else$
+    static_cast<void>(data);
+    $endif$
+
+    scdr.end_serialize_type(current_state);
+}
+
+template<>
+eProsima_user_DllExport void deserialize(
+        eprosima::fastcdr::Cdr& cdr,
+        $struct.scopedname$& data)
+{
+    $if(!struct.scope.empty)$
+    using namespace $struct.scope$;
+    $endif$
+
+    cdr.deserialize_type(eprosima::fastcdr::CdrVersion::XCDRv2 == cdr.get_cdr_version() ?
+            $if(struct.annotationFinal)$eprosima::fastcdr::EncodingAlgorithmFlag::PLAIN_CDR2$elseif(struct.annotationAppendable)$eprosima::fastcdr::EncodingAlgorithmFlag::DELIMIT_CDR2$elseif(struct.annotationMutable)$eprosima::fastcdr::EncodingAlgorithmFlag::PL_CDR2$endif$ :
+            $if(struct.annotationFinal || struct.annotationAppendable)$eprosima::fastcdr::EncodingAlgorithmFlag::PLAIN_CDR$elseif(struct.annotationMutable)$eprosima::fastcdr::EncodingAlgorithmFlag::PL_CDR$endif$,
+            [&data](eprosima::fastcdr::Cdr& dcdr, const eprosima::fastcdr::MemberId& mid) -> bool
+            {
+                $if(struct.allMembers)$
+                bool ret_value = true;
+                switch (mid.id)
+                {
+                    $struct.allMembers : { member |
+                    case $if(struct.annotationMutable)$$member.id$$else$$member.index$$endif$:
+                        $if(!member.annotationNonSerialized)$
+                            dcdr \>> data.$member.name$;
+                        $endif$
+                        break;
+                    }; separator="\n"$
+                    default:
+                        ret_value = false;
+                        break;
+                }
+                return ret_value;
+                $else$
+                static_cast<void>(data);
+                static_cast<void>(dcdr);
+                static_cast<void>(mid);
+                return false;
+                $endif$
+            });
+}
+
+void serialize_key(
+        eprosima::fastcdr::Cdr& scdr,
+        const $struct.scopedname$& data)
+{
+    static_cast<void>(scdr);
+    static_cast<void>(data);
+}
+>>

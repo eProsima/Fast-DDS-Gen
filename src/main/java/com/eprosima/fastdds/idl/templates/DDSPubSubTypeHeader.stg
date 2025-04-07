@@ -24,6 +24,9 @@ $fileHeader(ctx=ctx,  file=[ctx.filename, "PubSubTypes.hpp"], description=["This
 #define FAST_DDS_GENERATED__$ctx.headerGuardName$_PUBSUBTYPES_HPP
 
 #include <fastdds/dds/core/policy/QosPolicies.hpp>
+$if(ctx.thereIsInterface)$
+#include <fastdds/dds/rpc/ServiceTypeSupport.hpp>
+$endif$
 #include <fastdds/dds/topic/TopicDataType.hpp>
 #include <fastdds/rtps/common/InstanceHandle.hpp>
 #include <fastdds/rtps/common/SerializedPayload.hpp>
@@ -229,6 +232,10 @@ $if(struct.isPlain)$
 
 $endif$
 };
+>>
+
+interface(ctx, parent, interface, export_list) ::= <<
+eProsima_user_DllExport eprosima::fastdds::dds::rpc::ServiceTypeSupport create_$interface.name$_service_type_support();
 >>
 
 //{ Fast DDS-Gen extensions

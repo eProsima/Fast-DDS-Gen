@@ -15,6 +15,11 @@
 package com.eprosima.fastdds.idl.grammar;
 
 import com.eprosima.fastdds.idl.grammar.Operation;
+import com.eprosima.fastdds.idl.parser.typecode.EnumTypeCode;
+import com.eprosima.fastdds.idl.parser.typecode.StructTypeCode;
+import com.eprosima.idl.parser.typecode.Member;
+import com.eprosima.idl.parser.typecode.EnumMember;
+import com.eprosima.idl.parser.typecode.TypeCode.ExtensibilityKind;
 import org.antlr.v4.runtime.Token;
 
 public class Interface extends com.eprosima.idl.parser.tree.Interface
@@ -44,5 +49,100 @@ public class Interface extends com.eprosima.idl.parser.tree.Interface
         super.add(exp);
     }
 
-    private Context m_context;
+    /*!
+     * @brief This function is used in stringtemplates to generate the typesupport code for the interface.
+     *
+     * @return The typecode of the request type.
+     */
+    public StructTypeCode getRequestTypeCode()
+    {
+        if (m_request_type == null)
+        {
+            String scope = getHasScope() ? getScope() + "::detail" : "detail";
+            StructTypeCode request_type = new StructTypeCode(scope, getName() + "_Request");
+
+            // The request type should be a `@choice`, which means that it should have MUTABLE extensibility,
+            // and also treat all fields as optional.
+            request_type.get_extensibility(ExtensibilityKind.MUTABLE);
+
+            getAll_operations().forEach(operation -> {
+                Operation op = (Operation)operation;
+                Member member = new Member(op.getInTypeCode(), op.getName());
+                // Add `@optional` and `@hashid` annotations
+                member.addAnnotation(m_context, new Annotation(m_context.getAnnotationDeclaration("optional")));
+                member.addAnnotation(m_context, new Annotation(m_context.getAnnotationDeclaration("hashid")));
+                request_type.addMember(member);
+                // Add input feed parameters
+                op.getParameters().forEach(param -> {
+                    Param p = (Param)param;
+                    if (p.isInput() && p.isAnnotationFeed())
+                    {
+                        Member feed_member = new Member(p.getFeedTypeCode(), op.getName() + "_" + p.getName());
+                        feed_member.addAnnotation(m_context, new Annotation(m_context.getAnnotationDeclaration("optional")));
+                        feed_member.addAnnotation(m_context, new Annotation(m_context.getAnnotationDeclaration("hashid")));
+                        request_type.addMember(feed_member);
+                    }
+                });
+            });
+
+            m_request_type = request_type;
+        }
+        return m_request_type;
+    }
+
+    /*!
+     * @brief This function is used in stringtemplates to generate the typesupport code for the interface.
+     *
+     * @return The typecode of the reply type.
+     */
+    public StructTypeCode getReplyTypeCode()
+    {
+        if (m_reply_type == null)
+        {
+            String scope = getHasScope() ? getScope() + "::detail" : "detail";
+            StructTypeCode reply_type = new StructTypeCode(scope, getName() + "_Reply");
+
+            // The reply type should be a `@choice`, which means that it should have MUTABLE extensibility,
+            // and also treat all fields as optional.
+            reply_type.get_extensibility(ExtensibilityKind.MUTABLE);
+
+            getAll_operations().forEach(operation -> {
+                Operation op = (Operation)operation;
+                Member member = new Member(op.getResultTypeCode(), op.getName());
+                // Add `@optional` and `@hashid` annotations
+                member.addAnnotation(m_context, new Annotation(m_context.getAnnotationDeclaration("optional")));
+                member.addAnnotation(m_context, new Annotation(m_context.getAnnotationDeclaration("hashid")));
+                reply_type.addMember(member);
+            });
+
+            Member remoteEx = new Member(get_remoteExceptionCode_t_type(), "remoteEx");
+            remoteEx.addAnnotation(m_context, new Annotation(m_context.getAnnotationDeclaration("optional")));
+            remoteEx.addAnnotation(m_context, new Annotation(m_context.getAnnotationDeclaration("hashid")));
+            reply_type.addMember(remoteEx);
+
+            m_reply_type = reply_type;
+        }
+        return m_reply_type;
+    }
+
+    private EnumTypeCode get_remoteExceptionCode_t_type()
+    {
+        if (m_remoteExceptionCode_t_type == null)
+        {
+            EnumTypeCode type = new EnumTypeCode("eprosima::fastdds::dds::rpc", "RemoteExceptionCode_t");
+            type.addMember(new EnumMember("REMOTE_EX_OK"));
+            type.addMember(new EnumMember("REMOTE_EX_UNSUPPORTED"));
+            type.addMember(new EnumMember("REMOTE_EX_INVALID_ARGUMENT"));
+            type.addMember(new EnumMember("REMOTE_EX_OUT_OF_RESOURCES"));
+            type.addMember(new EnumMember("REMOTE_EX_UNKNOWN_OPERATION"));
+            type.addMember(new EnumMember("REMOTE_EX_UNKNOWN_EXCEPTION"));
+            m_remoteExceptionCode_t_type = type;
+        }
+        return m_remoteExceptionCode_t_type;
+    }
+
+    private Context m_context = null;
+    private StructTypeCode m_request_type = null;
+    private StructTypeCode m_reply_type = null;
+    static private EnumTypeCode m_remoteExceptionCode_t_type = null;
 }
