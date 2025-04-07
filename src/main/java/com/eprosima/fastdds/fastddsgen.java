@@ -1038,11 +1038,8 @@ public class fastddsgen
                         Utils.writeFile(output_dir + ctx.getFilename() + "PubSubTypes.hpp",
                                 maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/DDSPubSubTypeHeader.stg"), m_replace);
                     project.addCommonIncludeFile(relative_dir + ctx.getFilename() + "PubSubTypes.hpp");
-                    if (ctx.existsLastStructure())
+                    if (ctx.existsLastStructure() || ctx.isThereIsInterface())
                     {
-                        m_atLeastOneStructure = true;
-                        project.setHasStruct(true);
-
                         if (returnedValue &=
                                 Utils.writeFile(output_dir + ctx.getFilename() + "PubSubTypes.cxx",
                                     maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/DDSPubSubTypeSource.stg"), m_replace))
@@ -1056,6 +1053,12 @@ public class fastddsgen
                                         maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/DDSPubSubTypeSwigInterface.stg"), m_replace);
                             }
                         }
+                    }
+
+                    if (ctx.existsLastStructure())
+                    {
+                        m_atLeastOneStructure = true;
+                        project.setHasStruct(true);
 
                         if (m_exampleOption != null)
                         {
