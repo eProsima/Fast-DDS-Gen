@@ -14,6 +14,7 @@
 
 package com.eprosima.fastdds.idl.grammar;
 
+import com.eprosima.fastdds.idl.parser.typecode.StructTypeCode;
 import com.eprosima.idl.parser.exception.RuntimeGenerationException;
 import com.eprosima.idl.parser.typecode.TypeCode;
 
@@ -48,4 +49,15 @@ public class Param extends com.eprosima.idl.parser.tree.Param
         }
         return false;
     }
+
+    public StructTypeCode getFeedTypeCode()
+    {
+        if (m_feedTypeCode == null)
+        {
+            m_feedTypeCode = ((Operation) getParent()).createFeedTypeCode(this);
+        }
+        return m_feedTypeCode;
+    }
+
+    private StructTypeCode m_feedTypeCode = null;
 }

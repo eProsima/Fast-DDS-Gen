@@ -318,7 +318,9 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
             there_is_at_least_one_exception = true;
         }
 
-        return super.createException(name, token);
+        Exception ex = new Exception(this, getScopeFile(), isInScopedFile(), getScope(), name, token);
+        addException(ex);
+        return ex;
     }
 
 
