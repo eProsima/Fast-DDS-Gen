@@ -23,6 +23,7 @@ $fileHeader(ctx=ctx,  file=[ctx.filename, "Client.cxx"], description=["Client im
 #include "$ctx.filename$Client.hpp"
 
 #include <atomic>
+#include <exception>
 #include <future>
 #include <map>
 #include <memory>
@@ -127,8 +128,6 @@ public:
         }
     }
 
-    $export_list$
-
 private:
 
     void start_thread()
@@ -205,6 +204,32 @@ private:
     std::thread processing_thread_;
     std::mutex mtx_;
     std::map<frtps::SampleIdentity, std::shared_ptr<IReplyProcessor> > pending_results_;
+
+    //{ request helpers
+
+    template<typename T>
+    auto send_request_with_promise(
+            const RequestType& request,
+            std::shared_ptr<T> result)
+    {
+        if (fdds::RETCODE_OK == requester_->send_request((void*)&request, result->info))
+        {
+            std::lock_guard<std::mutex> _ (mtx_);
+            pending_results_[result->info.related_sample_identity] = result;
+        }
+        else
+        {
+            result->promise.set_exception(
+                std::make_exception_ptr(frpc::RpcBrokenPipeException(false)));
+        }
+
+        return result->promise.get_future();
+    }
+
+    //} request helpers
+
+$export_list$
+
 };
 
 }  // namespace detail
@@ -222,11 +247,65 @@ std::shared_ptr<$interface.name$> create_$interface.name$Client(
 >>
 
 operation(ctx, parent, operation, param_list, operation_type) ::= <<
-$operationRetType(operation)$ $operation.name$(
-        $paramDeclarations(params=operation.parameters)$) override
-{
-    throw frpc::RemoteUnsupportedError("Not implemented");
-}
+//{ operation $operation.name$
+$if(operation.annotationFeed)$
+public:
+
+    $operationRetType(operation)$ $operation.name$(
+            $paramDeclarations(params=operation.parameters)$) override
+    {
+        throw frpc::RemoteUnsupportedError("Not implemented");
+    }
+$else$
+public:
+
+    $operationRetType(operation)$ $operation.name$(
+            $paramDeclarations(params=operation.parameters)$) override
+    {
+        // Create a promise to hold the result
+        auto result = std::make_shared<$operation.name$_promise>();
+        $if(operation.outputparam)$
+        $operation.outputparam:{param | result->$param.name$ = &$param.name$;}; separator="\n"$
+        $endif$
+
+        // Create and send the request
+        RequestType request;
+        request.$operation.name$ = $parent.name$_$operation.name$_In{};
+        $if(operation.inputparam)$
+        $operation.inputparam:{param | $fill_input_param(operation, param)$}; separator="\n"$
+        $endif$
+
+        return send_request_with_promise(request, result);
+    }
+
+private:
+
+    struct $operation.name$_promise : public IReplyProcessor
+    {
+        std::promise<$paramRetType(operation.rettype)$> promise;
+        $if(operation.outputparam)$
+        $operation.outputparam:{param | $param.typecode.cppTypename$* $param.name$ = nullptr;}; separator="\n"$
+        $endif$
+
+        void process_reply(
+                const ReplyType& reply,
+                const frpc::RequestInfo& req_info,
+                bool& should_remove) override
+        {
+            should_remove = false;
+            if (req_info.related_sample_identity != info.related_sample_identity)
+            {
+                return;
+            }
+
+            should_remove = true;
+            promise.set_exception(
+                std::make_exception_ptr(frpc::RemoteUnsupportedError("Not implemented")));
+        }
+    };
+$endif$
+
+//} operation $operation.name$
 
 >>
 
@@ -235,5 +314,13 @@ $if(operation.annotationFeed)$
 std::shared_ptr<eprosima::fastdds::dds::rpc::RpcClientReader<$paramRetType(operation.rettype)$> >
 $else$
 eprosima::fastdds::dds::rpc::RpcFuture<$paramRetType(operation.rettype)$>
+$endif$
+%>
+
+fill_input_param(operation, param) ::= <%
+$if(param.annotationFeed)$
+// TODO: Create RpcClientWriter for '$param.name$'
+$else$
+request.$operation.name$->$param.name$ = $param.name$;
 $endif$
 %>
