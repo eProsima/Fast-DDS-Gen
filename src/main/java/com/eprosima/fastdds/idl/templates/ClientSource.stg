@@ -380,6 +380,7 @@ private:
                     promise.set_value($if(operation.rettype)$out.return_$endif$);
                     return;
                 }
+                $operation.exceptions : { exception |$operation_result_exception(name=[exception.formatedScopedname, "_ex"])$}; separator="\n"$
             }
 
             // If we reach this point, the reply is for another operation
@@ -408,3 +409,12 @@ $else$
 request.$operation.name$->$param.name$ = $param.name$;
 $endif$
 %>
+
+operation_result_exception(name) ::= <<
+if (result.$name$.has_value())
+{
+    promise.set_exception(
+        std::make_exception_ptr(result.$name$.value()));
+    return;
+}
+>>
