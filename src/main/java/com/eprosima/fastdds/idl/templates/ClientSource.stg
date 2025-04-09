@@ -69,7 +69,8 @@ namespace frtps = eprosima::fastdds::rtps;
 class $interface.name$Client : public $interface.name$
 {
 
-   using ReplyType = $interface.name$_Reply;
+    using RequestType = $interface.name$_Request;
+    using ReplyType = $interface.name$_Reply;
 
 public:
 
@@ -158,7 +159,7 @@ private:
                 auto ret = requester_->take_reply(&reply, req_info);
                 if (ret == fdds::RETCODE_OK)
                 {
-                    process_reply(reply_, req_info);
+                    process_reply(reply, req_info);
                 }
             }
         }
@@ -168,15 +169,42 @@ private:
             const ReplyType& reply,
             const frpc::RequestInfo& req_info)
     {
-        static_cast<void>(reply);
-        static_cast<void>(req_info);
+        auto sample_id = req_info.related_sample_identity;
+        {
+            std::lock_guard<std::mutex> _(mtx_);
+            auto it = pending_results_.find(sample_id);
+            if (it != pending_results_.end())
+            {
+                bool should_erase = false;
+                it->second->process_reply(reply, req_info, should_erase);
+                if (should_erase)
+                {
+                    pending_results_.erase(it);
+                }
+            }
+        }
     }
+
+    struct IReplyProcessor
+    {
+        frpc::RequestInfo info;
+
+        virtual ~IReplyProcessor() = default;
+
+        virtual void process_reply(
+                const ReplyType& reply,
+                const frpc::RequestInfo& req_info,
+                bool& should_remove) = 0;
+
+    };
 
     fdds::DomainParticipant& participant_;
     frpc::Service* service_ = nullptr;
     frpc::Requester* requester_ = nullptr;
     std::atomic<bool> stop_thread_ = false;
     std::thread processing_thread_;
+    std::mutex mtx_;
+    std::map<frtps::SampleIdentity, std::shared_ptr<IReplyProcessor> > pending_results_;
 };
 
 }  // namespace detail
