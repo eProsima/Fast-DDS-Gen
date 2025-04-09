@@ -228,6 +228,64 @@ private:
 
     //} request helpers
 
+    //{ reply helpers
+
+    template<typename T>
+    static void set_invalid_reply(
+            std::promise<T>& promise)
+    {
+        promise.set_exception(
+            std::make_exception_ptr(frpc::RemoteInvalidArgumentError("An invalid reply was received")));
+    }
+
+    template<typename T>
+    static bool validate_reply(
+            std::promise<T>& promise,
+            const ReplyType& reply)
+    {
+        // Check if the reply has one and only one field set
+        size_t n_fields = 0;
+        $interface.replyTypeCode.members:{member | n_fields += reply.$member.name$.has_value() ? 1 : 0;}; separator="\n"$
+
+        if (n_fields != 1u)
+        {
+            set_invalid_reply(promise);
+            return false;
+        }
+
+        return true;
+    }
+
+    template<typename T>
+    static void set_promise_exception(
+            std::promise<T>& promise,
+            const frpc::RemoteExceptionCode_t& exception)
+    {
+        switch (exception)
+        {
+            case frpc::RemoteExceptionCode_t::REMOTE_EX_OK:
+                set_invalid_reply(promise);
+                break;
+            case frpc::RemoteExceptionCode_t::REMOTE_EX_UNSUPPORTED:
+                promise.set_exception(std::make_exception_ptr(frpc::RemoteUnsupportedError()));
+                break;
+            case frpc::RemoteExceptionCode_t::REMOTE_EX_INVALID_ARGUMENT:
+                promise.set_exception(std::make_exception_ptr(frpc::RemoteInvalidArgumentError()));
+                break;
+            case frpc::RemoteExceptionCode_t::REMOTE_EX_OUT_OF_RESOURCES:
+                promise.set_exception(std::make_exception_ptr(frpc::RemoteOutOfResourcesError()));
+                break;
+            case frpc::RemoteExceptionCode_t::REMOTE_EX_UNKNOWN_OPERATION:
+                promise.set_exception(std::make_exception_ptr(frpc::RemoteUnknownOperationError()));
+                break;
+            default: // REMOTE_EX_UNKNOWN_EXCEPTION
+                promise.set_exception(std::make_exception_ptr(frpc::RemoteUnknownExceptionError()));
+                break;
+        }
+    }
+
+    //} reply helpers
+
 $export_list$
 
 };
@@ -301,8 +359,31 @@ private:
             }
 
             should_remove = true;
-            promise.set_exception(
-                std::make_exception_ptr(frpc::RemoteUnsupportedError("Not implemented")));
+            if (!validate_reply(promise, reply))
+            {
+                return;
+            }
+
+            if (reply.remoteEx.has_value())
+            {
+                set_promise_exception(promise, reply.remoteEx.value());
+                return;
+            }
+
+            if (reply.$operation.name$.has_value())
+            {
+                const auto& result = reply.$operation.name$.value();
+                if (result.result.has_value())
+                {
+                    const auto& out = result.result.value();
+                    $operation.outputparam:{param | *$param.name$ = out.$param.name$;}; separator="\n"$
+                    promise.set_value($if(operation.rettype)$out.return_$endif$);
+                    return;
+                }
+            }
+
+            // If we reach this point, the reply is for another operation
+            set_invalid_reply(promise);
         }
 
     };
