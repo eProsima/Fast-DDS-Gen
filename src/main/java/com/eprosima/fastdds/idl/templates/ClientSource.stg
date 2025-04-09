@@ -203,7 +203,7 @@ private:
     std::atomic<bool> stop_thread_ = false;
     std::thread processing_thread_;
     std::mutex mtx_;
-    std::map<frtps::SampleIdentity, std::shared_ptr<IReplyProcessor> > pending_results_;
+    std::map<frtps::SampleIdentity, std::shared_ptr<IReplyProcessor\>> pending_results_;
 
     //{ request helpers
 
@@ -247,7 +247,8 @@ std::shared_ptr<$interface.name$> create_$interface.name$Client(
 >>
 
 operation(ctx, parent, operation, param_list, operation_type) ::= <<
-//{ operation $operation.name$
+    //{ operation $operation.name$
+
 $if(operation.annotationFeed)$
 public:
 
@@ -256,6 +257,7 @@ public:
     {
         throw frpc::RemoteUnsupportedError("Not implemented");
     }
+
 $else$
 public:
 
@@ -302,16 +304,17 @@ private:
             promise.set_exception(
                 std::make_exception_ptr(frpc::RemoteUnsupportedError("Not implemented")));
         }
+
     };
 $endif$
 
-//} operation $operation.name$
+    //} operation $operation.name$
 
 >>
 
 operationRetType(operation) ::= <%
 $if(operation.annotationFeed)$
-std::shared_ptr<eprosima::fastdds::dds::rpc::RpcClientReader<$paramRetType(operation.rettype)$> >
+std::shared_ptr<eprosima::fastdds::dds::rpc::RpcClientReader<$paramRetType(operation.rettype)$>>
 $else$
 eprosima::fastdds::dds::rpc::RpcFuture<$paramRetType(operation.rettype)$>
 $endif$
