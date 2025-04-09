@@ -68,7 +68,11 @@ namespace frtps = eprosima::fastdds::rtps;
 
 class $interface.name$Client : public $interface.name$
 {
+
+   using ReplyType = $interface.name$_Reply;
+
 public:
+
     $interface.name$Client(
             fdds::DomainParticipant& part,
             const char* service_name,
@@ -97,10 +101,16 @@ public:
         {
             throw std::runtime_error("Error creating requester");
         }
+
+        // Start the processing thread
+        start_thread();
     }
 
     ~$interface.name$Client() override
     {
+        // Stop the processing thread
+        stop_thread();
+
         // Destroy the requester
         if (nullptr != requester_)
         {
@@ -120,9 +130,53 @@ public:
 
 private:
 
+    void start_thread()
+    {
+        stop_thread_ = false;
+        processing_thread_ = std::thread(&$interface.name$Client::run, this);
+    }
+
+    void stop_thread()
+    {
+        stop_thread_ = true;
+        if (processing_thread_.joinable())
+        {
+            processing_thread_.join();
+        }
+    }
+
+    void run()
+    {
+        while (!stop_thread_)
+        {
+            // Wait for a reply
+            if (requester_->get_requester_reader()->wait_for_unread_message({ 0, 100000000 }))
+            {
+                // Take and process the reply
+                frpc::RequestInfo req_info;
+                ReplyType reply;
+                auto ret = requester_->take_reply(&reply, req_info);
+                if (ret == fdds::RETCODE_OK)
+                {
+                    process_reply(reply_, req_info);
+                }
+            }
+        }
+    }
+
+    void process_reply(
+            const ReplyType& reply,
+            const frpc::RequestInfo& req_info)
+    {
+        static_cast<void>(reply);
+        static_cast<void>(req_info);
+    }
+
     fdds::DomainParticipant& participant_;
     frpc::Service* service_ = nullptr;
     frpc::Requester* requester_ = nullptr;
+    std::atomic<bool> stop_thread_ = false;
+    std::thread processing_thread_;
 };
 
 }  // namespace detail
