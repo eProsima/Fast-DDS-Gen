@@ -383,6 +383,11 @@ $if(operation.annotationFeed)$
         bool read(
                 $paramRetType(operation.rettype)$& value) override
         {
+            if (cancelled_)
+            {
+                return false;
+            }
+
             // TODO: Read the value
             static_cast<void>(value);
             return false;
@@ -392,6 +397,11 @@ $if(operation.annotationFeed)$
                 $paramRetType(operation.rettype)$& value,
                 const fdds::Duration_t& timeout) override
         {
+            if (cancelled_)
+            {
+                return false;
+            }
+
             // TODO: Read the value
             static_cast<void>(value);
             static_cast<void>(timeout);
@@ -400,8 +410,18 @@ $if(operation.annotationFeed)$
 
         void cancel() override
         {
-            // TODO: Cancel the stream
+            bool old_cancelled = cancelled_.exchange(true);
+            if (old_cancelled)
+            {
+                return;
+            }
+
+            // TODO: Communicate the cancellation to the server and wait for it to be acknowledged
         }
+
+    private:
+
+        std::atomic<bool> cancelled_ = false;
 
     };
 $else$
