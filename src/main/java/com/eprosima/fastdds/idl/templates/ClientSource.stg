@@ -240,7 +240,8 @@ private:
         }
         else
         {
-            // TODO: Add broken pipe to the reader queue
+            result->set_exception(
+                std::make_exception_ptr(frpc::RpcBrokenPipeException(false)));
         }
 
         return result;
@@ -252,10 +253,46 @@ private:
 
     template<typename T>
     static void set_invalid_reply(
-            std::promise<T>& promise)
+            T& exception_receiver)
     {
-        promise.set_exception(
+        exception_receiver.set_exception(
             std::make_exception_ptr(frpc::RemoteInvalidArgumentError("An invalid reply was received")));
+    }
+
+    template<typename T>
+    static void set_remote_exception(
+            T& exception_receiver,
+            const frpc::RemoteExceptionCode_t& exception)
+    {
+        switch (exception)
+        {
+            case frpc::RemoteExceptionCode_t::REMOTE_EX_OK:
+                set_invalid_reply(exception_receiver);
+                break;
+            case frpc::RemoteExceptionCode_t::REMOTE_EX_UNSUPPORTED:
+                exception_receiver.set_exception(std::make_exception_ptr(frpc::RemoteUnsupportedError()));
+                break;
+            case frpc::RemoteExceptionCode_t::REMOTE_EX_INVALID_ARGUMENT:
+                exception_receiver.set_exception(std::make_exception_ptr(frpc::RemoteInvalidArgumentError()));
+                break;
+            case frpc::RemoteExceptionCode_t::REMOTE_EX_OUT_OF_RESOURCES:
+                exception_receiver.set_exception(std::make_exception_ptr(frpc::RemoteOutOfResourcesError()));
+                break;
+            case frpc::RemoteExceptionCode_t::REMOTE_EX_UNKNOWN_OPERATION:
+                exception_receiver.set_exception(std::make_exception_ptr(frpc::RemoteUnknownOperationError()));
+                break;
+            default: // REMOTE_EX_UNKNOWN_EXCEPTION
+                exception_receiver.set_exception(std::make_exception_ptr(frpc::RemoteUnknownExceptionError()));
+                break;
+        }
+    }
+
+    static size_t count_reply_fields(
+            const ReplyType& reply)
+    {
+        size_t n_fields = 0;
+        $interface.replyTypeCode.members:{member | n_fields += reply.$member.name$.has_value() ? 1 : 0;}; separator="\n"$
+        return n_fields;
     }
 
     template<typename T>
@@ -264,9 +301,7 @@ private:
             const ReplyType& reply)
     {
         // Check if the reply has one and only one field set
-        size_t n_fields = 0;
-        $interface.replyTypeCode.members:{member | n_fields += reply.$member.name$.has_value() ? 1 : 0;}; separator="\n"$
-
+        size_t n_fields = count_reply_fields(reply);
         if (n_fields != 1u)
         {
             set_invalid_reply(promise);
@@ -276,32 +311,26 @@ private:
         return true;
     }
 
-    template<typename T>
-    static void set_promise_exception(
-            std::promise<T>& promise,
-            const frpc::RemoteExceptionCode_t& exception)
+    struct IExceptionHolder
     {
-        switch (exception)
+        virtual ~IExceptionHolder() = default;
+
+        virtual void set_exception(
+                std::exception_ptr exception) = 0;
+    };
+
+    static bool validate_reply(
+            IExceptionHolder& reader,
+            const ReplyType& reply)
+    {
+        // Check if the reply has one and only one field set
+        size_t n_fields = count_reply_fields(reply);
+        if (n_fields != 1u)
         {
-            case frpc::RemoteExceptionCode_t::REMOTE_EX_OK:
-                set_invalid_reply(promise);
-                break;
-            case frpc::RemoteExceptionCode_t::REMOTE_EX_UNSUPPORTED:
-                promise.set_exception(std::make_exception_ptr(frpc::RemoteUnsupportedError()));
-                break;
-            case frpc::RemoteExceptionCode_t::REMOTE_EX_INVALID_ARGUMENT:
-                promise.set_exception(std::make_exception_ptr(frpc::RemoteInvalidArgumentError()));
-                break;
-            case frpc::RemoteExceptionCode_t::REMOTE_EX_OUT_OF_RESOURCES:
-                promise.set_exception(std::make_exception_ptr(frpc::RemoteOutOfResourcesError()));
-                break;
-            case frpc::RemoteExceptionCode_t::REMOTE_EX_UNKNOWN_OPERATION:
-                promise.set_exception(std::make_exception_ptr(frpc::RemoteUnknownOperationError()));
-                break;
-            default: // REMOTE_EX_UNKNOWN_EXCEPTION
-                promise.set_exception(std::make_exception_ptr(frpc::RemoteUnknownExceptionError()));
-                break;
+            set_invalid_reply(reader);
+            return false;
         }
+        return true;
     }
 
     //} reply helpers
@@ -363,6 +392,7 @@ $if(operation.annotationFeed)$
     struct $operation.name$_reader
         : public frpc::RpcClientReader<$paramRetType(operation.rettype)$>
         , public IReplyProcessor
+        , public IExceptionHolder
     {
         void process_reply(
                 const ReplyType& reply,
@@ -370,14 +400,30 @@ $if(operation.annotationFeed)$
                 bool& should_remove) override
         {
             should_remove = false;
-            if (req_info.related_sample_identity != info.related_sample_identity)
+            if (cancelled_ ||
+                (req_info.related_sample_identity != info.related_sample_identity))
             {
                 return;
             }
 
             should_remove = true;
+            if (!validate_reply(*this, reply))
+            {
+                return;
+            }
+
             // TODO: Process the reply
             static_cast<void>(reply);
+        }
+
+        void set_exception(
+                std::exception_ptr exception)
+        {
+            bool was_cancelled = cancelled_.exchange(true);
+            if (!was_cancelled)
+            {
+                exception_ = exception;
+            }
         }
 
         bool read(
@@ -422,6 +468,7 @@ $if(operation.annotationFeed)$
     private:
 
         std::atomic<bool> cancelled_ = false;
+        std::exception_ptr exception_;
 
     };
 $else$
@@ -451,7 +498,7 @@ $else$
 
             if (reply.remoteEx.has_value())
             {
-                set_promise_exception(promise, reply.remoteEx.value());
+                set_remote_exception(promise, reply.remoteEx.value());
                 return;
             }
 
