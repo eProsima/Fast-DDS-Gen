@@ -422,36 +422,39 @@ $if(operation.annotationFeed)$
             bool was_cancelled = cancelled_.exchange(true);
             if (!was_cancelled)
             {
+                std::lock_guard<std::mutex> _(mtx_);
                 exception_ = exception;
+                cv_.notify_all();
             }
         }
 
         bool read(
                 $paramRetType(operation.rettype)$& value) override
         {
-            if (cancelled_)
+            bool ret_val = false;
+            std::unique_lock<std::mutex> lock(mtx_);
+            while (!try_read(value, ret_val))
             {
-                return false;
+                cv_.wait(lock);
             }
-
-            // TODO: Read the value
-            static_cast<void>(value);
-            return false;
+            return ret_val;
         }
 
         bool read(
                 $paramRetType(operation.rettype)$& value,
                 const fdds::Duration_t& timeout) override
         {
-            if (cancelled_)
+            bool ret_val = false;
+            std::unique_lock<std::mutex> lock(mtx_);
+            std::chrono::steady_clock::time_point end_time =
+                std::chrono::steady_clock::now() +
+                std::chrono::seconds(timeout.seconds) +
+                std::chrono::nanoseconds(timeout.nanosec);
+            while (!try_read(value, ret_val))
             {
-                return false;
+                cv_.wait_until(lock, end_time);
             }
-
-            // TODO: Read the value
-            static_cast<void>(value);
-            static_cast<void>(timeout);
-            return false;
+            return ret_val;
         }
 
         void cancel() override
@@ -467,10 +470,34 @@ $if(operation.annotationFeed)$
 
     private:
 
+        bool try_read(
+                $paramRetType(operation.rettype)$& value,
+                bool& ret_val)
+        {
+            if (exception_)
+            {
+                auto ex = exception_;
+                exception_ = nullptr;
+                std::rethrow_exception(ex);
+            }
+
+            if (cancelled_)
+            {
+                ret_val = false;
+                return true;
+            }
+
+            // TODO: Retrieve one value from the queue
+            return false;
+        }
+
         std::atomic<bool> cancelled_ = false;
         std::exception_ptr exception_;
+        std::mutex mtx_;
+        std::condition_variable cv_;
 
     };
+
 $else$
     struct $operation.name$_promise : public IReplyProcessor
     {
