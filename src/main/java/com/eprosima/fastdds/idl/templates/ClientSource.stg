@@ -28,6 +28,7 @@ $fileHeader(ctx=ctx,  file=[ctx.filename, "Client.cxx"], description=["Client im
 #include <map>
 #include <memory>
 #include <mutex>
+#include <queue>
 #include <stdexcept>
 #include <string>
 #include <thread>
@@ -412,8 +413,44 @@ $if(operation.annotationFeed)$
                 return;
             }
 
-            // TODO: Process the reply
-            static_cast<void>(reply);
+            if (reply.remoteEx.has_value())
+            {
+                set_remote_exception(*this, reply.remoteEx.value());
+                return;
+            }
+
+            if (reply.$operation.name$.has_value())
+            {
+                const auto& result = reply.$operation.name$.value();
+                if (result.result.has_value())
+                {
+                    const auto& out = result.result.value();
+                    {
+                        if (out.return_.has_value())
+                        {
+                            // Store the return value
+                            std::lock_guard<std::mutex> _(mtx_);
+                            queue_.push(out.return_.value());
+                            cv_.notify_all();
+
+                            // Should be kept in order to receive further values
+                            should_remove = false;
+                        }
+                        else if (out.finished_.has_value())
+                        {
+                            // Store the finished value
+                            std::lock_guard<std::mutex> _(mtx_);
+                            finished_ = true;
+                            cv_.notify_all();
+                        }
+                        else
+                        {
+                            set_invalid_reply(*this);
+                        }
+                    }
+                    return;
+                }
+            }
         }
 
         void set_exception(
@@ -475,6 +512,7 @@ $if(operation.annotationFeed)$
                 $paramRetType(operation.rettype)$& value,
                 bool& ret_val)
         {
+            // Throw the exception if it was set
             if (exception_)
             {
                 auto ex = exception_;
@@ -482,18 +520,37 @@ $if(operation.annotationFeed)$
                 std::rethrow_exception(ex);
             }
 
+            // Early exit if the operation was cancelled
             if (cancelled_)
             {
                 ret_val = false;
                 return true;
             }
 
-            // TODO: Retrieve one value from the queue
+            // Retrieve one value from the queue
+            if (!queue_.empty())
+            {
+                value = queue_.front();
+                queue_.pop();
+                ret_val = true;
+                return true;
+            }
+
+            // Check if the operation was finished
+            if (finished_)
+            {
+                ret_val = false;
+                return true;
+            }
+
+            // Need to wait for a new value
             return false;
         }
 
         std::atomic<bool> cancelled_ = false;
         std::exception_ptr exception_;
+        std::queue<$paramRetType(operation.rettype)$> queue_;
+        bool finished_ = false;
         std::mutex mtx_;
         std::condition_variable cv_;
 
