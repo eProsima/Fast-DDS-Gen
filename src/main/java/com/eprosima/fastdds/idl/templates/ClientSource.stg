@@ -226,6 +226,24 @@ private:
         return result->promise.get_future();
     }
 
+    template<typename T>
+    std::shared_ptr<T> send_request_with_reader(
+            const RequestType& request,
+            std::shared_ptr<T> result)
+    {
+        if (fdds::RETCODE_OK == requester_->send_request((void*)&request, result->info))
+        {
+            std::lock_guard<std::mutex> _ (mtx_);
+            pending_results_[result->info.related_sample_identity] = result;
+        }
+        else
+        {
+            // TODO: Add broken pipe to the reader queue
+        }
+
+        return result;
+    }
+
     //} request helpers
 
     //{ reply helpers
@@ -307,26 +325,21 @@ std::shared_ptr<$interface.name$> create_$interface.name$Client(
 operation(ctx, parent, operation, param_list, operation_type) ::= <<
     //{ operation $operation.name$
 
+public:
+
+    $operationRetType(operation)$ $operation.name$(
+            $paramDeclarations(params=operation.parameters)$) override
+    {
 $if(operation.annotationFeed)$
-public:
-
-    $operationRetType(operation)$ $operation.name$(
-            $paramDeclarations(params=operation.parameters)$) override
-    {
-        throw frpc::RemoteUnsupportedError("Not implemented");
-    }
-
+        // Create a reader to hold the result
+        auto result = std::make_shared<$operation.name$_reader>();
 $else$
-public:
-
-    $operationRetType(operation)$ $operation.name$(
-            $paramDeclarations(params=operation.parameters)$) override
-    {
         // Create a promise to hold the result
         auto result = std::make_shared<$operation.name$_promise>();
         $if(operation.outputparam)$
         $operation.outputparam:{param | result->$param.name$ = &$param.name$;}; separator="\n"$
         $endif$
+$endif$
 
         // Create and send the request
         RequestType request;
@@ -335,11 +348,61 @@ public:
         $operation.inputparam:{param | $fill_input_param(operation, param)$}; separator="\n"$
         $endif$
 
+$if(operation.annotationFeed)$
+        return send_request_with_reader(request, result);
+$else$
         return send_request_with_promise(request, result);
+$endif$
     }
 
 private:
 
+$if(operation.annotationFeed)$
+    struct $operation.name$_reader
+        : public frpc::RpcClientReader<$paramRetType(operation.rettype)$>
+        , public IReplyProcessor
+    {
+        void process_reply(
+                const ReplyType& reply,
+                const frpc::RequestInfo& req_info,
+                bool& should_remove) override
+        {
+            should_remove = false;
+            if (req_info.related_sample_identity != info.related_sample_identity)
+            {
+                return;
+            }
+
+            should_remove = true;
+            // TODO: Process the reply
+            static_cast<void>(reply);
+        }
+
+        bool read(
+                $paramRetType(operation.rettype)$& value) override
+        {
+            // TODO: Read the value
+            static_cast<void>(value);
+            return false;
+        }
+
+        bool read(
+                $paramRetType(operation.rettype)$& value,
+                const fdds::Duration_t& timeout) override
+        {
+            // TODO: Read the value
+            static_cast<void>(value);
+            static_cast<void>(timeout);
+            return false;
+        }
+
+        void cancel() override
+        {
+            // TODO: Cancel the stream
+        }
+
+    };
+$else$
     struct $operation.name$_promise : public IReplyProcessor
     {
         std::promise<$paramRetType(operation.rettype)$> promise;
