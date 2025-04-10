@@ -547,9 +547,11 @@ $else$
         }
 
     };
+
 $endif$
 
-$operation.inputparam:{param | $if(param.annotationFeed)$$input_feed_writer(operation, param)$$endif$}$
+    $operation.inputparam:{param | $if(param.annotationFeed)$$input_feed_writer(operation, param)$$endif$}$
+
     //} operation $operation.name$
 
 >>
