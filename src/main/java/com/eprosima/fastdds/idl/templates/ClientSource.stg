@@ -460,12 +460,13 @@ $if(operation.annotationFeed)$
         void cancel() override
         {
             bool old_cancelled = cancelled_.exchange(true);
-            if (old_cancelled)
+            if (!old_cancelled)
             {
-                return;
-            }
+                // Notify read calls that the operation was cancelled
+                cv_.notify_all();
 
-            // TODO: Communicate the cancellation to the server and wait for it to be acknowledged
+                // TODO: Communicate the cancellation to the server and wait for it to be acknowledged
+            }
         }
 
     private:
