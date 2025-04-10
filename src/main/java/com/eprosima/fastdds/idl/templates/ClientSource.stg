@@ -34,6 +34,7 @@ $fileHeader(ctx=ctx,  file=[ctx.filename, "Client.cxx"], description=["Client im
 
 #include <fastdds/dds/domain/DomainParticipant.hpp>
 #include <fastdds/dds/domain/qos/RequesterQos.hpp>
+#include <fastdds/dds/publisher/DataWriter.hpp>
 #include <fastdds/dds/rpc/exceptions.hpp>
 #include <fastdds/dds/rpc/interfaces.hpp>
 #include <fastdds/dds/rpc/RequestInfo.hpp>
@@ -41,6 +42,7 @@ $fileHeader(ctx=ctx,  file=[ctx.filename, "Client.cxx"], description=["Client im
 #include <fastdds/dds/rpc/Service.hpp>
 #include <fastdds/dds/rpc/ServiceTypeSupport.hpp>
 #include <fastdds/dds/subscriber/DataReader.hpp>
+#include <fastdds/rtps/common/WriteParams.hpp>
 
 #include "$ctx.filename$.hpp"
 #include "$ctx.filename$_details.hpp"
@@ -453,6 +455,7 @@ $else$
     };
 $endif$
 
+$operation.inputparam:{param | $if(param.annotationFeed)$$input_feed_writer(operation, param)$$endif$}$
     //} operation $operation.name$
 
 >>
@@ -467,11 +470,77 @@ $endif$
 
 fill_input_param(operation, param) ::= <%
 $if(param.annotationFeed)$
-// TODO: Create RpcClientWriter for '$param.name$'
+$param.name$ = std::make_shared<$operation.name$_$param.name$_writer>(requester_, result);
 $else$
 request.$operation.name$->$param.name$ = $param.name$;
 $endif$
 %>
+
+input_feed_writer(operation, param) ::= <<
+struct $operation.name$_$param.name$_writer : public frpc::RpcClientWriter<$paramRetType(param.typecode)$>
+{
+    using FeedType = $operation.parent.name$_$operation.name$_$param.name$_Feed;
+
+    $operation.name$_$param.name$_writer(
+            frpc::Requester* requester,
+            std::shared_ptr<IReplyProcessor> result)
+        : requester_(requester)
+        , result_(result)
+    {
+    }
+
+    void write(
+            const $paramRetType(param.typecode)$& value) override
+    {
+        RequestType request;
+        request.$operation.name$_$param.name$ = FeedType{};
+        request.$operation.name$_$param.name$->value = value;
+        send_request(request);
+    }
+
+    void write(
+            $paramRetType(param.typecode)$&& value) override
+    {
+        RequestType request;
+        request.$operation.name$_$param.name$ = FeedType{};
+        request.$operation.name$_$param.name$->value = value;
+        send_request(request);
+    }
+
+    void finish(
+            frpc::RpcStatusCode reason = frpc::RPC_STATUS_CODE_OK) override
+    {
+        RequestType request;
+        request.$operation.name$_$param.name$ = FeedType{};
+        request.$operation.name$_$param.name$->finished_ = reason;
+        send_request(request);
+    }
+
+private:
+
+    void send_request(
+            const RequestType& request)
+    {
+        frpc::RequestInfo req_info = result_->info;
+        auto ret = requester_->send_request((void*)&request, req_info);
+        if (ret != fdds::RETCODE_OK)
+        {
+            if (ret == fdds::RETCODE_TIMEOUT)
+            {
+                throw frpc::RpcTimeoutException();
+            }
+            else
+            {
+                throw frpc::RpcBrokenPipeException(false);
+            }
+        }
+    }
+
+    frpc::Requester* requester_ = nullptr;
+    std::shared_ptr<IReplyProcessor> result_;
+};
+
+>>
 
 operation_result_exception(name) ::= <<
 if (result.$name$.has_value())
