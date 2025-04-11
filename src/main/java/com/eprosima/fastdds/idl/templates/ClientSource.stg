@@ -203,7 +203,7 @@ private:
     fdds::DomainParticipant& participant_;
     frpc::Service* service_ = nullptr;
     frpc::Requester* requester_ = nullptr;
-    std::atomic<bool> stop_thread_ = false;
+    std::atomic<bool> stop_thread_{false};
     std::thread processing_thread_;
     std::mutex mtx_;
     std::map<frtps::SampleIdentity, std::shared_ptr<IReplyProcessor\>> pending_results_;
@@ -580,7 +580,7 @@ $if(operation.annotationFeed)$
         }
 
         frpc::Requester* requester_ = nullptr;
-        std::atomic<bool> cancelled_ = false;
+        std::atomic<bool> cancelled_{false};
         std::exception_ptr exception_;
         std::queue<$paramRetType(operation.rettype)$> queue_;
         bool finished_ = false;
