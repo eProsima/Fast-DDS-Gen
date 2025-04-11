@@ -512,14 +512,6 @@ $if(operation.annotationFeed)$
                 $paramRetType(operation.rettype)$& value,
                 bool& ret_val)
         {
-            // Throw the exception if it was set
-            if (exception_)
-            {
-                auto ex = exception_;
-                exception_ = nullptr;
-                std::rethrow_exception(ex);
-            }
-
             // Early exit if the operation was cancelled
             if (cancelled_)
             {
@@ -534,6 +526,14 @@ $if(operation.annotationFeed)$
                 queue_.pop();
                 ret_val = true;
                 return true;
+            }
+
+            // Throw the exception if it was set
+            if (exception_)
+            {
+                auto ex = exception_;
+                exception_ = nullptr;
+                std::rethrow_exception(ex);
             }
 
             // Check if the operation was finished
