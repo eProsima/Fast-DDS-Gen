@@ -364,7 +364,7 @@ public:
     {
 $if(operation.annotationFeed)$
         // Create a reader to hold the result
-        auto result = std::make_shared<$operation.name$_reader>();
+        auto result = std::make_shared<$operation.name$_reader>(requester_);
 $else$
         // Create a promise to hold the result
         auto result = std::make_shared<$operation.name$_promise>();
@@ -395,6 +395,12 @@ $if(operation.annotationFeed)$
         , public IReplyProcessor
         , public IExceptionHolder
     {
+        $operation.name$_reader(
+                frpc::Requester* requester)
+            : requester_(requester)
+        {
+        }
+
         void process_reply(
                 const ReplyType& reply,
                 const frpc::RequestInfo& req_info,
@@ -506,7 +512,29 @@ $if(operation.annotationFeed)$
                 // Notify read calls that the operation was cancelled
                 cv_.notify_all();
 
-                // TODO: Communicate the cancellation to the server and wait for it to be acknowledged
+                // Communicate the cancellation to the server and wait for it to be acknowledged
+                RequestType request;
+                request.feed_cancel_ = true;
+                frpc::RequestInfo req_info = info;
+                auto ret = requester_->send_request((void*)&request, req_info);
+                if (ret != fdds::RETCODE_OK)
+                {
+                    if (ret == fdds::RETCODE_TIMEOUT)
+                    {
+                        throw frpc::RpcTimeoutException();
+                    }
+                    else
+                    {
+                        throw frpc::RpcBrokenPipeException(false);
+                    }
+                }
+
+                // Wait for the server to acknowledge the cancellation
+                std::unique_lock<std::mutex> lock(mtx_);
+                while (!finished_)
+                {
+                    cv_.wait(lock);
+                }
             }
         }
 
@@ -551,6 +579,7 @@ $if(operation.annotationFeed)$
             return false;
         }
 
+        frpc::Requester* requester_ = nullptr;
         std::atomic<bool> cancelled_ = false;
         std::exception_ptr exception_;
         std::queue<$paramRetType(operation.rettype)$> queue_;
