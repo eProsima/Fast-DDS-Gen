@@ -456,11 +456,11 @@ $if(operation.annotationFeed)$
         void set_exception(
                 std::exception_ptr exception)
         {
-            bool was_cancelled = cancelled_.exchange(true);
-            if (!was_cancelled)
+            std::lock_guard<std::mutex> _(mtx_);
+            if (!finished_)
             {
-                std::lock_guard<std::mutex> _(mtx_);
                 exception_ = exception;
+                finished_ = true;
                 cv_.notify_all();
             }
         }
