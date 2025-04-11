@@ -452,6 +452,9 @@ $if(operation.annotationFeed)$
                 }
                 $operation.exceptions : { exception |$operation_result_exception(name=[exception.formatedScopedname, "_ex"], receiver="(*this)")$}; separator="\n"$
             }
+
+            // If we reach this point, the reply is for another operation
+            set_invalid_reply(*this);
         }
 
         void set_exception(
