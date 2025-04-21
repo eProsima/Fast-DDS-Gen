@@ -1,0 +1,60 @@
+// Copyright 2025 Proyectos y Sistemas de Mantenimiento SL (eProsima).
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+group ProtocolHeader;
+
+import "eprosima.stg"
+
+main(ctx, definitions) ::= <<
+$fileHeader(ctx=ctx,  file=[ctx.filename, "Server.hpp"], description=["Server implementation for interfaces"])$
+
+#ifndef FAST_DDS_GENERATED__$ctx.headerGuardName$_SERVER_HPP
+#define FAST_DDS_GENERATED__$ctx.headerGuardName$_SERVER_HPP
+
+#include <memory>
+
+#include <fastdds/dds/domain/DomainParticipant.hpp>
+#include <fastdds/dds/domain/qos/ReplierQos.hpp>
+
+#include "$ctx.filename$.hpp"
+
+$definitions; separator="\n"$
+
+#endif  // FAST_DDS_GENERATED__$ctx.headerGuardName$_CLIENT_HPP
+
+>>
+
+module(ctx, parent, module, definition_list) ::= <<
+namespace $module.name$ {
+
+$definition_list$
+
+} // namespace $module.name$
+
+>>
+
+interface(ctx, parent, interface, export_list) ::= <<
+struct $interface.name$Server
+{
+    virtual ~$interface.name$Server() = default;
+
+    virtual void run() = 0;
+};
+
+extern $ctx.fileNameUpper$_DllAPI std::shared_ptr<$interface.name$Server> create_$interface.name$Server(
+        eprosima::fastdds::dds::DomainParticipant& part,
+        const char* service_name,
+        const eprosima::fastdds::dds::ReplierQos& qos,
+        size_t thread_pool_size);
+>>

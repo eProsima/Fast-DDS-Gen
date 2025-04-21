@@ -809,6 +809,8 @@ public class fastddsgen
                 tmanager.addGroup("com/eprosima/fastdds/idl/templates/DDSPubSubTypeSource.stg");
                 tmanager.addGroup("com/eprosima/fastdds/idl/templates/ClientHeader.stg");
                 tmanager.addGroup("com/eprosima/fastdds/idl/templates/ClientSource.stg");
+                tmanager.addGroup("com/eprosima/fastdds/idl/templates/ServerHeader.stg");
+                tmanager.addGroup("com/eprosima/fastdds/idl/templates/ServerSource.stg");
 
                 if (generate_typeobjectsupport_)
                 {
@@ -1071,6 +1073,18 @@ public class fastddsgen
                                     maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/ClientSource.stg"), m_replace))
                         {
                             project.addCommonSrcFile(relative_dir + ctx.getFilename() + "Client.cxx");
+                        }
+                        if (returnedValue &=
+                                Utils.writeFile(output_dir + ctx.getFilename() + "Server.hpp",
+                                    maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/ServerHeader.stg"), m_replace))
+                        {
+                            project.addCommonIncludeFile(relative_dir + ctx.getFilename() + "Server.hpp");
+                        }
+                        if (returnedValue &=
+                                Utils.writeFile(output_dir + ctx.getFilename() + "Server.cxx",
+                                    maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/ServerSource.stg"), m_replace))
+                        {
+                            project.addCommonSrcFile(relative_dir + ctx.getFilename() + "Server.cxx");
                         }
                     }
 
