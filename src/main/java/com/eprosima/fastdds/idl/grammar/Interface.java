@@ -38,6 +38,7 @@ public class Interface extends com.eprosima.idl.parser.tree.Interface
             Operation op = (Operation)exp;
             if (op.isAnnotationFeed())
             {
+                m_hasOutputFeeds = true;
                 m_context.setThereIsOutputFeed(true);
             }
             else
@@ -47,6 +48,16 @@ public class Interface extends com.eprosima.idl.parser.tree.Interface
         }
 
         super.add(exp);
+    }
+
+    /*!
+     * @brief This function is used to check if the interface has output feeds.
+     *
+     * @return True if the interface has output feeds, false otherwise.
+     */
+    public boolean isWithOutputFeeds()
+    {
+        return m_hasOutputFeeds;
     }
 
     /*!
@@ -84,6 +95,16 @@ public class Interface extends com.eprosima.idl.parser.tree.Interface
                     }
                 });
             });
+
+            if (m_hasOutputFeeds)
+            {
+                // Optional boolean to indicate if the feed is cancelled
+                Member feed_cancel = new Member(m_context.createPrimitiveTypeCode(
+                    com.eprosima.idl.parser.typecode.Kind.KIND_BOOLEAN), "feed_cancel_");
+                feed_cancel.addAnnotation(m_context, new Annotation(m_context.getAnnotationDeclaration("optional")));
+                feed_cancel.addAnnotation(m_context, new Annotation(m_context.getAnnotationDeclaration("hashid")));
+                request_type.addMember(feed_cancel);
+            }
 
             m_request_type = request_type;
         }
@@ -142,6 +163,7 @@ public class Interface extends com.eprosima.idl.parser.tree.Interface
     }
 
     private Context m_context = null;
+    private boolean m_hasOutputFeeds = false;
     private StructTypeCode m_request_type = null;
     private StructTypeCode m_reply_type = null;
     static private EnumTypeCode m_remoteExceptionCode_t_type = null;
