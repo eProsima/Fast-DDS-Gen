@@ -210,10 +210,11 @@ private:
 
     //{ request helpers
 
-    template<typename T>
-    auto send_request_with_promise(
+    template<typename T, typename TResult>
+    std::future<TResult> send_request_with_promise(
             const RequestType& request,
-            std::shared_ptr<T> result)
+            std::shared_ptr<T> result,
+            std::promise<TResult>& promise)
     {
         if (fdds::RETCODE_OK == requester_->send_request((void*)&request, result->info))
         {
@@ -222,11 +223,11 @@ private:
         }
         else
         {
-            result->promise.set_exception(
+            promise.set_exception(
                 std::make_exception_ptr(frpc::RpcBrokenPipeException(false)));
         }
 
-        return result->promise.get_future();
+        return promise.get_future();
     }
 
     template<typename T>
@@ -383,7 +384,7 @@ $endif$
 $if(operation.annotationFeed)$
         return send_request_with_reader(request, result);
 $else$
-        return send_request_with_promise(request, result);
+        return send_request_with_promise(request, result, result->promise);
 $endif$
     }
 
