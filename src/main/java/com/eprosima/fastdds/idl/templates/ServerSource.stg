@@ -15,6 +15,7 @@
 group ProtocolHeader;
 
 import "eprosima.stg"
+import "com/eprosima/fastcdr/idl/templates/FastCdrCommon.stg"
 
 main(ctx, definitions) ::= <<
 $fileHeader(ctx=ctx,  file=[ctx.filename, "Server.cxx"], description=["Server implementation for interfaces"])$
@@ -22,11 +23,21 @@ $fileHeader(ctx=ctx,  file=[ctx.filename, "Server.cxx"], description=["Server im
 #include "$ctx.filename$Server.hpp"
 
 #include <memory>
+#include <stdexcept>
+#include <string>
 
 #include <fastdds/dds/domain/DomainParticipant.hpp>
 #include <fastdds/dds/domain/qos/ReplierQos.hpp>
+#include <fastdds/dds/rpc/exceptions.hpp>
+#include <fastdds/dds/rpc/interfaces.hpp>
+#include <fastdds/dds/rpc/RequestInfo.hpp>
+#include <fastdds/dds/rpc/Replier.hpp>
+#include <fastdds/dds/rpc/Service.hpp>
+#include <fastdds/dds/rpc/ServiceTypeSupport.hpp>
 
 #include "$ctx.filename$.hpp"
+#include "$ctx.filename$_details.hpp"
+#include "$ctx.filename$PubSubTypes.hpp"
 
 $definitions; separator="\n"$
 >>
@@ -41,17 +52,93 @@ $definition_list$
 >>
 
 interface(ctx, parent, interface, export_list) ::= <<
+//{ interface $interface.name$
+
+namespace detail {
+
+namespace fdds = eprosima::fastdds::dds;
+namespace frpc = eprosima::fastdds::dds::rpc;
+namespace frtps = eprosima::fastdds::rtps;
+
+class $interface.name$ServerLogic
+    : public $interface.name$Server
+{
+
+public:
+
+    $interface.name$ServerLogic(
+            eprosima::fastdds::dds::DomainParticipant& part,
+            const char* service_name,
+            const eprosima::fastdds::dds::ReplierQos& qos,
+            size_t thread_pool_size)
+        : $interface.name$Server()
+        , participant_(part)
+    {
+        // Register the service type support
+        auto service_type = create_$interface.name$_service_type_support();
+        auto ret = service_type.register_service_type(&participant_, "$interface.scopedname$");
+        if (ret != fdds::RETCODE_OK)
+        {
+            throw std::runtime_error("Error registering service type");
+        }
+
+        // Create the service
+        service_ = participant_.create_service(service_name, "$interface.scopedname$");
+        if (nullptr == service_)
+        {
+            throw std::runtime_error("Error creating service");
+        }
+
+        // Create the replier
+        replier_ = participant_.create_service_replier(service_, qos);
+        if (nullptr == replier_)
+        {
+            throw std::runtime_error("Error creating requester");
+        }
+
+        // TODO: Create thread pool
+        static_cast<void>(thread_pool_size);
+    }
+
+    ~$interface.name$ServerLogic() override
+    {
+        if (nullptr != replier_)
+        {
+            participant_.delete_service_replier(service_->get_service_name(), replier_);
+        }
+        if (nullptr != service_)
+        {
+            participant_.delete_service(service_);
+        }
+    }
+
+    void run() override
+    {
+    }
+
+    void stop() override
+    {
+    }
+
+private:
+
+    fdds::DomainParticipant& participant_;
+    frpc::Service* service_ = nullptr;
+    frpc::Replier* replier_ = nullptr;
+
+};
+
+}  // namespace detail
+
 std::shared_ptr<$interface.name$Server> create_$interface.name$Server(
         eprosima::fastdds::dds::DomainParticipant& part,
         const char* service_name,
         const eprosima::fastdds::dds::ReplierQos& qos,
         size_t thread_pool_size)
 {
-    static_cast<void>(part);
-    static_cast<void>(service_name);
-    static_cast<void>(qos);
-    static_cast<void>(thread_pool_size);
-    return std::shared_ptr<$interface.name$Server>();
+    return std::make_shared<detail::$interface.name$ServerLogic>(part, service_name, qos, thread_pool_size);
 }
+
+//} interface $interface.name$
 
 >>

@@ -49,9 +49,33 @@ struct $interface.name$Server
 {
     virtual ~$interface.name$Server() = default;
 
+    /**
+     * @brief Run the server.
+     *
+     * This method starts the server and begins processing requests.
+     * The method will block until the server is stopped.
+     */
     virtual void run() = 0;
+
+    /**
+     * @brief Stop the server.
+     *
+     * This method stops the server and releases all resources.
+     * It will cancel all pending requests, and wait for all processing threads to finish before returning.
+     */
+    virtual void stop() = 0;
+
 };
 
+/**
+ * @brief Create a $interface.name$Server instance.
+ *
+ * @param part             The DomainParticipant to use for the server.
+ * @param service_name     The name of the service.
+ * @param qos              The QoS settings for the server.
+ * @param thread_pool_size The size of the thread pool to use for processing requests.
+ *                         When set to 0, a new thread will be created when no threads are available.
+ */
 extern $ctx.fileNameUpper$_DllAPI std::shared_ptr<$interface.name$Server> create_$interface.name$Server(
         eprosima::fastdds::dds::DomainParticipant& part,
         const char* service_name,
