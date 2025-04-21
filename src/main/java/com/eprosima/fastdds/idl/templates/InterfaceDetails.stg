@@ -59,6 +59,7 @@ $interface.all_operations : { operation | $operation_details(interface, operatio
 struct $interface.name$_Request
 {
     $interface.all_operations : { operation | $operation_request_members(interface, operation)$ }; separator="\n"$
+    $if(interface.withOutputFeeds)$eprosima::fastcdr::optional<bool\> feed_cancel_;$endif$
 };
 
 struct $interface.name$_Reply

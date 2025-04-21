@@ -196,6 +196,7 @@ interface(ctx, parent, interface, export_list) ::= <<
 class $ctx.fileNameUpper$_DllAPI $interface.name$ $if(interface.bases)$: $interface.bases : {base |public $base.scopedname$}; separator=", "$$endif$
 {
 public:
+    virtual ~$interface.name$() = default;
 
     $export_list$
 };
