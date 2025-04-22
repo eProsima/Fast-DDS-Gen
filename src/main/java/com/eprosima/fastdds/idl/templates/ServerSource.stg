@@ -22,7 +22,9 @@ $fileHeader(ctx=ctx,  file=[ctx.filename, "Server.cxx"], description=["Server im
 
 #include "$ctx.filename$Server.hpp"
 
+#include <map>
 #include <memory>
+#include <mutex>
 #include <stdexcept>
 #include <string>
 
@@ -148,9 +150,7 @@ public:
                 }
                 else
                 {
-                    ReplyType reply{};
-                    reply.remoteEx = frpc::RemoteExceptionCode_t::REMOTE_EX_INVALID_ARGUMENT;
-                    replier_->send_reply(&reply, ctx->info);
+                    ctx->send_exception(frpc::RemoteExceptionCode_t::REMOTE_EX_INVALID_ARGUMENT, replier_);
                 }
 
                 // Prepare next request context
@@ -206,20 +206,74 @@ private:
             return n_fields == 1U;
         }
 
+        void process_additional_request(
+                const std::shared_ptr<RequestContext>& ctx,
+                frpc::Replier* replier,
+                bool& should_erase)
+        {
+            should_erase = false;
+            if (ctx->info.related_sample_identity == info.related_sample_identity)
+            {
+                // TODO: Pass values from input streams
+                send_exception(frpc::RemoteExceptionCode_t::REMOTE_EX_INVALID_ARGUMENT, replier);
+                should_erase = true;
+            }
+            else
+            {
+                // This is not the expected request
+                should_erase = true;
+            }
+        }
+
+        bool prepare(
+                frpc::Replier* replier)
+        {
+            send_exception(frpc::RemoteExceptionCode_t::REMOTE_EX_UNSUPPORTED, replier);
+            return false;
+        }
+
+        void send_exception(
+                frpc::RemoteExceptionCode_t ex,
+                frpc::Replier* replier)
+        {
+            ReplyType reply{};
+            reply.remoteEx = ex;
+            replier->send_reply(&reply, info);
+        }
+
     };
 
     void process_request(
             const std::shared_ptr<RequestContext>& ctx)
     {
-        ReplyType reply{};
-        reply.remoteEx = frpc::RemoteExceptionCode_t::REMOTE_EX_UNSUPPORTED;
-        replier_->send_reply(&reply, ctx->info);
+        auto id = ctx->info.related_sample_identity;
+
+        std::lock_guard<std::mutex> _(mtx_);
+        auto it = processing_requests_.find(id);
+        if (it != processing_requests_.end())
+        {
+            bool should_erase = false;
+            it->second->process_additional_request(ctx, replier_, should_erase);
+            if (should_erase)
+            {
+                processing_requests_.erase(it);
+            }
+            return;
+        }
+
+        if (!ctx->prepare(replier_))
+        {
+            return;
+        }
+        processing_requests_[id] = ctx;
     }
 
     fdds::DomainParticipant& participant_;
     frpc::Service* service_ = nullptr;
     frpc::Replier* replier_ = nullptr;
     fdds::GuardCondition finish_condition_;
+    std::mutex mtx_;
+    std::map<frtps::SampleIdentity, std::shared_ptr<RequestContext\>> processing_requests_;
 
 };
 
