@@ -69,6 +69,8 @@ namespace frtps = eprosima::fastdds::rtps;
 class $interface.name$ServerLogic
     : public $interface.name$Server
 {
+    using RequestType = $interface.name$_Request;
+    using ReplyType = $interface.name$_Reply;
 
 public:
 
@@ -140,12 +142,16 @@ public:
             auto ctx = std::make_shared<RequestContext>();
             while (fdds::RETCODE_OK == ctx->take_from(replier_))
             {
-                // TODO: Validate the request
-                // TODO: Add request to processing queue (i.e. trigger a worker thread)
-
-                $interface.name$_Reply reply{};
-                reply.remoteEx = frpc::RemoteExceptionCode_t::REMOTE_EX_UNSUPPORTED;
-                replier_->send_reply(&reply, ctx->info);
+                if (ctx->validate_request())
+                {
+                    process_request(ctx);
+                }
+                else
+                {
+                    ReplyType reply{};
+                    reply.remoteEx = frpc::RemoteExceptionCode_t::REMOTE_EX_INVALID_ARGUMENT;
+                    replier_->send_reply(&reply, ctx->info);
+                }
 
                 // Prepare next request context
                 ctx = std::make_shared<RequestContext>();
@@ -165,7 +171,7 @@ private:
 
     struct RequestContext : ClientContext
     {
-        $interface.name$_Request request;
+        RequestType request;
         frpc::RequestInfo info;
         frtps::GUID_t client_id;
         fdds::PublicationBuiltinTopicData pub_data;
@@ -192,7 +198,23 @@ private:
             return ret;
         }
 
+        bool validate_request() const
+        {
+            size_t n_fields = 0;
+            $interface.requestTypeCode.members:{member | n_fields += request.$member.name$.has_value() ? 1 : 0;}; separator="\n"$
+
+            return n_fields == 1U;
+        }
+
     };
+
+    void process_request(
+            const std::shared_ptr<RequestContext>& ctx)
+    {
+        ReplyType reply{};
+        reply.remoteEx = frpc::RemoteExceptionCode_t::REMOTE_EX_UNSUPPORTED;
+        replier_->send_reply(&reply, ctx->info);
+    }
 
     fdds::DomainParticipant& participant_;
     frpc::Service* service_ = nullptr;
