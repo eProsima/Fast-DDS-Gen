@@ -26,6 +26,8 @@ $fileHeader(ctx=ctx,  file=[ctx.filename, "Server.hpp"], description=["Server im
 
 #include <fastdds/dds/domain/DomainParticipant.hpp>
 #include <fastdds/dds/domain/qos/ReplierQos.hpp>
+#include <fastdds/rtps/common/Guid.hpp>
+#include <fastdds/rtps/common/RemoteLocators.hpp>
 
 #include "$ctx.filename$.hpp"
 
@@ -47,6 +49,28 @@ $definition_list$
 interface(ctx, parent, interface, export_list) ::= <<
 struct $interface.name$Server
 {
+    /**
+     * @brief Context for a client request.
+     */
+    struct ClientContext
+    {
+        virtual ~ClientContext() = default;
+
+        /**
+         * @brief Get the GUID of the client that made the request.
+         *
+         * @return The GUID of the client that made the request.
+         */
+        virtual const eprosima::fastdds::rtps::GUID_t& get_client_id() const = 0;
+
+        /**
+         * @brief Get the locators of the client that made the request.
+         *
+         * @return The locators of the client that made the request.
+         */
+        virtual const eprosima::fastdds::rtps::RemoteLocatorList& get_client_locators() const = 0;
+    };
+
     virtual ~$interface.name$Server() = default;
 
     /**

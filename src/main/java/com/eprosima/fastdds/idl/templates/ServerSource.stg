@@ -26,6 +26,11 @@ $fileHeader(ctx=ctx,  file=[ctx.filename, "Server.cxx"], description=["Server im
 #include <stdexcept>
 #include <string>
 
+#include <fastdds/dds/builtin/topic/PublicationBuiltinTopicData.hpp>
+#include <fastdds/dds/core/condition/Condition.hpp>
+#include <fastdds/dds/core/condition/GuardCondition.hpp>
+#include <fastdds/dds/core/condition/WaitSet.hpp>
+#include <fastdds/dds/core/Time_t.hpp>
 #include <fastdds/dds/domain/DomainParticipant.hpp>
 #include <fastdds/dds/domain/qos/ReplierQos.hpp>
 #include <fastdds/dds/rpc/exceptions.hpp>
@@ -34,6 +39,7 @@ $fileHeader(ctx=ctx,  file=[ctx.filename, "Server.cxx"], description=["Server im
 #include <fastdds/dds/rpc/Replier.hpp>
 #include <fastdds/dds/rpc/Service.hpp>
 #include <fastdds/dds/rpc/ServiceTypeSupport.hpp>
+#include <fastdds/dds/subscriber/DataReader.hpp>
 
 #include "$ctx.filename$.hpp"
 #include "$ctx.filename$_details.hpp"
@@ -114,17 +120,84 @@ public:
 
     void run() override
     {
+        finish_condition_.set_trigger_value(false);
+        fdds::WaitSet waitset;
+        waitset.attach_condition(finish_condition_);
+        waitset.attach_condition(replier_->get_replier_reader()->get_statuscondition());
+
+        while (true)
+        {
+            fdds::ConditionSeq active_conditions;
+            waitset.wait(active_conditions, fdds::c_TimeInfinite);
+
+            // Early exit if the finish condition is triggered
+            if (finish_condition_.get_trigger_value())
+            {
+                break;
+            }
+
+            // Take and process the requests
+            auto ctx = std::make_shared<RequestContext>();
+            while (fdds::RETCODE_OK == ctx->take_from(replier_))
+            {
+                // TODO: Validate the request
+                // TODO: Add request to processing queue (i.e. trigger a worker thread)
+
+                $interface.name$_Reply reply{};
+                reply.remoteEx = frpc::RemoteExceptionCode_t::REMOTE_EX_UNSUPPORTED;
+                replier_->send_reply(&reply, ctx->info);
+
+                // Prepare next request context
+                ctx = std::make_shared<RequestContext>();
+            }
+        }
     }
 
     void stop() override
     {
+        finish_condition_.set_trigger_value(true);
+
+        // TODO: Cancel all pending requests
+        // TODO: Wait for all processing threads to finish
     }
 
 private:
 
+    struct RequestContext : ClientContext
+    {
+        $interface.name$_Request request;
+        frpc::RequestInfo info;
+        frtps::GUID_t client_id;
+        fdds::PublicationBuiltinTopicData pub_data;
+
+        const frtps::GUID_t& get_client_id() const override
+        {
+            return client_id;
+        }
+
+        const frtps::RemoteLocatorList& get_client_locators() const override
+        {
+            return pub_data.remote_locators;
+        }
+
+        fdds::ReturnCode_t take_from(
+                frpc::Replier* replier)
+        {
+            fdds::ReturnCode_t ret = replier->take_request(&request, info);
+            if (ret == fdds::RETCODE_OK)
+            {
+                client_id = info.sample_identity.writer_guid();
+                ret = replier->get_replier_reader()->get_matched_publication_data(pub_data, client_id);
+            }
+            return ret;
+        }
+
+    };
+
     fdds::DomainParticipant& participant_;
     frpc::Service* service_ = nullptr;
     frpc::Replier* replier_ = nullptr;
+    fdds::GuardCondition finish_condition_;
 
 };
 
