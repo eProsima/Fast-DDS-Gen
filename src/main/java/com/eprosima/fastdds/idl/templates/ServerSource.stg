@@ -53,6 +53,9 @@ $fileHeader(ctx=ctx,  file=[ctx.filename, "Server.cxx"], description=["Server im
 #include "$ctx.filename$PubSubTypes.hpp"
 
 $definitions; separator="\n"$
+
+#include "$ctx.filename$Server.ipp"
+
 >>
 
 module(ctx, parent, module, definition_list) ::= <<
