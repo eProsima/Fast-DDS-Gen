@@ -22,11 +22,16 @@ $fileHeader(ctx=ctx,  file=[ctx.filename, "Server.cxx"], description=["Server im
 
 #include "$ctx.filename$Server.hpp"
 
+#include <atomic>
+#include <condition_variable>
 #include <map>
 #include <memory>
 #include <mutex>
+#include <queue>
 #include <stdexcept>
 #include <string>
+#include <thread>
+#include <vector>
 
 #include <fastdds/dds/builtin/topic/PublicationBuiltinTopicData.hpp>
 #include <fastdds/dds/core/condition/Condition.hpp>
@@ -83,6 +88,7 @@ public:
             size_t thread_pool_size)
         : $interface.name$Server()
         , participant_(part)
+        , thread_pool_(*this, thread_pool_size)
     {
         // Register the service type support
         auto service_type = create_$interface.name$_service_type_support();
@@ -105,17 +111,17 @@ public:
         {
             throw std::runtime_error("Error creating requester");
         }
-
-        // TODO: Create thread pool
-        static_cast<void>(thread_pool_size);
     }
 
     ~$interface.name$ServerLogic() override
     {
+        stop();
+
         if (nullptr != replier_)
         {
             participant_.delete_service_replier(service_->get_service_name(), replier_);
         }
+
         if (nullptr != service_)
         {
             participant_.delete_service(service_);
@@ -162,9 +168,11 @@ public:
     void stop() override
     {
         finish_condition_.set_trigger_value(true);
+        thread_pool_.stop();
 
+        std::lock_guard<std::mutex> _(mtx_);
         // TODO: Cancel all pending requests
-        // TODO: Wait for all processing threads to finish
+        processing_requests_.clear();
     }
 
 private:
@@ -249,29 +257,127 @@ private:
 
     };
 
+    struct ThreadPool
+    {
+        ThreadPool(
+                $interface.name$ServerLogic& server,
+                size_t num_threads)
+            : server_(server)
+        {
+            // Create worker threads (at least one)
+            if (num_threads == 0)
+            {
+                num_threads = 1;
+            }
+
+            auto process_requests = [this]()
+            {
+                while (!finished_)
+                {
+                    std::shared_ptr<RequestContext> req;
+                    {
+                        std::unique_lock<std::mutex> lock(mtx_);
+                        cv_.wait(lock, [this]
+                        {
+                            return finished_ || !requests_.empty();
+                        });
+                        if (finished_)
+                        {
+                            break;
+                        }
+                        req = requests_.front();
+                        requests_.pop();
+                    }
+
+                    // Process the request
+                    server_.execute_request(req);
+                }
+            };
+
+            for (size_t i = 0; i < num_threads; ++i)
+            {
+                threads_.emplace_back(process_requests);
+            }
+        }
+
+        void new_request(
+                const std::shared_ptr<RequestContext>& req)
+        {
+            std::lock_guard<std::mutex> lock(mtx_);
+            if (!finished_)
+            {
+                requests_.push(req);
+                cv_.notify_one();
+            }
+        }
+
+        void stop()
+        {
+            // Notify all threads in the pool to stop
+            {
+                std::lock_guard<std::mutex> lock(mtx_);
+                finished_ = true;
+                cv_.notify_all();
+            }
+
+            // Wait for all threads to finish
+            for (auto& thread : threads_)
+            {
+                if (thread.joinable())
+                {
+                    thread.join();
+                }
+            }
+            threads_.clear();
+        }
+
+        $interface.name$ServerLogic& server_;
+        std::mutex mtx_;
+        std::condition_variable cv_;
+        std::queue<std::shared_ptr<RequestContext\>> requests_;
+        bool finished_{ false };
+        std::vector<std::thread> threads_;
+    };
+
     void process_request(
             const std::shared_ptr<RequestContext>& ctx)
     {
         auto id = ctx->info.related_sample_identity;
 
-        std::lock_guard<std::mutex> _(mtx_);
-        auto it = processing_requests_.find(id);
-        if (it != processing_requests_.end())
         {
-            bool should_erase = false;
-            it->second->process_additional_request(ctx, replier_, should_erase);
-            if (should_erase)
+            std::lock_guard<std::mutex> _(mtx_);
+            auto it = processing_requests_.find(id);
+            if (it != processing_requests_.end())
             {
-                processing_requests_.erase(it);
+                bool should_erase = false;
+                it->second->process_additional_request(ctx, replier_, should_erase);
+                if (should_erase)
+                {
+                    processing_requests_.erase(it);
+                }
+                return;
             }
-            return;
+
+            if (!ctx->prepare(replier_))
+            {
+                return;
+            }
+
+            processing_requests_[id] = ctx;
         }
 
-        if (!ctx->prepare(replier_))
+        thread_pool_.new_request(ctx);
+    }
+
+    void execute_request(
+            const std::shared_ptr<RequestContext>& req)
+    {
+        // TODO: proper processing
         {
-            return;
+            std::lock_guard<std::mutex> _(mtx_);
+            processing_requests_.erase(req->info.related_sample_identity);
         }
-        processing_requests_[id] = ctx;
+        req->send_exception(frpc::RemoteExceptionCode_t::REMOTE_EX_UNSUPPORTED, replier_);
     }
 
     fdds::DomainParticipant& participant_;
@@ -280,6 +386,7 @@ private:
     fdds::GuardCondition finish_condition_;
     std::mutex mtx_;
     std::map<frtps::SampleIdentity, std::shared_ptr<RequestContext\>> processing_requests_;
+    ThreadPool thread_pool_;
 
 };
 
@@ -303,6 +410,7 @@ if (request.$op.name$.has_value())
 {
     return prepare_$op.name$(replier);
 }
+
 >>
 
 operation_prepare_impl(op) ::= <<
@@ -311,7 +419,7 @@ bool prepare_$op.name$(
 {
     static_cast<void>(replier);
     // TODO: prepare input feed handlers
-    send_exception(frpc::RemoteExceptionCode_t::REMOTE_EX_UNSUPPORTED, replier);
-    return false;
+    return true;
 }
+
 >>
