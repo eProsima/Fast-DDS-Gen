@@ -228,7 +228,9 @@ private:
         bool prepare(
                 frpc::Replier* replier)
         {
-            send_exception(frpc::RemoteExceptionCode_t::REMOTE_EX_UNSUPPORTED, replier);
+            $interface.all_operations:{op | $operation_prepare_call(op)$}; separator="\n"$
+
+            send_exception(frpc::RemoteExceptionCode_t::REMOTE_EX_UNKNOWN_OPERATION, replier);
             return false;
         }
 
@@ -240,6 +242,10 @@ private:
             reply.remoteEx = ex;
             replier->send_reply(&reply, info);
         }
+
+    private:
+
+        $interface.all_operations:{op | $operation_prepare_impl(op)$}; separator="\n"$
 
     };
 
@@ -290,4 +296,22 @@ std::shared_ptr<$interface.name$Server> create_$interface.name$Server(
 
 //} interface $interface.name$
 
+>>
+
+operation_prepare_call(op) ::= <<
+if (request.$op.name$.has_value())
+{
+    return prepare_$op.name$(replier);
+}
+>>
+
+operation_prepare_impl(op) ::= <<
+bool prepare_$op.name$(
+        frpc::Replier* replier)
+{
+    static_cast<void>(replier);
+    // TODO: prepare input feed handlers
+    send_exception(frpc::RemoteExceptionCode_t::REMOTE_EX_UNSUPPORTED, replier);
+    return false;
+}
 >>
