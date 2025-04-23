@@ -380,6 +380,8 @@ private:
         req->send_exception(frpc::RemoteExceptionCode_t::REMOTE_EX_UNSUPPORTED, replier_);
     }
 
+    $interface.all_operations:{op | $operation_prototype(op)$}; separator="\n"$
+
     fdds::DomainParticipant& participant_;
     frpc::Service* service_ = nullptr;
     frpc::Replier* replier_ = nullptr;
@@ -422,4 +424,28 @@ bool prepare_$op.name$(
     return true;
 }
 
+>>
+
+operation_prototype(op) ::= <<
+$if(op.annotationFeed)$
+void $op.name$(
+        const ClientContext& info,
+$if(op.parameters)$
+        $operation_parameters(op.parameters)$,
+$endif$
+        /*result*/ frpc::RpcServerWriter<$paramRetType(op.rettype)$>& result_writer);
+$else$
+$if(op.parameters)$
+$paramRetType(op.rettype)$ $op.name$(
+        const ClientContext& info,
+        $operation_parameters(op.parameters)$);
+$else$
+$paramRetType(op.rettype)$ $op.name$(
+        const ClientContext& info);
+$endif$
+$endif$
+>>
+
+operation_parameters(params) ::= <<
+$params : {param | /*$param.comment$*/ $if(param.output)$$paramTypeByRef(typecode=param.typecode)$$else$$paramTypeByValue(typecode=param.typecode, feed=param.annotationFeed, is_server=true)$$endif$ $param.name$}; anchor, separator=",\n"$
 >>

@@ -26,9 +26,13 @@ paramTypeByRef(typecode) ::= <%
 $typecode.cppTypename$&
 %>
 
-paramTypeByValue(typecode, feed) ::= <%
+paramTypeByValue(typecode, feed, is_server) ::= <%
 $if(feed)$
+$if(is_server)$
+eprosima::fastdds::dds::rpc::RpcServerReader<$typecode.cppTypename$>&
+$else$
 std::shared_ptr<eprosima::fastdds::dds::rpc::RpcClientWriter<$typecode.cppTypename$>>&
+$endif$
 $else$
 $if(typecode.primitive)$
 $typecode.cppTypename$
@@ -39,7 +43,7 @@ $endif$
 %>
 
 paramDeclarations(params, initialSeparator="") ::= <<
-$if(params)$$initialSeparator$$endif$$params : {param | /*$param.comment$*/ $if(param.output)$$paramTypeByRef(typecode=param.typecode)$$else$$paramTypeByValue(typecode=param.typecode, feed=param.annotationFeed)$$endif$ $param.name$}; anchor, separator=",\n"$
+$if(params)$$initialSeparator$$endif$$params : {param | /*$param.comment$*/ $if(param.output)$$paramTypeByRef(typecode=param.typecode)$$else$$paramTypeByValue(typecode=param.typecode, feed=param.annotationFeed, is_server=false)$$endif$ $param.name$}; anchor, separator=",\n"$
 >>
 
 object_serialization(ctx, object) ::= <<
