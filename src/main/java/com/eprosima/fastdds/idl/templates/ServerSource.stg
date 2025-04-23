@@ -476,8 +476,20 @@ $elseif(op.hasInputFeeds)$
     // TODO: Input feed operations
     req->send_exception(frpc::RemoteExceptionCode_t::REMOTE_EX_UNSUPPORTED, replier_);
 $else$
-    // TODO: Standard operations
-    req->send_exception(frpc::RemoteExceptionCode_t::REMOTE_EX_UNSUPPORTED, replier_);
+    $op.outputparam : {param | $param.typecode.cppTypename$ $param.name$ $if(param.onlyOutput)${\}$else$= req->request.$op.name$->$param.name$$endif$;}; separator="\n"$
+    $if(op.rettype)$$op.rettype.cppTypename$ result = $else$/*void*/ $endif$$op.name$(
+        *req$if(op.parameters)$,$else$);$endif$
+$if(op.parameters)$
+        $op.parameters : {param | $if(param.output)$$param.name$$else$req->request.$op.name$->$param.name$$endif$}; separator=",\n"$);
+$endif$
+    ReplyType reply{};
+    reply.$op.name$ = $op.parent.name$_$op.name$_Result{};
+    reply.$op.name$->result = $op.parent.name$_$op.name$_Out{};
+    $op.outputparam : {param | reply.$op.name$->result->$param.name$ = $param.name$;}; separator="\n"$
+$if(op.rettype)$
+    reply.$op.name$->result->return_ = result;
+$endif$
+    replier_->send_reply(&reply, req->info);
 $endif$
     break;
 }
