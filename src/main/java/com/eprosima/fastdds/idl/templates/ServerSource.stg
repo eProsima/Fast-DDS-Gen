@@ -375,12 +375,29 @@ private:
     void execute_request(
             const std::shared_ptr<RequestContext>& req)
     {
-        // TODO: proper processing
+        try
+        {
+            for(;;)
+            {
+                $interface.all_operations:{op | $call_operation(op)$}; separator="\n"$
+
+                req->send_exception(frpc::RemoteExceptionCode_t::REMOTE_EX_UNSUPPORTED, replier_);
+                break;
+            }
+        }
+        catch (const frpc::RpcRemoteException& ex)
+        {
+            req->send_exception(ex.code(), replier_);
+        }
+        catch (...)
+        {
+            req->send_exception(frpc::RemoteExceptionCode_t::REMOTE_EX_UNKNOWN_EXCEPTION, replier_);
+        }
+
         {
             std::lock_guard<std::mutex> _(mtx_);
             processing_requests_.erase(req->info.related_sample_identity);
         }
-        req->send_exception(frpc::RemoteExceptionCode_t::REMOTE_EX_UNSUPPORTED, replier_);
     }
 
     $interface.all_operations:{op | $operation_prototype(op)$}; separator="\n"$
@@ -447,6 +464,23 @@ $paramRetType(op.rettype)$ $op.name$(
         const ClientContext& info);
 $endif$
 $endif$
+>>
+
+call_operation(op) ::= <<
+if(req->request.$op.name$.has_value())
+{
+$if(op.annotationFeed)$
+    // TODO: Output feed operations
+    req->send_exception(frpc::RemoteExceptionCode_t::REMOTE_EX_UNSUPPORTED, replier_);
+$elseif(op.hasInputFeeds)$
+    // TODO: Input feed operations
+    req->send_exception(frpc::RemoteExceptionCode_t::REMOTE_EX_UNSUPPORTED, replier_);
+$else$
+    // TODO: Standard operations
+    req->send_exception(frpc::RemoteExceptionCode_t::REMOTE_EX_UNSUPPORTED, replier_);
+$endif$
+    break;
+}
 >>
 
 operation_parameters(params) ::= <<

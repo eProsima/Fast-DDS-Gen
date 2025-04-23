@@ -65,6 +65,11 @@ public class Operation extends com.eprosima.idl.parser.tree.Operation
         return false;
     }
 
+    public boolean isHasInputFeeds()
+    {
+        return m_hasInputFeeds;
+    }
+
     @Override
     public void add(com.eprosima.idl.parser.tree.Param param)
     {
@@ -81,6 +86,7 @@ public class Operation extends com.eprosima.idl.parser.tree.Operation
             {
                 // Take note that there is at least one input feed
                 m_context.setThereIsInputFeed(true);
+                m_hasInputFeeds = true;
             }
         }
 
@@ -242,4 +248,5 @@ public class Operation extends com.eprosima.idl.parser.tree.Operation
     private StructTypeCode m_in_type = null;
     private StructTypeCode m_out_type = null;
     private StructTypeCode m_result_type = null;
+    private boolean m_hasInputFeeds = false;
 }
