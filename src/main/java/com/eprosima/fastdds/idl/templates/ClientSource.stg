@@ -408,8 +408,7 @@ $if(operation.annotationFeed)$
                 bool& should_remove) override
         {
             should_remove = false;
-            if (cancelled_ ||
-                (req_info.related_sample_identity != info.related_sample_identity))
+            if (req_info.related_sample_identity != info.related_sample_identity)
             {
                 return;
             }
@@ -433,22 +432,25 @@ $if(operation.annotationFeed)$
                 {
                     const auto& out = result.result.value();
                     {
-                        if (out.return_.has_value())
-                        {
-                            // Store the return value
-                            std::lock_guard<std::mutex> _(mtx_);
-                            queue_.push(out.return_.value());
-                            cv_.notify_all();
-
-                            // Should be kept in order to receive further values
-                            should_remove = false;
-                        }
-                        else if (out.finished_.has_value())
+                        if (out.finished_.has_value())
                         {
                             // Store the finished value
                             std::lock_guard<std::mutex> _(mtx_);
                             finished_ = true;
                             cv_.notify_all();
+                        }
+                        else if (out.return_.has_value())
+                        {
+                            if (!cancelled_)
+                            {
+                                // Store the return value
+                                std::lock_guard<std::mutex> _(mtx_);
+                                queue_.push(out.return_.value());
+                                cv_.notify_all();
+                            }
+
+                            // Should be kept in order to receive further values
+                            should_remove = false;
                         }
                         else
                         {
