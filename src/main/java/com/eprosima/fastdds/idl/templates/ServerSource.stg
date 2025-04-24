@@ -507,6 +507,8 @@ $endif$
 operation_declarations(op) ::= <<
 //{ operation $op.name$
 
+$op.inputparam : {param | $if(param.annotationFeed)$$operation_feed_reader(op, param)$$endif$}$
+
 $if(op.annotationFeed)$
 struct $op.name$_result_writer :
     public frpc::RpcServerWriter<$paramRetType(op.rettype)$>,
@@ -576,6 +578,116 @@ $endif$
 $endif$
 
 //} operation $op.name$
+>>
+
+operation_feed_reader(op, param) ::= <<
+struct $op.name$_$param.name$_reader :
+    public frpc::RpcServerReader<int32_t>,
+    public IInputFeedProcessor
+{
+    $op.name$_$param.name$_reader() = default;
+
+    bool process_additional_request(
+            const RequestType& request) override
+    {
+        if (request.$op.name$_$param.name$.has_value())
+        {
+            if (request.$op.name$_$param.name$->finished_.has_value())
+            {
+                std::lock_guard<std::mutex> _(mtx_);
+                if (!finished_)
+                {
+                    finished_ = true;
+                    status_ = request.$op.name$_$param.name$->finished_.value();
+                    cv_.notify_all();
+                }
+                return true;
+            }
+            else if (request.$op.name$_$param.name$->value.has_value())
+            {
+                std::lock_guard<std::mutex> _(mtx_);
+                if (!finished_)
+                {
+                    queue_.push(request.$op.name$_$param.name$->value.value());
+                    cv_.notify_all();
+                }
+                return true;
+            }
+        }
+        return false;
+    }
+
+    bool read(
+            $param.typecode.cppTypename$& value) override
+    {
+        bool ret_val = false;
+        std::unique_lock<std::mutex> lock(mtx_);
+        while (!try_read(value, ret_val))
+        {
+            cv_.wait(lock);
+        }
+        return ret_val;
+    }
+
+    bool read(
+            $param.typecode.cppTypename$& value,
+            const fdds::Duration_t& timeout) override
+    {
+        bool ret_val = false;
+        std::unique_lock<std::mutex> lock(mtx_);
+        std::chrono::steady_clock::time_point end_time =
+                std::chrono::steady_clock::now() +
+                std::chrono::seconds(timeout.seconds) +
+                std::chrono::nanoseconds(timeout.nanosec);
+        while (!try_read(value, ret_val))
+        {
+            if (cv_.wait_until(lock, end_time) == std::cv_status::timeout)
+            {
+                throw frpc::RpcTimeoutException();
+            }
+        }
+        return ret_val;
+    }
+
+private:
+
+    bool try_read(
+            $param.typecode.cppTypename$& value,
+            bool& ret_val)
+    {
+        if (!queue_.empty())
+        {
+            value = queue_.front();
+            queue_.pop();
+            ret_val = true;
+            return true;
+        }
+
+        if (finished_)
+        {
+            if (status_ == frpc::RPC_STATUS_CODE_OK)
+            {
+                ret_val = false;
+                return true;
+            }
+            else
+            {
+                throw frpc::RpcFeedCancelledException(status_);
+            }
+        }
+
+        ret_val = false;
+        return false;
+    }
+
+    std::mutex mtx_;
+    std::condition_variable cv_;
+    std::queue<$param.typecode.cppTypename$> queue_;
+    bool finished_{ false };
+    frpc::RpcStatusCode status_{ frpc::RPC_STATUS_CODE_OK };
+
+};
+
 >>
 
 operation_feed_members(op) ::= <<
