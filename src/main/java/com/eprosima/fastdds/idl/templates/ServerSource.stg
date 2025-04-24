@@ -508,57 +508,8 @@ operation_declarations(op) ::= <<
 //{ operation $op.name$
 
 $op.inputparam : {param | $if(param.annotationFeed)$$operation_feed_reader(op, param)$$endif$}$
-
 $if(op.annotationFeed)$
-struct $op.name$_result_writer :
-    public frpc::RpcServerWriter<$paramRetType(op.rettype)$>,
-    public IOutputFeedCancellator
-{
-    $op.name$_result_writer(
-            const frpc::RequestInfo& info,
-            frpc::Replier* replier)
-        : info_(info)
-        , replier_(replier)
-    {
-        reply_.$op.name$ = $op.parent.name$_$op.name$_Result{};
-        reply_.$op.name$->result = $op.parent.name$_$op.name$_Out{};
-    }
-
-    void write(
-            const $paramRetType(op.rettype)$& value) override
-    {
-        if (cancelled_.load())
-        {
-            throw frpc::RpcFeedCancelledException(0);
-        }
-        reply_.$op.name$->result->return_ = value;
-        replier_->send_reply(&reply_, info_);
-    }
-
-    void write(
-            $paramRetType(op.rettype)$&& value) override
-    {
-        if (cancelled_.load())
-        {
-            throw frpc::RpcFeedCancelledException(0);
-        }
-        reply_.$op.name$->result->return_ = value;
-        replier_->send_reply(&reply_, info_);
-    }
-
-    void cancel() override
-    {
-        cancelled_.store(true);
-    }
-
-private:
-
-    frpc::RequestInfo info_;
-    frpc::Replier* replier_ = nullptr;
-    ReplyType reply_{};
-    std::atomic<bool> cancelled_{ false };
-
-};
+$operation_feed_writer(op)$
 
 void $op.name$(
         const ClientContext& info,
@@ -688,6 +639,59 @@ private:
 
 };
 
+
+>>
+
+operation_feed_writer(op) ::= <<
+struct $op.name$_result_writer :
+    public frpc::RpcServerWriter<$paramRetType(op.rettype)$>,
+    public IOutputFeedCancellator
+{
+    $op.name$_result_writer(
+            const frpc::RequestInfo& info,
+            frpc::Replier* replier)
+        : info_(info)
+        , replier_(replier)
+    {
+        reply_.$op.name$ = $op.parent.name$_$op.name$_Result{};
+        reply_.$op.name$->result = $op.parent.name$_$op.name$_Out{};
+    }
+
+    void write(
+            const $paramRetType(op.rettype)$& value) override
+    {
+        if (cancelled_.load())
+        {
+            throw frpc::RpcFeedCancelledException(0);
+        }
+        reply_.$op.name$->result->return_ = value;
+        replier_->send_reply(&reply_, info_);
+    }
+
+    void write(
+            $paramRetType(op.rettype)$&& value) override
+    {
+        if (cancelled_.load())
+        {
+            throw frpc::RpcFeedCancelledException(0);
+        }
+        reply_.$op.name$->result->return_ = value;
+        replier_->send_reply(&reply_, info_);
+    }
+
+    void cancel() override
+    {
+        cancelled_.store(true);
+    }
+
+private:
+
+    frpc::RequestInfo info_;
+    frpc::Replier* replier_ = nullptr;
+    ReplyType reply_{};
+    std::atomic<bool> cancelled_{ false };
+
+};
 >>
 
 operation_feed_members(op) ::= <<
