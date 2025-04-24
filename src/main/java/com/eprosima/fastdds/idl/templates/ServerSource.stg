@@ -180,12 +180,16 @@ public:
 
 private:
 
+    $interface.all_operations:{op | $operation_declarations(op)$}; separator="\n\n"$
+
     struct RequestContext : ClientContext
     {
         RequestType request;
         frpc::RequestInfo info;
         frtps::GUID_t client_id;
         fdds::PublicationBuiltinTopicData pub_data;
+
+        $interface.all_operations:{op | $operation_feed_members(op)$}; separator="\n\n"$
 
         const frtps::GUID_t& get_client_id() const override
         {
@@ -256,7 +260,7 @@ private:
 
     private:
 
-        $interface.all_operations:{op | $operation_prepare_impl(op)$}; separator="\n"$
+        $interface.all_operations:{op | $operation_prepare_impl(op)$}; separator="\n\n"$
 
     };
 
@@ -400,8 +404,6 @@ private:
         }
     }
 
-    $interface.all_operations:{op | $operation_prototype(op)$}; separator="\n"$
-
     fdds::DomainParticipant& participant_;
     frpc::Service* service_ = nullptr;
     frpc::Replier* replier_ = nullptr;
@@ -440,13 +442,19 @@ bool prepare_$op.name$(
         frpc::Replier* replier)
 {
     static_cast<void>(replier);
+$if(op.annotationFeed)$
+    $op.name$_feeds.result_writer = std::make_shared<$op.name$_result_writer>(info, replier);
+$endif$
+$if(op.hasInputFeeds)$
     // TODO: prepare input feed handlers
+$endif$
     return true;
 }
-
 >>
 
-operation_prototype(op) ::= <<
+operation_declarations(op) ::= <<
+//{ operation $op.name$
+
 $if(op.annotationFeed)$
 struct $op.name$_result_writer :
     public frpc::RpcServerWriter<$paramRetType(op.rettype)$>
@@ -499,6 +507,17 @@ $paramRetType(op.rettype)$ $op.name$(
         const ClientContext& info);
 $endif$
 $endif$
+
+//} operation $op.name$
+>>
+
+operation_feed_members(op) ::= <<
+struct $op.name$_feeds_t
+{
+$if(op.annotationFeed)$
+    std::shared_ptr<$op.name$_result_writer> result_writer;
+$endif$
+} $op.name$_feeds;
 >>
 
 call_operation(op) ::= <<
@@ -512,13 +531,12 @@ $if(op.hasInputFeeds)$
         // TODO: Input feed operations
         req->send_exception(frpc::RemoteExceptionCode_t::REMOTE_EX_UNSUPPORTED, replier_);
 $elseif(op.annotationFeed)$
-        $op.name$_result_writer result_writer(req->info, replier_);
         $op.name$(
             *req,
 $if(op.parameters)$
             $op.parameters : {param | req->request.$op.name$->$param.name$}; separator=",\n"$,
 $endif$
-            result_writer);
+            *(req->$op.name$_feeds.result_writer));
         ReplyType reply{};
         reply.$op.name$ = $op.parent.name$_$op.name$_Result{};
         reply.$op.name$->result = $op.parent.name$_$op.name$_Out{};
