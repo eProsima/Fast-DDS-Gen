@@ -448,6 +448,41 @@ bool prepare_$op.name$(
 
 operation_prototype(op) ::= <<
 $if(op.annotationFeed)$
+struct $op.name$_result_writer :
+    public frpc::RpcServerWriter<$paramRetType(op.rettype)$>
+{
+    $op.name$_result_writer(
+            const frpc::RequestInfo& info,
+            frpc::Replier* replier)
+        : info_(info)
+        , replier_(replier)
+    {
+        reply_.$op.name$ = $op.parent.name$_$op.name$_Result{};
+        reply_.$op.name$->result = $op.parent.name$_$op.name$_Out{};
+    }
+
+    void write(
+            const $paramRetType(op.rettype)$& value) override
+    {
+        reply_.$op.name$->result->return_ = value;
+        replier_->send_reply(&reply_, info_);
+    }
+
+    void write(
+            $paramRetType(op.rettype)$&& value) override
+    {
+        reply_.$op.name$->result->return_ = value;
+        replier_->send_reply(&reply_, info_);
+    }
+
+private:
+
+    frpc::RequestInfo info_;
+    frpc::Replier* replier_ = nullptr;
+    ReplyType reply_{};
+
+};
+
 void $op.name$(
         const ClientContext& info,
 $if(op.parameters)$
