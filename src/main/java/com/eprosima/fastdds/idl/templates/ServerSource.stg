@@ -379,7 +379,7 @@ private:
         {
             for(;;)
             {
-                $interface.all_operations:{op | $call_operation(op)$}; separator="\n"$
+                $interface.all_operations:{op | $call_operation(op)$}; separator="\n\n"$
 
                 req->send_exception(frpc::RemoteExceptionCode_t::REMOTE_EX_UNSUPPORTED, replier_);
                 break;
@@ -508,12 +508,22 @@ $if(op.exceptions)$
     try
 $endif$
     {
-$if(op.annotationFeed)$
-        // TODO: Output feed operations
-        req->send_exception(frpc::RemoteExceptionCode_t::REMOTE_EX_UNSUPPORTED, replier_);
-$elseif(op.hasInputFeeds)$
+$if(op.hasInputFeeds)$
         // TODO: Input feed operations
         req->send_exception(frpc::RemoteExceptionCode_t::REMOTE_EX_UNSUPPORTED, replier_);
+$elseif(op.annotationFeed)$
+        $op.name$_result_writer result_writer(req->info, replier_);
+        $op.name$(
+            *req,
+$if(op.parameters)$
+            $op.parameters : {param | req->request.$op.name$->$param.name$}; separator=",\n"$,
+$endif$
+            result_writer);
+        ReplyType reply{};
+        reply.$op.name$ = $op.parent.name$_$op.name$_Result{};
+        reply.$op.name$->result = $op.parent.name$_$op.name$_Out{};
+        reply.$op.name$->result->finished_ = true;
+        replier_->send_reply(&reply, req->info);
 $else$
         $op.outputparam : {param | $param.typecode.cppTypename$ $param.name$ $if(param.onlyOutput)${\}$else$= req->request.$op.name$->$param.name$$endif$;}; separator="\n"$
         $if(op.rettype)$$op.rettype.cppTypename$ result = $else$/*void*/ $endif$$op.name$(
