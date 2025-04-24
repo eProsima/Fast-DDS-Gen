@@ -190,6 +190,17 @@ private:
 
     //} Output feed helpers
 
+    //{ Input feed helpers
+
+    struct IInputFeedProcessor
+    {
+        virtual ~IInputFeedProcessor() = default;
+        virtual bool process_additional_request(
+                const RequestType& request) = 0;
+    };
+
+    //} Input feed helpers
+
     $interface.all_operations:{op | $operation_declarations(op)$}; separator="\n\n"$
 
     struct RequestContext : ClientContext
@@ -252,9 +263,22 @@ private:
                 }
                 else
                 {
-                    // TODO: Pass values from input streams
-                    send_exception(frpc::RemoteExceptionCode_t::REMOTE_EX_INVALID_ARGUMENT, replier);
+                    // Pass request to input feed processors
                     should_erase = true;
+                    for (const auto& input_feed : input_feed_processors_)
+                    {
+                        if (input_feed->process_additional_request(ctx->request))
+                        {
+                            should_erase = false;
+                            break;
+                        }
+                    }
+
+                    // If no input feed processor handled the request, send an exception
+                    if (should_erase)
+                    {
+                        send_exception(frpc::RemoteExceptionCode_t::REMOTE_EX_INVALID_ARGUMENT, replier);
+                    }
                 }
             }
             else
@@ -285,6 +309,7 @@ private:
     private:
 
         std::shared_ptr<IOutputFeedCancellator> output_feed_cancellator_;
+        std::vector<std::shared_ptr<IInputFeedProcessor\>> input_feed_processors_;
 
         $interface.all_operations:{op | $operation_prepare_impl(op)$}; separator="\n\n"$
 
