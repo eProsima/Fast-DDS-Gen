@@ -180,6 +180,16 @@ public:
 
 private:
 
+    //{ Output feed helpers
+    
+    struct IOutputFeedCancellator
+    {
+        virtual ~IOutputFeedCancellator() = default;
+        virtual void cancel() = 0;
+    };
+
+    //} Output feed helpers
+
     $interface.all_operations:{op | $operation_declarations(op)$}; separator="\n\n"$
 
     struct RequestContext : ClientContext
@@ -229,9 +239,23 @@ private:
             should_erase = false;
             if (ctx->info.related_sample_identity == info.related_sample_identity)
             {
-                // TODO: Pass values from input streams
-                send_exception(frpc::RemoteExceptionCode_t::REMOTE_EX_INVALID_ARGUMENT, replier);
-                should_erase = true;
+                if (ctx->request.feed_cancel_.has_value())
+                {
+                    if (output_feed_cancellator_)
+                    {
+                        output_feed_cancellator_->cancel();
+                    }
+                    else
+                    {
+                        // TODO: Log error
+                    }
+                }
+                else
+                {
+                    // TODO: Pass values from input streams
+                    send_exception(frpc::RemoteExceptionCode_t::REMOTE_EX_INVALID_ARGUMENT, replier);
+                    should_erase = true;
+                }
             }
             else
             {
@@ -259,6 +283,8 @@ private:
         }
 
     private:
+
+        std::shared_ptr<IOutputFeedCancellator> output_feed_cancellator_;
 
         $interface.all_operations:{op | $operation_prepare_impl(op)$}; separator="\n\n"$
 
@@ -444,6 +470,7 @@ bool prepare_$op.name$(
     static_cast<void>(replier);
 $if(op.annotationFeed)$
     $op.name$_feeds.result_writer = std::make_shared<$op.name$_result_writer>(info, replier);
+    output_feed_cancellator_ = $op.name$_feeds.result_writer;
 $endif$
 $if(op.hasInputFeeds)$
     // TODO: prepare input feed handlers
@@ -457,7 +484,8 @@ operation_declarations(op) ::= <<
 
 $if(op.annotationFeed)$
 struct $op.name$_result_writer :
-    public frpc::RpcServerWriter<$paramRetType(op.rettype)$>
+    public frpc::RpcServerWriter<$paramRetType(op.rettype)$>,
+    public IOutputFeedCancellator
 {
     $op.name$_result_writer(
             const frpc::RequestInfo& info,
@@ -472,6 +500,10 @@ struct $op.name$_result_writer :
     void write(
             const $paramRetType(op.rettype)$& value) override
     {
+        if (cancelled_.load())
+        {
+            throw frpc::RpcFeedCancelledException(0);
+        }
         reply_.$op.name$->result->return_ = value;
         replier_->send_reply(&reply_, info_);
     }
@@ -479,8 +511,17 @@ struct $op.name$_result_writer :
     void write(
             $paramRetType(op.rettype)$&& value) override
     {
+        if (cancelled_.load())
+        {
+            throw frpc::RpcFeedCancelledException(0);
+        }
         reply_.$op.name$->result->return_ = value;
         replier_->send_reply(&reply_, info_);
+    }
+
+    void cancel() override
+    {
+        cancelled_.store(true);
     }
 
 private:
@@ -488,6 +529,7 @@ private:
     frpc::RequestInfo info_;
     frpc::Replier* replier_ = nullptr;
     ReplyType reply_{};
+    std::atomic<bool> cancelled_{ false };
 
 };
 
@@ -523,7 +565,7 @@ $endif$
 call_operation(op) ::= <<
 if(req->request.$op.name$.has_value())
 {
-$if(op.exceptions)$
+$if(op.exceptions || op.annotationFeed)$
     try
 $endif$
     {
@@ -559,6 +601,16 @@ $endif$
         replier_->send_reply(&reply, req->info);
 $endif$
     }
+$if(op.annotationFeed)$
+    catch (const frpc::RpcFeedCancelledException& ex)
+    {
+        ReplyType reply{};
+        reply.$op.name$ = $op.parent.name$_$op.name$_Result{};
+        reply.$op.name$->result = $op.parent.name$_$op.name$_Out{};
+        reply.$op.name$->result->finished_ = true;
+        replier_->send_reply(&reply, req->info);
+    }
+$endif$
     $op.exceptions : {ex | $operation_result_exception(op=op, typename=ex.scopedname, name=[ex.formatedScopedname, "_ex"])$}; separator="\n"$
     break;
 }
