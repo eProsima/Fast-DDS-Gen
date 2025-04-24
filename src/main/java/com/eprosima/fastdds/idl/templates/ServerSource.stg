@@ -493,15 +493,20 @@ bool prepare_$op.name$(
         frpc::Replier* replier)
 {
     static_cast<void>(replier);
+$if(op.hasInputFeeds)$
+    $op.inputparam : {param | $if(param.annotationFeed)$$create_operation_feed_reader(op, param)$$"\n"$$endif$}$
+$endif$
 $if(op.annotationFeed)$
     $op.name$_feeds.result_writer = std::make_shared<$op.name$_result_writer>(info, replier);
     output_feed_cancellator_ = $op.name$_feeds.result_writer;
 $endif$
-$if(op.hasInputFeeds)$
-    // TODO: prepare input feed handlers
-$endif$
     return true;
 }
+>>
+
+create_operation_feed_reader(op, param) ::= <<
+$op.name$_feeds.$param.name$ = std::make_shared<$op.name$_$param.name$_reader>();
+input_feed_processors_.push_back($op.name$_feeds.$param.name$);
 >>
 
 operation_declarations(op) ::= <<
@@ -697,6 +702,7 @@ private:
 operation_feed_members(op) ::= <<
 struct $op.name$_feeds_t
 {
+    $op.inputparam : {param | $if(param.annotationFeed)$std::shared_ptr<$op.name$_$param.name$_reader> $param.name$;$"\n"$$endif$}$
 $if(op.annotationFeed)$
     std::shared_ptr<$op.name$_result_writer> result_writer;
 $endif$
@@ -710,14 +716,11 @@ $if(op.exceptions || op.annotationFeed)$
     try
 $endif$
     {
-$if(op.hasInputFeeds)$
-        // TODO: Input feed operations
-        req->send_exception(frpc::RemoteExceptionCode_t::REMOTE_EX_UNSUPPORTED, replier_);
-$elseif(op.annotationFeed)$
+$if(op.annotationFeed)$
         $op.name$(
             *req,
 $if(op.parameters)$
-            $op.parameters : {param | req->request.$op.name$->$param.name$}; separator=",\n"$,
+            $op.parameters : {param | $operation_call_parameter(op, param)$}; separator=",\n"$,
 $endif$
             *(req->$op.name$_feeds.result_writer));
         ReplyType reply{};
@@ -730,7 +733,7 @@ $else$
         $if(op.rettype)$$op.rettype.cppTypename$ result = $else$/*void*/ $endif$$op.name$(
             *req$if(op.parameters)$,$else$);$endif$
 $if(op.parameters)$
-            $op.parameters : {param | $if(param.output)$$param.name$$else$req->request.$op.name$->$param.name$$endif$}; separator=",\n"$);
+            $op.parameters : {param | $operation_call_parameter(op, param)$}; separator=",\n"$);
 $endif$
         ReplyType reply{};
         reply.$op.name$ = $op.parent.name$_$op.name$_Result{};
@@ -756,6 +759,16 @@ $endif$
     break;
 }
 >>
+
+operation_call_parameter(op, param) ::= <%
+$if(param.output)$
+$param.name$
+$elseif(param.annotationFeed)$
+*(req->$op.name$_feeds.$param.name$)
+$else$
+req->request.$op.name$->$param.name$
+$endif$
+%>
 
 operation_parameters(params) ::= <<
 $params : {param | /*$param.comment$*/ $if(param.output)$$paramTypeByRef(typecode=param.typecode)$$else$$paramTypeByValue(typecode=param.typecode, feed=param.annotationFeed, is_server=true)$$endif$ $param.name$}; anchor, separator=",\n"$
