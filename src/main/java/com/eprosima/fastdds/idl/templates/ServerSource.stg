@@ -329,28 +329,28 @@ private:
             }
 
             auto process_requests = [this]()
-            {
-                while (!finished_)
-                {
-                    std::shared_ptr<RequestContext> req;
                     {
-                        std::unique_lock<std::mutex> lock(mtx_);
-                        cv_.wait(lock, [this]
+                        while (!finished_)
                         {
-                            return finished_ || !requests_.empty();
-                        });
-                        if (finished_)
-                        {
-                            break;
-                        }
-                        req = requests_.front();
-                        requests_.pop();
-                    }
+                            std::shared_ptr<RequestContext> req;
+                            {
+                                std::unique_lock<std::mutex> lock(mtx_);
+                                cv_.wait(lock, [this]()
+                                        {
+                                            return finished_ || !requests_.empty();
+                                        });
+                                if (finished_)
+                                {
+                                    break;
+                                }
+                                req = requests_.front();
+                                requests_.pop();
+                            }
 
-                    // Process the request
-                    server_.execute_request(req);
-                }
-            };
+                            // Process the request
+                            server_.execute_request(req);
+                        }
+                    };
 
             for (size_t i = 0; i < num_threads; ++i)
             {
@@ -432,7 +432,7 @@ private:
     {
         try
         {
-            for(;;)
+            for (;;)
             {
                 $interface.all_operations:{op | $call_operation(op)$}; separator="\n\n"$
 
@@ -476,7 +476,7 @@ std::shared_ptr<$interface.name$Server> create_$interface.name$Server(
         std::shared_ptr<$interface.name$Server::IServerImplementation> implementation)
 {
     return std::make_shared<detail::$interface.name$ServerLogic>(
-            part, service_name, qos, thread_pool_size, implementation);
+        part, service_name, qos, thread_pool_size, implementation);
 }
 
 //} interface $interface.name$
@@ -693,11 +693,12 @@ struct $op.name$_feeds_t
 $if(op.annotationFeed)$
     std::shared_ptr<$op.name$_result_writer> result_writer;
 $endif$
-} $op.name$_feeds;
+}
+$op.name$_feeds;
 >>
 
 call_operation(op) ::= <<
-if(req->request.$op.name$.has_value())
+if (req->request.$op.name$.has_value())
 {
 $if(op.exceptions || op.annotationFeed)$
     try
