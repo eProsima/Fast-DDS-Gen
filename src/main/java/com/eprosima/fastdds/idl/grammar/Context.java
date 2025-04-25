@@ -34,6 +34,8 @@ import com.eprosima.idl.parser.typecode.Kind;
 import com.eprosima.idl.parser.typecode.TypeCode;
 import com.eprosima.idl.parser.typecode.Member;
 import com.eprosima.idl.parser.typecode.MemberedTypeCode;
+import com.eprosima.log.ColorMessage;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map.Entry;
@@ -338,6 +340,25 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
     public String getProduct()
     {
         return "fastdds";
+    }
+
+    public String getVersion()
+    {
+        try
+        {
+            InputStream input = this.getClass().getClassLoader().getResourceAsStream("version");
+            byte[] b = new byte[input.available()];
+            input.read(b);
+            String text = new String(b);
+            int beginindex = text.indexOf("=");
+            return text.substring(beginindex + 1).trim();
+        }
+        catch (Exception ex)
+        {
+            System.out.println(ColorMessage.error() + "Getting version. " + ex.getMessage());
+        }
+
+        return "";
     }
 
     public String getNamespace()
