@@ -15,6 +15,7 @@
 group ProtocolHeader;
 
 import "eprosima.stg"
+import "com/eprosima/fastcdr/idl/templates/FastCdrCommon.stg"
 
 main(ctx, definitions) ::= <<
 $fileHeader(ctx=ctx,  file=[ctx.filename, "Server.hpp"], description=["Server implementation for interfaces"])$
@@ -26,6 +27,8 @@ $fileHeader(ctx=ctx,  file=[ctx.filename, "Server.hpp"], description=["Server im
 
 #include <fastdds/dds/domain/DomainParticipant.hpp>
 #include <fastdds/dds/domain/qos/ReplierQos.hpp>
+#include <fastdds/dds/rpc/exceptions.hpp>
+#include <fastdds/dds/rpc/interfaces.hpp>
 #include <fastdds/rtps/common/Guid.hpp>
 #include <fastdds/rtps/common/RemoteLocators.hpp>
 
@@ -71,6 +74,13 @@ struct $interface.name$Server
         virtual const eprosima::fastdds::rtps::RemoteLocatorList& get_client_locators() const = 0;
     };
 
+    struct IServerImplementation
+    {
+        virtual ~IServerImplementation() = default;
+
+        $interface.all_operations:{op | $operation_prototype(op)$}; separator="\n\n"$
+    };
+
     virtual ~$interface.name$Server() = default;
 
     /**
@@ -105,4 +115,28 @@ extern $ctx.fileNameUpper$_DllAPI std::shared_ptr<$interface.name$Server> create
         const char* service_name,
         const eprosima::fastdds::dds::ReplierQos& qos,
         size_t thread_pool_size);
+>>
+
+operation_prototype(op) ::= <<
+$if(op.annotationFeed)$
+virtual void $op.name$(
+        const ClientContext& info,
+$if(op.parameters)$
+        $operation_parameters(op.parameters)$,
+$endif$
+        /*result*/ eprosima::fastdds::dds::rpc::RpcServerWriter<$paramRetType(op.rettype)$>& result_writer) = 0;
+$else$
+$if(op.parameters)$
+virtual $paramRetType(op.rettype)$ $op.name$(
+        const ClientContext& info,
+        $operation_parameters(op.parameters)$) = 0;
+$else$
+virtual $paramRetType(op.rettype)$ $op.name$(
+        const ClientContext& info) = 0;
+$endif$
+$endif$
+>>
+
+operation_parameters(params) ::= <<
+$params : {param | /*$param.comment$*/ $if(param.output)$$paramTypeByRef(typecode=param.typecode)$$else$$paramTypeByValue(typecode=param.typecode, feed=param.annotationFeed, is_server=true)$$endif$ $param.name$}; anchor, separator=",\n"$
 >>
