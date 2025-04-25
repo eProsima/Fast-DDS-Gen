@@ -109,12 +109,14 @@ struct $interface.name$Server
  * @param qos              The QoS settings for the server.
  * @param thread_pool_size The size of the thread pool to use for processing requests.
  *                         When set to 0, a new thread will be created when no threads are available.
+ * @param implementation   The implementation of the server interface.
  */
 extern $ctx.fileNameUpper$_DllAPI std::shared_ptr<$interface.name$Server> create_$interface.name$Server(
         eprosima::fastdds::dds::DomainParticipant& part,
         const char* service_name,
         const eprosima::fastdds::dds::ReplierQos& qos,
-        size_t thread_pool_size);
+        size_t thread_pool_size,
+        std::shared_ptr<$interface.name$Server::IServerImplementation> implementation);
 >>
 
 operation_prototype(op) ::= <<

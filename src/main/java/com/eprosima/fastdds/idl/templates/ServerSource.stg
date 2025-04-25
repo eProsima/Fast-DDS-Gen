@@ -54,8 +54,6 @@ $fileHeader(ctx=ctx,  file=[ctx.filename, "Server.cxx"], description=["Server im
 
 $definitions; separator="\n"$
 
-#include "$ctx.filename$Server.ipp"
-
 >>
 
 module(ctx, parent, module, definition_list) ::= <<
@@ -88,10 +86,12 @@ public:
             eprosima::fastdds::dds::DomainParticipant& part,
             const char* service_name,
             const eprosima::fastdds::dds::ReplierQos& qos,
-            size_t thread_pool_size)
+            size_t thread_pool_size,
+            std::shared_ptr<IServerImplementation> implementation)
         : $interface.name$Server()
         , participant_(part)
         , thread_pool_(*this, thread_pool_size)
+        , implementation_(std::move(implementation))
     {
         // Register the service type support
         auto service_type = create_$interface.name$_service_type_support();
@@ -462,6 +462,7 @@ private:
     std::mutex mtx_;
     std::map<frtps::SampleIdentity, std::shared_ptr<RequestContext\>> processing_requests_;
     ThreadPool thread_pool_;
+    std::shared_ptr<IServerImplementation> implementation_;
 
 };
 
@@ -471,9 +472,11 @@ std::shared_ptr<$interface.name$Server> create_$interface.name$Server(
         eprosima::fastdds::dds::DomainParticipant& part,
         const char* service_name,
         const eprosima::fastdds::dds::ReplierQos& qos,
-        size_t thread_pool_size)
+        size_t thread_pool_size,
+        std::shared_ptr<$interface.name$Server::IServerImplementation> implementation)
 {
-    return std::make_shared<detail::$interface.name$ServerLogic>(part, service_name, qos, thread_pool_size);
+    return std::make_shared<detail::$interface.name$ServerLogic>(
+            part, service_name, qos, thread_pool_size, implementation);
 }
 
 //} interface $interface.name$
@@ -515,22 +518,6 @@ operation_declarations(op) ::= <<
 $op.inputparam : {param | $if(param.annotationFeed)$$operation_feed_reader(op, param)$$endif$}$
 $if(op.annotationFeed)$
 $operation_feed_writer(op)$
-
-void $op.name$(
-        const ClientContext& info,
-$if(op.parameters)$
-        $operation_parameters(op.parameters)$,
-$endif$
-        /*result*/ frpc::RpcServerWriter<$paramRetType(op.rettype)$>& result_writer);
-$else$
-$if(op.parameters)$
-$paramRetType(op.rettype)$ $op.name$(
-        const ClientContext& info,
-        $operation_parameters(op.parameters)$);
-$else$
-$paramRetType(op.rettype)$ $op.name$(
-        const ClientContext& info);
-$endif$
 $endif$
 
 //} operation $op.name$
@@ -717,7 +704,7 @@ $if(op.exceptions || op.annotationFeed)$
 $endif$
     {
 $if(op.annotationFeed)$
-        $op.name$(
+        implementation_->$op.name$(
             *req,
 $if(op.parameters)$
             $op.parameters : {param | $operation_call_parameter(op, param)$}; separator=",\n"$,
@@ -730,7 +717,7 @@ $endif$
         replier_->send_reply(&reply, req->info);
 $else$
         $op.outputparam : {param | $param.typecode.cppTypename$ $param.name$ $if(param.onlyOutput)${\}$else$= req->request.$op.name$->$param.name$$endif$;}; separator="\n"$
-        $if(op.rettype)$$op.rettype.cppTypename$ result = $else$/*void*/ $endif$$op.name$(
+        $if(op.rettype)$$op.rettype.cppTypename$ result = $else$/*void*/ $endif$implementation_->$op.name$(
             *req$if(op.parameters)$,$else$);$endif$
 $if(op.parameters)$
             $op.parameters : {param | $operation_call_parameter(op, param)$}; separator=",\n"$);
@@ -769,10 +756,6 @@ $else$
 req->request.$op.name$->$param.name$
 $endif$
 %>
-
-operation_parameters(params) ::= <<
-$params : {param | /*$param.comment$*/ $if(param.output)$$paramTypeByRef(typecode=param.typecode)$$else$$paramTypeByValue(typecode=param.typecode, feed=param.annotationFeed, is_server=true)$$endif$ $param.name$}; anchor, separator=",\n"$
->>
 
 operation_result_exception(op, typename, name) ::= <<
 catch (const $typename$& ex)
