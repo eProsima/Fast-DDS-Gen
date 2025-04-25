@@ -1088,7 +1088,7 @@ public class fastddsgen
                             project.addCommonSrcFile(relative_dir + ctx.getFilename() + "Server.cxx");
                         }
                         returnedValue &=
-                            Utils.writeFile(output_dir + ctx.getFilename() + "Server.ipp",
+                            Utils.writeFile(output_dir + ctx.getFilename() + "ServerImpl.hpp",
                                 maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/ServerImplementation.stg"), m_replace);
                     }
 

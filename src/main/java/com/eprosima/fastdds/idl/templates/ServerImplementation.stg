@@ -18,9 +18,18 @@ import "eprosima.stg"
 import "com/eprosima/fastcdr/idl/templates/FastCdrCommon.stg"
 
 main(ctx, definitions) ::= <<
-$fileHeader(ctx=ctx,  file=[ctx.filename, "Server.ipp"], description=["Server implementation for interfaces"])$
+$fileHeader(ctx=ctx,  file=[ctx.filename, "ServerImpl.hpp"], description=["Server implementation for interfaces"])$
+
+#ifndef FAST_DDS_GENERATED__$ctx.headerGuardName$_SERVERIMPL_HPP
+#define FAST_DDS_GENERATED__$ctx.headerGuardName$_SERVERIMPL_HPP
+
+#include "$ctx.filename$.hpp"
+#include "$ctx.filename$Server.hpp"
 
 $definitions; separator="\n"$
+
+#endif  // FAST_DDS_GENERATED__$ctx.headerGuardName$_SERVERIMPL_HPP
+
 >>
 
 module(ctx, parent, module, definition_list) ::= <<
@@ -41,7 +50,13 @@ namespace fdds = eprosima::fastdds::dds;
 namespace frpc = eprosima::fastdds::dds::rpc;
 namespace frtps = eprosima::fastdds::rtps;
 
-$interface.all_operations:{op | $operation_implementation(interface, op)$}; separator="\n"$
+struct $interface.name$ServerImplementation :
+    public $interface.name$Server::IServerImplementation
+{
+
+    $interface.all_operations:{op | $operation_implementation(interface, op)$}; separator="\n"$
+
+};
 
 }  // namespace detail
 
@@ -51,20 +66,20 @@ $interface.all_operations:{op | $operation_implementation(interface, op)$}; sepa
 
 operation_implementation(interface, op) ::= <<
 $if(op.annotationFeed)$
-void $interface.name$ServerLogic::$op.name$(
-        const ClientContext& info,
+void $op.name$(
+        const $interface.name$Server::ClientContext& info,
 $if(op.parameters)$
         $operation_parameters(op.parameters)$,
 $endif$
-        /*result*/ frpc::RpcServerWriter<$paramRetType(op.rettype)$>& result_writer)
+        /*result*/ frpc::RpcServerWriter<$paramRetType(op.rettype)$>& result_writer) override
 $else$
 $if(op.parameters)$
-$paramRetType(op.rettype)$ $interface.name$ServerLogic::$op.name$(
-        const ClientContext& info,
-        $operation_parameters(op.parameters)$)
+$paramRetType(op.rettype)$ $op.name$(
+        const $interface.name$Server::ClientContext& info,
+        $operation_parameters(op.parameters)$) override
 $else$
-$paramRetType(op.rettype)$ $interface.name$ServerLogic::$op.name$(
-        const ClientContext& info)
+$paramRetType(op.rettype)$ $op.name$(
+        const $interface.name$Server::ClientContext& info) override
 $endif$
 $endif$
 {
