@@ -40,6 +40,55 @@ public class Project extends com.eprosima.solution.Project
         ctx_ = ctx;
     }
 
+    // Escaped getters for base class getters
+    public ArrayList<String> getCommonSrcFiles_escaped()
+    {
+        ArrayList<String> base_files = super.getCommonSrcFiles();
+        ArrayList<String> escaped = new ArrayList<String>();
+        for(int count = 0; count < base_files.size(); ++count)
+        {
+            String file = (String)base_files.get(count);
+            escaped.add(file.replace("\\", "/"));
+        }
+        return escaped;
+    }
+
+    public ArrayList<String> getCommonIncludeFiles_escaped()
+    {
+        ArrayList<String> base_files = super.getCommonIncludeFiles();
+        ArrayList<String> escaped = new ArrayList<String>();
+        for(int count = 0; count < base_files.size(); ++count)
+        {
+            String file = (String)base_files.get(count);
+            escaped.add(file.replace("\\", "/"));
+        }
+        return escaped;
+    }
+
+    public ArrayList<String> getCommonTestingFiles_escaped()
+    {
+        ArrayList<String> base_files = super.getCommonTestingFiles();
+        ArrayList<String> escaped = new ArrayList<String>();
+        for(int count = 0; count < base_files.size(); ++count)
+        {
+            String file = (String)base_files.get(count);
+            escaped.add(file.replace("\\", "/"));
+        }
+        return escaped;
+    }
+
+    public ArrayList<String> getTypeObjectTestingFiles_escaped()
+    {
+        ArrayList<String> base_files = super.getTypeObjectTestingFiles();
+        ArrayList<String> escaped = new ArrayList<String>();
+        for(int count = 0; count < base_files.size(); ++count)
+        {
+            String file = (String)base_files.get(count);
+            escaped.add(file.replace("\\", "/"));
+        }
+        return escaped;
+    }
+
     public void addSubscriberSrcFile(String file)
     {
         m_subscribersrcfiles.add(file);
@@ -48,6 +97,17 @@ public class Project extends com.eprosima.solution.Project
     public ArrayList getSubscriberSrcFiles()
     {
         return m_subscribersrcfiles;
+    }
+
+    public ArrayList getSubscriberSrcFiles_escaped()
+    {
+        ArrayList<String> escaped = new ArrayList<String>();
+        for(int count = 0; count < m_subscribersrcfiles.size(); ++count)
+        {
+            String file = (String)m_subscribersrcfiles.get(count);
+            escaped.add(file.replace("\\", "/"));
+        }
+        return escaped;
     }
 
     public void addSubscriberIncludeFile(String file)
@@ -68,6 +128,17 @@ public class Project extends com.eprosima.solution.Project
     public ArrayList getPublisherSrcFiles()
     {
         return m_publishersrcfiles;
+    }
+
+    public ArrayList getPublisherSrcFiles_escaped()
+    {
+        ArrayList<String> escaped = new ArrayList<String>();
+        for(int count = 0; count < m_publishersrcfiles.size(); ++count)
+        {
+            String file = (String)m_publishersrcfiles.get(count);
+            escaped.add(file.replace("\\", "/"));
+        }
+        return escaped;
     }
 
     public void addPublisherIncludeFile(String file)
@@ -100,6 +171,17 @@ public class Project extends com.eprosima.solution.Project
         return m_projectsrcfiles;
     }
 
+    public ArrayList getProjectSrcFiles_escaped()
+    {
+        ArrayList<String> escaped = new ArrayList<String>();
+        for(int count = 0; count < m_projectsrcfiles.size(); ++count)
+        {
+            String file = (String)m_projectsrcfiles.get(count);
+            escaped.add(file.replace("\\", "/"));
+        }
+        return escaped;
+    }
+
     public void addJniSrcFile(String file)
     {
         m_jnisrcfiles.add(file);
@@ -108,6 +190,17 @@ public class Project extends com.eprosima.solution.Project
     public ArrayList<String> getJniSrcFiles()
     {
         return m_jnisrcfiles;
+    }
+
+    public ArrayList<String> getJniSrcFiles_escaped()
+    {
+        ArrayList<String> escaped = new ArrayList<String>();
+        for(int count = 0; count < m_jnisrcfiles.size(); ++count)
+        {
+            String file = (String)m_jnisrcfiles.get(count);
+            escaped.add(file.replace("\\", "/"));
+        }
+        return escaped;
     }
 
     public void addJniIncludeFile(String file)
