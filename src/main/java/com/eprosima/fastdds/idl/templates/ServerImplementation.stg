@@ -44,10 +44,6 @@ $definition_list$
 interface(ctx, parent, interface, export_list) ::= <<
 //{ interface $interface.name$
 
-namespace detail {
-
-namespace frpc = eprosima::fastdds::dds::rpc;
-
 struct $interface.name$ServerImplementation :
     public $interface.name$Server::IServerImplementation
 {
@@ -55,8 +51,6 @@ struct $interface.name$ServerImplementation :
     $interface.all_operations:{op | $operation_implementation(interface, op)$}; separator="\n"$
 
 };
-
-}  // namespace detail
 
 //} interface $interface.name$
 
@@ -69,7 +63,7 @@ void $op.name$(
 $if(op.parameters)$
         $operation_parameters(op.parameters)$,
 $endif$
-        /*result*/ frpc::RpcServerWriter<$paramRetType(op.rettype)$>& result_writer) override
+        /*result*/ eprosima::fastdds::dds::rpc::RpcServerWriter<$paramRetType(op.rettype)$>& result_writer) override
 $else$
 $if(op.parameters)$
 $paramRetType(op.rettype)$ $op.name$(
@@ -86,7 +80,7 @@ $endif$
     $if(op.annotationFeed)$
     static_cast<void>(result_writer);
     $endif$
-    throw frpc::RemoteUnsupportedError("Operation '$op.name$' is not implemented");
+    throw eprosima::fastdds::dds::rpc::RemoteUnsupportedError("Operation '$op.name$' is not implemented");
 }
 >>
 
