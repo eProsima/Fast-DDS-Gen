@@ -129,7 +129,7 @@ exception(ctx, parent, exception, extensions) ::= <<
  * @brief This class implements the user exception $exception.scopedname$
  * @ingroup $ctx.trimfilename$
  */
-class $ctx.fileNameUpper$_DllAPI $exception.name$ : public eprosima::fastdds::dds::rpc::RpcOperationError
+class eProsima_user_DllExport $exception.name$ : public eprosima::fastdds::dds::rpc::RpcOperationError
 {
 public:
 
@@ -193,7 +193,7 @@ interface(ctx, parent, interface, export_list) ::= <<
  * @brief This class represents the interface $interface.name$ defined by the user in the IDL file.
  * @ingroup $ctx.trimfilename$
  */
-class $ctx.fileNameUpper$_DllAPI $interface.name$ $if(interface.bases)$: $interface.bases : {base |public $base.scopedname$}; separator=", "$$endif$
+class eProsima_user_DllExport $interface.name$ $if(interface.bases)$: $interface.bases : {base |public $base.scopedname$}; separator=", "$$endif$
 {
 public:
     virtual ~$interface.name$() = default;

@@ -111,7 +111,7 @@ struct $interface.name$Server
  *                         When set to 0, a new thread will be created when no threads are available.
  * @param implementation   The implementation of the server interface.
  */
-extern $ctx.fileNameUpper$_DllAPI std::shared_ptr<$interface.name$Server> create_$interface.name$Server(
+extern eProsima_user_DllExport std::shared_ptr<$interface.name$Server> create_$interface.name$Server(
         eprosima::fastdds::dds::DomainParticipant& part,
         const char* service_name,
         const eprosima::fastdds::dds::ReplierQos& qos,
