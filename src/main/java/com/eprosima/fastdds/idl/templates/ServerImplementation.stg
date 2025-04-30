@@ -45,7 +45,7 @@ interface(ctx, parent, interface, export_list) ::= <<
 //{ interface $interface.name$
 
 struct $interface.name$ServerImplementation :
-    public $interface.name$Server::IServerImplementation
+    public $interface.name$Server_IServerImplementation
 {
 
     $interface.all_operations:{op | $operation_implementation(interface, op)$}; separator="\n"$
@@ -59,7 +59,7 @@ struct $interface.name$ServerImplementation :
 operation_implementation(interface, op) ::= <<
 $if(op.annotationFeed)$
 void $op.name$(
-        const $interface.name$Server::ClientContext& info,
+        const $interface.name$Server_ClientContext& info,
 $if(op.parameters)$
         $operation_parameters(op.parameters)$,
 $endif$
@@ -67,11 +67,11 @@ $endif$
 $else$
 $if(op.parameters)$
 $paramRetType(op.rettype)$ $op.name$(
-        const $interface.name$Server::ClientContext& info,
+        const $interface.name$Server_ClientContext& info,
         $operation_parameters(op.parameters)$) override
 $else$
 $paramRetType(op.rettype)$ $op.name$(
-        const $interface.name$Server::ClientContext& info) override
+        const $interface.name$Server_ClientContext& info) override
 $endif$
 $endif$
 {

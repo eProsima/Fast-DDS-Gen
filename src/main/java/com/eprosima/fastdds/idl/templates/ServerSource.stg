@@ -88,7 +88,7 @@ public:
             const char* service_name,
             const eprosima::fastdds::dds::ReplierQos& qos,
             size_t thread_pool_size,
-            std::shared_ptr<IServerImplementation> implementation)
+            std::shared_ptr<$interface.name$Server_IServerImplementation> implementation)
         : $interface.name$Server()
         , participant_(part)
         , thread_pool_(*this, thread_pool_size)
@@ -214,7 +214,7 @@ private:
 
     $interface.all_operations:{op | $operation_declarations(op)$}; separator="\n\n"$
 
-    struct RequestContext : ClientContext
+    struct RequestContext : $interface.name$Server_ClientContext
     {
         RequestType request;
         frpc::RequestInfo info;
@@ -489,7 +489,7 @@ $endif$
     std::mutex mtx_;
     std::map<frtps::SampleIdentity, std::shared_ptr<RequestContext\>> processing_requests_;
     ThreadPool thread_pool_;
-    std::shared_ptr<IServerImplementation> implementation_;
+    std::shared_ptr<$interface.name$Server_IServerImplementation> implementation_;
 
 };
 
@@ -500,7 +500,7 @@ std::shared_ptr<$interface.name$Server> create_$interface.name$Server(
         const char* service_name,
         const eprosima::fastdds::dds::ReplierQos& qos,
         size_t thread_pool_size,
-        std::shared_ptr<$interface.name$Server::IServerImplementation> implementation)
+        std::shared_ptr<$interface.name$Server_IServerImplementation> implementation)
 {
     return std::make_shared<detail::$interface.name$ServerLogic>(
         part, service_name, qos, thread_pool_size, implementation);

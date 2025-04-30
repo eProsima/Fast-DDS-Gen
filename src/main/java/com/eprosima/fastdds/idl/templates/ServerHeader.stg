@@ -50,37 +50,37 @@ $definition_list$
 >>
 
 interface(ctx, parent, interface, export_list) ::= <<
+/**
+ * @brief Context for a client request.
+ */
+struct $interface.name$Server_ClientContext
+{
+    virtual ~$interface.name$Server_ClientContext() = default;
+
+    /**
+     * @brief Get the GUID of the client that made the request.
+     *
+     * @return The GUID of the client that made the request.
+     */
+    virtual const eprosima::fastdds::rtps::GUID_t& get_client_id() const = 0;
+
+    /**
+     * @brief Get the locators of the client that made the request.
+     *
+     * @return The locators of the client that made the request.
+     */
+    virtual const eprosima::fastdds::rtps::RemoteLocatorList& get_client_locators() const = 0;
+};
+
+struct $interface.name$Server_IServerImplementation
+{
+    virtual ~$interface.name$Server_IServerImplementation() = default;
+
+    $interface.all_operations:{op | $operation_prototype(op)$}; separator="\n\n"$
+};
+
 struct $interface.name$Server
 {
-    /**
-     * @brief Context for a client request.
-     */
-    struct ClientContext
-    {
-        virtual ~ClientContext() = default;
-
-        /**
-         * @brief Get the GUID of the client that made the request.
-         *
-         * @return The GUID of the client that made the request.
-         */
-        virtual const eprosima::fastdds::rtps::GUID_t& get_client_id() const = 0;
-
-        /**
-         * @brief Get the locators of the client that made the request.
-         *
-         * @return The locators of the client that made the request.
-         */
-        virtual const eprosima::fastdds::rtps::RemoteLocatorList& get_client_locators() const = 0;
-    };
-
-    struct IServerImplementation
-    {
-        virtual ~IServerImplementation() = default;
-
-        $interface.all_operations:{op | $operation_prototype(op)$}; separator="\n\n"$
-    };
-
     virtual ~$interface.name$Server() = default;
 
     /**
@@ -116,13 +116,13 @@ extern eProsima_user_DllExport std::shared_ptr<$interface.name$Server> create_$i
         const char* service_name,
         const eprosima::fastdds::dds::ReplierQos& qos,
         size_t thread_pool_size,
-        std::shared_ptr<$interface.name$Server::IServerImplementation> implementation);
+        std::shared_ptr<$interface.name$Server_IServerImplementation> implementation);
 >>
 
 operation_prototype(op) ::= <<
 $if(op.annotationFeed)$
 virtual void $op.name$(
-        const ClientContext& info,
+        const $interface.name$Server_ClientContext& info,
 $if(op.parameters)$
         $operation_parameters(op.parameters)$,
 $endif$
@@ -130,11 +130,11 @@ $endif$
 $else$
 $if(op.parameters)$
 virtual $paramRetType(op.rettype)$ $op.name$(
-        const ClientContext& info,
+        const $interface.name$Server_ClientContext& info,
         $operation_parameters(op.parameters)$) = 0;
 $else$
 virtual $paramRetType(op.rettype)$ $op.name$(
-        const ClientContext& info) = 0;
+        const $interface.name$Server_ClientContext& info) = 0;
 $endif$
 $endif$
 >>
