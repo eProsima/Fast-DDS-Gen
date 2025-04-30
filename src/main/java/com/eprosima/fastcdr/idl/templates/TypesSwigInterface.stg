@@ -47,6 +47,11 @@ $ctx.directIncludeDependencies : {include | %include "$include$.i"}; separator="
 
 %{
 #include "$ctx.filename$.hpp"
+$if(ctx.thereIsInterface)$
+#include "$ctx.filename$Client.hpp"
+#include "$ctx.filename$Server.hpp"
+#include "$ctx.filename$ServerImpl.hpp"
+$endif$
 
 #include <fastdds/dds/core/LoanableSequence.hpp>
 %}
@@ -61,6 +66,12 @@ $endif$
 %import(module="fastdds") "fastdds/dds/core/LoanableCollection.hpp"
 %import(module="fastdds") "fastdds/dds/core/LoanableTypedCollection.hpp"
 %import(module="fastdds") "fastdds/dds/core/LoanableSequence.hpp"
+
+$if(ctx.thereIsInterface)$
+%import(module="fastdds") "fastdds/dds/rpc/exceptions/RpcException.hpp"
+%import(module="fastdds") "fastdds/dds/rpc/exceptions/RpcOperationError.hpp"
+%include <std_shared_ptr.i>
+$endif$
 
 %define %traits_penumn(Type...)
   %fragment(SWIG_Traits_frag(Type),"header",
@@ -78,6 +89,11 @@ $definitions; separator="\n"$
 
 // Include the class interfaces
 %include "$ctx.filename$.hpp"
+$if(ctx.thereIsInterface)$
+%include "$ctx.filename$Client.hpp"
+%include "$ctx.filename$Server.hpp"
+%include "$ctx.filename$ServerImpl.hpp"
+$endif$
 
 // Include the corresponding TopicDataType
 %include "$ctx.filename$PubSubTypes.i"
@@ -240,4 +256,14 @@ bitset_type(ctx, parent, bitset, extensions) ::= <<
 // Enums are ported as constants in the target language
 enum_type(ctx, parent, enum) ::= <<
 %traits_penumn(enum $enum.cppTypename$);
+>>
+
+interface(ctx, parent, interface, export_list) ::= <<
+
+$export_list$
+
+%shared_ptr($interface.scopedname$);
+%shared_ptr($interface.scopedname$Server);
+%shared_ptr($interface.scopedname$Server_IServerImplementation);
+%shared_ptr($interface.scopedname$ServerImplementation);
 >>
