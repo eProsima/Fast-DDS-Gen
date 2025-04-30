@@ -46,9 +46,7 @@ interface(ctx, parent, interface, export_list) ::= <<
 
 namespace detail {
 
-namespace fdds = eprosima::fastdds::dds;
 namespace frpc = eprosima::fastdds::dds::rpc;
-namespace frtps = eprosima::fastdds::rtps;
 
 struct $interface.name$ServerImplementation :
     public $interface.name$Server::IServerImplementation
