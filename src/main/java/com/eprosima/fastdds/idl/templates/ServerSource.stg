@@ -250,6 +250,7 @@ private:
             should_erase = false;
             if (ctx->info.related_sample_identity == info.related_sample_identity)
             {
+$if(interface.withOutputFeeds)$
                 if (ctx->request.feed_cancel_.has_value())
                 {
                     if (output_feed_cancellator_)
@@ -260,25 +261,25 @@ private:
                     {
                         // TODO: Log error
                     }
-                }
-                else
-                {
-                    // Pass request to input feed processors
-                    should_erase = true;
-                    for (const auto& input_feed : input_feed_processors_)
-                    {
-                        if (input_feed->process_additional_request(ctx->request))
-                        {
-                            should_erase = false;
-                            break;
-                        }
-                    }
 
-                    // If no input feed processor handled the request, send an exception
-                    if (should_erase)
+                    return;
+                }
+$endif$
+                // Pass request to input feed processors
+                should_erase = true;
+                for (const auto& input_feed : input_feed_processors_)
+                {
+                    if (input_feed->process_additional_request(ctx->request))
                     {
-                        send_exception(frpc::RemoteExceptionCode_t::REMOTE_EX_INVALID_ARGUMENT, replier);
+                        should_erase = false;
+                        break;
                     }
+                }
+
+                // If no input feed processor handled the request, send an exception
+                if (should_erase)
+                {
+                    send_exception(frpc::RemoteExceptionCode_t::REMOTE_EX_INVALID_ARGUMENT, replier);
                 }
             }
             else
