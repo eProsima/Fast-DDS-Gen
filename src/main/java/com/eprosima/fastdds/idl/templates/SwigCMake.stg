@@ -58,8 +58,8 @@ endif()
 
 #Create library for C++ types
 add_library(\${PROJECT_NAME} SHARED
-        $project.commonSrcFiles : { file | $file$}; separator="\n"$
-        $project.projectSrcFiles : { file | $file$}; separator="\n"$
+        $project.commonSrcFiles_escaped; separator="\n"$
+        $project.projectSrcFiles_escaped; separator="\n"$
         )
 if(WIN32)
     target_compile_definitions(\${PROJECT_NAME} PRIVATE EPROSIMA_USER_DLL_EXPORT)
@@ -94,7 +94,7 @@ set(\${PROJECT_NAME}_MODULE
     )
 
 set(\${PROJECT_NAME}_MODULE_FILES
-    \${PROJECT_NAME}.i
+    $project.swigInterfaceFile_escaped$
     )
 
 SET_SOURCE_FILES_PROPERTIES(
