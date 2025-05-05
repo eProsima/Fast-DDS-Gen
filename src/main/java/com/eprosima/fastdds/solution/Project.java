@@ -312,6 +312,21 @@ public class Project extends com.eprosima.solution.Project
         return ctx_;
     }
 
+    public void setSwigInterfaceFile(String file)
+    {
+        m_swiginterfacefile = file;
+    }
+
+    public String getSwigInterfaceFile()
+    {
+        return m_swiginterfacefile;
+    }
+
+    public String getSwigInterfaceFile_escaped()
+    {
+        return m_swiginterfacefile.replace("\\", "/");
+    }
+
     private boolean m_containsInterfaces = false;
     private ArrayList<String> m_subscribersrcfiles = null;
     private ArrayList<String> m_subscriberincludefiles = null;
@@ -324,6 +339,7 @@ public class Project extends com.eprosima.solution.Project
     private ArrayList<String> m_jnisrcfiles = null;
     private ArrayList<String> m_jniincludefiles = null;
     private ArrayList<String> m_idlincludefiles = null;
+    private String m_swiginterfacefile = null;
     String m_guid = null;
 
     private Context ctx_ = null;

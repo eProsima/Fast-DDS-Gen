@@ -92,7 +92,7 @@ set(\${PROJECT_NAME}_MODULE
     )
 
 set(\${PROJECT_NAME}_MODULE_FILES
-    \${PROJECT_NAME}.i
+    $project.swigInterfaceFile_escaped$
     )
 
 SET_SOURCE_FILES_PROPERTIES(
