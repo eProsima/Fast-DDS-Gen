@@ -171,12 +171,21 @@ public:
 
     void stop() override
     {
+        // Notify all threads to finish
         finish_condition_.set_trigger_value(true);
-        thread_pool_.stop();
 
-        std::lock_guard<std::mutex> _(mtx_);
-        // TODO: Cancel all pending requests
-        processing_requests_.clear();
+        // Cancel all pending requests
+        {
+            std::lock_guard<std::mutex> _(mtx_);
+            for (auto& it : processing_requests_)
+            {
+                it.second->cancel();
+            }
+            processing_requests_.clear();
+        }
+
+        // Wait for all threads to finish
+        thread_pool_.stop();
     }
 
 private:
@@ -198,6 +207,7 @@ private:
         virtual ~IInputFeedProcessor() = default;
         virtual bool process_additional_request(
                 const RequestType& request) = 0;
+        virtual void cancel_input_feed() = 0;
     };
 
     //} Input feed helpers
@@ -306,6 +316,21 @@ $endif$
             ReplyType reply{};
             reply.remoteEx = ex;
             replier->send_reply(&reply, info);
+        }
+
+        void cancel()
+        {
+            // Cancel output feed
+            if (output_feed_cancellator_)
+            {
+                output_feed_cancellator_->cancel();
+            }
+
+            // Cancel input feeds
+            for (const auto& input_feed : input_feed_processors_)
+            {
+                input_feed->cancel_input_feed();
+            }
         }
 
     private:
@@ -560,6 +585,13 @@ struct $op.name$_$param.name$_reader :
             }
         }
         return false;
+    }
+
+    void cancel_input_feed() override
+    {
+        std::lock_guard<std::mutex> _(mtx_);
+        finished_ = true;
+        cv_.notify_all();
     }
 
     bool read(
