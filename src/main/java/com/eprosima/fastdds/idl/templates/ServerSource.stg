@@ -40,6 +40,7 @@ $fileHeader(ctx=ctx,  file=[ctx.filename, "Server.cxx"], description=["Server im
 #include <fastdds/dds/core/Time_t.hpp>
 #include <fastdds/dds/domain/DomainParticipant.hpp>
 #include <fastdds/dds/domain/qos/ReplierQos.hpp>
+#include <fastdds/dds/log/Log.hpp>
 #include <fastdds/dds/rpc/exceptions.hpp>
 #include <fastdds/dds/rpc/interfaces.hpp>
 #include <fastdds/dds/rpc/RequestInfo.hpp>
@@ -259,7 +260,7 @@ $if(interface.withOutputFeeds)$
                     }
                     else
                     {
-                        // TODO: Log error
+                        EPROSIMA_LOG_ERROR(RPC_SERVER, "Output feed cancel request received, but no output feed is active.");
                     }
 
                     return;
