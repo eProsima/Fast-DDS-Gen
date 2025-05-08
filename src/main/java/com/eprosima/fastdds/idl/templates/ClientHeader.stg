@@ -45,7 +45,7 @@ $definition_list$
 >>
 
 interface(ctx, parent, interface, export_list) ::= <<
-extern $ctx.fileNameUpper$_DllAPI std::shared_ptr<$interface.name$> create_$interface.name$Client(
+extern eProsima_user_DllExport std::shared_ptr<$interface.name$> create_$interface.name$Client(
         eprosima::fastdds::dds::DomainParticipant& part,
         const char* service_name,
         const eprosima::fastdds::dds::RequesterQos& qos);
