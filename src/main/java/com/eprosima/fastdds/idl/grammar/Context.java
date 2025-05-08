@@ -790,6 +790,7 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
         Interface interfaceObject = new com.eprosima.fastdds.idl.grammar.Interface(
                 this, getScopeFile(), isInScopedFile(), getScope(), name, token);
         there_is_at_least_one_interface = true;
+        addInterface(interfaceObject);
         return interfaceObject;
     }
 
