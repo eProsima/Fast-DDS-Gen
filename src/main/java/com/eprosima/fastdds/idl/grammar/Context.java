@@ -550,7 +550,7 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
             int beginindex = text.indexOf("=");
             return text.substring(beginindex + 1).trim();
         }
-        catch (Exception ex)
+        catch (java.lang.Exception ex)
         {
             System.out.println(ColorMessage.error() + "Getting version. " + ex.getMessage());
         }
