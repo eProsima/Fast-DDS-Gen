@@ -523,7 +523,7 @@ interface(ctx, parent, interface, export_list) ::= <<
 
 //{ $interface.scopedname$ interface
 
-$interface.all_operations : { operation | $operation_details(interface, operation)$ }; separator="\n"$
+$interface.operations : { operation | $operation_details(interface, operation)$ }; separator="\n"$
 
 //{ top level
 

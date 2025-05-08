@@ -52,7 +52,7 @@ namespace detail {
 
 //{ $interface.name$ interface
 
-$interface.all_operations : { operation | $operation_details(interface, operation)$ }; separator="\n"$
+$interface.operations : { operation | $operation_details(interface, operation)$ }; separator="\n"$
 
 //{ top level
 
@@ -137,15 +137,15 @@ eprosima::fastcdr::optional<$typename$> $name$;
 %>
 
 operation_request_members(interface, operation) ::= <%
-eprosima::fastcdr::optional<$interface.name$_$operation.name$_In> $operation.name$;
+eprosima::fastcdr::optional<$operation.inTypeCode.scopedname$> $operation.name$;
 $operation.inputparam : { param | $if (param.annotationFeed)$$operation_request_feed(interface, operation, param)$$endif$ }$
 %>
 
 operation_request_feed(interface, operation, param) ::= <<
 
-eprosima::fastcdr::optional<$interface.name$_$operation.name$_$param.name$_Feed\> $operation.name$_$param.name$;
+eprosima::fastcdr::optional<$param.feedTypeCode.scopedname$\> $operation.name$_$param.name$;
 >>
 
 operation_reply_members(interface, operation) ::= <<
-eprosima::fastcdr::optional<$interface.name$_$operation.name$_Result\> $operation.name$;
+eprosima::fastcdr::optional<$operation.resultTypeCode.scopedname$\> $operation.name$;
 >>

@@ -679,8 +679,8 @@ struct $op.name$_result_writer :
         : info_(info)
         , replier_(replier)
     {
-        reply_.$op.name$ = $op.parent.name$_$op.name$_Result{};
-        reply_.$op.name$->result = $op.parent.name$_$op.name$_Out{};
+        reply_.$op.name$ = $op.resultTypeCode.scopedname${};
+        reply_.$op.name$->result = $op.outTypeCode.scopedname${};
     }
 
     void write(
@@ -746,8 +746,8 @@ $if(op.parameters)$
 $endif$
             *(req->$op.name$_feeds.result_writer));
         ReplyType reply{};
-        reply.$op.name$ = $op.parent.name$_$op.name$_Result{};
-        reply.$op.name$->result = $op.parent.name$_$op.name$_Out{};
+        reply.$op.name$ = $op.resultTypeCode.scopedname${};
+        reply.$op.name$->result = $op.outTypeCode.scopedname${};
         reply.$op.name$->result->finished_ = true;
         replier_->send_reply(&reply, req->info);
 $else$
@@ -758,8 +758,8 @@ $if(op.parameters)$
             $op.parameters : {param | $operation_call_parameter(op, param)$}; separator=",\n"$);
 $endif$
         ReplyType reply{};
-        reply.$op.name$ = $op.parent.name$_$op.name$_Result{};
-        reply.$op.name$->result = $op.parent.name$_$op.name$_Out{};
+        reply.$op.name$ = $op.resultTypeCode.scopedname${};
+        reply.$op.name$->result = $op.outTypeCode.scopedname${};
         $op.outputparam : {param | reply.$op.name$->result->$param.name$ = $param.name$;}; separator="\n"$
 $if(op.rettype)$
         reply.$op.name$->result->return_ = result;
@@ -771,8 +771,8 @@ $if(op.annotationFeed)$
     catch (const frpc::RpcFeedCancelledException& ex)
     {
         ReplyType reply{};
-        reply.$op.name$ = $op.parent.name$_$op.name$_Result{};
-        reply.$op.name$->result = $op.parent.name$_$op.name$_Out{};
+        reply.$op.name$ = $op.resultTypeCode.scopedname${};
+        reply.$op.name$->result = $op.outTypeCode.scopedname${};
         reply.$op.name$->result->finished_ = true;
         replier_->send_reply(&reply, req->info);
     }
@@ -796,7 +796,7 @@ operation_result_exception(op, typename, name) ::= <<
 catch (const $typename$& ex)
 {
     ReplyType reply{};
-    reply.$op.name$ = $op.parent.name$_$op.name$_Result{};
+    reply.$op.name$ = $op.resultTypeCode.scopedname${};
     reply.$op.name$->$name$ = ex;
     replier_->send_reply(&reply, req->info);
 }

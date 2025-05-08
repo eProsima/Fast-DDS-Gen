@@ -337,7 +337,7 @@ private:
 
     //} reply helpers
 
-$export_list$
+$interface.all_operations : { operation | $operation_details(interface, operation)$ }; separator="\n"$
 
 };
 
@@ -355,7 +355,7 @@ std::shared_ptr<$interface.name$> create_$interface.name$Client(
 
 >>
 
-operation(ctx, parent, operation, param_list, operation_type) ::= <<
+operation_details(parent, operation) ::= <<
     //{ operation $operation.name$
 
 public:
@@ -376,7 +376,7 @@ $endif$
 
         // Create and send the request
         RequestType request;
-        request.$operation.name$ = $parent.name$_$operation.name$_In{};
+        request.$operation.name$ = $operation.inTypeCode.scopedname${};
         $if(operation.inputparam)$
         $operation.inputparam:{param | $fill_input_param(operation, param)$}; separator="\n"$
         $endif$
@@ -669,7 +669,7 @@ $endif$
 input_feed_writer(operation, param) ::= <<
 struct $operation.name$_$param.name$_writer : public frpc::RpcClientWriter<$paramRetType(param.typecode)$>
 {
-    using FeedType = $operation.parent.name$_$operation.name$_$param.name$_Feed;
+    using FeedType = $param.feedTypeCode.scopedname$;
 
     $operation.name$_$param.name$_writer(
             frpc::Requester* requester,
