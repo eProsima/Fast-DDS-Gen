@@ -33,6 +33,9 @@ $endif$
 $if(ctx.thereIsMap)$
 #include <map>
 $endif$
+$if(ctx.thereIsInputFeed || ctx.thereIsOutputFeed)$
+#include <memory>
+$endif$
 $if(ctx.thereIsString)$
 #include <string>
 $endif$
@@ -52,6 +55,19 @@ $if(ctx.thereIsOptionalAnnotation)$
 $endif$
 $if(ctx.thereIsUnion)$
 #include <fastcdr/exceptions/BadParamException.h>
+$endif$
+
+$if(ctx.thereIsException)$
+#include <fastdds/dds/rpc/exceptions/RpcOperationError.hpp>
+$endif$
+$if(ctx.thereIsOutputFeed)$
+#include <fastdds/dds/rpc/interfaces/RpcClientReader.hpp>
+$endif$
+$if(ctx.thereIsInputFeed)$
+#include <fastdds/dds/rpc/interfaces/RpcClientWriter.hpp>
+$endif$
+$if(ctx.thereIsNonFeedOperation)$
+#include <fastdds/dds/rpc/interfaces/RpcFuture.hpp>
 $endif$
 
 $ctx.directIncludeDependencies : {include | #include "$include$.hpp"}; separator="\n"$
@@ -108,17 +124,88 @@ namespace $annotation.name$ {
 $endif$
 >>
 
+exception(ctx, parent, exception, extensions) ::= <<
+/*!
+ * @brief This class implements the user exception $exception.scopedname$
+ * @ingroup $ctx.trimfilename$
+ */
+class eProsima_user_DllExport $exception.name$ : public eprosima::fastdds::dds::rpc::RpcOperationError
+{
+public:
+
+    /**
+     * Default constructor.
+     */
+    $exception.name$()
+        : $exception.name$("$exception.name$")
+    {
+    }
+
+    /**
+     * Constructor.
+     */
+    $exception.name$(
+            const std::string& message)
+        : eprosima::fastdds::dds::rpc::RpcOperationError(message)
+    {
+    }
+
+    /**
+     * Constructor.
+     */
+    $exception.name$(
+            const char* message)
+        : eprosima::fastdds::dds::rpc::RpcOperationError(message)
+    {
+    }
+
+    /**
+     * Copy constructor.
+     */
+    $exception.name$(
+            const $exception.name$& other) noexcept = default;
+
+    /**
+     * Copy assignment.
+     */
+    $exception.name$& operator =(
+            const $exception.name$& other) noexcept = default;
+
+    /**
+     * Destructor.
+     */
+    virtual ~$exception.name$() noexcept = default;
+
+    $exception.members:{ member | $public_member_declaration(member)$}; separator="\n"$
+
+    $extensions : { extension | $extension$}; separator="\n"$
+
+private:
+
+    $exception.members:{ member | $private_member_declaration(member=member)$}; separator="\n"$
+
+};
+
+>>
+
 interface(ctx, parent, interface, export_list) ::= <<
 /*!
  * @brief This class represents the interface $interface.name$ defined by the user in the IDL file.
  * @ingroup $ctx.trimfilename$
  */
-class $ctx.fileNameUpper$_DllAPI $interface.name$ $if(interface.bases)$: $interface.bases : {base |public $base.scopedname$}; separator=", "$$endif$
+class eProsima_user_DllExport $interface.name$ $if(interface.bases)$: $interface.bases : {base |public $base.scopedname$}; separator=", "$$endif$
 {
 public:
+    virtual ~$interface.name$() = default;
 
     $export_list$
 };
+>>
+
+operation(ctx, parent, operation, param_list, operation_type) ::= <<
+virtual $operationRetType(operation)$ $operation.name$(
+        $paramDeclarations(params=operation.parameters)$) = 0;
+
 >>
 
 const_decl(ctx, parent, const, const_type) ::= <<
@@ -848,6 +935,14 @@ member_destructor_ = [&]()
 new(&m_$member.name$) $member_type_declaration(member)$();
 $endif$
 >>
+
+operationRetType(operation) ::= <%
+$if(operation.annotationFeed)$
+std::shared_ptr<eprosima::fastdds::dds::rpc::RpcClientReader<$paramRetType(operation.rettype)$> >
+$else$
+eprosima::fastdds::dds::rpc::RpcFuture<$paramRetType(operation.rettype)$>
+$endif$
+%>
 
 //{ Fast DDS-Gen extensions
 module_conversion(ctx, parent, modules, definition_list) ::= <<
