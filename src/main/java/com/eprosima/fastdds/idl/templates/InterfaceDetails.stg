@@ -54,6 +54,7 @@ namespace detail {
 
 $interface.operations : { operation | $operation_details(interface, operation)$ }; separator="\n"$
 
+$if(!interface.annotatedAsNested)$
 //{ top level
 
 struct $interface.name$_Request
@@ -69,6 +70,7 @@ struct $interface.name$_Reply
 };
 
 //}  // top level
+$endif$
 
 //}  // $interface.name$ interface
 

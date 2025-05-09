@@ -62,6 +62,7 @@ $definition_list$
 >>
 
 interface(ctx, parent, interface, export_list) ::= <<
+$if(!interface.annotatedAsNested)$
 //{ interface $interface.name$
 
 namespace detail {
@@ -352,7 +353,7 @@ std::shared_ptr<$interface.name$> create_$interface.name$Client(
 }
 
 //} interface $interface.name$Client
-
+$endif$
 >>
 
 operation_details(parent, operation) ::= <<

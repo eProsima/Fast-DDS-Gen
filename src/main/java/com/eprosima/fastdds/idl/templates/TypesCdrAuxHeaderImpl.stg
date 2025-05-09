@@ -525,6 +525,7 @@ interface(ctx, parent, interface, export_list) ::= <<
 
 $interface.operations : { operation | $operation_details(interface, operation)$ }; separator="\n"$
 
+$if(!interface.annotatedAsNested)$
 //{ top level
 
 // Serialization methods for $detail_scoped_name(interface)$_Request
@@ -547,6 +548,7 @@ struct $interface.name$_Reply
 $rpc_struct_serialization(interface.replyTypeCode)$
 
 //}  // top level
+$endif$
 
 //}  // $interface.scopedname$ interface
 

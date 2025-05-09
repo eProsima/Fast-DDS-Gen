@@ -235,7 +235,9 @@ $endif$
 >>
 
 interface(ctx, parent, interface, export_list) ::= <<
+$if(!interface.annotatedAsNested)$
 eProsima_user_DllExport eprosima::fastdds::dds::rpc::ServiceTypeSupport create_$interface.name$_service_type_support();
+$endif$
 >>
 
 //{ Fast DDS-Gen extensions

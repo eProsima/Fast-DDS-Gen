@@ -50,6 +50,7 @@ $definition_list$
 >>
 
 interface(ctx, parent, interface, export_list) ::= <<
+$if(!interface.annotatedAsNested)$
 /**
  * @brief Context for a client request.
  */
@@ -117,6 +118,7 @@ extern eProsima_user_DllExport std::shared_ptr<$interface.name$Server> create_$i
         const eprosima::fastdds::dds::ReplierQos& qos,
         size_t thread_pool_size,
         std::shared_ptr<$interface.name$Server_IServerImplementation> implementation);
+$endif$
 >>
 
 operation_prototype(op) ::= <<

@@ -241,6 +241,7 @@ void $struct.name$PubSubType::register_type_object_representation()
 >>
 
 interface(ctx, parent, interface, export_list) ::= <<
+$if(!interface.annotatedAsNested)$
 // { $interface.name$ interface
 
 $interface_generic_ser_code(ctx, parent, interface, "Request")$
@@ -258,6 +259,7 @@ eprosima::fastdds::dds::rpc::ServiceTypeSupport create_$interface.name$_service_
 }
 
 // }  // $interface.name$ interface
+$endif$
 >>
 
 interface_generic_ser_code(ctx, parent, interface, suffix) ::= <<
