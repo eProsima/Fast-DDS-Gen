@@ -43,6 +43,7 @@ $fileHeader(ctx=ctx,  file=[ctx.filename, "Client.cxx"], description=["Client im
 #include <fastdds/dds/rpc/Service.hpp>
 #include <fastdds/dds/rpc/ServiceTypeSupport.hpp>
 #include <fastdds/dds/subscriber/DataReader.hpp>
+#include <fastdds/rtps/common/Guid.hpp>
 #include <fastdds/rtps/common/WriteParams.hpp>
 
 #include "$ctx.filename$.hpp"
@@ -409,7 +410,18 @@ $if(operation.annotationFeed)$
                 bool& should_remove) override
         {
             should_remove = false;
+            // Check if the reply is for this operation
             if (req_info.related_sample_identity != info.related_sample_identity)
+            {
+                return;
+            }
+
+            // Avoid processing replies from different writers
+            if (frtps::GUID_t::unknown() == writer_id_)
+            {
+                writer_id_ = req_info.sample_identity.writer_guid();
+            }
+            else if (writer_id_ != req_info.sample_identity.writer_guid())
             {
                 return;
             }
@@ -590,6 +602,7 @@ $if(operation.annotationFeed)$
         bool finished_ = false;
         std::mutex mtx_;
         std::condition_variable cv_;
+        frtps::GUID_t writer_id_ = frtps::GUID_t::unknown();
 
     };
 
