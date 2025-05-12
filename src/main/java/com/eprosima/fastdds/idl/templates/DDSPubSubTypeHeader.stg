@@ -100,6 +100,7 @@ inline size_t constexpr $struct.name$_offset_of()
 $endif$
 $endif$
 
+$if(!struct.parent.annotatedAsNested)$
 /*!
  * @brief This class represents the TopicDataType of the type $struct.name$ defined by the user in the IDL file.
  * @ingroup $ctx.trimfilename$
@@ -232,6 +233,7 @@ $if(struct.isPlain)$
 
 $endif$
 };
+$endif$
 >>
 
 interface(ctx, parent, interface, export_list) ::= <<

@@ -84,7 +84,9 @@ $register_type_identifier(typename=enum.name)$
 >>
 
 struct_type(ctx, parent, struct, member_list) ::= <<
+$if(!struct.declaredInsideInterface)$
 $register_type_identifier(typename=struct.name)$
+$endif$
 >>
 
 typedef_decl(ctx, parent, typedefs, typedefs_type, declarator_type) ::= <<

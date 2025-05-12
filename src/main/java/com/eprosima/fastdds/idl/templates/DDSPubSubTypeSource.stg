@@ -51,6 +51,7 @@ namespace $module.name$ {
 
 struct_type(ctx, parent, struct, member_list) ::= <<
 $member_list$
+$if(!struct.parent.annotatedAsNested)$
 $struct.name$PubSubType::$struct.name$PubSubType()
 {
     $if(ctx.GenerateTypesROS2)$set_name("$struct.ROS2Scopedname$");$else$set_name("$struct.scopedname$");$endif$
@@ -237,7 +238,7 @@ void $struct.name$PubSubType::register_type_object_representation()
         "TypeObject type representation support disabled in generated code");
     $endif$
 }
-
+$endif$
 >>
 
 interface(ctx, parent, interface, export_list) ::= <<

@@ -292,7 +292,9 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
     {
         super.addTypeDeclaration(typedecl);
 
-        if (typedecl.getTypeCode().getKind() == Kind.KIND_STRUCT && typedecl.isInScope())
+        boolean is_nested = typedecl.isAnnotatedAsNested();
+
+        if (typedecl.getTypeCode().getKind() == Kind.KIND_STRUCT && typedecl.isInScope() && !is_nested)
         {
             Annotation topicann = typedecl.getAnnotations().get("Topic");
 

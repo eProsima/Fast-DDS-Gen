@@ -175,6 +175,7 @@ void register_$enum.name$_type_identifier(
 >>
 
 struct_type(ctx, parent, struct, member_list) ::= <<
+$if(!struct.declaredInsideInterface)$
 // TypeIdentifier is returned by reference: dependent structures/unions are registered in this same method
 void register_$struct.name$_type_identifier(
         TypeIdentifierPair& type_ids_$struct.name$)
@@ -235,7 +236,7 @@ void register_$struct.name$_type_identifier(
                         "$struct.scopedname$ contains forward declarations (not yet supported).");
     $endif$
 }
-
+$endif$
 >>
 
 typedef_decl(ctx, parent, typedefs, typedefs_type, declarator_type) ::= <<
