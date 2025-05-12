@@ -76,7 +76,7 @@ bool $struct.name$PubSubType::serialize(
         SerializedPayload_t& payload,
         DataRepresentationId_t data_representation)
 {
-    const $struct.name$* p_type = static_cast<const $struct.name$*>(data);
+    const ::$struct.scopedname$* p_type = static_cast<const ::$struct.scopedname$*>(data);
 
     // Object that manages the raw buffer.
     eprosima::fastcdr::FastBuffer fastbuffer(reinterpret_cast<char*>(payload.data), payload.max_size);
@@ -115,7 +115,7 @@ bool $struct.name$PubSubType::deserialize(
     try
     {
         // Convert DATA to pointer of your type
-        $struct.name$* p_type = static_cast<$struct.name$*>(data);
+        ::$struct.scopedname$* p_type = static_cast<::$struct.scopedname$*>(data);
 
         // Object that manages the raw buffer.
         eprosima::fastcdr::FastBuffer fastbuffer(reinterpret_cast<char*>(payload.data), payload.length);
@@ -149,7 +149,7 @@ uint32_t $struct.name$PubSubType::calculate_serialized_size(
             eprosima::fastcdr::CdrVersion::XCDRv1 :eprosima::fastcdr::CdrVersion::XCDRv2);
         size_t current_alignment {0};
         return static_cast<uint32_t>(calculator.calculate_serialized_size(
-                    *static_cast<const $struct.name$*>(data), current_alignment)) +
+                    *static_cast<const ::$struct.scopedname$*>(data), current_alignment)) +
                 4u /*encapsulation*/;
     }
     catch (eprosima::fastcdr::exception::Exception& /*exception*/)
@@ -160,13 +160,13 @@ uint32_t $struct.name$PubSubType::calculate_serialized_size(
 
 void* $struct.name$PubSubType::create_data()
 {
-    return reinterpret_cast<void*>(new $struct.name$());
+    return reinterpret_cast<void*>(new ::$struct.scopedname$());
 }
 
 void $struct.name$PubSubType::delete_data(
         void* data)
 {
-    delete(reinterpret_cast<$struct.name$*>(data));
+    delete(reinterpret_cast<::$struct.scopedname$*>(data));
 }
 
 bool $struct.name$PubSubType::compute_key(
@@ -179,7 +179,7 @@ bool $struct.name$PubSubType::compute_key(
         return false;
     }
 
-    $struct.name$ data;
+    ::$struct.scopedname$ data;
     if (deserialize(payload, static_cast<void*>(&data)))
     {
         return compute_key(static_cast<void*>(&data), handle, force_md5);
@@ -198,7 +198,7 @@ bool $struct.name$PubSubType::compute_key(
         return false;
     }
 
-    const $struct.name$* p_type = static_cast<const $struct.name$*>(data);
+    const ::$struct.scopedname$* p_type = static_cast<const ::$struct.scopedname$*>(data);
 
     // Object that manages the raw buffer.
     eprosima::fastcdr::FastBuffer fastbuffer(reinterpret_cast<char*>(key_buffer_),
@@ -241,6 +241,7 @@ void $struct.name$PubSubType::register_type_object_representation()
 >>
 
 interface(ctx, parent, interface, export_list) ::= <<
+$export_list$
 $if(!interface.annotatedAsNested)$
 // { $interface.name$ interface
 

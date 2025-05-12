@@ -55,9 +55,9 @@ eProsima_user_DllExport size_t calculate_serialized_size(
         const $struct.scopedname$& data,
         size_t& current_alignment)
 {
-    $if(!struct.scope.empty)$
+$if(!struct.declaredInsideInterface && !struct.scope.empty)$
     using namespace $struct.scope$;
-    $endif$
+$endif$
 
     static_cast<void>(data);
 
@@ -497,7 +497,7 @@ eProsima_user_DllExport void deserialize(
                     {
                         std::string msg;
                         dcdr \>> msg;
-                        $exception.name$ tmp{msg};
+                        $exception.scopedname$ tmp{msg};
                         data = tmp;
                         break;
                     }
@@ -520,7 +520,7 @@ eProsima_user_DllExport void deserialize(
 >>
 
 interface(ctx, parent, interface, export_list) ::= <<
-
+$export_list$
 //{ $interface.scopedname$ interface
 
 $interface.operations : { operation | $operation_details(interface, operation)$ }; separator="\n"$
@@ -656,7 +656,7 @@ rpc_struct_serialization(struct) ::= <<
 template<>
 eProsima_user_DllExport size_t calculate_serialized_size(
         eprosima::fastcdr::CdrSizeCalculator& calculator,
-        const $struct.scopedname$& data,
+        const ::$struct.scopedname$& data,
         size_t& current_alignment)
 {
     $if(!struct.scope.empty)$
@@ -686,7 +686,7 @@ eProsima_user_DllExport size_t calculate_serialized_size(
 template<>
 eProsima_user_DllExport void serialize(
         eprosima::fastcdr::Cdr& scdr,
-        const $struct.scopedname$& data)
+        const ::$struct.scopedname$& data)
 {
     $if(!struct.scope.empty)$
     using namespace $struct.scope$;
@@ -713,7 +713,7 @@ eProsima_user_DllExport void serialize(
 template<>
 eProsima_user_DllExport void deserialize(
         eprosima::fastcdr::Cdr& cdr,
-        $struct.scopedname$& data)
+        ::$struct.scopedname$& data)
 {
     $if(!struct.scope.empty)$
     using namespace $struct.scope$;
@@ -751,7 +751,7 @@ eProsima_user_DllExport void deserialize(
 
 void serialize_key(
         eprosima::fastcdr::Cdr& scdr,
-        const $struct.scopedname$& data)
+        const ::$struct.scopedname$& data)
 {
     static_cast<void>(scdr);
     static_cast<void>(data);

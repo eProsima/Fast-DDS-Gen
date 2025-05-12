@@ -108,7 +108,7 @@ class $struct.name$PubSubType : public eprosima::fastdds::dds::TopicDataType
 {
 public:
 
-    typedef $struct.name$ type;
+    typedef ::$struct.scopedname$ type;
 
     eProsima_user_DllExport $struct.name$PubSubType();
 
@@ -235,6 +235,7 @@ $endif$
 >>
 
 interface(ctx, parent, interface, export_list) ::= <<
+$export_list$
 $if(!interface.annotatedAsNested)$
 eProsima_user_DllExport eprosima::fastdds::dds::rpc::ServiceTypeSupport create_$interface.name$_service_type_support();
 $endif$
