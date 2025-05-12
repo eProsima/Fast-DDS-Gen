@@ -1044,13 +1044,13 @@ public class fastddsgen
                         Utils.writeFile(output_dir + ctx.getFilename() + "PubSubTypes.hpp",
                                 maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/DDSPubSubTypeHeader.stg"), m_replace);
                     project.addCommonIncludeFile(relative_dir + ctx.getFilename() + "PubSubTypes.hpp");
-                    if (ctx.existsLastStructure() || ctx.isThereIsInterface())
+                    if (returnedValue &=
+                            Utils.writeFile(output_dir + ctx.getFilename() + "PubSubTypes.cxx",
+                                maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/DDSPubSubTypeSource.stg"), m_replace))
                     {
-                        if (returnedValue &=
-                                Utils.writeFile(output_dir + ctx.getFilename() + "PubSubTypes.cxx",
-                                    maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/DDSPubSubTypeSource.stg"), m_replace))
+                        project.addCommonSrcFile(relative_dir + ctx.getFilename() + "PubSubTypes.cxx");
+                        if (ctx.existsLastStructure() || ctx.isThereIsInterface())
                         {
-                            project.addCommonSrcFile(relative_dir + ctx.getFilename() + "PubSubTypes.cxx");
                             if (m_python)
                             {
                                 System.out.println("Generating Swig interface files...");
