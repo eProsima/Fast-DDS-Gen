@@ -874,10 +874,10 @@ public class fastddsgen
             }
             else
             {
-                // Check if there is a '$' in the output_file_name
+                // Check if there is a '@' in the output_file_name
                 for (Map.Entry<String, String> entry : m_customStgOutput.entrySet())
                 {
-                    if (entry.getValue().contains("$"))
+                    if (entry.getValue().contains("@"))
                     {
                         System.out.println("Loading custom template " +
                                 entry.getKey() + " for included IDL file " + idlFilename + "...");
@@ -924,10 +924,8 @@ public class fastddsgen
                 {
                     for (Map.Entry<String, String> entry : m_customStgOutput.entrySet())
                     {
-                        String templatePath = entry.getKey();
-                        String outputName = entry.getValue().replace("$", "");
                         if (! (returnedValue = createOutputCustomTemplate(
-                                    templatePath, outputName, output_dir, relative_dir, ctx.getFilename(),
+                                    entry, idlFilename, output_dir, relative_dir, ctx.getFilename(),
                                     maintemplates, m_replace, project)))
                         {
                             break;
@@ -939,12 +937,10 @@ public class fastddsgen
                     // Check if there is a '$' in the output_file_name
                     for (Map.Entry<String, String> entry : m_customStgOutput.entrySet())
                     {
-                        if (entry.getValue().contains("$"))
+                        if (entry.getValue().contains("@"))
                         {
-                            String templatePath = entry.getKey();
-                            String outputName = entry.getValue().replace("$", idlFilename.substring(0, idlFilename.lastIndexOf('.')));
                             if (! (returnedValue = createOutputCustomTemplate(
-                                        templatePath, outputName, output_dir, relative_dir, ctx.getFilename(),
+                                        entry, idlFilename, output_dir, relative_dir, ctx.getFilename(),
                                         maintemplates, m_replace, project)))
                             {
                                 break;
@@ -1207,8 +1203,8 @@ public class fastddsgen
     }
 
     private boolean createOutputCustomTemplate(
-            String templatePath,
-            String outputName,
+            Map.Entry<String, String> entry,
+            String idlFilename,
             String outputDir,
             String relativeDir,
             String contextFilename,
@@ -1216,9 +1212,10 @@ public class fastddsgen
             boolean replace,
             Project project)
     {
-        Path path = Paths.get(templatePath);
+        Path path = Paths.get(entry.getKey());
         String templateName = path.getFileName().toString();
         templateName = templateName.substring(0, templateName.lastIndexOf('.'));
+        String outputName = entry.getValue().replace("@", idlFilename.substring(0, idlFilename.lastIndexOf('.')));
         System.out.println("Generating from custom " + templateName + " to " + outputName);
 
         boolean ret_val = Utils.writeFile(outputDir + outputName, maintemplates.getTemplate(templateName), replace);
