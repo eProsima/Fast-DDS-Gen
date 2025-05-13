@@ -42,6 +42,7 @@ $definitions; separator="\n"$
 
 struct_type(ctx, parent, struct, member_list) ::= <<
 $member_list$
+$if(!struct.declaredInsideInterface)$
 $if((ctx.generateTypesC))$
 void $if(struct.hasScope)$$struct.scope$::$endif$free_string$struct.name$(
         $struct.name$* topic)
@@ -152,11 +153,12 @@ $if(struct.hasScope)$$struct.scope$::$endif$$struct.name$ $if(struct.hasScope)$$
     initialize$struct.name$(&result, idx+1); // 0 means don't use the idx internally.
     return result;
 }
-
+$endif$
 >>
 
 union_type(ctx, parent, union, switch_type) ::= <<
 $switch_type$
+$if(!union.declaredInsideInterface)$
 void $if(union.hasScope)$$union.scope$::$endif$print$union.name$(
         $union.name$* topic)
 {
@@ -214,10 +216,11 @@ int $if(union.hasScope)$$union.scope$::$endif$compare$union.name$(
     $endif$
     return 1;
 }
-
+$endif$
 >>
 
 bitmask_type(ctx, parent, bitmask) ::= <<
+$if(!bitmask.declaredInsideInterface)$
 void $if(bitmask.hasScope)$$bitmask.scope$::$endif$print$bitmask.name$(
         $bitmask.name$* topic)
 {
@@ -242,10 +245,11 @@ int $if(bitmask.hasScope)$$bitmask.scope$::$endif$compare$bitmask.name$(
 {
     return *topic_a == *topic_b;
 }
-
+$endif$
 >>
 
 bitset_type(ctx, parent, bitset) ::= <<
+$if(!bitset.declaredInsideInterface)$
 void $if(bitset.hasScope)$$bitset.scope$::$endif$print$bitset.name$(
         $bitset.name$* topic)
 {
@@ -273,7 +277,7 @@ int $if(bitset.hasScope)$$bitset.scope$::$endif$compare$bitset.name$(
     $bitset.definedBitfields:{ bitfield | if(topic_a->$bitfield.name$ != topic_b->$bitfield.name$) return 0; }; separator="\n"$
     return 1;
 }
-
+$endif$
 >>
 
 // ========================================================================================

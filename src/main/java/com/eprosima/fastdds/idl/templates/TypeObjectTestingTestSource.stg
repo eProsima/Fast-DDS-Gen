@@ -133,6 +133,7 @@ TEST(TypeObjectTests, TestTypedefTypeObject_$typedefs.name$)
 >>
 
 struct_type(ctx, parent, struct, member_list) ::= <<
+$if(!struct.declaredInsideInterface)$
 namespace $struct.cScopedname$_namespace {
 $member_list$
 } // $struct.cScopedname$_namespace
@@ -181,9 +182,11 @@ TEST(TypeObjectTests, TestStructureTypeObject_$struct.cScopedname$)
     ASSERT_EQ($struct.membersSize$, type_objects.minimal_type_object.minimal().struct_type().member_seq().size());
     ASSERT_EQ($struct.membersSize$, type_objects.complete_type_object.complete().struct_type().member_seq().size());
 }
+$endif$
 >>
 
 union_type(ctx, parent, union, switch_type) ::= <<
+$if(!union.declaredInsideInterface)$
 $switch_type$
 
 TEST(TypeObjectTests, TestUnionTypeObject_$union.name$)
@@ -236,9 +239,11 @@ TEST(TypeObjectTests, TestUnionTypeObject_$union.name$)
     ASSERT_EQ($union.membersSize$, type_objects.minimal_type_object.minimal().union_type().member_seq().size());
     ASSERT_EQ($union.membersSize$, type_objects.complete_type_object.complete().union_type().member_seq().size());
 }
+$endif$
 >>
 
 enum_type(ctx, parent, enum) ::= <<
+$if(!enum.declaredInsideInterface)$
 TEST(TypeObjectTests, TestEnumTypeObject_$enum.name$)
 {
     ReturnCode_t ret_code;
@@ -274,9 +279,11 @@ TEST(TypeObjectTests, TestEnumTypeObject_$enum.name$)
                 type_objects.complete_type_object.complete().enumerated_type().literal_seq()[i].common().value());
     }
 }
+$endif$
 >>
 
 bitmask_type(ctx, parent, bitmask) ::= <<
+$if(!bitmask.declaredInsideInterface)$
 TEST(TypeObjectTests, TestBitmaskTypeObject_$bitmask.name$)
 {
     ReturnCode_t ret_code;
@@ -311,9 +318,11 @@ TEST(TypeObjectTests, TestBitmaskTypeObject_$bitmask.name$)
                 type_objects.complete_type_object.complete().bitmask_type().flag_seq()[i].common().position());
     }
 }
+$endif$
 >>
 
 bitset_type(ctx, parent, bitset, extensions) ::= <<
+$if(!bitset.declaredInsideInterface)$
 TEST(TypeObjectTests, TestBitsetTypeObject_$bitset.name$)
 {
     ReturnCode_t ret_code;
@@ -346,6 +355,7 @@ TEST(TypeObjectTests, TestBitsetTypeObject_$bitset.name$)
                 type_objects.complete_type_object.complete().bitset_type().field_seq()[i].common().position());
     }
 }
+$endif$
 >>
 
 annotation(ctx, annotation) ::= <<
