@@ -10,8 +10,9 @@ Please, refer to the [master branch](https://github.com/eProsima/Fast-DDS-Gen/bl
 
 |Fast DDS Version|Fast DDS-Gen Version|Fast DDS-Gen Version branch|Fast DDS-Gen Latest Release|
 |----------------|--------------------|---------------------------|---------------------------|
-|2.14|3.3|[3.3.x](https://github.com/eProsima/Fast-DDS-Gen/tree/3.3.x)|[v3.3.0](https://github.com/eProsima/Fast-DDS-Gen/releases/tag/v3.3.0)|
-|2.10|2.5|[2.5.x](https://github.com/eProsima/Fast-DDS-Gen/tree/2.5.x)|[v2.4.0](https://github.com/eProsima/Fast-DDS-Gen/releases/tag/v2.4.0)|
+|3.2, 3.1|4.0|[4.0.x](https://github.com/eProsima/Fast-DDS-Gen/tree/4.0.x)|[v4.0.4](https://github.com/eProsima/Fast-DDS-Gen/releases/tag/v4.0.4)|
+|2.14|3.3|[3.3.x](https://github.com/eProsima/Fast-DDS-Gen/tree/3.3.x)|[v3.3.1](https://github.com/eProsima/Fast-DDS-Gen/releases/tag/v3.3.1)|
+|2.10|2.5|[2.5.x](https://github.com/eProsima/Fast-DDS-Gen/tree/2.5.x)|[v2.5.2](https://github.com/eProsima/Fast-DDS-Gen/releases/tag/v2.5.2)|
 |2.6|2.1|[2.1.x](https://github.com/eProsima/Fast-DDS-Gen/tree/2.1.x)|[v2.1.3](https://github.com/eProsima/Fast-DDS-Gen/releases/tag/v2.1.3)|
 
 
