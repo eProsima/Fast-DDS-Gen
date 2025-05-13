@@ -55,8 +55,8 @@ eProsima_user_DllExport size_t calculate_serialized_size(
         const $struct.scopedname$& data,
         size_t& current_alignment)
 {
-$if(!struct.declaredInsideInterface && !struct.scope.empty)$
-    using namespace $struct.scope$;
+$if(!struct.namespace.empty)$
+    using namespace $struct.namespace$;
 $endif$
 
     static_cast<void>(data);
@@ -86,8 +86,8 @@ eProsima_user_DllExport void serialize(
         eprosima::fastcdr::Cdr& scdr,
         const $struct.scopedname$& data)
 {
-    $if(!struct.scope.empty)$
-    using namespace $struct.scope$;
+    $if(!struct.namespace.empty)$
+    using namespace $struct.namespace$;
     $endif$
 
     eprosima::fastcdr::Cdr::state current_state(scdr);
@@ -113,8 +113,8 @@ eProsima_user_DllExport void deserialize(
         eprosima::fastcdr::Cdr& cdr,
         $struct.scopedname$& data)
 {
-    $if(!struct.scope.empty)$
-    using namespace $struct.scope$;
+    $if(!struct.namespace.empty)$
+    using namespace $struct.namespace$;
     $endif$
 
     cdr.deserialize_type(eprosima::fastcdr::CdrVersion::XCDRv2 == cdr.get_cdr_version() ?
@@ -152,8 +152,8 @@ void serialize_key(
         const $struct.scopedname$& data)
 {
     $if(!struct.inheritance)$
-    $if(!struct.scope.empty)$
-    using namespace $struct.scope$;
+    $if(!struct.namespace.empty)$
+    using namespace $struct.namespace$;
     $endif$
     $struct.membersById : { member |
         $if(member.typecode.isStructType)$
@@ -215,8 +215,8 @@ eProsima_user_DllExport size_t calculate_serialized_size(
         const $bitset.scopedname$&,
         size_t& current_alignment)
 {
-    $if(!bitset.scope.empty)$
-    using namespace $bitset.scope$;
+    $if(!bitset.namespace.empty)$
+    using namespace $bitset.namespace$;
     $endif$
 
     return calculator.calculate_serialized_size(std::bitset<$bitset.bitSize$>{}, current_alignment);
@@ -229,8 +229,8 @@ eProsima_user_DllExport void serialize(
         eprosima::fastcdr::Cdr& scdr,
         const $bitset.scopedname$& data)
 {
-    $if(!bitset.scope.empty)$
-    using namespace $bitset.scope$;
+    $if(!bitset.namespace.empty)$
+    using namespace $bitset.namespace$;
     $endif$
 
     std::bitset<$bitset.bitSize$> bitset;
@@ -250,8 +250,8 @@ eProsima_user_DllExport void deserialize(
         eprosima::fastcdr::Cdr& dcdr,
         $bitset.scopedname$& data)
 {
-    $if(!bitset.scope.empty)$
-    using namespace $bitset.scope$;
+    $if(!bitset.namespace.empty)$
+    using namespace $bitset.namespace$;
     $endif$
 
     std::bitset<$bitset.bitSize$> bitset;
@@ -276,8 +276,8 @@ eProsima_user_DllExport size_t calculate_serialized_size(
         const $union.scopedname$& data,
         size_t& current_alignment)
 {
-    $if(!union.scope.empty)$
-    using namespace $union.scope$;
+    $if(!union.namespace.empty)$
+    using namespace $union.namespace$;
     $endif$
 
     static_cast<void>(data);
@@ -320,8 +320,8 @@ eProsima_user_DllExport void serialize(
         eprosima::fastcdr::Cdr& scdr,
         const $union.scopedname$& data)
 {
-    $if(!union.scope.empty)$
-    using namespace $union.scope$;
+    $if(!union.namespace.empty)$
+    using namespace $union.namespace$;
     $endif$
 
     eprosima::fastcdr::Cdr::state current_state(scdr);
@@ -354,8 +354,8 @@ eProsima_user_DllExport void deserialize(
         eprosima::fastcdr::Cdr& cdr,
         $union.scopedname$& data)
 {
-    $if(!union.scope.empty)$
-    using namespace $union.scope$;
+    $if(!union.namespace.empty)$
+    using namespace $union.namespace$;
     $endif$
 
     cdr.deserialize_type(eprosima::fastcdr::CdrVersion::XCDRv2 == cdr.get_cdr_version() ?
@@ -424,8 +424,8 @@ eProsima_user_DllExport size_t calculate_serialized_size(
         const $exception.scopedname$& data,
         size_t& current_alignment)
 {
-    $if(!exception.scope.empty)$
-    using namespace $exception.scope$;
+    $if(!exception.namespace.empty)$
+    using namespace $exception.namespace$;
     $endif$
 
     static_cast<void>(data);
@@ -455,8 +455,8 @@ eProsima_user_DllExport void serialize(
         eprosima::fastcdr::Cdr& scdr,
         const $exception.scopedname$& data)
 {
-    $if(!exception.scope.empty)$
-    using namespace $exception.scope$;
+    $if(!exception.namespace.empty)$
+    using namespace $exception.namespace$;
     $endif$
 
     eprosima::fastcdr::Cdr::state current_state(scdr);
@@ -481,8 +481,8 @@ eProsima_user_DllExport void deserialize(
         eprosima::fastcdr::Cdr& cdr,
         $exception.scopedname$& data)
 {
-    $if(!exception.scope.empty)$
-    using namespace $exception.scope$;
+    $if(!exception.namespace.empty)$
+    using namespace $exception.namespace$;
     $endif$
 
     cdr.deserialize_type(eprosima::fastcdr::CdrVersion::XCDRv2 == cdr.get_cdr_version() ?
@@ -659,8 +659,8 @@ eProsima_user_DllExport size_t calculate_serialized_size(
         const ::$struct.scopedname$& data,
         size_t& current_alignment)
 {
-    $if(!struct.scope.empty)$
-    using namespace $struct.scope$;
+    $if(!struct.namespace.empty)$
+    using namespace $struct.namespace$;
     $endif$
 
     static_cast<void>(data);
@@ -688,8 +688,8 @@ eProsima_user_DllExport void serialize(
         eprosima::fastcdr::Cdr& scdr,
         const ::$struct.scopedname$& data)
 {
-    $if(!struct.scope.empty)$
-    using namespace $struct.scope$;
+    $if(!struct.namespace.empty)$
+    using namespace $struct.namespace$;
     $endif$
 
     eprosima::fastcdr::Cdr::state current_state(scdr);
@@ -715,8 +715,8 @@ eProsima_user_DllExport void deserialize(
         eprosima::fastcdr::Cdr& cdr,
         ::$struct.scopedname$& data)
 {
-    $if(!struct.scope.empty)$
-    using namespace $struct.scope$;
+    $if(!struct.namespace.empty)$
+    using namespace $struct.namespace$;
     $endif$
 
     cdr.deserialize_type(eprosima::fastcdr::CdrVersion::XCDRv2 == cdr.get_cdr_version() ?
