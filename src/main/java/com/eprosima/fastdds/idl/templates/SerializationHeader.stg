@@ -34,6 +34,7 @@ extern bool g_$ctx.filename$_test_empty_ext;
 
 struct_type(ctx, parent, struct, member_list) ::= <<
 $member_list$
+$if(!struct.declaredInsideInterface)$
 $if((ctx.generateTypesC))$
 void free_string$struct.name$(
         $struct.name$* topic);
@@ -52,11 +53,12 @@ int compare$struct.name$(
 
 $struct.name$ createKey$struct.name$(
         int idx);
-
+$endif$
 >>
 
 union_type(ctx, parent, union, switch_type) ::= <<
 $switch_type$
+$if(!union.declaredInsideInterface)$
 void print$union.name$(
         $union.name$* topic);
 
@@ -66,10 +68,11 @@ void initialize$union.name$(
 int compare$union.name$(
         $union.name$* a,
         $union.name$* b);
-
+$endif$
 >>
 
 bitmask_type(ctx, parent, bitmask) ::= <<
+$if(!bitmask.declaredInsideInterface)$
 void print$bitmask.name$(
         $bitmask.name$* topic);
 
@@ -79,10 +82,11 @@ void initialize$bitmask.name$(
 int compare$bitmask.name$(
         $bitmask.name$* a,
         $bitmask.name$* b);
-
+$endif$
 >>
 
 bitset_type(ctx, parent, bitset) ::= <<
+$if(!bitset.declaredInsideInterface)$
 void print$bitset.name$(
         $bitset.name$* topic);
 
@@ -92,7 +96,7 @@ void initialize$bitset.name$(
 int compare$bitset.name$(
         $bitset.name$* a,
         $bitset.name$* b);
-
+$endif$
 >>
 
 module(ctx, parent, module, definition_list) ::= <<

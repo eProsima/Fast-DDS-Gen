@@ -98,7 +98,7 @@ $if(struct.hasScope)$} // namespace $struct.scope$$endif$
 
 struct_type(ctx, parent, struct, member_list) ::= <<
 $member_list$
-$if(!struct.annotationNested)$
+$if(!struct.parent.annotatedAsNested)$
 
 std::ostream& operator<<(std::ostream& stream, $struct.cppTypename$& e)
 {

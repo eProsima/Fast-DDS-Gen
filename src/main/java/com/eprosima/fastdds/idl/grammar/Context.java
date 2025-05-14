@@ -88,6 +88,9 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
         AnnotationDeclaration keyann = this.createAnnotationDeclaration(Annotation.eprosima_key_str, null);
         keyann.addMember(new AnnotationMember(Annotation.value_str, new PrimitiveTypeCode(Kind.KIND_BOOLEAN), Annotation.true_str));
 
+        // Create default @feed annotation.
+        AnnotationDeclaration feed_ann = this.createAnnotationDeclaration(com.eprosima.fastdds.idl.grammar.Annotation.rpc_feed_str, null);
+        feed_ann.addMember(new AnnotationMember(Annotation.value_str, new PrimitiveTypeCode(Kind.KIND_BOOLEAN), Annotation.true_str));
     }
 
     public void setTypelimitation(
@@ -289,7 +292,9 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
     {
         super.addTypeDeclaration(typedecl);
 
-        if (typedecl.getTypeCode().getKind() == Kind.KIND_STRUCT && typedecl.isInScope())
+        boolean is_nested = typedecl.isAnnotatedAsNested();
+
+        if (typedecl.getTypeCode().getKind() == Kind.KIND_STRUCT && typedecl.isInScope() && !is_nested)
         {
             Annotation topicann = typedecl.getAnnotations().get("Topic");
 
@@ -304,6 +309,22 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
             }
         }
     }
+
+    @Override
+    public com.eprosima.idl.parser.tree.Exception createException(
+            String name,
+            Token token)
+    {
+        if (isInScopedFile())
+        {
+            there_is_at_least_one_exception = true;
+        }
+
+        Exception ex = new Exception(this, getScopeFile(), isInScopedFile(), getScope(), name, token);
+        addException(ex);
+        return ex;
+    }
+
 
     public boolean isClient()
     {
@@ -458,6 +479,49 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
         return there_is_at_least_one_struct || there_is_at_least_one_union;
     }
 
+    public boolean isThereIsException()
+    {
+        return there_is_at_least_one_exception;
+    }
+
+    public boolean isThereIsInterface()
+    {
+        return there_is_at_least_one_interface;
+    }
+
+    public void setThereIsInputFeed(
+            boolean value)
+    {
+        there_is_at_least_one_input_feed = value;
+    }
+
+    public boolean isThereIsInputFeed()
+    {
+        return there_is_at_least_one_input_feed;
+    }
+
+    public boolean setThereIsOutputFeed(
+            boolean value)
+    {
+        return there_is_at_least_one_output_feed = value;
+    }
+
+    public boolean isThereIsOutputFeed()
+    {
+        return there_is_at_least_one_output_feed;
+    }
+
+    public boolean setThereIsNonFeedOperation(
+            boolean value)
+    {
+        return there_is_at_least_one_non_feed_operation = value;
+    }
+
+    public boolean isThereIsNonFeedOperation()
+    {
+        return there_is_at_least_one_non_feed_operation;
+    }
+
     /*** Functions inherited from FastCDR Context ***/
 
     @Override
@@ -488,7 +552,7 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
             int beginindex = text.indexOf("=");
             return text.substring(beginindex + 1).trim();
         }
-        catch (Exception ex)
+        catch (java.lang.Exception ex)
         {
             System.out.println(ColorMessage.error() + "Getting version. " + ex.getMessage());
         }
@@ -720,6 +784,37 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
         return super.getAnnotationDeclaration(name);
     }
 
+    @Override
+    public Interface createInterface(
+            String name,
+            Token token)
+    {
+        Interface interfaceObject = new com.eprosima.fastdds.idl.grammar.Interface(
+                this, getScopeFile(), isInScopedFile(), getScope(), name, token);
+        there_is_at_least_one_interface = true;
+        addInterface(interfaceObject);
+        return interfaceObject;
+    }
+
+    @Override
+    public Operation createOperation(
+            String name,
+            Token token)
+    {
+        Operation operationObject = new Operation(this, getScopeFile(), isInScopedFile(), null, name, token);
+        return operationObject;
+    }
+
+    @Override
+    public Param createParam(
+            String name,
+            TypeCode typecode,
+            Param.Kind kind)
+    {
+        Param paramObject = new Param(name, typecode, kind);
+        return paramObject;
+    }
+
     //// Java block ////
     // Java package name.
     private String m_package = "";
@@ -756,4 +851,14 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
     private boolean there_is_at_least_one_struct = false;
 
     private boolean there_is_at_least_one_union = false;
+
+    private boolean there_is_at_least_one_exception = false;
+
+    private boolean there_is_at_least_one_input_feed = false;
+
+    private boolean there_is_at_least_one_output_feed = false;
+
+    private boolean there_is_at_least_one_non_feed_operation = false;
+
+    private boolean there_is_at_least_one_interface = false;
 }

@@ -24,6 +24,9 @@ $fileHeader(ctx=ctx,  file=[ctx.filename, "PubSubTypes.hpp"], description=["This
 #define FAST_DDS_GENERATED__$ctx.headerGuardName$_PUBSUBTYPES_HPP
 
 #include <fastdds/dds/core/policy/QosPolicies.hpp>
+$if(ctx.thereIsInterface)$
+#include <fastdds/dds/rpc/ServiceTypeSupport.hpp>
+$endif$
 #include <fastdds/dds/topic/TopicDataType.hpp>
 #include <fastdds/rtps/common/InstanceHandle.hpp>
 #include <fastdds/rtps/common/SerializedPayload.hpp>
@@ -97,6 +100,7 @@ inline size_t constexpr $struct.name$_offset_of()
 $endif$
 $endif$
 
+$if(!struct.parent.annotatedAsNested)$
 /*!
  * @brief This class represents the TopicDataType of the type $struct.name$ defined by the user in the IDL file.
  * @ingroup $ctx.trimfilename$
@@ -105,7 +109,7 @@ class $struct.name$PubSubType : public eprosima::fastdds::dds::TopicDataType
 {
 public:
 
-    typedef $struct.name$ type;
+    typedef ::$struct.scopedname$ type;
 
     eProsima_user_DllExport $struct.name$PubSubType();
 
@@ -229,6 +233,14 @@ $if(struct.isPlain)$
 
 $endif$
 };
+$endif$
+>>
+
+interface(ctx, parent, interface, export_list) ::= <<
+$export_list$
+$if(!interface.annotatedAsNested)$
+eProsima_user_DllExport eprosima::fastdds::dds::rpc::ServiceTypeSupport create_$interface.name$_service_type_support();
+$endif$
 >>
 
 //{ Fast DDS-Gen extensions

@@ -72,19 +72,27 @@ $register_type_identifier(typename=annotation.name)$
 >>
 
 bitmask_type(ctx, parent, bitmask) ::= <<
+$if(!bitmask.declaredInsideInterface)$
 $register_type_identifier(typename=bitmask.name)$
+$endif$
 >>
 
 bitset_type(ctx, parent, bitset) ::= <<
+$if(!bitset.declaredInsideInterface)$
 $register_type_identifier(typename=bitset.name)$
+$endif$
 >>
 
 enum_type(ctx, parent, enum) ::= <<
+$if(!enum.declaredInsideInterface)$
 $register_type_identifier(typename=enum.name)$
+$endif$
 >>
 
 struct_type(ctx, parent, struct, member_list) ::= <<
+$if(!struct.declaredInsideInterface)$
 $register_type_identifier(typename=struct.name)$
+$endif$
 >>
 
 typedef_decl(ctx, parent, typedefs, typedefs_type, declarator_type) ::= <<
@@ -95,7 +103,9 @@ $register_type_identifier(typename=typedef.name)$
 >>
 
 union_type(ctx, parent, union, extensions, switch_type) ::= <<
+$if(!union.declaredInsideInterface)$
 $register_type_identifier(typename=union.name)$
+$endif$
 >>
 
 /***** Utils *****/

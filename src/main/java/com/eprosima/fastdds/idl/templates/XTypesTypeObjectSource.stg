@@ -94,6 +94,7 @@ void register_$annotation.name$_type_identifier(
 >>
 
 bitmask_type(ctx, parent, bitmask) ::= <<
+$if(!bitmask.declaredInsideInterface)$
 void register_$bitmask.name$_type_identifier(
         TypeIdentifierPair& type_ids_$bitmask.name$)
 {
@@ -118,10 +119,12 @@ void register_$bitmask.name$_type_identifier(
         }
     }
 }
+$endif$
 >>
 
 
 bitset_type(ctx, parent, bitset, extensions) ::= <<
+$if(!bitset.declaredInsideInterface)$
 void register_$bitset.name$_type_identifier(
         TypeIdentifierPair& type_ids_$bitset.name$)
 {
@@ -144,10 +147,12 @@ void register_$bitset.name$_type_identifier(
         }
     }
 }
+$endif$
 >>
 
 
 enum_type(ctx, parent, enum) ::= <<
+$if(!enum.declaredInsideInterface)$
 void register_$enum.name$_type_identifier(
         TypeIdentifierPair& type_ids_$enum.name$)
 {
@@ -172,9 +177,11 @@ void register_$enum.name$_type_identifier(
         }
     }
 }
+$endif$
 >>
 
 struct_type(ctx, parent, struct, member_list) ::= <<
+$if(!struct.declaredInsideInterface)$
 // TypeIdentifier is returned by reference: dependent structures/unions are registered in this same method
 void register_$struct.name$_type_identifier(
         TypeIdentifierPair& type_ids_$struct.name$)
@@ -235,7 +242,7 @@ void register_$struct.name$_type_identifier(
                         "$struct.scopedname$ contains forward declarations (not yet supported).");
     $endif$
 }
-
+$endif$
 >>
 
 typedef_decl(ctx, parent, typedefs, typedefs_type, declarator_type) ::= <<
@@ -308,6 +315,7 @@ void register_$typedef.name$_type_identifier(
 >>
 
 union_type(ctx, parent, union, extensions, switch_type) ::= <<
+$if(!union.declaredInsideInterface)$
 // TypeIdentifier is returned by reference: dependent structures/unions are registered in this same method
 void register_$union.name$_type_identifier(
         TypeIdentifierPair& type_ids_$union.name$)
@@ -372,7 +380,7 @@ void register_$union.name$_type_identifier(
                         "$union.scopedname$ contains forward declarations (not yet supported).");
     $endif$
 }
-
+$endif$
 >>
 
 /***** Utils *****/

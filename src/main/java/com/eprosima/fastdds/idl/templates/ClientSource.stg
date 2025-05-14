@@ -1,0 +1,756 @@
+// Copyright 2025 Proyectos y Sistemas de Mantenimiento SL (eProsima).
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+group ProtocolHeader;
+
+import "eprosima.stg"
+import "com/eprosima/fastcdr/idl/templates/FastCdrCommon.stg"
+
+main(ctx, definitions) ::= <<
+$fileHeader(ctx=ctx,  file=[ctx.filename, "Client.cxx"], description=["Client implementation for interfaces"])$
+
+#include "$ctx.filename$Client.hpp"
+
+#include <atomic>
+#include <exception>
+#include <future>
+#include <map>
+#include <memory>
+#include <mutex>
+#include <queue>
+#include <stdexcept>
+#include <string>
+#include <thread>
+
+#include <fastdds/dds/domain/DomainParticipant.hpp>
+#include <fastdds/dds/domain/qos/RequesterQos.hpp>
+#include <fastdds/dds/publisher/DataWriter.hpp>
+#include <fastdds/dds/rpc/exceptions.hpp>
+#include <fastdds/dds/rpc/interfaces.hpp>
+#include <fastdds/dds/rpc/RequestInfo.hpp>
+#include <fastdds/dds/rpc/Requester.hpp>
+#include <fastdds/dds/rpc/Service.hpp>
+#include <fastdds/dds/rpc/ServiceTypeSupport.hpp>
+#include <fastdds/dds/subscriber/DataReader.hpp>
+#include <fastdds/rtps/common/Guid.hpp>
+#include <fastdds/rtps/common/WriteParams.hpp>
+
+#include "$ctx.filename$.hpp"
+#include "$ctx.filename$_details.hpp"
+#include "$ctx.filename$PubSubTypes.hpp"
+
+$definitions; separator="\n"$
+>>
+
+module(ctx, parent, module, definition_list) ::= <<
+namespace $module.name$ {
+
+$definition_list$
+
+} // namespace $module.name$
+
+>>
+
+interface(ctx, parent, interface, export_list) ::= <<
+$if(!interface.annotatedAsNested)$
+//{ interface $interface.name$
+
+namespace detail {
+
+namespace fdds = eprosima::fastdds::dds;
+namespace frpc = eprosima::fastdds::dds::rpc;
+namespace frtps = eprosima::fastdds::rtps;
+
+class $interface.name$Client : public $interface.name$
+{
+
+    using RequestType = $interface.name$_Request;
+    using ReplyType = $interface.name$_Reply;
+
+public:
+
+    $interface.name$Client(
+            fdds::DomainParticipant& part,
+            const char* service_name,
+            const fdds::RequesterQos& qos)
+        : $interface.name$()
+        , participant_(part)
+    {
+        // Register the service type support
+        auto service_type = create_$interface.name$_service_type_support();
+        auto ret = service_type.register_service_type(&participant_, "$interface.scopedname$");
+        if (ret != fdds::RETCODE_OK)
+        {
+            throw std::runtime_error("Error registering service type");
+        }
+
+        // Create the service
+        service_ = participant_.create_service(service_name, "$interface.scopedname$");
+        if (nullptr == service_)
+        {
+            throw std::runtime_error("Error creating service");
+        }
+
+        // Create the requester
+        requester_ = participant_.create_service_requester(service_, qos);
+        if (nullptr == requester_)
+        {
+            throw std::runtime_error("Error creating requester");
+        }
+
+        // Start the processing thread
+        start_thread();
+    }
+
+    ~$interface.name$Client() override
+    {
+        // Stop the processing thread
+        stop_thread();
+
+        // Destroy the requester
+        if (nullptr != requester_)
+        {
+            participant_.delete_service_requester(service_->get_service_name(), requester_);
+            requester_ = nullptr;
+        }
+
+        // Destroy the service
+        if (nullptr != service_)
+        {
+            participant_.delete_service(service_);
+            service_ = nullptr;
+        }
+    }
+
+private:
+
+    void start_thread()
+    {
+        stop_thread_ = false;
+        processing_thread_ = std::thread(&$interface.name$Client::run, this);
+    }
+
+    void stop_thread()
+    {
+        stop_thread_ = true;
+        if (processing_thread_.joinable())
+        {
+            processing_thread_.join();
+        }
+    }
+
+    void run()
+    {
+        while (!stop_thread_)
+        {
+            // Wait for a reply
+            if (requester_->get_requester_reader()->wait_for_unread_message({ 0, 100000000 }))
+            {
+                // Take and process the reply
+                frpc::RequestInfo req_info;
+                ReplyType reply;
+                auto ret = requester_->take_reply(&reply, req_info);
+                if (ret == fdds::RETCODE_OK)
+                {
+                    process_reply(reply, req_info);
+                }
+            }
+        }
+    }
+
+    void process_reply(
+            const ReplyType& reply,
+            const frpc::RequestInfo& req_info)
+    {
+        auto sample_id = req_info.related_sample_identity;
+        {
+            std::lock_guard<std::mutex> _(mtx_);
+            auto it = pending_results_.find(sample_id);
+            if (it != pending_results_.end())
+            {
+                bool should_erase = false;
+                it->second->process_reply(reply, req_info, should_erase);
+                if (should_erase)
+                {
+                    pending_results_.erase(it);
+                }
+            }
+        }
+    }
+
+    struct IReplyProcessor
+    {
+        frpc::RequestInfo info;
+
+        virtual ~IReplyProcessor() = default;
+
+        virtual void process_reply(
+                const ReplyType& reply,
+                const frpc::RequestInfo& req_info,
+                bool& should_remove) = 0;
+
+    };
+
+    fdds::DomainParticipant& participant_;
+    frpc::Service* service_ = nullptr;
+    frpc::Requester* requester_ = nullptr;
+    std::atomic<bool> stop_thread_{false};
+    std::thread processing_thread_;
+    std::mutex mtx_;
+    std::map<frtps::SampleIdentity, std::shared_ptr<IReplyProcessor\>> pending_results_;
+
+    //{ request helpers
+
+    template<typename T, typename TResult>
+    std::future<TResult> send_request_with_promise(
+            const RequestType& request,
+            std::shared_ptr<T> result,
+            std::promise<TResult>& promise)
+    {
+        if (fdds::RETCODE_OK == requester_->send_request((void*)&request, result->info))
+        {
+            std::lock_guard<std::mutex> _ (mtx_);
+            pending_results_[result->info.related_sample_identity] = result;
+        }
+        else
+        {
+            promise.set_exception(
+                std::make_exception_ptr(frpc::RpcBrokenPipeException(false)));
+        }
+
+        return promise.get_future();
+    }
+
+    template<typename T>
+    std::shared_ptr<T> send_request_with_reader(
+            const RequestType& request,
+            std::shared_ptr<T> result)
+    {
+        if (fdds::RETCODE_OK == requester_->send_request((void*)&request, result->info))
+        {
+            std::lock_guard<std::mutex> _ (mtx_);
+            pending_results_[result->info.related_sample_identity] = result;
+        }
+        else
+        {
+            result->set_exception(
+                std::make_exception_ptr(frpc::RpcBrokenPipeException(false)));
+        }
+
+        return result;
+    }
+
+    //} request helpers
+
+    //{ reply helpers
+
+    template<typename T>
+    static void set_invalid_reply(
+            T& exception_receiver)
+    {
+        exception_receiver.set_exception(
+            std::make_exception_ptr(frpc::RemoteInvalidArgumentError("An invalid reply was received")));
+    }
+
+    template<typename T>
+    static void set_remote_exception(
+            T& exception_receiver,
+            const frpc::RemoteExceptionCode_t& exception)
+    {
+        switch (exception)
+        {
+            case frpc::RemoteExceptionCode_t::REMOTE_EX_OK:
+                set_invalid_reply(exception_receiver);
+                break;
+            case frpc::RemoteExceptionCode_t::REMOTE_EX_UNSUPPORTED:
+                exception_receiver.set_exception(std::make_exception_ptr(frpc::RemoteUnsupportedError()));
+                break;
+            case frpc::RemoteExceptionCode_t::REMOTE_EX_INVALID_ARGUMENT:
+                exception_receiver.set_exception(std::make_exception_ptr(frpc::RemoteInvalidArgumentError()));
+                break;
+            case frpc::RemoteExceptionCode_t::REMOTE_EX_OUT_OF_RESOURCES:
+                exception_receiver.set_exception(std::make_exception_ptr(frpc::RemoteOutOfResourcesError()));
+                break;
+            case frpc::RemoteExceptionCode_t::REMOTE_EX_UNKNOWN_OPERATION:
+                exception_receiver.set_exception(std::make_exception_ptr(frpc::RemoteUnknownOperationError()));
+                break;
+            default: // REMOTE_EX_UNKNOWN_EXCEPTION
+                exception_receiver.set_exception(std::make_exception_ptr(frpc::RemoteUnknownExceptionError()));
+                break;
+        }
+    }
+
+    static size_t count_reply_fields(
+            const ReplyType& reply)
+    {
+        size_t n_fields = 0;
+        $interface.replyTypeCode.members:{member | n_fields += reply.$member.name$.has_value() ? 1 : 0;}; separator="\n"$
+        return n_fields;
+    }
+
+    template<typename T>
+    static bool validate_reply(
+            std::promise<T>& promise,
+            const ReplyType& reply)
+    {
+        // Check if the reply has one and only one field set
+        size_t n_fields = count_reply_fields(reply);
+        if (n_fields != 1u)
+        {
+            set_invalid_reply(promise);
+            return false;
+        }
+
+        return true;
+    }
+
+    struct IExceptionHolder
+    {
+        virtual ~IExceptionHolder() = default;
+
+        virtual void set_exception(
+                std::exception_ptr exception) = 0;
+    };
+
+    static bool validate_reply(
+            IExceptionHolder& reader,
+            const ReplyType& reply)
+    {
+        // Check if the reply has one and only one field set
+        size_t n_fields = count_reply_fields(reply);
+        if (n_fields != 1u)
+        {
+            set_invalid_reply(reader);
+            return false;
+        }
+        return true;
+    }
+
+    //} reply helpers
+
+$interface.all_operations : { operation | $operation_details(interface, operation)$ }; separator="\n"$
+
+};
+
+}  // namespace detail
+
+std::shared_ptr<$interface.name$> create_$interface.name$Client(
+        eprosima::fastdds::dds::DomainParticipant& part,
+        const char* service_name,
+        const eprosima::fastdds::dds::RequesterQos& qos)
+{
+    return std::make_shared<detail::$interface.name$Client>(part, service_name, qos);
+}
+
+//} interface $interface.name$Client
+$endif$
+>>
+
+operation_details(parent, operation) ::= <<
+    //{ operation $operation.name$
+
+public:
+
+    $operationRetType(operation)$ $operation.name$(
+            $paramDeclarations(params=operation.parameters)$) override
+    {
+$if(operation.annotationFeed)$
+        // Create a reader to hold the result
+        auto result = std::make_shared<$operation.name$_reader>(requester_);
+$else$
+        // Create a promise to hold the result
+        auto result = std::make_shared<$operation.name$_promise>();
+        $if(operation.outputparam)$
+        $operation.outputparam:{param | result->$param.name$ = &$param.name$;}; separator="\n"$
+        $endif$
+$endif$
+
+        // Create and send the request
+        RequestType request;
+        request.$operation.name$ = $operation.inTypeCode.scopedname${};
+        $if(operation.inputparam)$
+        $operation.inputparam:{param | $fill_input_param(operation, param)$}; separator="\n"$
+        $endif$
+
+$if(operation.annotationFeed)$
+        return send_request_with_reader(request, result);
+$else$
+        return send_request_with_promise(request, result, result->promise);
+$endif$
+    }
+
+private:
+
+$if(operation.annotationFeed)$
+    struct $operation.name$_reader
+        : public frpc::RpcClientReader<$paramRetType(operation.rettype)$>
+        , public IReplyProcessor
+        , public IExceptionHolder
+    {
+        $operation.name$_reader(
+                frpc::Requester* requester)
+            : requester_(requester)
+        {
+        }
+
+        void process_reply(
+                const ReplyType& reply,
+                const frpc::RequestInfo& req_info,
+                bool& should_remove) override
+        {
+            should_remove = false;
+            // Check if the reply is for this operation
+            if (req_info.related_sample_identity != info.related_sample_identity)
+            {
+                return;
+            }
+
+            // Avoid processing replies from different writers
+            if (frtps::GUID_t::unknown() == writer_id_)
+            {
+                writer_id_ = req_info.sample_identity.writer_guid();
+            }
+            else if (writer_id_ != req_info.sample_identity.writer_guid())
+            {
+                return;
+            }
+
+            should_remove = true;
+            if (!validate_reply(*this, reply))
+            {
+                return;
+            }
+
+            if (reply.remoteEx.has_value())
+            {
+                set_remote_exception(*this, reply.remoteEx.value());
+                return;
+            }
+
+            if (reply.$operation.name$.has_value())
+            {
+                const auto& result = reply.$operation.name$.value();
+                if (result.result.has_value())
+                {
+                    const auto& out = result.result.value();
+                    {
+                        if (out.finished_.has_value())
+                        {
+                            // Store the finished value
+                            std::lock_guard<std::mutex> _(mtx_);
+                            finished_ = true;
+                            cv_.notify_all();
+                        }
+                        else if (out.return_.has_value())
+                        {
+                            if (!cancelled_)
+                            {
+                                // Store the return value
+                                std::lock_guard<std::mutex> _(mtx_);
+                                queue_.push(out.return_.value());
+                                cv_.notify_all();
+                            }
+
+                            // Should be kept in order to receive further values
+                            should_remove = false;
+                        }
+                        else
+                        {
+                            set_invalid_reply(*this);
+                        }
+                    }
+                    return;
+                }
+                $operation.exceptions : { exception |$operation_result_exception(name=[exception.formatedScopedname, "_ex"], receiver="(*this)")$}; separator="\n"$
+            }
+
+            // If we reach this point, the reply is for another operation
+            set_invalid_reply(*this);
+        }
+
+        void set_exception(
+                std::exception_ptr exception)
+        {
+            std::lock_guard<std::mutex> _(mtx_);
+            if (!finished_)
+            {
+                exception_ = exception;
+                finished_ = true;
+                cv_.notify_all();
+            }
+        }
+
+        bool read(
+                $paramRetType(operation.rettype)$& value) override
+        {
+            bool ret_val = false;
+            std::unique_lock<std::mutex> lock(mtx_);
+            while (!try_read(value, ret_val))
+            {
+                cv_.wait(lock);
+            }
+            return ret_val;
+        }
+
+        bool read(
+                $paramRetType(operation.rettype)$& value,
+                const fdds::Duration_t& timeout) override
+        {
+            bool ret_val = false;
+            std::unique_lock<std::mutex> lock(mtx_);
+            std::chrono::steady_clock::time_point end_time =
+                std::chrono::steady_clock::now() +
+                std::chrono::seconds(timeout.seconds) +
+                std::chrono::nanoseconds(timeout.nanosec);
+            while (!try_read(value, ret_val))
+            {
+                cv_.wait_until(lock, end_time);
+            }
+            return ret_val;
+        }
+
+        void cancel() override
+        {
+            bool old_cancelled = cancelled_.exchange(true);
+            if (!old_cancelled)
+            {
+                // Notify read calls that the operation was cancelled
+                cv_.notify_all();
+
+                // Communicate the cancellation to the server and wait for it to be acknowledged
+                RequestType request;
+                request.feed_cancel_ = true;
+                frpc::RequestInfo req_info = info;
+                auto ret = requester_->send_request((void*)&request, req_info);
+                if (ret != fdds::RETCODE_OK)
+                {
+                    if (ret == fdds::RETCODE_TIMEOUT)
+                    {
+                        throw frpc::RpcTimeoutException();
+                    }
+                    else
+                    {
+                        throw frpc::RpcBrokenPipeException(false);
+                    }
+                }
+
+                // Wait for the server to acknowledge the cancellation
+                std::unique_lock<std::mutex> lock(mtx_);
+                while (!finished_)
+                {
+                    cv_.wait(lock);
+                }
+            }
+        }
+
+    private:
+
+        bool try_read(
+                $paramRetType(operation.rettype)$& value,
+                bool& ret_val)
+        {
+            // Early exit if the operation was cancelled
+            if (cancelled_)
+            {
+                ret_val = false;
+                return true;
+            }
+
+            // Retrieve one value from the queue
+            if (!queue_.empty())
+            {
+                value = queue_.front();
+                queue_.pop();
+                ret_val = true;
+                return true;
+            }
+
+            // Throw the exception if it was set
+            if (exception_)
+            {
+                auto ex = exception_;
+                exception_ = nullptr;
+                std::rethrow_exception(ex);
+            }
+
+            // Check if the operation was finished
+            if (finished_)
+            {
+                ret_val = false;
+                return true;
+            }
+
+            // Need to wait for a new value
+            return false;
+        }
+
+        frpc::Requester* requester_ = nullptr;
+        std::atomic<bool> cancelled_{false};
+        std::exception_ptr exception_;
+        std::queue<$paramRetType(operation.rettype)$> queue_;
+        bool finished_ = false;
+        std::mutex mtx_;
+        std::condition_variable cv_;
+        frtps::GUID_t writer_id_ = frtps::GUID_t::unknown();
+
+    };
+
+$else$
+    struct $operation.name$_promise : public IReplyProcessor
+    {
+        std::promise<$paramRetType(operation.rettype)$> promise;
+        $if(operation.outputparam)$
+        $operation.outputparam:{param | $param.typecode.cppTypename$* $param.name$ = nullptr;}; separator="\n"$
+        $endif$
+
+        void process_reply(
+                const ReplyType& reply,
+                const frpc::RequestInfo& req_info,
+                bool& should_remove) override
+        {
+            should_remove = false;
+            if (req_info.related_sample_identity != info.related_sample_identity)
+            {
+                return;
+            }
+
+            should_remove = true;
+            if (!validate_reply(promise, reply))
+            {
+                return;
+            }
+
+            if (reply.remoteEx.has_value())
+            {
+                set_remote_exception(promise, reply.remoteEx.value());
+                return;
+            }
+
+            if (reply.$operation.name$.has_value())
+            {
+                const auto& result = reply.$operation.name$.value();
+                if (result.result.has_value())
+                {
+                    const auto& out = result.result.value();
+                    $operation.outputparam:{param | *$param.name$ = out.$param.name$;}; separator="\n"$
+                    promise.set_value($if(operation.rettype)$out.return_$endif$);
+                    return;
+                }
+                $operation.exceptions : { exception |$operation_result_exception(name=[exception.formatedScopedname, "_ex"], receiver="promise")$}; separator="\n"$
+            }
+
+            // If we reach this point, the reply is for another operation
+            set_invalid_reply(promise);
+        }
+
+    };
+
+$endif$
+
+    $operation.inputparam:{param | $if(param.annotationFeed)$$input_feed_writer(operation, param)$$endif$}$
+
+    //} operation $operation.name$
+
+>>
+
+operationRetType(operation) ::= <%
+$if(operation.annotationFeed)$
+std::shared_ptr<eprosima::fastdds::dds::rpc::RpcClientReader<$paramRetType(operation.rettype)$>>
+$else$
+eprosima::fastdds::dds::rpc::RpcFuture<$paramRetType(operation.rettype)$>
+$endif$
+%>
+
+fill_input_param(operation, param) ::= <%
+$if(param.annotationFeed)$
+$param.name$ = std::make_shared<$operation.name$_$param.name$_writer>(requester_, result);
+$else$
+request.$operation.name$->$param.name$ = $param.name$;
+$endif$
+%>
+
+input_feed_writer(operation, param) ::= <<
+struct $operation.name$_$param.name$_writer : public frpc::RpcClientWriter<$paramRetType(param.typecode)$>
+{
+    using FeedType = $param.feedTypeCode.scopedname$;
+
+    $operation.name$_$param.name$_writer(
+            frpc::Requester* requester,
+            std::shared_ptr<IReplyProcessor> result)
+        : requester_(requester)
+        , result_(result)
+    {
+    }
+
+    void write(
+            const $paramRetType(param.typecode)$& value) override
+    {
+        RequestType request;
+        request.$operation.name$_$param.name$ = FeedType{};
+        request.$operation.name$_$param.name$->value = value;
+        send_request(request);
+    }
+
+    void write(
+            $paramRetType(param.typecode)$&& value) override
+    {
+        RequestType request;
+        request.$operation.name$_$param.name$ = FeedType{};
+        request.$operation.name$_$param.name$->value = value;
+        send_request(request);
+    }
+
+    void finish(
+            frpc::RpcStatusCode reason = frpc::RPC_STATUS_CODE_OK) override
+    {
+        RequestType request;
+        request.$operation.name$_$param.name$ = FeedType{};
+        request.$operation.name$_$param.name$->finished_ = reason;
+        send_request(request);
+    }
+
+private:
+
+    void send_request(
+            const RequestType& request)
+    {
+        frpc::RequestInfo req_info = result_->info;
+        auto ret = requester_->send_request((void*)&request, req_info);
+        if (ret != fdds::RETCODE_OK)
+        {
+            if (ret == fdds::RETCODE_TIMEOUT)
+            {
+                throw frpc::RpcTimeoutException();
+            }
+            else
+            {
+                throw frpc::RpcBrokenPipeException(false);
+            }
+        }
+    }
+
+    frpc::Requester* requester_ = nullptr;
+    std::shared_ptr<IReplyProcessor> result_;
+};
+
+>>
+
+operation_result_exception(name, receiver) ::= <<
+if (result.$name$.has_value())
+{
+    $receiver$.set_exception(
+        std::make_exception_ptr(result.$name$.value()));
+    return;
+}
+>>

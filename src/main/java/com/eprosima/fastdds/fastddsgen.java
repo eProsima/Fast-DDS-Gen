@@ -802,10 +802,16 @@ public class fastddsgen
             // Load Types common templates
             if (generate_typesupport_)
             {
+                tmanager.addGroup("com/eprosima/fastdds/idl/templates/InterfaceDetails.stg");
                 tmanager.addGroup("com/eprosima/fastdds/idl/templates/TypesCdrAuxHeader.stg");
                 tmanager.addGroup("com/eprosima/fastdds/idl/templates/TypesCdrAuxHeaderImpl.stg");
                 tmanager.addGroup("com/eprosima/fastdds/idl/templates/DDSPubSubTypeHeader.stg");
                 tmanager.addGroup("com/eprosima/fastdds/idl/templates/DDSPubSubTypeSource.stg");
+                tmanager.addGroup("com/eprosima/fastdds/idl/templates/ClientHeader.stg");
+                tmanager.addGroup("com/eprosima/fastdds/idl/templates/ClientSource.stg");
+                tmanager.addGroup("com/eprosima/fastdds/idl/templates/ServerHeader.stg");
+                tmanager.addGroup("com/eprosima/fastdds/idl/templates/ServerSource.stg");
+                tmanager.addGroup("com/eprosima/fastdds/idl/templates/ServerImplementation.stg");
 
                 if (generate_typeobjectsupport_)
                 {
@@ -1014,7 +1020,15 @@ public class fastddsgen
                         }
                     }
 
-                    if (ctx.isThereIsStructOrUnion())
+                    if (ctx.isThereIsInterface())
+                    {
+                        // Generate Interface details
+                        returnedValue &=
+                            Utils.writeFile(output_dir + ctx.getFilename() + "_details.hpp",
+                                    maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/InterfaceDetails.stg"), m_replace);
+                    }
+
+                    if (ctx.isThereIsStructOrUnion() || ctx.isThereIsException())
                     {
                         if (returnedValue &=
                                 Utils.writeFile(output_dir + ctx.getFilename() + "CdrAux.hpp",
@@ -1030,16 +1044,13 @@ public class fastddsgen
                         Utils.writeFile(output_dir + ctx.getFilename() + "PubSubTypes.hpp",
                                 maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/DDSPubSubTypeHeader.stg"), m_replace);
                     project.addCommonIncludeFile(relative_dir + ctx.getFilename() + "PubSubTypes.hpp");
-                    if (ctx.existsLastStructure())
+                    if (returnedValue &=
+                            Utils.writeFile(output_dir + ctx.getFilename() + "PubSubTypes.cxx",
+                                maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/DDSPubSubTypeSource.stg"), m_replace))
                     {
-                        m_atLeastOneStructure = true;
-                        project.setHasStruct(true);
-
-                        if (returnedValue &=
-                                Utils.writeFile(output_dir + ctx.getFilename() + "PubSubTypes.cxx",
-                                    maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/DDSPubSubTypeSource.stg"), m_replace))
+                        project.addCommonSrcFile(relative_dir + ctx.getFilename() + "PubSubTypes.cxx");
+                        if (ctx.existsLastStructure() || ctx.isThereIsInterface())
                         {
-                            project.addCommonSrcFile(relative_dir + ctx.getFilename() + "PubSubTypes.cxx");
                             if (m_python)
                             {
                                 System.out.println("Generating Swig interface files...");
@@ -1048,6 +1059,44 @@ public class fastddsgen
                                         maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/DDSPubSubTypeSwigInterface.stg"), m_replace);
                             }
                         }
+                    }
+
+                    // Generate client code for interfaces
+                    if (ctx.isThereIsInterface())
+                    {
+                        if (returnedValue &=
+                                Utils.writeFile(output_dir + ctx.getFilename() + "Client.hpp",
+                                    maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/ClientHeader.stg"), m_replace))
+                        {
+                            project.addCommonIncludeFile(relative_dir + ctx.getFilename() + "Client.hpp");
+                        }
+                        if (returnedValue &=
+                                Utils.writeFile(output_dir + ctx.getFilename() + "Client.cxx",
+                                    maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/ClientSource.stg"), m_replace))
+                        {
+                            project.addCommonSrcFile(relative_dir + ctx.getFilename() + "Client.cxx");
+                        }
+                        if (returnedValue &=
+                                Utils.writeFile(output_dir + ctx.getFilename() + "Server.hpp",
+                                    maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/ServerHeader.stg"), m_replace))
+                        {
+                            project.addCommonIncludeFile(relative_dir + ctx.getFilename() + "Server.hpp");
+                        }
+                        if (returnedValue &=
+                                Utils.writeFile(output_dir + ctx.getFilename() + "Server.cxx",
+                                    maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/ServerSource.stg"), m_replace))
+                        {
+                            project.addCommonSrcFile(relative_dir + ctx.getFilename() + "Server.cxx");
+                        }
+                        returnedValue &=
+                            Utils.writeFile(output_dir + ctx.getFilename() + "ServerImpl.hpp",
+                                maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/ServerImplementation.stg"), m_replace);
+                    }
+
+                    if (ctx.existsLastStructure())
+                    {
+                        m_atLeastOneStructure = true;
+                        project.setHasStruct(true);
 
                         if (m_exampleOption != null)
                         {
