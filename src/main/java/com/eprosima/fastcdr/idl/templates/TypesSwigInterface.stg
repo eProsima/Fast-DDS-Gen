@@ -101,10 +101,28 @@ $endif$
 %import(module="fastdds") "fastdds/dds/core/LoanableSequence.hpp"
 
 $if(ctx.thereIsInterface)$
+%include <std_shared_ptr.i>
+%include <std_pair.i>
 %import(module="fastdds") "fastdds/dds/rpc/exceptions/RpcException.hpp"
 %import(module="fastdds") "fastdds/dds/rpc/exceptions/RpcOperationError.hpp"
 %import(module="fastdds") "fastdds/dds/rpc/interfaces/RpcClientReader.hpp"
-%include <std_shared_ptr.i>
+
+%extend eprosima::fastdds::dds::rpc::RpcClientReader {
+    std::pair<bool, T> read(
+        const eprosima::fastdds::dds::Duration_t& timeout = eprosima::fastdds::dds::c_TimeInfinite)
+    {
+        std::pair<bool, T> ret_val{};
+        if (eprosima::fastdds::dds::c_TimeInfinite == timeout)
+        {
+            ret_val.first = self->read(ret_val.second);
+        }
+        else
+        {
+            ret_val.first = self->read(ret_val.second, timeout);
+        }
+        return ret_val;
+    }
+}
 $endif$
 
 %define %traits_penumn(Type...)
@@ -305,6 +323,7 @@ $export_list$
 operation(ctx, parent, operation, param_list, operation_type) ::= <<
 $if(operation.annotationFeed)$
 %shared_ptr(eprosima::fastdds::dds::rpc::RpcClientReader<$paramRetType(operation.rettype)$>);
+%template($parent.name$_$operation.name$_result_pair) std::pair<bool, $paramRetType(operation.rettype)$>;
 %template($parent.name$_$operation.name$_result) eprosima::fastdds::dds::rpc::RpcClientReader<$paramRetType(operation.rettype)$>;
 $else$
 %shared_ptr(eprosima::fastdds::dds::rpc::RpcFuture<$paramRetType(operation.rettype)$>);
