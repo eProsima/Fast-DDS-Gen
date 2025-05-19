@@ -14,6 +14,7 @@
 
 package com.eprosima.fastdds.idl.grammar;
 
+import com.eprosima.fastdds.idl.grammar.Operation;
 import com.eprosima.fastdds.idl.parser.typecode.AliasTypeCode;
 import com.eprosima.fastdds.idl.parser.typecode.ArrayTypeCode;
 import com.eprosima.fastdds.idl.parser.typecode.BitmaskTypeCode;
@@ -47,14 +48,35 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.AbstractMap;
 import java.util.AbstractMap.SimpleEntry;
+import java.util.HashMap;
 import java.util.Stack;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.antlr.v4.runtime.Token;
 
-
 public class Context extends com.eprosima.idl.context.Context implements com.eprosima.fastcdr.idl.context.Context
 {
+
+    public class TypeNamePair
+    {
+        public TypeNamePair(TypeCode type)
+        {
+            if (null != type)
+            {
+                this.cppTypename = type.getCppTypename();
+                this.formatedCppTypename = type.getFormatedCppTypename();
+            }
+            else
+            {
+                this.cppTypename = "void";
+                this.formatedCppTypename = "void";
+            }
+        }
+
+        public String cppTypename;
+        public String formatedCppTypename;
+    }
+
     // TODO Remove middleware parameter. It is temporal while cdr and rest don't have async functions.
     public Context(
             TemplateManager tmanager,
@@ -500,26 +522,46 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
         return there_is_at_least_one_input_feed;
     }
 
-    public boolean setThereIsOutputFeed(
-            boolean value)
-    {
-        return there_is_at_least_one_output_feed = value;
-    }
-
     public boolean isThereIsOutputFeed()
     {
-        return there_is_at_least_one_output_feed;
-    }
-
-    public boolean setThereIsNonFeedOperation(
-            boolean value)
-    {
-        return there_is_at_least_one_non_feed_operation = value;
+        return !m_output_feed_types.isEmpty();
     }
 
     public boolean isThereIsNonFeedOperation()
     {
-        return there_is_at_least_one_non_feed_operation;
+        return !m_output_non_feed_types.isEmpty();
+    }
+
+    public void operationAdded(
+            Operation op)
+    {
+        TypeNamePair type_pair = new TypeNamePair(op.getRettype());
+        if (op.isAnnotationFeed())
+        {
+            m_output_feed_types.putIfAbsent(type_pair.cppTypename, type_pair);
+        }
+        else
+        {
+            m_output_non_feed_types.putIfAbsent(type_pair.cppTypename, type_pair);
+        }
+    }
+
+    /*!
+     * @ingroup api_for_stg
+     * @brief This function returns the list of types used in output feeds.
+     */
+    public ArrayList<TypeNamePair> getOutputFeedTypes()
+    {
+        return new ArrayList<TypeNamePair>(m_output_feed_types.values());
+    }
+
+    /*!
+     * @ingroup api_for_stg
+     * @brief This function returns the list of types used as operation return types.
+     */
+    public ArrayList<TypeNamePair> getOutputNonFeedTypes()
+    {
+        return new ArrayList<TypeNamePair>(m_output_non_feed_types.values());
     }
 
     /*** Functions inherited from FastCDR Context ***/
@@ -856,9 +898,9 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
 
     private boolean there_is_at_least_one_input_feed = false;
 
-    private boolean there_is_at_least_one_output_feed = false;
+    private Map<String, TypeNamePair> m_output_feed_types = new HashMap<String, TypeNamePair>();
 
-    private boolean there_is_at_least_one_non_feed_operation = false;
+    private Map<String, TypeNamePair> m_output_non_feed_types = new HashMap<String, TypeNamePair>();
 
     private boolean there_is_at_least_one_interface = false;
 }

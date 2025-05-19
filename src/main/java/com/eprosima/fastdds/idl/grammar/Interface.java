@@ -39,12 +39,9 @@ public class Interface extends com.eprosima.idl.parser.tree.Interface
             if (op.isAnnotationFeed())
             {
                 m_hasOutputFeeds = true;
-                m_context.setThereIsOutputFeed(true);
             }
-            else
-            {
-                m_context.setThereIsNonFeedOperation(true);
-            }
+
+            m_context.operationAdded(op);
         }
 
         super.add(exp);
