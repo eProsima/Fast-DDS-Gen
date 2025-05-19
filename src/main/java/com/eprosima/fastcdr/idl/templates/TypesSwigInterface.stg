@@ -38,38 +38,6 @@ $fileHeader(ctx=ctx, file=[ctx.filename, ".i"], description=["This header file c
 %include "std_vector.i"
 %include "typemaps.i"
 
-$if(ctx.thereIsNonFeedOperation)$
-// Code for std::future taken from https://github.com/swig/swig/issues/1828#issuecomment-648449092
-namespace eprosima::fastdds::dds::rpc
-{
-template <class R>
-class RpcFuture {
- public:
-    RpcFuture() noexcept;
-    RpcFuture(RpcFuture &&) noexcept;
-    RpcFuture(const RpcFuture& rhs) = delete;
-    ~RpcFuture();
-    RpcFuture& operator=(const RpcFuture& rhs) = delete;
-    RpcFuture& operator=(RpcFuture&&) noexcept;
- 
-    // retrieving the value
-    R get();
- 
-    // functions to check state
-    bool valid() const noexcept;
-    void wait() const;
-
-/*
-    template <class Rep, class Period>
-    future_status wait_for(const chrono::duration<Rep, Period>& rel_time) const;
-    template <class Clock, class Duration>
-    future_status wait_until(const chrono::time_point<Clock, Duration>& abs_time) const;
-*/
-};
-
-}
-$endif$
-
 // Assignemt operators are ignored, as there is no such thing in Python.
 // Trying to export them issues a warning
 %ignore *::operator=;
@@ -105,8 +73,11 @@ $if(ctx.thereIsInterface)$
 %include <std_pair.i>
 %import(module="fastdds") "fastdds/dds/rpc/exceptions/RpcException.hpp"
 %import(module="fastdds") "fastdds/dds/rpc/exceptions/RpcOperationError.hpp"
-%import(module="fastdds") "fastdds/dds/rpc/interfaces/RpcClientReader.hpp"
 
+$if(ctx.thereIsOutputFeed)$
+%ignore eprosima::fastdds::dds::rpc::RpcClientReader::read(T&);
+%ignore eprosima::fastdds::dds::rpc::RpcClientReader::read(T&,eprosima::fastdds::dds::Duration_t&);
+%import(module="fastdds") "fastdds/dds/rpc/interfaces/RpcClientReader.hpp"
 %extend eprosima::fastdds::dds::rpc::RpcClientReader {
     std::pair<bool, T> read(
         const eprosima::fastdds::dds::Duration_t& timeout = eprosima::fastdds::dds::c_TimeInfinite)
@@ -123,6 +94,42 @@ $if(ctx.thereIsInterface)$
         return ret_val;
     }
 }
+
+$ctx.outputFeedTypes : {feed_type | $output_feed(feed_type)$}; separator="\n\n"$
+$endif$
+$if(ctx.thereIsNonFeedOperation)$
+// Code for std::future taken from https://github.com/swig/swig/issues/1828#issuecomment-648449092
+namespace eprosima::fastdds::dds::rpc
+{
+template <class R>
+class RpcFuture {
+ public:
+    RpcFuture() noexcept;
+    RpcFuture(RpcFuture &&) noexcept;
+    RpcFuture(const RpcFuture& rhs) = delete;
+    ~RpcFuture();
+    RpcFuture& operator=(const RpcFuture& rhs) = delete;
+    RpcFuture& operator=(RpcFuture&&) noexcept;
+ 
+    // retrieving the value
+    R get();
+ 
+    // functions to check state
+    bool valid() const noexcept;
+    void wait() const;
+
+/*
+    template <class Rep, class Period>
+    future_status wait_for(const chrono::duration<Rep, Period>& rel_time) const;
+    template <class Clock, class Duration>
+    future_status wait_until(const chrono::time_point<Clock, Duration>& abs_time) const;
+*/
+};
+
+}
+
+$ctx.outputNonFeedTypes : {non_feed_type | $output_non_feed(non_feed_type)$}; separator="\n\n"$
+$endif$
 $endif$
 
 %define %traits_penumn(Type...)
@@ -320,14 +327,9 @@ $export_list$
 %shared_ptr($interface.scopedname$ServerImplementation);
 >>
 
-operation(ctx, parent, operation, param_list, operation_type) ::= <<
-$if(operation.annotationFeed)$
-%shared_ptr(eprosima::fastdds::dds::rpc::RpcClientReader<$paramRetType(operation.rettype)$>);
-%template($parent.name$_$operation.name$_result_pair) std::pair<bool, $paramRetType(operation.rettype)$>;
-%template($parent.name$_$operation.name$_result) eprosima::fastdds::dds::rpc::RpcClientReader<$paramRetType(operation.rettype)$>;
-$else$
-%shared_ptr(eprosima::fastdds::dds::rpc::RpcFuture<$paramRetType(operation.rettype)$>);
-%template($parent.name$_$operation.name$_result) eprosima::fastdds::dds::rpc::RpcFuture<$paramRetType(operation.rettype)$>;
+output_non_feed(type) ::= <<
+%shared_ptr(eprosima::fastdds::dds::rpc::RpcFuture<$type.cppTypename$>);
+%template($type.formatedCppTypename$_rpc_future) eprosima::fastdds::dds::rpc::RpcFuture<$type.cppTypename$>;
 
 $! 
 // Combine the typemap from shared_ptr
@@ -335,9 +337,14 @@ $!
 // with the use of the 'optimal' attribute to avoid the need for a copy constructor, inspired by
 // https://github.com/swig/swig/issues/1828#issuecomment-648449092
 !$
-%typemap(out, optimal="1") eprosima::fastdds::dds::rpc::RpcFuture<$paramRetType(operation.rettype)$> {
+%typemap(out, optimal="1") eprosima::fastdds::dds::rpc::RpcFuture<$type.cppTypename$> {
   std::shared_ptr<\$1_ltype> *smartresult = new std::shared_ptr<\$1_ltype>(new \$1_ltype(\$1));
-  \$result = SWIG_NewPointerObj(SWIG_as_voidptr(smartresult), \$descriptor(std::shared_ptr< eprosima::fastdds::dds::rpc::RpcFuture<$paramRetType(operation.rettype)$\>> *), SWIG_POINTER_OWN);
+  \$result = SWIG_NewPointerObj(SWIG_as_voidptr(smartresult), \$descriptor(std::shared_ptr< eprosima::fastdds::dds::rpc::RpcFuture<$type.cppTypename$\>> *), SWIG_POINTER_OWN);
 }
-$endif$
+>>
+
+output_feed(type) ::= <<
+%shared_ptr(eprosima::fastdds::dds::rpc::RpcClientReader<$type.cppTypename$>);
+%template($type.formatedCppTypename$_client_reader_result) std::pair<bool, $type.cppTypename$>;
+%template($type.formatedCppTypename$_client_reader) eprosima::fastdds::dds::rpc::RpcClientReader<$type.cppTypename$>;
 >>
