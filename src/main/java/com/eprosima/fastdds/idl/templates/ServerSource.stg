@@ -138,7 +138,9 @@ public:
         finish_condition_.set_trigger_value(false);
         fdds::WaitSet waitset;
         waitset.attach_condition(finish_condition_);
-        waitset.attach_condition(replier_->get_replier_reader()->get_statuscondition());
+        fdds::StatusCondition& status_condition = replier_->get_replier_reader()->get_statuscondition();
+        status_condition.set_enabled_statuses(fdds::StatusMask::data_available());
+        waitset.attach_condition(status_condition);
 
         while (true)
         {
