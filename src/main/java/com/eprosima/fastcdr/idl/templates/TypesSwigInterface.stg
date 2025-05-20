@@ -69,10 +69,31 @@ $endif$
 %import(module="fastdds") "fastdds/dds/core/LoanableSequence.hpp"
 
 $if(ctx.thereIsInterface)$
+%include <exception.i>
 %include <std_shared_ptr.i>
 %include <std_pair.i>
+
 %import(module="fastdds") "fastdds/dds/rpc/exceptions/RpcException.hpp"
 %import(module="fastdds") "fastdds/dds/rpc/exceptions/RpcOperationError.hpp"
+
+%exception {
+    try
+    {
+        \$action
+    }
+    catch (const eprosima::fastdds::dds::rpc::RpcException& ex)
+    {
+        SWIG_exception(SWIG_RuntimeError, ex.what());
+    }
+    catch (const std::exception& ex)
+    {
+        SWIG_exception(SWIG_RuntimeError, ex.what());
+    }
+    catch (...)
+    {
+        SWIG_exception(SWIG_RuntimeError,"Unknown exception");
+    }
+}
 
 $if(ctx.thereIsOutputFeed)$
 %ignore eprosima::fastdds::dds::rpc::RpcClientReader::read(T&);
@@ -97,6 +118,7 @@ $if(ctx.thereIsOutputFeed)$
 
 $ctx.outputFeedTypes : {feed_type | $output_feed(feed_type)$}; separator="\n\n"$
 $endif$
+
 $if(ctx.thereIsNonFeedOperation)$
 // Code for std::future taken from https://github.com/swig/swig/issues/1828#issuecomment-648449092
 namespace eprosima::fastdds::dds::rpc
@@ -130,12 +152,15 @@ class RpcFuture {
 
 $ctx.outputNonFeedTypes : {non_feed_type | $output_non_feed(non_feed_type)$}; separator="\n\n"$
 $endif$
+
 $if(ctx.thereIsInputFeed)$
 %import(module="fastdds") "fastdds/dds/rpc/interfaces/RpcClientWriter.hpp"
 %import(module="fastdds") "fastdds/dds/rpc/interfaces/RpcStatusCode.hpp"
 
 $ctx.inputFeedTypes : {feed_type | $input_feed(feed_type)$}; separator="\n\n"$
 $endif$
+
+%exception;
 $endif$
 
 %define %traits_penumn(Type...)
