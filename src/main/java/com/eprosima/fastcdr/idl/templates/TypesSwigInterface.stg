@@ -353,10 +353,12 @@ interface(ctx, parent, interface, export_list) ::= <<
 $export_list$
 
 %shared_ptr($interface.scopedname$);
+$if(!interface.annotatedAsNested)$
 %shared_ptr($interface.scopedname$Server);
 %shared_ptr($interface.scopedname$Server_IServerImplementation);
 %shared_ptr($interface.scopedname$ServerImplementation);
 %feature("director") $interface.scopedname$ServerImplementation;
+$endif$
 >>
 
 output_non_feed(type) ::= <<
