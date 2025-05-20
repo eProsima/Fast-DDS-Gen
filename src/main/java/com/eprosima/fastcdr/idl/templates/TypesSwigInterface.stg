@@ -20,7 +20,7 @@ import "FastCdrCommon.stg"
 main(ctx, definitions) ::= <<
 $fileHeader(ctx=ctx, file=[ctx.filename, ".i"], description=["This header file contains the SWIG interface of the described types in the IDL file."])$
 
-%module(moduleimport="if __import__('os').name == 'nt': import win32api; win32api.LoadLibrary('$ctx.filename$.dll')\nif __package__ or '.' in __name__:\n    from . import _$ctx.filename$Wrapper\nelse:\n    import _$ctx.filename$Wrapper") $ctx.filename$
+%module(directors="1",moduleimport="if __import__('os').name == 'nt': import win32api; win32api.LoadLibrary('$ctx.filename$.dll')\nif __package__ or '.' in __name__:\n    from . import _$ctx.filename$Wrapper\nelse:\n    import _$ctx.filename$Wrapper") $ctx.filename$
 
 // If using windows in debug, it would try to use python_d, which would not be found.
 %begin %{
@@ -356,6 +356,7 @@ $export_list$
 %shared_ptr($interface.scopedname$Server);
 %shared_ptr($interface.scopedname$Server_IServerImplementation);
 %shared_ptr($interface.scopedname$ServerImplementation);
+%feature("director") $interface.scopedname$ServerImplementation;
 >>
 
 output_non_feed(type) ::= <<
