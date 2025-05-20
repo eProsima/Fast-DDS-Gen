@@ -313,7 +313,7 @@ public class fastddsgen
                 if (count < args.length)
                 {
                     String pathStr = args[count++];
-                    if (!isIncludePathDuplicated(pathStr)) 
+                    if (!isIncludePathDuplicated(pathStr))
                     {
                         m_includePaths.add("-I".concat(pathStr));
                     }
@@ -557,82 +557,41 @@ public class fastddsgen
         System.out.println(m_appName + " version " + version);
     }
 
-    private boolean isIncludePathDuplicated(String pathToCheck) 
+    private boolean isIncludePathDuplicated(String pathToCheck)
     {
-        try 
+        try
         {
             Path path = Paths.get(pathToCheck);
             String absPath = path.toAbsolutePath().toString();
             boolean isDuplicateFound = false;
-            for (String includePath : m_includePaths) 
+            for (String includePath : m_includePaths)
             {
                 // include paths are prefixed with "-I"
-                if (includePath.length() <= 2) 
+                if (includePath.length() <= 2)
                 {
                     continue;
                 }
                 String absIncludePath = Paths.get(includePath.substring(2)).toAbsolutePath().toString();
-                if (absPath.toLowerCase().equals(absIncludePath.toLowerCase())) 
+                if (absPath.toLowerCase().equals(absIncludePath.toLowerCase()))
                 {
                     isDuplicateFound = true;
                     break;
                 }
             }
-        
-            if (isDuplicateFound) 
+
+            if (isDuplicateFound)
             {
                 return true;
             }
-        
-        } 
-        catch (InvalidPathException | IOError | SecurityException ex) 
+
+        }
+        catch (InvalidPathException | IOError | SecurityException ex)
         {
             // path operations failed, just returning false
         }
-<<<<<<< HEAD
-        
+
         return false;
      }
-=======
-        return false;
-    }
-
-    /*
-     * ----------------------------------------------------------------------------------------
-     * Arguments
-     */
-    private static final String case_sensitive_arg = "-cs";
-    private static final String output_path_arg = "-d";
-    private static final String default_container_prealloc_size = "-default-container-prealloc-size";
-    private static final String default_extensibility_arg = "-default_extensibility";
-    private static final String default_extensibility_short_arg = "-de";
-    private static final String specific_platform_arg = "-example";
-    private static final String extra_template_arg = "-extrastg";
-    private static final String flat_output_directory_arg = "-flat-output-dir";
-    private static final String fusion_arg = "-fusion";
-    private static final String help_arg = "-help";
-    private static final String include_path_arg = "-I";
-    private static final String language_arg = "-language";
-    private static final String no_typesupport_arg = "-no-typesupport";
-    private static final String no_typeobjectsupport_arg = "-no-typeobjectsupport";
-    private static final String no_dependencies_arg = "-no-dependencies";
-    private static final String package_arg = "-package";
-    private static final String disable_preprocessor_arg = "-ppDisable";
-    private static final String preprocessor_path_arg = "-ppPath";
-    private static final String python_bindings_arg = "-python";
-    private static final String replace_arg = "-replace";
-    private static final String temp_dir_arg = "-t";
-    private static final String ros2_names_arg = "-typeros2";
-    private static final String cnames_arg = "-typesc";
-    private static final String version_arg = "-version";
-
-    /*
-     * ----------------------------------------------------------------------------------------
-     * Developer Arguments
-     */
-    private static final String generate_api_arg = "-genapi";
-    private static final String execute_test_arg = "-test";
->>>>>>> fbb0672 (Apply user template to included IDL files (#472) (#474))
 
     public static void printHelp()
     {
