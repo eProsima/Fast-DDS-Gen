@@ -85,7 +85,7 @@ public class Operation extends com.eprosima.idl.parser.tree.Operation
             else
             {
                 // Take note that there is at least one input feed
-                m_context.setThereIsInputFeed(true);
+                m_context.inputFeedAdded(p);
                 m_hasInputFeeds = true;
             }
         }

@@ -15,6 +15,7 @@
 package com.eprosima.fastdds.idl.grammar;
 
 import com.eprosima.fastdds.idl.grammar.Operation;
+import com.eprosima.fastdds.idl.grammar.Param;
 import com.eprosima.fastdds.idl.parser.typecode.AliasTypeCode;
 import com.eprosima.fastdds.idl.parser.typecode.ArrayTypeCode;
 import com.eprosima.fastdds.idl.parser.typecode.BitmaskTypeCode;
@@ -511,15 +512,25 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
         return there_is_at_least_one_interface;
     }
 
-    public void setThereIsInputFeed(
-            boolean value)
+    public void inputFeedAdded(
+            Param p)
     {
-        there_is_at_least_one_input_feed = value;
+        TypeNamePair type_pair = new TypeNamePair(p.getTypecode());
+        m_input_feed_types.putIfAbsent(type_pair.cppTypename, type_pair);
+    }
+
+    /*!
+     * @ingroup api_for_stg
+     * @brief This function returns the list of types used in input feeds.
+     */
+    public ArrayList<TypeNamePair> getInputFeedTypes()
+    {
+        return new ArrayList<TypeNamePair>(m_input_feed_types.values());
     }
 
     public boolean isThereIsInputFeed()
     {
-        return there_is_at_least_one_input_feed;
+        return !m_input_feed_types.isEmpty();
     }
 
     public boolean isThereIsOutputFeed()
@@ -896,7 +907,7 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
 
     private boolean there_is_at_least_one_exception = false;
 
-    private boolean there_is_at_least_one_input_feed = false;
+    private Map<String, TypeNamePair> m_input_feed_types = new HashMap<String, TypeNamePair>();
 
     private Map<String, TypeNamePair> m_output_feed_types = new HashMap<String, TypeNamePair>();
 

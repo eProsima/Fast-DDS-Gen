@@ -130,6 +130,12 @@ class RpcFuture {
 
 $ctx.outputNonFeedTypes : {non_feed_type | $output_non_feed(non_feed_type)$}; separator="\n\n"$
 $endif$
+$if(ctx.thereIsInputFeed)$
+%import(module="fastdds") "fastdds/dds/rpc/interfaces/RpcClientWriter.hpp"
+%import(module="fastdds") "fastdds/dds/rpc/interfaces/RpcStatusCode.hpp"
+
+$ctx.inputFeedTypes : {feed_type | $input_feed(feed_type)$}; separator="\n\n"$
+$endif$
 $endif$
 
 %define %traits_penumn(Type...)
@@ -347,4 +353,16 @@ output_feed(type) ::= <<
 %shared_ptr(eprosima::fastdds::dds::rpc::RpcClientReader<$type.cppTypename$>);
 %template($type.formatedCppTypename$_client_reader_result) std::pair<bool, $type.cppTypename$>;
 %template($type.formatedCppTypename$_client_reader) eprosima::fastdds::dds::rpc::RpcClientReader<$type.cppTypename$>;
+>>
+
+input_feed(type) ::= <<
+%shared_ptr(eprosima::fastdds::dds::rpc::RpcClientWriter<$type.cppTypename$>);
+%template($type.formatedCppTypename$_rpc_client_writer) eprosima::fastdds::dds::rpc::RpcClientWriter<$type.cppTypename$>;
+%typemap(in,numinputs=0) std::shared_ptr<eprosima::fastdds::dds::rpc::RpcClientWriter<$type.cppTypename$\>>& %{
+    \$1 = new std::shared_ptr<eprosima::fastdds::dds::rpc::RpcClientWriter<$type.cppTypename$\>>();
+%}
+%typemap(argout) std::shared_ptr<eprosima::fastdds::dds::rpc::RpcClientWriter<$type.cppTypename$\>>& (PyObject* tmp) %{
+    tmp = SWIG_NewPointerObj(\$1, \$1_descriptor, SWIG_POINTER_OWN);
+    \$result = SWIG_Python_AppendOutput(\$result, tmp);
+%}
 >>
