@@ -313,7 +313,7 @@ public class fastddsgen
                 if (count < args.length)
                 {
                     String pathStr = args[count++];
-                    if (!isIncludePathDuplicated(pathStr)) 
+                    if (!isIncludePathDuplicated(pathStr))
                     {
                         m_includePaths.add("-I".concat(pathStr));
                     }
@@ -557,39 +557,39 @@ public class fastddsgen
         System.out.println(m_appName + " version " + version);
     }
 
-    private boolean isIncludePathDuplicated(String pathToCheck) 
+    private boolean isIncludePathDuplicated(String pathToCheck)
     {
-        try 
+        try
         {
             Path path = Paths.get(pathToCheck);
             String absPath = path.toAbsolutePath().toString();
             boolean isDuplicateFound = false;
-            for (String includePath : m_includePaths) 
+            for (String includePath : m_includePaths)
             {
                 // include paths are prefixed with "-I"
-                if (includePath.length() <= 2) 
+                if (includePath.length() <= 2)
                 {
                     continue;
                 }
                 String absIncludePath = Paths.get(includePath.substring(2)).toAbsolutePath().toString();
-                if (absPath.toLowerCase().equals(absIncludePath.toLowerCase())) 
+                if (absPath.toLowerCase().equals(absIncludePath.toLowerCase()))
                 {
                     isDuplicateFound = true;
                     break;
                 }
             }
-        
-            if (isDuplicateFound) 
+
+            if (isDuplicateFound)
             {
                 return true;
             }
-        
-        } 
-        catch (InvalidPathException | IOError | SecurityException ex) 
+
+        }
+        catch (InvalidPathException | IOError | SecurityException ex)
         {
             // path operations failed, just returning false
         }
-        
+
         return false;
      }
 
@@ -823,14 +823,19 @@ public class fastddsgen
                 for (Map.Entry<String, String> entry : m_customStgOutput.entrySet())
                 {
                     System.out.println("Loading custom template " + entry.getKey() + "...");
-                    Path path = Paths.get(entry.getKey());
-                    String templateName = path.getFileName().toString().substring(0, path.getFileName().toString().lastIndexOf('.'));
-                    try {
-                        String content = new String(Files.readAllBytes(path));
-                        tmanager.addGroupFromString(templateName, content);
-                    } catch(IOException e){
-                        System.out.println(ColorMessage.error(
-                                "IOException") + "Cannot read content from " + path.toString());
+                    loadAndAddTemplate(entry.getKey(), tmanager);
+                }
+            }
+            else
+            {
+                // Check if there is a '@' in the output_file_name
+                for (Map.Entry<String, String> entry : m_customStgOutput.entrySet())
+                {
+                    if (entry.getValue().contains("@"))
+                    {
+                        System.out.println("Loading custom template " +
+                                entry.getKey() + " for included IDL file " + idlFilename + "...");
+                        loadAndAddTemplate(entry.getKey(), tmanager);
                     }
                 }
             }
@@ -874,25 +879,27 @@ public class fastddsgen
                 {
                     for (Map.Entry<String, String> entry : m_customStgOutput.entrySet())
                     {
-                        Path path = Paths.get(entry.getKey());
-                        String templateName = path.getFileName().toString().substring(0, path.getFileName().toString().lastIndexOf('.'));
-                        System.out.println("Generating from custom " + templateName + " to " + entry.getValue());
-
-                        if (returnedValue = Utils.writeFile(output_dir + entry.getValue(), maintemplates.getTemplate(templateName), m_replace))
-                        {
-                            // Try to determine if the file is a header file.
-                            if (entry.getValue().contains(".hpp") || entry.getValue().contains(".h"))
-                            {
-                                project.addCommonIncludeFile(relative_dir + entry.getValue());
-                            }
-                            else
-                            {
-                                project.addCommonSrcFile(relative_dir + ctx.getFilename() + entry.getValue());
-                            }
-                        }
-                        else
+                        if (! (returnedValue = createOutputCustomTemplate(
+                                    entry, idlFilename, output_dir, relative_dir, ctx.getFilename(),
+                                    maintemplates, m_replace, project)))
                         {
                             break;
+                        }
+                    }
+                }
+                else
+                {
+                    // Check if there is a '$' in the output_file_name
+                    for (Map.Entry<String, String> entry : m_customStgOutput.entrySet())
+                    {
+                        if (entry.getValue().contains("@"))
+                        {
+                            if (! (returnedValue = createOutputCustomTemplate(
+                                        entry, idlFilename, output_dir, relative_dir, ctx.getFilename(),
+                                        maintemplates, m_replace, project)))
+                            {
+                                break;
+                            }
                         }
                     }
                 }
@@ -1127,6 +1134,55 @@ public class fastddsgen
         }
 
         return returnedValue ? project : null;
+    }
+
+    private void loadAndAddTemplate(
+            String templatePath,
+            TemplateManager tmanager)
+    {
+        try
+        {
+            Path path = Paths.get(templatePath);
+            String templateName = path.getFileName().toString();
+            templateName = templateName.substring(0, templateName.lastIndexOf('.'));
+            String content = new String(Files.readAllBytes(path));
+            tmanager.addGroupFromString(templateName, content);
+        }
+        catch (IOException e)
+        {
+            System.out.println(ColorMessage.error("IOException") + "Cannot read content from " + templatePath);
+        }
+    }
+
+    private boolean createOutputCustomTemplate(
+            Map.Entry<String, String> entry,
+            String idlFilename,
+            String outputDir,
+            String relativeDir,
+            String contextFilename,
+            TemplateGroup maintemplates,
+            boolean replace,
+            Project project)
+    {
+        Path path = Paths.get(entry.getKey());
+        String templateName = path.getFileName().toString();
+        templateName = templateName.substring(0, templateName.lastIndexOf('.'));
+        String outputName = entry.getValue().replace("@", idlFilename.substring(0, idlFilename.lastIndexOf('.')));
+        System.out.println("Generating from custom " + templateName + " to " + outputName);
+
+        boolean ret_val = Utils.writeFile(outputDir + outputName, maintemplates.getTemplate(templateName), replace);
+        if (ret_val)
+        {
+            if (outputName.contains(".hpp") || outputName.contains(".h"))
+            {
+                project.addCommonIncludeFile(relativeDir + outputName);
+            }
+            else
+            {
+                project.addCommonSrcFile(relativeDir + contextFilename + outputName);
+            }
+        }
+        return ret_val;
     }
 
     private boolean genSolution(
