@@ -96,6 +96,7 @@ $if(ctx.thereIsInterface)$
 }
 
 $if(ctx.thereIsOutputFeed)$
+%import(module="fastdds") "fastdds/dds/rpc/interfaces/RpcServerWriter.hpp"
 %ignore eprosima::fastdds::dds::rpc::RpcClientReader::read(T&);
 %ignore eprosima::fastdds::dds::rpc::RpcClientReader::read(T&,eprosima::fastdds::dds::Duration_t&);
 %import(module="fastdds") "fastdds/dds/rpc/interfaces/RpcClientReader.hpp"
@@ -156,6 +157,26 @@ $endif$
 $if(ctx.thereIsInputFeed)$
 %import(module="fastdds") "fastdds/dds/rpc/interfaces/RpcClientWriter.hpp"
 %import(module="fastdds") "fastdds/dds/rpc/interfaces/RpcStatusCode.hpp"
+
+%ignore eprosima::fastdds::dds::rpc::RpcServerReader::read(T&);
+%ignore eprosima::fastdds::dds::rpc::RpcServerReader::read(T&,eprosima::fastdds::dds::Duration_t&);
+%import(module="fastdds") "fastdds/dds/rpc/interfaces/RpcServerReader.hpp"
+%extend eprosima::fastdds::dds::rpc::RpcServerReader {
+    std::pair<bool, T> read(
+        const eprosima::fastdds::dds::Duration_t& timeout = eprosima::fastdds::dds::c_TimeInfinite)
+    {
+        std::pair<bool, T> ret_val{};
+        if (eprosima::fastdds::dds::c_TimeInfinite == timeout)
+        {
+            ret_val.first = self->read(ret_val.second);
+        }
+        else
+        {
+            ret_val.first = self->read(ret_val.second, timeout);
+        }
+        return ret_val;
+    }
+}
 
 $ctx.inputFeedTypes : {feed_type | $input_feed(feed_type)$}; separator="\n\n"$
 $endif$
@@ -381,9 +402,14 @@ output_feed(type) ::= <<
 %shared_ptr(eprosima::fastdds::dds::rpc::RpcClientReader<$type.cppTypename$>);
 %template($type.formatedCppTypename$_client_reader_result) std::pair<bool, $type.cppTypename$>;
 %template($type.formatedCppTypename$_client_reader) eprosima::fastdds::dds::rpc::RpcClientReader<$type.cppTypename$>;
+
+%template($type.formatedCppTypename$_server_writer) eprosima::fastdds::dds::rpc::RpcServerWriter<$type.cppTypename$>;
 >>
 
 input_feed(type) ::= <<
+%template($type.formatedCppTypename$_server_reader_result) std::pair<bool, $type.cppTypename$>;
+%template($type.formatedCppTypename$_server_reader) eprosima::fastdds::dds::rpc::RpcServerReader<$type.cppTypename$>;
+
 %shared_ptr(eprosima::fastdds::dds::rpc::RpcClientWriter<$type.cppTypename$>);
 %template($type.formatedCppTypename$_rpc_client_writer) eprosima::fastdds::dds::rpc::RpcClientWriter<$type.cppTypename$>;
 %typemap(in,numinputs=0) std::shared_ptr<eprosima::fastdds::dds::rpc::RpcClientWriter<$type.cppTypename$\>>& %{
