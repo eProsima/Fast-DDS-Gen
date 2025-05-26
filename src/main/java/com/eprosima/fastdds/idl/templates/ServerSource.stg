@@ -754,18 +754,17 @@ $endif$
         reply.$op.name$->result->finished_ = true;
         replier_->send_reply(&reply, req->info);
 $else$
-        $op.outputparam : {param | $param.typecode.cppTypename$ $param.name$ $if(param.onlyOutput)${\}$else$= req->request.$op.name$->$param.name$$endif$;}; separator="\n"$
-        $if(op.rettype)$$op.rettype.cppTypename$ result = $else$/*void*/ $endif$implementation_->$op.name$(
-            *req$if(op.parameters)$,$else$);$endif$
-$if(op.parameters)$
-            $op.parameters : {param | $operation_call_parameter(op, param)$}; separator=",\n"$);
-$endif$
         ReplyType reply{};
         reply.$op.name$ = $op.resultTypeCode.scopedname${};
+$if(op.outputparam)$
+        reply.$op.name$->result = implementation_->$op.name$(
+$else$
         reply.$op.name$->result = $op.outTypeCode.scopedname${};
-        $op.outputparam : {param | reply.$op.name$->result->$param.name$ = $param.name$;}; separator="\n"$
-$if(op.rettype)$
-        reply.$op.name$->result->return_ = result;
+        $if(op.rettype)$reply.$op.name$->result->return_ = $else$/*void*/ $endif$implementation_->$op.name$(
+$endif$
+            *req$if(op.inputparam)$,$else$);$endif$
+$if(op.inputparam)$
+            $op.inputparam : {param | $operation_call_parameter(op, param)$}; separator=",\n"$);
 $endif$
         replier_->send_reply(&reply, req->info);
 $endif$
@@ -786,9 +785,7 @@ $endif$
 >>
 
 operation_call_parameter(op, param) ::= <%
-$if(param.output)$
-$param.name$
-$elseif(param.annotationFeed)$
+$if(param.annotationFeed)$
 *(req->$op.name$_feeds.$param.name$)
 $else$
 req->request.$op.name$->$param.name$
