@@ -159,7 +159,11 @@ public class Operation extends com.eprosima.idl.parser.tree.Operation
         if (m_out_type == null)
         {
             Interface parent = (Interface)getParent();
-            String scope = parent.getScopedname();
+            String scope = parent.getHasScope() ? parent.getScope() + "::detail" : "detail";
+            if (this.getOutputparam().size() > 0)
+            {
+                scope = parent.getScopedname();
+            }
 
             // Create Out type
             StructTypeCode out_type = new StructTypeCode(

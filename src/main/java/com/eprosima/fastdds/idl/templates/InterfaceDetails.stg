@@ -83,6 +83,8 @@ $operation_in_struct(interface, operation)$
 
 $operation.inputparam : { param | $if (param.annotationFeed)$$operation_feed_struct(interface, operation, param)$$endif$ }$
 
+$if(!operation.outputparam)$$operation_out_struct(interface, operation)$$endif$
+
 $operation_result_struct(interface, operation)$
 
 //}  // $operation.name$
@@ -103,6 +105,20 @@ struct $interface.name$_$operation.name$_$param.name$_Feed
 {
     eprosima::fastcdr::optional<$param.typecode.cppTypename$> value;
     eprosima::fastcdr::optional<eprosima::fastdds::dds::rpc::RpcStatusCode> finished_;
+};
+>>
+
+operation_out_struct(interface, operation) ::= <<
+struct $interface.name$_$operation.name$_Out
+{
+    $if(operation.annotationFeed)$
+    eprosima::fastcdr::optional<$operation.rettypeparam.typecode.cppTypename$\> $operation.rettypeparam.name$;
+    eprosima::fastcdr::optional<bool\> finished_;
+    $else$
+    $if([operation.outputparam, operation.rettypeparam])$
+    $[operation.outputparam, operation.rettypeparam]:{param | $parameter_declaration(param)$}; separator="\n"$
+    $endif$
+    $endif$
 };
 >>
 

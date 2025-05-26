@@ -203,7 +203,7 @@ public:
 >>
 
 operation(ctx, parent, operation, param_list, operation_type) ::= <<
-$operation_out_struct(parent, operation)$
+$if(operation.outputparam)$$operation_out_struct(parent, operation)$$endif$
 
 virtual $operationRetType(operation)$ $operation.name$(
         $paramDeclarations(params=operation.inputparam)$) = 0;
