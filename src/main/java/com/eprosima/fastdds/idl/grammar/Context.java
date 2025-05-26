@@ -546,7 +546,16 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
     public void operationAdded(
             Operation op)
     {
-        TypeNamePair type_pair = new TypeNamePair(op.getRettype());
+        TypeNamePair type_pair;
+        if (op.getOutputparam().size() > 0)
+        {
+            type_pair = new TypeNamePair(op.getOutTypeCode());
+        }
+        else
+        {
+            type_pair = new TypeNamePair(op.getRettype());
+        }
+
         if (op.isAnnotationFeed())
         {
             m_output_feed_types.putIfAbsent(type_pair.cppTypename, type_pair);

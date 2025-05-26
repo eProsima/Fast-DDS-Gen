@@ -33,6 +33,8 @@ public class Interface extends com.eprosima.idl.parser.tree.Interface
     @Override
     public void add(com.eprosima.idl.parser.tree.Export exp)
     {
+        super.add(exp);
+
         if (exp instanceof Operation)
         {
             Operation op = (Operation)exp;
@@ -43,8 +45,6 @@ public class Interface extends com.eprosima.idl.parser.tree.Interface
 
             m_context.operationAdded(op);
         }
-
-        super.add(exp);
     }
 
     /*!
