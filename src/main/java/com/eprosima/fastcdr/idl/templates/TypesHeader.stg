@@ -189,6 +189,13 @@ private:
 >>
 
 interface(ctx, parent, interface, export_list) ::= <<
+
+namespace detail {
+
+$interface.operations : { op | $if(op.outputparam)$$operation_out_struct_fwd_decl(interface, op)$$endif$}; separator="\n"$
+
+}
+
 /*!
  * @brief This class represents the interface $interface.name$ defined by the user in the IDL file.
  * @ingroup $ctx.trimfilename$
@@ -200,10 +207,15 @@ public:
 
     $export_list$
 };
+
+namespace detail {
+
+$interface.operations : { op | $if(op.outputparam)$$operation_out_struct(interface, op)$$endif$}; separator="\n"$
+
+}
 >>
 
 operation(ctx, parent, operation, param_list, operation_type) ::= <<
-$if(operation.outputparam)$$operation_out_struct(parent, operation)$$endif$
 
 virtual $operationRetType(operation)$ $operation.name$(
         $paramDeclarations(params=operation.inputparam)$) = 0;
@@ -947,6 +959,10 @@ $else$
 eprosima::fastdds::dds::rpc::RpcFuture<$paramRetType(operation.rettype)$>
 $endif$
 %>
+
+operation_out_struct_fwd_decl(interface, operation) ::= <<
+struct $interface.name$_$operation.name$_Out;
+>>
 
 operation_out_struct(interface, operation) ::= <<
 struct $interface.name$_$operation.name$_Out

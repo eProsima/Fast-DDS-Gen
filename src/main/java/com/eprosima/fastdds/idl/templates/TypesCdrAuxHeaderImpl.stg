@@ -608,7 +608,7 @@ struct $interface.name$_$operation.name$_Out
     $endif$
 };
 */
-$rpc_struct_serialization(operation.outTypeCode, interface.namespace)$
+$rpc_struct_serialization(operation.outTypeCode)$
 >>
 
 operation_result_struct(interface, operation) ::= <<
@@ -652,18 +652,16 @@ $endif$
 detail::$interface.name$
 %>
 
-rpc_struct_serialization(struct, namespace=false) ::= <<
+rpc_struct_serialization(struct) ::= <<
 template<>
 eProsima_user_DllExport size_t calculate_serialized_size(
         eprosima::fastcdr::CdrSizeCalculator& calculator,
         const ::$struct.scopedname$& data,
         size_t& current_alignment)
 {
-$if(namespace)$
-    $if(!namespace.empty)$using namespace $namespace$;$endif$
-$elseif(!struct.namespace.empty)$
+    $if(!struct.namespace.empty)$
     using namespace $struct.namespace$;
-$endif$
+    $endif$
 
     static_cast<void>(data);
 
@@ -690,11 +688,9 @@ eProsima_user_DllExport void serialize(
         eprosima::fastcdr::Cdr& scdr,
         const ::$struct.scopedname$& data)
 {
-$if(namespace)$
-    $if(!namespace.empty)$using namespace $namespace$;$endif$
-$elseif(!struct.namespace.empty)$
+    $if(!struct.namespace.empty)$
     using namespace $struct.namespace$;
-$endif$
+    $endif$
 
     eprosima::fastcdr::Cdr::state current_state(scdr);
     scdr.begin_serialize_type(current_state,
@@ -719,11 +715,9 @@ eProsima_user_DllExport void deserialize(
         eprosima::fastcdr::Cdr& cdr,
         ::$struct.scopedname$& data)
 {
-$if(namespace)$
-    $if(!namespace.empty)$using namespace $namespace$;$endif$
-$elseif(!struct.namespace.empty)$
+    $if(!struct.namespace.empty)$
     using namespace $struct.namespace$;
-$endif$
+    $endif$
 
     cdr.deserialize_type(eprosima::fastcdr::CdrVersion::XCDRv2 == cdr.get_cdr_version() ?
             $if(struct.annotationFinal)$eprosima::fastcdr::EncodingAlgorithmFlag::PLAIN_CDR2$elseif(struct.annotationAppendable)$eprosima::fastcdr::EncodingAlgorithmFlag::DELIMIT_CDR2$elseif(struct.annotationMutable)$eprosima::fastcdr::EncodingAlgorithmFlag::PL_CDR2$endif$ :
