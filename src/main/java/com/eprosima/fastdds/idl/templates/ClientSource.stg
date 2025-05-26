@@ -363,7 +363,7 @@ operation_details(parent, operation) ::= <<
 public:
 
     $operationRetType(operation)$ $operation.name$(
-            $paramDeclarations(params=operation.parameters)$) override
+            $paramDeclarations(params=operation.inputparam)$) override
     {
 $if(operation.annotationFeed)$
         // Create a reader to hold the result
@@ -371,9 +371,6 @@ $if(operation.annotationFeed)$
 $else$
         // Create a promise to hold the result
         auto result = std::make_shared<$operation.name$_promise>();
-        $if(operation.outputparam)$
-        $operation.outputparam:{param | result->$param.name$ = &$param.name$;}; separator="\n"$
-        $endif$
 $endif$
 
         // Create and send the request
@@ -609,10 +606,7 @@ $if(operation.annotationFeed)$
 $else$
     struct $operation.name$_promise : public IReplyProcessor
     {
-        std::promise<$paramRetType(operation.rettype)$> promise;
-        $if(operation.outputparam)$
-        $operation.outputparam:{param | $param.typecode.cppTypename$* $param.name$ = nullptr;}; separator="\n"$
-        $endif$
+        std::promise<$if(operation.outputparam)$$paramRetType(operation.outTypeCode)$$else$$paramRetType(operation.rettype)$$endif$> promise;
 
         void process_reply(
                 const ReplyType& reply,
@@ -643,8 +637,11 @@ $else$
                 if (result.result.has_value())
                 {
                     const auto& out = result.result.value();
-                    $operation.outputparam:{param | *$param.name$ = out.$param.name$;}; separator="\n"$
+                    $if(operation.outputparam)$
+                    promise.set_value(out);
+                    $else$
                     promise.set_value($if(operation.rettype)$out.return_$endif$);
+                    $endif$
                     return;
                 }
                 $operation.exceptions : { exception |$operation_result_exception(name=[exception.formatedScopedname, "_ex"], receiver="promise")$}; separator="\n"$
@@ -666,7 +663,9 @@ $endif$
 
 operationRetType(operation) ::= <%
 $if(operation.annotationFeed)$
-std::shared_ptr<eprosima::fastdds::dds::rpc::RpcClientReader<$paramRetType(operation.rettype)$>>
+std::shared_ptr<eprosima::fastdds::dds::rpc::RpcClientReader<$paramRetType(operation.rettype)$> >
+$elseif(operation.outputparam)$
+eprosima::fastdds::dds::rpc::RpcFuture<$paramRetType(operation.outTypeCode)$>
 $else$
 eprosima::fastdds::dds::rpc::RpcFuture<$paramRetType(operation.rettype)$>
 $endif$
