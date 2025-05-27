@@ -43,6 +43,11 @@ public class Interface extends com.eprosima.idl.parser.tree.Interface
                 m_hasOutputFeeds = true;
             }
 
+            if (op.getOutputparam().size() > 0)
+            {
+                m_has_operations_with_output_arguments = true;
+            }
+
             m_context.operationAdded(op);
         }
     }
@@ -55,6 +60,18 @@ public class Interface extends com.eprosima.idl.parser.tree.Interface
     public boolean isWithOutputFeeds()
     {
         return m_hasOutputFeeds;
+    }
+
+    /*!
+     * @ingroup api_for_stg
+     *
+     * @brief This function is used to check if the interface has operations output arguments.
+     *
+     * @return True if the interface has operations with output arguments, false otherwise.
+     */
+    public boolean isWithOutputParameters()
+    {
+        return m_has_operations_with_output_arguments;
     }
 
     /*!
@@ -161,6 +178,7 @@ public class Interface extends com.eprosima.idl.parser.tree.Interface
 
     private Context m_context = null;
     private boolean m_hasOutputFeeds = false;
+    private boolean m_has_operations_with_output_arguments = false;
     private StructTypeCode m_request_type = null;
     private StructTypeCode m_reply_type = null;
     static private EnumTypeCode m_remoteExceptionCode_t_type = null;
