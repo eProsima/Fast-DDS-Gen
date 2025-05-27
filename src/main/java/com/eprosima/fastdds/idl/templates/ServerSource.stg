@@ -194,7 +194,7 @@ public:
 private:
 
     //{ Output feed helpers
-    
+
     struct IOutputFeedCancellator
     {
         virtual ~IOutputFeedCancellator() = default;
@@ -770,7 +770,7 @@ $endif$
 $endif$
     }
 $if(op.annotationFeed)$
-    catch (const frpc::RpcFeedCancelledException& ex)
+    catch (const frpc::RpcFeedCancelledException& /*ex*/)
     {
         ReplyType reply{};
         reply.$op.name$ = $op.resultTypeCode.scopedname${};
