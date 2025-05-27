@@ -580,50 +580,9 @@ public class fastddsgen
         {
             // path operations failed, just returning false
         }
-<<<<<<< HEAD
-        
-        return false;
-     }
-=======
+
         return false;
     }
-
-    /*
-     * ----------------------------------------------------------------------------------------
-     * Arguments
-     */
-    private static final String case_sensitive_arg = "-cs";
-    private static final String output_path_arg = "-d";
-    private static final String default_container_prealloc_size = "-default-container-prealloc-size";
-    private static final String default_extensibility_arg = "-default_extensibility";
-    private static final String default_extensibility_short_arg = "-de";
-    private static final String specific_platform_arg = "-example";
-    private static final String extra_template_arg = "-extrastg";
-    private static final String flat_output_directory_arg = "-flat-output-dir";
-    private static final String fusion_arg = "-fusion";
-    private static final String help_arg = "-help";
-    private static final String include_path_arg = "-I";
-    private static final String language_arg = "-language";
-    private static final String no_typesupport_arg = "-no-typesupport";
-    private static final String no_typeobjectsupport_arg = "-no-typeobjectsupport";
-    private static final String no_dependencies_arg = "-no-dependencies";
-    private static final String package_arg = "-package";
-    private static final String disable_preprocessor_arg = "-ppDisable";
-    private static final String preprocessor_path_arg = "-ppPath";
-    private static final String python_bindings_arg = "-python";
-    private static final String replace_arg = "-replace";
-    private static final String temp_dir_arg = "-t";
-    private static final String ros2_names_arg = "-typeros2";
-    private static final String cnames_arg = "-typesc";
-    private static final String version_arg = "-version";
-
-    /*
-     * ----------------------------------------------------------------------------------------
-     * Developer Arguments
-     */
-    private static final String generate_api_arg = "-genapi";
-    private static final String execute_test_arg = "-test";
->>>>>>> fbb0672 (Apply user template to included IDL files (#472) (#474))
 
     public static void printHelp()
     {
@@ -824,11 +783,6 @@ public class fastddsgen
                 for (Map.Entry<String, String> entry : m_customStgOutput.entrySet())
                 {
                     System.out.println("Loading custom template " + entry.getKey() + "...");
-<<<<<<< HEAD
-                    Path path = Paths.get(entry.getKey());
-                    String templateName = path.getFileName().toString().substring(0, path.getFileName().toString().lastIndexOf('.'));
-                    tmanager.addGroup(templateName);
-=======
                     loadAndAddTemplate(entry.getKey(), tmanager);
                 }
             }
@@ -843,7 +797,6 @@ public class fastddsgen
                                 entry.getKey() + " for included IDL file " + idlFilename + "...");
                         loadAndAddTemplate(entry.getKey(), tmanager);
                     }
->>>>>>> fbb0672 (Apply user template to included IDL files (#472) (#474))
                 }
             }
 
@@ -886,29 +839,9 @@ public class fastddsgen
                 {
                     for (Map.Entry<String, String> entry : m_customStgOutput.entrySet())
                     {
-<<<<<<< HEAD
-                        Path path = Paths.get(entry.getKey());
-                        String templateName = path.getFileName().toString().substring(0, path.getFileName().toString().lastIndexOf('.'));
-                        System.out.println("Generating from custom " + templateName + " to " + entry.getValue());
-
-                        if (returnedValue = Utils.writeFile(m_outputDir + entry.getValue(), maintemplates.getTemplate(templateName), m_replace))
-                        {
-                            // Try to determine if the file is a header file.
-                            if (entry.getValue().contains(".hpp") || entry.getValue().contains(".h"))
-                            {
-                                project.addCommonIncludeFile(entry.getValue());
-                            }
-                            else
-                            {
-                                project.addCommonSrcFile(ctx.getFilename() + entry.getValue());
-                            }
-                        }
-                        else
-=======
                         if (! (returnedValue = createOutputCustomTemplate(
-                                    entry, idlFilename, output_dir, relative_dir, ctx.getFilename(),
+                                    entry, idlFilename, m_outputDir, ctx.getFilename(),
                                     maintemplates, m_replace, project)))
->>>>>>> fbb0672 (Apply user template to included IDL files (#472) (#474))
                         {
                             break;
                         }
@@ -922,7 +855,7 @@ public class fastddsgen
                         if (entry.getValue().contains("@"))
                         {
                             if (! (returnedValue = createOutputCustomTemplate(
-                                        entry, idlFilename, output_dir, relative_dir, ctx.getFilename(),
+                                        entry, idlFilename, m_outputDir, ctx.getFilename(),
                                         maintemplates, m_replace, project)))
                             {
                                 break;
@@ -1132,25 +1065,16 @@ public class fastddsgen
             String templatePath,
             TemplateManager tmanager)
     {
-        try
-        {
-            Path path = Paths.get(templatePath);
-            String templateName = path.getFileName().toString();
-            templateName = templateName.substring(0, templateName.lastIndexOf('.'));
-            String content = new String(Files.readAllBytes(path));
-            tmanager.addGroupFromString(templateName, content);
-        }
-        catch (IOException e)
-        {
-            System.out.println(ColorMessage.error("IOException") + "Cannot read content from " + templatePath);
-        }
+        Path path = Paths.get(templatePath);
+        String templateName = path.getFileName().toString();
+        templateName = templateName.substring(0, templateName.lastIndexOf('.'));
+        tmanager.addGroup(templateName);
     }
 
     private boolean createOutputCustomTemplate(
             Map.Entry<String, String> entry,
             String idlFilename,
             String outputDir,
-            String relativeDir,
             String contextFilename,
             TemplateGroup maintemplates,
             boolean replace,
@@ -1167,11 +1091,11 @@ public class fastddsgen
         {
             if (outputName.contains(".hpp") || outputName.contains(".h"))
             {
-                project.addCommonIncludeFile(relativeDir + outputName);
+                project.addCommonIncludeFile(outputName);
             }
             else
             {
-                project.addCommonSrcFile(relativeDir + contextFilename + outputName);
+                project.addCommonSrcFile(contextFilename + outputName);
             }
         }
         return ret_val;
