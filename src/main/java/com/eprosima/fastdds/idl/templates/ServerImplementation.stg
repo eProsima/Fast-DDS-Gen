@@ -66,20 +66,25 @@ $if(op.parameters)$
 $endif$
         /*result*/ eprosima::fastdds::dds::rpc::RpcServerWriter<$paramRetType(op.rettype)$>& result_writer) override
 $else$
-$if(op.parameters)$
-$paramRetType(op.rettype)$ $op.name$(
-        const $interface.name$Server_ClientContext& info,
-        $operation_parameters(op.parameters)$) override
+$if(op.outputparam)$
+$paramRetType(op.outTypeCode)$ $op.name$(
 $else$
 $paramRetType(op.rettype)$ $op.name$(
+$endif$
+$if(op.inputparam)$
+        const $interface.name$Server_ClientContext& info,
+        $operation_parameters(op.inputparam)$) override
+$else$
         const $interface.name$Server_ClientContext& info) override
 $endif$
 $endif$
 {
     static_cast<void>(info);
-    $op.parameters : {param | static_cast<void>($param.name$);}; anchor, separator="\n"$
     $if(op.annotationFeed)$
+    $op.parameters : {param | static_cast<void>($param.name$);}; anchor, separator="\n"$
     static_cast<void>(result_writer);
+    $else$
+    $op.inputparam : {param | static_cast<void>($param.name$);}; anchor, separator="\n"$
     $endif$
     throw eprosima::fastdds::dds::rpc::RemoteUnsupportedError("Operation '$op.name$' is not implemented");
 }
