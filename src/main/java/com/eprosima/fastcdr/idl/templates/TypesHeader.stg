@@ -192,8 +192,7 @@ interface(ctx, parent, interface, export_list) ::= <<
 
 namespace detail {
 
-$interface.operations : { op | $if(op.outputparam)$$operation_out_struct_fwd_decl(interface, op)$$endif$}; separator="\n"$
-
+$interface.operations : { op | $if(op.outputparam)$$operation_out_struct_fwd_decl(interface, op)$$endif$}$
 }
 
 /*!
@@ -210,8 +209,7 @@ public:
 
 namespace detail {
 
-$interface.operations : { op | $if(op.outputparam)$$operation_out_struct(interface, op)$$endif$}; separator="\n"$
-
+$interface.operations : { op | $if(op.outputparam)$$operation_out_struct(interface, op)$$"\n"$$endif$}$
 }
 >>
 
@@ -962,6 +960,7 @@ $endif$
 
 operation_out_struct_fwd_decl(interface, operation) ::= <<
 struct $interface.name$_$operation.name$_Out;
+
 >>
 
 operation_out_struct(interface, operation) ::= <<
@@ -976,6 +975,7 @@ struct $interface.name$_$operation.name$_Out
     $endif$
     $endif$
 };
+
 >>
 
 parameter_declaration(param) ::= <%
