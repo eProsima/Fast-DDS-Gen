@@ -39,9 +39,16 @@ $endif$
 %}
 
 // SWIG helper modules
+$if(ctx.thereIsInterface)$
+%include "exception.i"
+$endif$
 %include "stdint.i"
 %include "std_array.i"
 %include "std_map.i"
+$if(ctx.thereIsInterface)$
+%include "std_pair.i"
+%include "std_shared_ptr.i"
+$endif$
 %include "std_string.i"
 %include "std_vector.i"
 %include "typemaps.i"
@@ -77,10 +84,6 @@ $endif$
 %import(module="fastdds") "fastdds/dds/core/LoanableSequence.hpp"
 
 $if(ctx.thereIsInterface)$
-%include <exception.i>
-%include <std_shared_ptr.i>
-%include <std_pair.i>
-
 %import(module="fastdds") "fastdds/dds/rpc/exceptions/RpcException.hpp"
 %import(module="fastdds") "fastdds/dds/rpc/exceptions/RpcOperationError.hpp"
 

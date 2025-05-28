@@ -65,7 +65,7 @@ public class Interface extends com.eprosima.idl.parser.tree.Interface
     /*!
      * @ingroup api_for_stg
      *
-     * @brief This function is used to check if the interface has operations output arguments.
+     * @brief This function is used to check if the interface has operations with output arguments.
      *
      * @return True if the interface has operations with output arguments, false otherwise.
      */
