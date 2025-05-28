@@ -190,10 +190,12 @@ private:
 
 interface(ctx, parent, interface, export_list) ::= <<
 
+$if(interface.withOutputParameters)$
 namespace detail {
 
 $interface.operations : { op | $if(op.outputparam)$$operation_out_struct_fwd_decl(interface, op)$$endif$}$
-}
+}  // namespace detail
+$endif$
 
 /*!
  * @brief This class represents the interface $interface.name$ defined by the user in the IDL file.
@@ -207,10 +209,12 @@ public:
     $export_list$
 };
 
+$if(interface.withOutputParameters)$
 namespace detail {
 
 $interface.operations : { op | $if(op.outputparam)$$operation_out_struct(interface, op)$$"\n"$$endif$}$
-}
+}  // namespace detail
+$endif$
 >>
 
 operation(ctx, parent, operation, param_list, operation_type) ::= <<
