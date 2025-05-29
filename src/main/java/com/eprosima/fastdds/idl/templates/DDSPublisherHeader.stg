@@ -15,7 +15,7 @@
 group ProtocolHeader;
 
 main(ctx, definitions) ::= <<
-$fileHeader(ctx=ctx,  file=[ctx.filename, "Publisher.h"], description=["This header file contains the declaration of the publisher functions."])$
+$fileHeader(ctx=ctx, file=[ctx.filename, "Publisher.h"], description=["This header file contains the declaration of the publisher functions."])$
 
 
 #ifndef _FAST_DDS_GENERATED_$ctx.headerGuardName$_PUBLISHER_H_

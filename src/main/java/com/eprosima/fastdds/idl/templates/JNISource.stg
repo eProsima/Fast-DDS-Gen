@@ -15,7 +15,7 @@
 group JNISource;
 
 main(ctx, definitions) ::= <<
-$fileHeader(ctx=ctx,  file=[ctx.filename, "JNI.cxx"], description=[""])$
+$fileHeader(ctx=ctx, file=[ctx.filename, "JNI.cxx"], description=[""])$
 
 $ctx.directIncludeDependencies : {include | #include "$include$PubSubJNII.h"}; separator="\n"$
 #include "$ctx.filename$PubSubJNII.h"

@@ -15,7 +15,7 @@
 group ProtocolHeader;
 
 main(ctx, definitions) ::= <<
-$fileHeader(ctx=ctx,  file=[ctx.filename, "Subscriber.h"], description=["This header file contains the declaration of the subscriber functions."])$
+$fileHeader(ctx=ctx, file=[ctx.filename, "Subscriber.h"], description=["This header file contains the declaration of the subscriber functions."])$
 
 
 #ifndef _FAST_DDS_GENERATED_$ctx.headerGuardName$_SUBSCRIBER_H_
