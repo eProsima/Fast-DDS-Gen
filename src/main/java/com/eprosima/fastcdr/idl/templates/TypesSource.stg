@@ -15,7 +15,7 @@
 group TypesSource;
 
 main(ctx, definitions, extensions) ::= <<
-$fileHeader(file=[ctx.filename, ".cpp"], description=["This source file contains the definition of the described types in the IDL file."])$
+$fileHeader(ctx=ctx, file=[ctx.filename, ".cpp"], description=["This source file contains the definition of the described types in the IDL file."])$
 
 #ifdef _WIN32
 // Remove linker warning LNK4221 on Visual Studio

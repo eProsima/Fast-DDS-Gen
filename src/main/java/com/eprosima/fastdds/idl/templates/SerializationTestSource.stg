@@ -15,7 +15,7 @@
 group ProtocolHeader;
 
 main(ctx, definitions) ::= <<
-$fileHeader(ctx=ctx,  file=[ctx.filename, "SerializationTest.cpp"], description=["This file contains serialization test code."])$
+$fileHeader(ctx=ctx, file=[ctx.filename, "SerializationTest.cpp"], description=["This file contains serialization test code."])$
 
 #include "$ctx.filename$PubSubTypes.h"
 #include "$ctx.filename$Serialization.h"

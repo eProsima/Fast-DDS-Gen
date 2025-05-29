@@ -15,7 +15,7 @@
 group JavaSource;
 
 main(ctx, definitions) ::= <<
-$fileHeader(ctx=ctx,  file=[ctx.filename, "PubSub.java"], description=[""])$
+$fileHeader(ctx=ctx, file=[ctx.filename, "PubSub.java"], description=[""])$
 
 $if(!ctx.isPackageEmpty)$
 package $ctx.onlyPackage$;

@@ -15,7 +15,7 @@
 group JNIHeader;
 
 main(ctx, definitions) ::= <<
-$fileHeader(ctx=ctx,  file=[ctx.filename, "JNII.cxx"], description=[""])$
+$fileHeader(ctx=ctx, file=[ctx.filename, "JNII.cxx"], description=[""])$
 
 #include "$ctx.filename$.h"
 #include <jni.h>
