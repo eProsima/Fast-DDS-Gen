@@ -52,14 +52,14 @@ $endif$
 pub_sub_execs(project, libraries, test) ::= <<
 
 message(STATUS "Configuring $project.name$...")
-$if(!project.commonSrcFiles.empty)$
-add_library($project.name$_lib $project.commonSrcFiles : { file | $file$}; separator=" "$)
-target_link_libraries($project.name$_lib $libraries : { library | $library$}; separator=" "$)
+$if(!project.commonSrcFiles_escaped.empty)$
+add_library($project.name$_lib $project.commonSrcFiles_escaped; separator=" "$)
+target_link_libraries($project.name$_lib $libraries; separator=" "$)
 $endif$
 
-$if(!project.projectSrcFiles.empty)$
-add_executable($project.name$ $project.projectSrcFiles : { file | $file$}; separator=" "$)
-target_link_libraries($project.name$ $libraries : { library | $library$}; separator=" "$
+$if(!project.projectSrcFiles_escaped.empty)$
+add_executable($project.name$ $project.projectSrcFiles_escaped; separator=" "$)
+target_link_libraries($project.name$ $libraries; separator=" "$
         $project.name$_lib $project.dependencies : { dep | $dep$_lib}; separator=" "$
         )
 $endif$
@@ -77,11 +77,11 @@ include(GoogleTest)
 
 # $project.name$ Serialization Test
 add_executable($project.name$SerializationTest
-        $project.commonTestingFiles : { file | $file$}; separator="\n"$
+        $project.commonTestingFiles_escaped; separator="\n"$
 )
 target_link_libraries($project.name$SerializationTest
         GTest::gtest_main
-        $libraries : { library | $library$}; separator=" "$
+        $libraries; separator=" "$
         $project.name$_lib $project.dependencies : { dep | $dep$_lib}; separator=" "$
         )
 gtest_discover_tests($project.name$SerializationTest)
@@ -92,14 +92,14 @@ $endif$
 >>
 
 type_object_tests(project, libraries) ::= <<
-$if(project.typeObjectTestingFiles)$
+$if(project.typeObjectTestingFiles_escaped)$
 # $project.name$ TypeObject Test
 add_executable($project.name$TypeObjectTestingTest
-        $project.typeObjectTestingFiles : { file | $file$}; separator="\n"$
+        $project.typeObjectTestingFiles_escaped; separator="\n"$
 )
 target_link_libraries($project.name$TypeObjectTestingTest
         GTest::gtest_main
-        $libraries : { library | $library$}; separator=" "$
+        $libraries; separator=" "$
         $project.name$_lib $project.dependencies : { dep | $dep$_lib}; separator=" "$)
 gtest_discover_tests($project.name$TypeObjectTestingTest)
 $endif$
