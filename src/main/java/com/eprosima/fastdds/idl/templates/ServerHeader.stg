@@ -124,6 +124,14 @@ struct $interface.name$ServerSchedulingStrategy
             const std::shared_ptr<$interface.name$Server_ClientContext>& request,
             const std::shared_ptr<$interface.name$Server>& server) = 0;
 
+    /**
+     * @brief Informs that a server has been stopped and all its requests have been cancelled.
+     *
+     * @param server  The server instance that has been stopped.
+     */
+    virtual void server_stopped(
+            const std::shared_ptr<$interface.name$Server>& server) = 0;
+
 };
 
 /**

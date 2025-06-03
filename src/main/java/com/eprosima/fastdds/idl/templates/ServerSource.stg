@@ -189,7 +189,7 @@ public:
         }
 
         // Wait for all threads to finish
-        thread_pool_.stop();
+        thread_pool_.server_stopped(shared_from_this());
     }
 
 private:
@@ -404,8 +404,11 @@ $endif$
             }
         }
 
-        void stop()
+        void server_stopped(
+                const std::shared_ptr<$interface.name$Server>& server) override
         {
+            static_cast<void>(server);
+
             // Notify all threads in the pool to stop
             {
                 std::lock_guard<std::mutex> lock(mtx_);
