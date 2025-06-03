@@ -78,7 +78,7 @@ namespace frtps = eprosima::fastdds::rtps;
 
 class $interface.name$ServerLogic
     : public $interface.name$Server
-    , private std::enable_shared_from_this<$interface.name$ServerLogic>
+    , public std::enable_shared_from_this<$interface.name$ServerLogic>
 {
     using RequestType = $interface.name$_Request;
     using ReplyType = $interface.name$_Reply;
