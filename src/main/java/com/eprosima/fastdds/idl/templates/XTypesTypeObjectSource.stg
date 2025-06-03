@@ -182,6 +182,11 @@ $endif$
 
 struct_type(ctx, parent, struct, member_list) ::= <<
 $if(!struct.declaredInsideInterface)$
+$content_for_struct_type(ctx, struct)$
+$endif$
+>>
+
+content_for_struct_type(ctx, struct) ::= <<
 // TypeIdentifier is returned by reference: dependent structures/unions are registered in this same method
 void register_$struct.name$_type_identifier(
         TypeIdentifierPair& type_ids_$struct.name$)
@@ -242,7 +247,6 @@ void register_$struct.name$_type_identifier(
                         "$struct.scopedname$ contains forward declarations (not yet supported).");
     $endif$
 }
-$endif$
 >>
 
 typedef_decl(ctx, parent, typedefs, typedefs_type, declarator_type) ::= <<
@@ -380,6 +384,13 @@ void register_$union.name$_type_identifier(
                         "$union.scopedname$ contains forward declarations (not yet supported).");
     $endif$
 }
+$endif$
+>>
+
+interface(ctx, parent, interface, export_list) ::= <<
+$if(!interface.annotatedAsNested)$
+$content_for_struct_type(ctx, interface.requestTypeCode)$
+$content_for_struct_type(ctx, interface.replyTypeCode)$
 $endif$
 >>
 
