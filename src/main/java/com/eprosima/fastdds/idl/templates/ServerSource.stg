@@ -78,6 +78,7 @@ namespace frtps = eprosima::fastdds::rtps;
 
 class $interface.name$ServerLogic
     : public $interface.name$Server
+    , private std::enable_shared_from_this<$interface.name$ServerLogic>
 {
     using RequestType = $interface.name$_Request;
     using ReplyType = $interface.name$_Reply;
@@ -346,6 +347,7 @@ $endif$
     };
 
     struct ThreadPool
+        : public $interface.name$ServerSchedulingStrategy
     {
         ThreadPool(
                 $interface.name$ServerLogic& server,
@@ -362,7 +364,7 @@ $endif$
                     {
                         while (!finished_)
                         {
-                            std::shared_ptr<RequestContext> req;
+                            std::shared_ptr<$interface.name$Server_ClientContext> req;
                             {
                                 std::unique_lock<std::mutex> lock(mtx_);
                                 cv_.wait(lock, [this]()
@@ -388,9 +390,12 @@ $endif$
             }
         }
 
-        void new_request(
-                const std::shared_ptr<RequestContext>& req)
+        void schedule_request(
+                const std::shared_ptr<$interface.name$Server_ClientContext>& req,
+                const std::shared_ptr<$interface.name$Server>& server) override
         {
+            static_cast<void>(server);
+
             std::lock_guard<std::mutex> lock(mtx_);
             if (!finished_)
             {
@@ -422,7 +427,7 @@ $endif$
         $interface.name$ServerLogic& server_;
         std::mutex mtx_;
         std::condition_variable cv_;
-        std::queue<std::shared_ptr<RequestContext\>> requests_;
+        std::queue<std::shared_ptr<$interface.name$Server_ClientContext\>> requests_;
         bool finished_{ false };
         std::vector<std::thread> threads_;
     };
@@ -454,7 +459,7 @@ $endif$
             processing_requests_[id] = ctx;
         }
 
-        thread_pool_.new_request(ctx);
+        thread_pool_.schedule_request(ctx, shared_from_this());
     }
 
     void execute_request(
