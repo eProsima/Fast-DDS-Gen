@@ -93,7 +93,7 @@ public:
             std::shared_ptr<$interface.name$Server_IServerImplementation> implementation)
         : $interface.name$Server()
         , participant_(part)
-        , thread_pool_(*this, thread_pool_size)
+        , request_scheduler_(std::make_shared<ThreadPool>(*this, thread_pool_size))
         , implementation_(std::move(implementation))
     {
         // Register the service type support
@@ -189,7 +189,7 @@ public:
         }
 
         // Wait for all threads to finish
-        thread_pool_.server_stopped(shared_from_this());
+        request_scheduler_->server_stopped(shared_from_this());
     }
 
 private:
@@ -462,7 +462,7 @@ $endif$
             processing_requests_[id] = ctx;
         }
 
-        thread_pool_.schedule_request(ctx, shared_from_this());
+        request_scheduler_->schedule_request(ctx, shared_from_this());
     }
 
     void execute_request(
@@ -513,7 +513,7 @@ $endif$
     fdds::GuardCondition finish_condition_;
     std::mutex mtx_;
     std::map<frtps::SampleIdentity, std::shared_ptr<RequestContext\>> processing_requests_;
-    ThreadPool thread_pool_;
+    std::shared_ptr<$interface.name$ServerSchedulingStrategy> request_scheduler_;
     std::shared_ptr<$interface.name$Server_IServerImplementation> implementation_;
 
 };
