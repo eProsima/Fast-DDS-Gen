@@ -141,7 +141,7 @@ struct $interface.name$ServerSchedulingStrategy
  * @param service_name     The name of the service.
  * @param qos              The QoS settings for the server.
  * @param thread_pool_size The size of the thread pool to use for processing requests.
- *                         When set to 0, a new thread will be created when no threads are available.
+ *                         When set to 0, a pool with a single thread will be created.
  * @param implementation   The implementation of the server interface.
  */
 extern eProsima_user_DllExport std::shared_ptr<$interface.name$Server> create_$interface.name$Server(
