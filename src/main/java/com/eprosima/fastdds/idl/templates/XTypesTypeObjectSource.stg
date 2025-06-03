@@ -181,9 +181,7 @@ $endif$
 >>
 
 struct_type(ctx, parent, struct, member_list) ::= <<
-$if(!struct.declaredInsideInterface)$
 $content_for_struct_type(ctx, struct)$
-$endif$
 >>
 
 content_for_struct_type(ctx, struct) ::= <<
@@ -207,7 +205,7 @@ void register_$struct.name$_type_identifier(
         $get_type_identifier(type=struct.inheritance, name=struct.name)$
         if (return_code_$struct.name$ != eprosima::fastdds::dds::RETCODE_OK)
         {
-            $struct.inheritance.scope$::register_$struct.inheritance.name$_type_identifier(type_ids_$struct.name$);
+            $struct.inheritance.namespace$::register_$struct.inheritance.name$_type_identifier(type_ids_$struct.name$);
         }
         $endif$
         $complete_type_detail(type=struct, type_kind=" Structure", name=struct.name)$
@@ -339,9 +337,9 @@ void register_$union.name$_type_identifier(
         if (return_code_$union.name$ != eprosima::fastdds::dds::RETCODE_OK)
         {
             $if (union.discriminator.typecode.isAliasType)$
-            $union.discriminator.typecode.scope$::register_$union.discriminator.typecode.name$_type_identifier(type_ids_$union.name$);
+            $union.discriminator.typecode.namespace$::register_$union.discriminator.typecode.name$_type_identifier(type_ids_$union.name$);
             $elseif (union.discriminator.typecode.isEnumType)$
-            $union.discriminator.typecode.scope$::register_$union.discriminator.typecode.name$_type_identifier(type_ids_$union.name$);
+            $union.discriminator.typecode.namespace$::register_$union.discriminator.typecode.name$_type_identifier(type_ids_$union.name$);
             $else$
             EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
                     "Union discriminator TypeIdentifier unknown to TypeObjectRegistry.");
@@ -387,7 +385,13 @@ void register_$union.name$_type_identifier(
 $endif$
 >>
 
+exception(ctx, parent, exception, extensions) ::= <<
+$content_for_struct_type(ctx, exception.typeCode)$
+>>
+
 interface(ctx, parent, interface, export_list) ::= <<
+
+$export_list$
 
 namespace detail {
 
@@ -435,10 +439,10 @@ $content_for_struct_type(ctx, operation.resultTypeCode)$
 register_type(ctx, object) ::= <<
 $if (object.isTypeDeclaration)$
 $if ((object.typeCode.isStructType || object.typeCode.isUnionType) && !object.typeCode.forwarded)$
-$if (!object.scope.empty)$$object.scope$::$endif$register_$object.name$_type_identifier(type_id);
+$if (!object.namespace.empty)$$object.namespace$::$endif$register_$object.name$_type_identifier(type_id);
 $endif$
 $elseif (object.isAnnotation)$
-$if (!object.scope.empty)$$object.scope$::$endif$register_$object.name$_type_identifier(type_id);
+$if (!object.namespace.empty)$$object.namespace$::$endif$register_$object.name$_type_identifier(type_id);
 $endif$
 >>
 
@@ -559,9 +563,9 @@ annotation_parameter(param, parent) ::= <<
     if (return_code_$param.name$ != eprosima::fastdds::dds::RETCODE_OK)
     {
         $if (param.typecode.isAliasType)$
-        $param.typecode.scope$::register_$param.typecode.name$_type_identifier(type_ids_$param.name$);
+        $param.typecode.namespace$::register_$param.typecode.name$_type_identifier(type_ids_$param.name$);
         $elseif (param.typecode.isEnumType)$
-        $param.typecode.scope$::register_$param.typecode.name$_type_identifier(type_ids_$param.name$);
+        $param.typecode.namespace$::register_$param.typecode.name$_type_identifier(type_ids_$param.name$);
         $elseif (param.typecode.isStringType)$
         $register_string_type(string=param.typecode, name=param.name)$
         $elseif (param.typecode.isWStringType)$
@@ -950,13 +954,13 @@ check_register_type_identifier(type, message, name) ::= <<
 if (eprosima::fastdds::dds::RETCODE_OK != return_code_$name$)
 {
     $if (type.isAliasType)$
-    $type.scope$::register_$type.name$_type_identifier(type_ids_$name$);
+    $type.namespace$::register_$type.name$_type_identifier(type_ids_$name$);
     $elseif (type.isStructType)$
-    $type.scope$::register_$type.name$_type_identifier(type_ids_$name$);
+    $type.namespace$::register_$type.name$_type_identifier(type_ids_$name$);
     $elseif (type.isUnionType)$
-    $type.scope$::register_$type.name$_type_identifier(type_ids_$name$);
+    $type.namespace$::register_$type.name$_type_identifier(type_ids_$name$);
     $elseif (type.isBitsetType)$
-    $type.scope$::register_$type.name$_type_identifier(type_ids_$name$);
+    $type.namespace$::register_$type.name$_type_identifier(type_ids_$name$);
     $elseif (type.isSequenceType)$
     $register_sequence_type(sequence=type, name=name)$
     $elseif (type.isArrayType)$
@@ -964,9 +968,9 @@ if (eprosima::fastdds::dds::RETCODE_OK != return_code_$name$)
     $elseif (type.isMapType)$
     $register_map_type(map=type, name=name)$
     $elseif (type.isEnumType)$
-    $type.scope$::register_$type.name$_type_identifier(type_ids_$name$);
+    $type.namespace$::register_$type.name$_type_identifier(type_ids_$name$);
     $elseif (type.isBitmaskType)$
-    $type.scope$::register_$type.name$_type_identifier(type_ids_$name$);
+    $type.namespace$::register_$type.name$_type_identifier(type_ids_$name$);
     $elseif (type.isStringType)$
     $register_string_type(string=type, name=name)$
     $elseif (type.isWStringType)$
