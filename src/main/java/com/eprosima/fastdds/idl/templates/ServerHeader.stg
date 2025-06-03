@@ -150,6 +150,22 @@ extern eProsima_user_DllExport std::shared_ptr<$interface.name$Server> create_$i
         const eprosima::fastdds::dds::ReplierQos& qos,
         size_t thread_pool_size,
         std::shared_ptr<$interface.name$Server_IServerImplementation> implementation);
+
+/**
+ * @brief Create a $interface.name$Server instance.
+ *
+ * @param part            The DomainParticipant to use for the server.
+ * @param service_name    The name of the service.
+ * @param qos             The QoS settings for the server.
+ * @param scheduler       The request scheduling strategy to use for the server.
+ * @param implementation  The implementation of the server interface.
+ */
+extern eProsima_user_DllExport std::shared_ptr<$interface.name$Server> create_$interface.name$Server(
+        eprosima::fastdds::dds::DomainParticipant& part,
+        const char* service_name,
+        const eprosima::fastdds::dds::ReplierQos& qos,
+        std::shared_ptr<$interface.name$ServerSchedulingStrategy> scheduler,
+        std::shared_ptr<$interface.name$Server_IServerImplementation> implementation);
 $endif$
 >>
 

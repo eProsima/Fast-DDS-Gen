@@ -546,6 +546,17 @@ std::shared_ptr<$interface.name$Server> create_$interface.name$Server(
         part, service_name, qos, thread_pool_size, implementation);
 }
 
+std::shared_ptr<$interface.name$Server> create_$interface.name$Server(
+        eprosima::fastdds::dds::DomainParticipant& part,
+        const char* service_name,
+        const eprosima::fastdds::dds::ReplierQos& qos,
+        std::shared_ptr<$interface.name$ServerSchedulingStrategy> scheduler,
+        std::shared_ptr<$interface.name$Server_IServerImplementation> implementation)
+{
+    return std::make_shared<detail::$interface.name$ServerLogic>(
+        part, service_name, qos, scheduler, implementation);
+}
+
 //} interface $interface.name$
 $endif$
 >>
