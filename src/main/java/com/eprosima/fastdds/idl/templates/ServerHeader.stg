@@ -110,6 +110,22 @@ struct $interface.name$Server
 
 };
 
+struct $interface.name$ServerSchedulingStrategy
+{
+    virtual ~$interface.name$ServerSchedulingStrategy() = default;
+
+    /**
+     * @brief Schedule a request for processing.
+     *
+     * @param request  The request to schedule.
+     * @param server   The server instance that should process the request.
+     */
+    virtual void schedule_request(
+            const std::shared_ptr<$interface.name$Server_ClientContext>& request,
+            const std::shared_ptr<$interface.name$Server>& server) = 0;
+
+};
+
 /**
  * @brief Create a $interface.name$Server instance.
  *
