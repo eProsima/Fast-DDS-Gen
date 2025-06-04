@@ -205,6 +205,20 @@ public:
         request_scheduler_->server_stopped(shared_from_this());
     }
 
+    void execute_request(
+            const std::shared_ptr<$interface.name$Server_ClientContext>& request) override
+    {
+        auto ctx = std::dynamic_pointer_cast<RequestContext>(request);
+        if (ctx)
+        {
+            execute_request(ctx);
+        }
+        else
+        {
+            throw std::runtime_error("Invalid request context type");
+        }
+    }
+
 private:
 
     //{ Output feed helpers
@@ -476,20 +490,6 @@ $endif$
         }
 
         request_scheduler_->schedule_request(ctx, shared_from_this());
-    }
-
-    void execute_request(
-            const std::shared_ptr<$interface.name$Server_ClientContext>& request) override
-    {
-        auto ctx = std::dynamic_pointer_cast<RequestContext>(request);
-        if (ctx)
-        {
-            execute_request(ctx);
-        }
-        else
-        {
-            throw std::runtime_error("Invalid request context type");
-        }
     }
 
     void execute_request(
