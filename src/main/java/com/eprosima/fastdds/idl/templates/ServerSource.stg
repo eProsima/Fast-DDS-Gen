@@ -136,8 +136,6 @@ public:
 
     ~$interface.name$ServerLogic() override
     {
-        stop();
-
         if (nullptr != replier_)
         {
             participant_.delete_service_replier(service_->get_service_name(), replier_);
@@ -533,6 +531,44 @@ $endif$
 
 };
 
+struct $interface.name$ServerProxy
+    : public $interface.name$Server
+{
+    $interface.name$ServerProxy(
+            std::shared_ptr<$interface.name$Server> impl)
+        : impl_(std::move(impl))
+    {
+    }
+
+    ~$interface.name$ServerProxy() override
+    {
+        if (impl_)
+        {
+            impl_->stop();
+        }
+    }
+
+    void run() override
+    {
+        impl_->run();
+    }
+
+    void stop() override
+    {
+        impl_->stop();
+    }
+
+    void execute_request(
+            const std::shared_ptr<$interface.name$Server_ClientContext>& request) override
+    {
+        impl_->execute_request(request);
+    }
+
+private:
+
+   std::shared_ptr<$interface.name$Server> impl_;
+};
+
 }  // namespace detail
 
 std::shared_ptr<$interface.name$Server> create_$interface.name$Server(
@@ -542,8 +578,9 @@ std::shared_ptr<$interface.name$Server> create_$interface.name$Server(
         size_t thread_pool_size,
         std::shared_ptr<$interface.name$Server_IServerImplementation> implementation)
 {
-    return std::make_shared<detail::$interface.name$ServerLogic>(
+    auto ptr = std::make_shared<detail::$interface.name$ServerLogic>(
         part, service_name, qos, thread_pool_size, implementation);
+    return std::make_shared<detail::$interface.name$ServerProxy>(ptr);
 }
 
 std::shared_ptr<$interface.name$Server> create_$interface.name$Server(
@@ -553,8 +590,9 @@ std::shared_ptr<$interface.name$Server> create_$interface.name$Server(
         std::shared_ptr<$interface.name$ServerSchedulingStrategy> scheduler,
         std::shared_ptr<$interface.name$Server_IServerImplementation> implementation)
 {
-    return std::make_shared<detail::$interface.name$ServerLogic>(
+    auto ptr = std::make_shared<detail::$interface.name$ServerLogic>(
         part, service_name, qos, scheduler, implementation);
+    return std::make_shared<detail::$interface.name$ServerProxy>(ptr);
 }
 
 //} interface $interface.name$
