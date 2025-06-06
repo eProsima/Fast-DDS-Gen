@@ -78,6 +78,7 @@ namespace frtps = eprosima::fastdds::rtps;
 
 class $interface.name$ServerLogic
     : public $interface.name$Server
+    , public std::enable_shared_from_this<$interface.name$ServerLogic>
 {
     using RequestType = $interface.name$_Request;
     using ReplyType = $interface.name$_Reply;
@@ -85,14 +86,29 @@ class $interface.name$ServerLogic
 public:
 
     $interface.name$ServerLogic(
-            eprosima::fastdds::dds::DomainParticipant& part,
+            fdds::DomainParticipant& part,
             const char* service_name,
-            const eprosima::fastdds::dds::ReplierQos& qos,
+            const fdds::ReplierQos& qos,
             size_t thread_pool_size,
+            std::shared_ptr<$interface.name$Server_IServerImplementation> implementation)
+        : $interface.name$ServerLogic(
+                part,
+                service_name,
+                qos,
+                std::make_shared<ThreadPool>(*this, thread_pool_size),
+                std::move(implementation))
+    {
+    }
+
+    $interface.name$ServerLogic(
+            fdds::DomainParticipant& part,
+            const char* service_name,
+            const fdds::ReplierQos& qos,
+            std::shared_ptr<$interface.name$ServerSchedulingStrategy> scheduler,
             std::shared_ptr<$interface.name$Server_IServerImplementation> implementation)
         : $interface.name$Server()
         , participant_(part)
-        , thread_pool_(*this, thread_pool_size)
+        , request_scheduler_(scheduler)
         , implementation_(std::move(implementation))
     {
         // Register the service type support
@@ -120,8 +136,6 @@ public:
 
     ~$interface.name$ServerLogic() override
     {
-        stop();
-
         if (nullptr != replier_)
         {
             participant_.delete_service_replier(service_->get_service_name(), replier_);
@@ -188,7 +202,21 @@ public:
         }
 
         // Wait for all threads to finish
-        thread_pool_.stop();
+        request_scheduler_->server_stopped(shared_from_this());
+    }
+
+    void execute_request(
+            const std::shared_ptr<$interface.name$Server_ClientContext>& request) override
+    {
+        auto ctx = std::dynamic_pointer_cast<RequestContext>(request);
+        if (ctx)
+        {
+            execute_request(ctx);
+        }
+        else
+        {
+            throw std::runtime_error("Invalid request context type");
+        }
     }
 
 private:
@@ -346,6 +374,7 @@ $endif$
     };
 
     struct ThreadPool
+        : public $interface.name$ServerSchedulingStrategy
     {
         ThreadPool(
                 $interface.name$ServerLogic& server,
@@ -362,7 +391,7 @@ $endif$
                     {
                         while (!finished_)
                         {
-                            std::shared_ptr<RequestContext> req;
+                            std::shared_ptr<$interface.name$Server_ClientContext> req;
                             {
                                 std::unique_lock<std::mutex> lock(mtx_);
                                 cv_.wait(lock, [this]()
@@ -388,9 +417,12 @@ $endif$
             }
         }
 
-        void new_request(
-                const std::shared_ptr<RequestContext>& req)
+        void schedule_request(
+                const std::shared_ptr<$interface.name$Server_ClientContext>& req,
+                const std::shared_ptr<$interface.name$Server>& server) override
         {
+            static_cast<void>(server);
+
             std::lock_guard<std::mutex> lock(mtx_);
             if (!finished_)
             {
@@ -399,8 +431,11 @@ $endif$
             }
         }
 
-        void stop()
+        void server_stopped(
+                const std::shared_ptr<$interface.name$Server>& server) override
         {
+            static_cast<void>(server);
+
             // Notify all threads in the pool to stop
             {
                 std::lock_guard<std::mutex> lock(mtx_);
@@ -422,7 +457,7 @@ $endif$
         $interface.name$ServerLogic& server_;
         std::mutex mtx_;
         std::condition_variable cv_;
-        std::queue<std::shared_ptr<RequestContext\>> requests_;
+        std::queue<std::shared_ptr<$interface.name$Server_ClientContext\>> requests_;
         bool finished_{ false };
         std::vector<std::thread> threads_;
     };
@@ -454,7 +489,7 @@ $endif$
             processing_requests_[id] = ctx;
         }
 
-        thread_pool_.new_request(ctx);
+        request_scheduler_->schedule_request(ctx, shared_from_this());
     }
 
     void execute_request(
@@ -491,9 +526,47 @@ $endif$
     fdds::GuardCondition finish_condition_;
     std::mutex mtx_;
     std::map<frtps::SampleIdentity, std::shared_ptr<RequestContext\>> processing_requests_;
-    ThreadPool thread_pool_;
+    std::shared_ptr<$interface.name$ServerSchedulingStrategy> request_scheduler_;
     std::shared_ptr<$interface.name$Server_IServerImplementation> implementation_;
 
+};
+
+struct $interface.name$ServerProxy
+    : public $interface.name$Server
+{
+    $interface.name$ServerProxy(
+            std::shared_ptr<$interface.name$Server> impl)
+        : impl_(std::move(impl))
+    {
+    }
+
+    ~$interface.name$ServerProxy() override
+    {
+        if (impl_)
+        {
+            impl_->stop();
+        }
+    }
+
+    void run() override
+    {
+        impl_->run();
+    }
+
+    void stop() override
+    {
+        impl_->stop();
+    }
+
+    void execute_request(
+            const std::shared_ptr<$interface.name$Server_ClientContext>& request) override
+    {
+        impl_->execute_request(request);
+    }
+
+private:
+
+   std::shared_ptr<$interface.name$Server> impl_;
 };
 
 }  // namespace detail
@@ -505,8 +578,21 @@ std::shared_ptr<$interface.name$Server> create_$interface.name$Server(
         size_t thread_pool_size,
         std::shared_ptr<$interface.name$Server_IServerImplementation> implementation)
 {
-    return std::make_shared<detail::$interface.name$ServerLogic>(
+    auto ptr = std::make_shared<detail::$interface.name$ServerLogic>(
         part, service_name, qos, thread_pool_size, implementation);
+    return std::make_shared<detail::$interface.name$ServerProxy>(ptr);
+}
+
+std::shared_ptr<$interface.name$Server> create_$interface.name$Server(
+        eprosima::fastdds::dds::DomainParticipant& part,
+        const char* service_name,
+        const eprosima::fastdds::dds::ReplierQos& qos,
+        std::shared_ptr<$interface.name$ServerSchedulingStrategy> scheduler,
+        std::shared_ptr<$interface.name$Server_IServerImplementation> implementation)
+{
+    auto ptr = std::make_shared<detail::$interface.name$ServerLogic>(
+        part, service_name, qos, scheduler, implementation);
+    return std::make_shared<detail::$interface.name$ServerProxy>(ptr);
 }
 
 //} interface $interface.name$
