@@ -86,6 +86,7 @@ $endif$
 $if(ctx.thereIsInterface)$
 %import(module="fastdds") "fastdds/dds/rpc/exceptions/RpcException.hpp"
 %import(module="fastdds") "fastdds/dds/rpc/exceptions/RpcOperationError.hpp"
+%import(module="fastdds") "fastdds/dds/rpc/interfaces/RpcServer.hpp"
 
 %exception {
     try
@@ -386,17 +387,6 @@ $export_list$
 
 %shared_ptr($interface.scopedname$);
 $if(!interface.annotatedAsNested)$
-%shared_ptr($interface.scopedname$Server);
-%extend $interface.scopedname$Server
-{
-    void run()
-    {
-        Py_BEGIN_ALLOW_THREADS
-        self->run();
-        Py_END_ALLOW_THREADS
-    }
-}
-
 %shared_ptr($interface.scopedname$Server_IServerImplementation);
 %shared_ptr($interface.scopedname$ServerImplementation);
 %feature("director") $interface.scopedname$ServerImplementation;
