@@ -77,7 +77,7 @@ namespace frpc = eprosima::fastdds::dds::rpc;
 namespace frtps = eprosima::fastdds::rtps;
 
 class $interface.name$ServerLogic
-    : public $interface.name$Server
+    : public frpc::RpcServer
     , public std::enable_shared_from_this<$interface.name$ServerLogic>
 {
     using RequestType = $interface.name$_Request;
@@ -104,9 +104,9 @@ public:
             fdds::DomainParticipant& part,
             const char* service_name,
             const fdds::ReplierQos& qos,
-            std::shared_ptr<$interface.name$ServerSchedulingStrategy> scheduler,
+            std::shared_ptr<frpc::RpcServerSchedulingStrategy> scheduler,
             std::shared_ptr<$interface.name$Server_IServerImplementation> implementation)
-        : $interface.name$Server()
+        : frpc::RpcServer()
         , participant_(part)
         , request_scheduler_(scheduler)
         , implementation_(std::move(implementation))
@@ -206,7 +206,7 @@ public:
     }
 
     void execute_request(
-            const std::shared_ptr<$interface.name$Server_ClientContext>& request) override
+            const std::shared_ptr<frpc::RpcRequest>& request) override
     {
         auto ctx = std::dynamic_pointer_cast<RequestContext>(request);
         if (ctx)
@@ -245,7 +245,7 @@ private:
 
     $interface.all_operations:{op | $operation_declarations(op)$}; separator="\n\n"$
 
-    struct RequestContext : $interface.name$Server_ClientContext
+    struct RequestContext : frpc::RpcRequest
     {
         RequestType request;
         frpc::RequestInfo info;
@@ -374,7 +374,7 @@ $endif$
     };
 
     struct ThreadPool
-        : public $interface.name$ServerSchedulingStrategy
+        : public frpc::RpcServerSchedulingStrategy
     {
         ThreadPool(
                 $interface.name$ServerLogic& server,
@@ -391,7 +391,7 @@ $endif$
                     {
                         while (!finished_)
                         {
-                            std::shared_ptr<$interface.name$Server_ClientContext> req;
+                            std::shared_ptr<frpc::RpcRequest> req;
                             {
                                 std::unique_lock<std::mutex> lock(mtx_);
                                 cv_.wait(lock, [this]()
@@ -418,8 +418,8 @@ $endif$
         }
 
         void schedule_request(
-                const std::shared_ptr<$interface.name$Server_ClientContext>& req,
-                const std::shared_ptr<$interface.name$Server>& server) override
+                const std::shared_ptr<frpc::RpcRequest>& req,
+                const std::shared_ptr<frpc::RpcServer>& server) override
         {
             static_cast<void>(server);
 
@@ -432,7 +432,7 @@ $endif$
         }
 
         void server_stopped(
-                const std::shared_ptr<$interface.name$Server>& server) override
+                const std::shared_ptr<frpc::RpcServer>& server) override
         {
             static_cast<void>(server);
 
@@ -457,7 +457,7 @@ $endif$
         $interface.name$ServerLogic& server_;
         std::mutex mtx_;
         std::condition_variable cv_;
-        std::queue<std::shared_ptr<$interface.name$Server_ClientContext\>> requests_;
+        std::queue<std::shared_ptr<frpc::RpcRequest\>> requests_;
         bool finished_{ false };
         std::vector<std::thread> threads_;
     };
@@ -526,16 +526,16 @@ $endif$
     fdds::GuardCondition finish_condition_;
     std::mutex mtx_;
     std::map<frtps::SampleIdentity, std::shared_ptr<RequestContext\>> processing_requests_;
-    std::shared_ptr<$interface.name$ServerSchedulingStrategy> request_scheduler_;
+    std::shared_ptr<frpc::RpcServerSchedulingStrategy> request_scheduler_;
     std::shared_ptr<$interface.name$Server_IServerImplementation> implementation_;
 
 };
 
 struct $interface.name$ServerProxy
-    : public $interface.name$Server
+    : public frpc::RpcServer
 {
     $interface.name$ServerProxy(
-            std::shared_ptr<$interface.name$Server> impl)
+            std::shared_ptr<frpc::RpcServer> impl)
         : impl_(std::move(impl))
     {
     }
@@ -559,19 +559,19 @@ struct $interface.name$ServerProxy
     }
 
     void execute_request(
-            const std::shared_ptr<$interface.name$Server_ClientContext>& request) override
+            const std::shared_ptr<frpc::RpcRequest>& request) override
     {
         impl_->execute_request(request);
     }
 
 private:
 
-   std::shared_ptr<$interface.name$Server> impl_;
+   std::shared_ptr<frpc::RpcServer> impl_;
 };
 
 }  // namespace detail
 
-std::shared_ptr<$interface.name$Server> create_$interface.name$Server(
+std::shared_ptr<eprosima::fastdds::dds::rpc::RpcServer> create_$interface.name$Server(
         eprosima::fastdds::dds::DomainParticipant& part,
         const char* service_name,
         const eprosima::fastdds::dds::ReplierQos& qos,
@@ -583,11 +583,11 @@ std::shared_ptr<$interface.name$Server> create_$interface.name$Server(
     return std::make_shared<detail::$interface.name$ServerProxy>(ptr);
 }
 
-std::shared_ptr<$interface.name$Server> create_$interface.name$Server(
+std::shared_ptr<eprosima::fastdds::dds::rpc::RpcServer> create_$interface.name$Server(
         eprosima::fastdds::dds::DomainParticipant& part,
         const char* service_name,
         const eprosima::fastdds::dds::ReplierQos& qos,
-        std::shared_ptr<$interface.name$ServerSchedulingStrategy> scheduler,
+        std::shared_ptr<eprosima::fastdds::dds::rpc::RpcServerSchedulingStrategy> scheduler,
         std::shared_ptr<$interface.name$Server_IServerImplementation> implementation)
 {
     auto ptr = std::make_shared<detail::$interface.name$ServerLogic>(

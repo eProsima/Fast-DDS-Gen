@@ -60,7 +60,7 @@ $endif$
 operation_implementation(interface, op) ::= <<
 $if(op.annotationFeed)$
 void $op.name$(
-        const $interface.name$Server_ClientContext& info,
+        const eprosima::fastdds::dds::rpc::RpcRequest& info,
 $if(op.parameters)$
         $operation_parameters(op.parameters)$,
 $endif$
@@ -72,10 +72,10 @@ $else$
 $paramRetType(op.rettype)$ $op.name$(
 $endif$
 $if(op.inputparam)$
-        const $interface.name$Server_ClientContext& info,
+        const eprosima::fastdds::dds::rpc::RpcRequest& info,
         $operation_parameters(op.inputparam)$) override
 $else$
-        const $interface.name$Server_ClientContext& info) override
+        const eprosima::fastdds::dds::rpc::RpcRequest& info) override
 $endif$
 $endif$
 {
