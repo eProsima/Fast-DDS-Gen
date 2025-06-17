@@ -32,6 +32,15 @@ $endif$
 
 // If using windows in debug, it would try to use python_d, which would not be found.
 %begin %{
+$if(ctx.thereIsInterface)$
+/*
+ * From: https://github.com/swig/swig/issues/2638
+ * When a module uses a type in a module that is defined in a different module,
+ * a false positive memory leak is detected.
+ * The following line silences this warning.
+ */
+#define SWIG_PYTHON_SILENT_MEMLEAK
+$endif$
 #ifdef _MSC_VER
 #define SWIG_PYTHON_INTERPRETER_NO_DEBUG
 #endif
