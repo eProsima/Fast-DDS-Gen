@@ -32,6 +32,15 @@ $endif$
 
 // If using windows in debug, it would try to use python_d, which would not be found.
 %begin %{
+$if(ctx.thereIsInterface)$
+/*
+ * From: https://github.com/swig/swig/issues/2638
+ * When a module uses a type in a module that is defined in a different module,
+ * a false positive memory leak is detected.
+ * The following line silences this warning.
+ */
+#define SWIG_PYTHON_SILENT_MEMLEAK
+$endif$
 #ifdef _MSC_VER
 #define SWIG_PYTHON_INTERPRETER_NO_DEBUG
 #endif
@@ -86,6 +95,7 @@ $endif$
 $if(ctx.thereIsInterface)$
 %import(module="fastdds") "fastdds/dds/rpc/exceptions/RpcException.hpp"
 %import(module="fastdds") "fastdds/dds/rpc/exceptions/RpcOperationError.hpp"
+%import(module="fastdds") "fastdds/dds/rpc/interfaces/RpcServer.hpp"
 
 %exception {
     try
@@ -386,17 +396,6 @@ $export_list$
 
 %shared_ptr($interface.scopedname$);
 $if(!interface.annotatedAsNested)$
-%shared_ptr($interface.scopedname$Server);
-%extend $interface.scopedname$Server
-{
-    void run()
-    {
-        Py_BEGIN_ALLOW_THREADS
-        self->run();
-        Py_END_ALLOW_THREADS
-    }
-}
-
 %shared_ptr($interface.scopedname$Server_IServerImplementation);
 %shared_ptr($interface.scopedname$ServerImplementation);
 %feature("director") $interface.scopedname$ServerImplementation;
