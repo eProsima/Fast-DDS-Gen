@@ -406,6 +406,16 @@ public:
         delete pData;
     }
 
+    eProsima_user_DllExport void register_type_object_representation() override
+    {
+$if (ctx.generateTypeObjectSupport)$
+        register_$interface.name$_$suffix$_type_identifier(type_identifiers_);
+$else$
+        EPROSIMA_LOG_WARNING(XTYPES_TYPE_REPRESENTATION,
+            "TypeObject type representation support disabled in generated code");
+$endif$
+    }
+
 };
 >>
 

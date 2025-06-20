@@ -108,6 +108,13 @@ $register_type_identifier(typename=union.name)$
 $endif$
 >>
 
+interface(ctx, parent, interface, export_list) ::= <<
+$if(!interface.annotatedAsNested)$
+$register_type_identifier(typename=interface.requestTypeCode.name)$
+$register_type_identifier(typename=interface.replyTypeCode.name)$
+$endif$
+>>
+
 /***** Utils *****/
 register_type_identifier(typename) ::= <<
 /**
