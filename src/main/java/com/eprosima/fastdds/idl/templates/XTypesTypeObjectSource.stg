@@ -208,7 +208,7 @@ void register_$struct.name$_type_identifier(
         $get_type_identifier(type=struct.inheritance, name=struct.name)$
         if (return_code_$struct.name$ != eprosima::fastdds::dds::RETCODE_OK)
         {
-            $struct.inheritance.namespace$::register_$struct.inheritance.name$_type_identifier(type_ids_$struct.name$);
+            $add_namespace(struct.inheritance)$::register_$struct.inheritance.name$_type_identifier(type_ids_$struct.name$);
         }
         $endif$
         $complete_type_detail(type=struct, type_kind=" Structure", name=struct.name)$
@@ -340,9 +340,9 @@ void register_$union.name$_type_identifier(
         if (return_code_$union.name$ != eprosima::fastdds::dds::RETCODE_OK)
         {
             $if (union.discriminator.typecode.isAliasType)$
-            $union.discriminator.typecode.namespace$::register_$union.discriminator.typecode.name$_type_identifier(type_ids_$union.name$);
+            $add_namespace(union.discriminator.typecode)$::register_$union.discriminator.typecode.name$_type_identifier(type_ids_$union.name$);
             $elseif (union.discriminator.typecode.isEnumType)$
-            $union.discriminator.typecode.namespace$::register_$union.discriminator.typecode.name$_type_identifier(type_ids_$union.name$);
+            $add_namespace(union.discriminator.typecode)$::register_$union.discriminator.typecode.name$_type_identifier(type_ids_$union.name$);
             $else$
             EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
                     "Union discriminator TypeIdentifier unknown to TypeObjectRegistry.");
@@ -442,10 +442,10 @@ $content_for_struct_type(ctx, operation.resultTypeCode)$
 register_type(ctx, object) ::= <<
 $if (object.isTypeDeclaration)$
 $if ((object.typeCode.isStructType || object.typeCode.isUnionType) && !object.typeCode.forwarded)$
-$if (!object.namespace.empty)$$object.namespace$::$endif$register_$object.name$_type_identifier(type_id);
+$add_namespace(object)$::register_$object.name$_type_identifier(type_id);
 $endif$
 $elseif (object.isAnnotation)$
-$if (!object.namespace.empty)$$object.namespace$::$endif$register_$object.name$_type_identifier(type_id);
+$add_namespace(object)$::register_$object.name$_type_identifier(type_id);
 $endif$
 >>
 
@@ -566,9 +566,9 @@ annotation_parameter(param, parent) ::= <<
     if (return_code_$param.name$ != eprosima::fastdds::dds::RETCODE_OK)
     {
         $if (param.typecode.isAliasType)$
-        $param.typecode.namespace$::register_$param.typecode.name$_type_identifier(type_ids_$param.name$);
+        $add_namespace(param.typecode)$::register_$param.typecode.name$_type_identifier(type_ids_$param.name$);
         $elseif (param.typecode.isEnumType)$
-        $param.typecode.namespace$::register_$param.typecode.name$_type_identifier(type_ids_$param.name$);
+        $add_namespace(param.typecode)$::register_$param.typecode.name$_type_identifier(type_ids_$param.name$);
         $elseif (param.typecode.isStringType)$
         $register_string_type(string=param.typecode, name=param.name)$
         $elseif (param.typecode.isWStringType)$
@@ -957,13 +957,13 @@ check_register_type_identifier(type, message, name) ::= <<
 if (eprosima::fastdds::dds::RETCODE_OK != return_code_$name$)
 {
     $if (type.isAliasType)$
-    $type.namespace$::register_$type.name$_type_identifier(type_ids_$name$);
+    $add_namespace(type)$::register_$type.name$_type_identifier(type_ids_$name$);
     $elseif (type.isStructType)$
-    $type.namespace$::register_$type.name$_type_identifier(type_ids_$name$);
+    $add_namespace(type)$::register_$type.name$_type_identifier(type_ids_$name$);
     $elseif (type.isUnionType)$
-    $type.namespace$::register_$type.name$_type_identifier(type_ids_$name$);
+    $add_namespace(type)$::register_$type.name$_type_identifier(type_ids_$name$);
     $elseif (type.isBitsetType)$
-    $type.namespace$::register_$type.name$_type_identifier(type_ids_$name$);
+    $add_namespace(type)$::register_$type.name$_type_identifier(type_ids_$name$);
     $elseif (type.isSequenceType)$
     $register_sequence_type(sequence=type, name=name)$
     $elseif (type.isArrayType)$
@@ -971,9 +971,9 @@ if (eprosima::fastdds::dds::RETCODE_OK != return_code_$name$)
     $elseif (type.isMapType)$
     $register_map_type(map=type, name=name)$
     $elseif (type.isEnumType)$
-    $type.namespace$::register_$type.name$_type_identifier(type_ids_$name$);
+    $add_namespace(type)$::register_$type.name$_type_identifier(type_ids_$name$);
     $elseif (type.isBitmaskType)$
-    $type.namespace$::register_$type.name$_type_identifier(type_ids_$name$);
+    $add_namespace(type)$::register_$type.name$_type_identifier(type_ids_$name$);
     $elseif (type.isStringType)$
     $register_string_type(string=type, name=name)$
     $elseif (type.isWStringType)$
@@ -1027,6 +1027,10 @@ $! TODO(jlbueno) Annotated collections not yet supported !$
 CollectionElementFlag element_flags_$collection_name$ = 0;
 PlainCollectionHeader header_$collection_name$ = TypeObjectUtils::build_plain_collection_header(equiv_kind_$collection_name$, element_flags_$collection_name$);
 >>
+
+add_namespace(type) ::= <%
+$if (!type.namespace.empty)$::$type.namespace$$endif$
+%>
 
 //{ Fast DDS-Gen extensions
 module_conversion(ctx, parent, modules, definition_list) ::= <<
