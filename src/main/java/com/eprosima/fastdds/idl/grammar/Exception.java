@@ -44,6 +44,7 @@ public class Exception extends com.eprosima.idl.parser.tree.Exception
             getMembers().forEach(member -> m_typecode.addMember(member));
             // Default to final extensibility
             m_typecode.get_extensibility(ExtensibilityKind.FINAL);
+            m_typecode.setParent(this);
         }
 
         return m_typecode;

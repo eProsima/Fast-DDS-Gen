@@ -32,7 +32,7 @@ $fileHeader(ctx=ctx, file=[ctx.filename, "TypeObjectSupport.cxx"], description=[
 #include <fastdds/dds/xtypes/type_representation/ITypeObjectRegistry.hpp>
 #include <fastdds/dds/xtypes/type_representation/TypeObject.hpp>
 #include <fastdds/dds/xtypes/type_representation/TypeObjectUtils.hpp>
-$if(ctx.thereIsInterface)$
+$if(ctx.thereIsInterface || ctx.thereIsException)$
 #include <fastdds/dds/rpc/RPCTypeObjectSupport.hpp>
 $endif$
 
