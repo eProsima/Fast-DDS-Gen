@@ -68,41 +68,41 @@ namespace $annotation.name$ {
 
 } // namespace $annotation.name$
 
-$register_type_identifier(typename=annotation.name)$
+$register_type_identifier(typename=annotation.nameForTypeObjectRegistration)$
 >>
 
 bitmask_type(ctx, parent, bitmask) ::= <<
-$register_type_identifier(typename=bitmask.name)$
+$register_type_identifier(typename=bitmask.nameForTypeObjectRegistration)$
 >>
 
 bitset_type(ctx, parent, bitset) ::= <<
-$register_type_identifier(typename=bitset.name)$
+$register_type_identifier(typename=bitset.nameForTypeObjectRegistration)$
 >>
 
 enum_type(ctx, parent, enum) ::= <<
-$register_type_identifier(typename=enum.name)$
+$register_type_identifier(typename=enum.nameForTypeObjectRegistration)$
 >>
 
 struct_type(ctx, parent, struct, member_list) ::= <<
-$register_type_identifier(typename=struct.name)$
+$register_type_identifier(typename=struct.nameForTypeObjectRegistration)$
 >>
 
 typedef_decl(ctx, parent, typedefs, typedefs_type, declarator_type) ::= <<
 $typedefs : { typedef |
-$register_type_identifier(typename=typedef.name)$
+$register_type_identifier(typename=typedef.nameForTypeObjectRegistration)$
 
 }; separator="\n"$
 >>
 
 union_type(ctx, parent, union, extensions, switch_type) ::= <<
-$register_type_identifier(typename=union.name)$
+$register_type_identifier(typename=union.nameForTypeObjectRegistration)$
 >>
 
 interface(ctx, parent, interface, export_list) ::= <<
 $export_list$
 $if(!interface.annotatedAsNested)$
-$register_type_identifier(typename=interface.requestTypeCode.name)$
-$register_type_identifier(typename=interface.replyTypeCode.name)$
+$register_type_identifier(typename=interface.requestTypeCode.nameForTypeObjectRegistration)$
+$register_type_identifier(typename=interface.replyTypeCode.nameForTypeObjectRegistration)$
 $endif$
 >>
 
