@@ -768,6 +768,7 @@ struct $op.name$_result_writer :
         : info_(info)
         , replier_(replier)
     {
+        info_.has_more_replies = true;
         reply_.$op.name$ = $op.resultTypeCode.scopedname${};
         reply_.$op.name$->result = $op.outTypeCode.scopedname${};
     }
