@@ -32,6 +32,9 @@ $fileHeader(ctx=ctx, file=[ctx.filename, "TypeObjectSupport.cxx"], description=[
 #include <fastdds/dds/xtypes/type_representation/ITypeObjectRegistry.hpp>
 #include <fastdds/dds/xtypes/type_representation/TypeObject.hpp>
 #include <fastdds/dds/xtypes/type_representation/TypeObjectUtils.hpp>
+$if(ctx.thereIsInterface || ctx.thereIsException)$
+#include <fastdds/dds/rpc/RPCTypeObjectSupport.hpp>
+$endif$
 
 #include "$ctx.filename$.hpp"
 
@@ -65,7 +68,7 @@ namespace $annotation.name$ {
 
 } // namespace $annotation.name$
 
-void register_$annotation.name$_type_identifier(
+void register_$annotation.nameForTypeObjectRegistration$_type_identifier(
         TypeIdentifierPair& type_ids_$annotation.name$)
 {
     ReturnCode_t return_code_$annotation.name$ {eprosima::fastdds::dds::RETCODE_OK};
@@ -94,8 +97,7 @@ void register_$annotation.name$_type_identifier(
 >>
 
 bitmask_type(ctx, parent, bitmask) ::= <<
-$if(!bitmask.declaredInsideInterface)$
-void register_$bitmask.name$_type_identifier(
+void register_$bitmask.nameForTypeObjectRegistration$_type_identifier(
         TypeIdentifierPair& type_ids_$bitmask.name$)
 {
     ReturnCode_t return_code_$bitmask.name$ {eprosima::fastdds::dds::RETCODE_OK};
@@ -119,13 +121,11 @@ void register_$bitmask.name$_type_identifier(
         }
     }
 }
-$endif$
 >>
 
 
 bitset_type(ctx, parent, bitset, extensions) ::= <<
-$if(!bitset.declaredInsideInterface)$
-void register_$bitset.name$_type_identifier(
+void register_$bitset.nameForTypeObjectRegistration$_type_identifier(
         TypeIdentifierPair& type_ids_$bitset.name$)
 {
     ReturnCode_t return_code_$bitset.name$ {eprosima::fastdds::dds::RETCODE_OK};
@@ -147,13 +147,11 @@ void register_$bitset.name$_type_identifier(
         }
     }
 }
-$endif$
 >>
 
 
 enum_type(ctx, parent, enum) ::= <<
-$if(!enum.declaredInsideInterface)$
-void register_$enum.name$_type_identifier(
+void register_$enum.nameForTypeObjectRegistration$_type_identifier(
         TypeIdentifierPair& type_ids_$enum.name$)
 {
     ReturnCode_t return_code_$enum.name$ {eprosima::fastdds::dds::RETCODE_OK};
@@ -177,13 +175,15 @@ void register_$enum.name$_type_identifier(
         }
     }
 }
-$endif$
 >>
 
 struct_type(ctx, parent, struct, member_list) ::= <<
-$if(!struct.declaredInsideInterface)$
+$content_for_struct_type(ctx, struct)$
+>>
+
+content_for_struct_type(ctx, struct) ::= <<
 // TypeIdentifier is returned by reference: dependent structures/unions are registered in this same method
-void register_$struct.name$_type_identifier(
+void register_$struct.nameForTypeObjectRegistration$_type_identifier(
         TypeIdentifierPair& type_ids_$struct.name$)
 {
     $if (struct.nonForwardedContent)$
@@ -202,7 +202,7 @@ void register_$struct.name$_type_identifier(
         $get_type_identifier(type=struct.inheritance, name=struct.name)$
         if (return_code_$struct.name$ != eprosima::fastdds::dds::RETCODE_OK)
         {
-            $struct.inheritance.scope$::register_$struct.inheritance.name$_type_identifier(type_ids_$struct.name$);
+            $add_namespace(struct.inheritance)$::register_$struct.inheritance.nameForTypeObjectRegistration$_type_identifier(type_ids_$struct.name$);
         }
         $endif$
         $complete_type_detail(type=struct, type_kind=" Structure", name=struct.name)$
@@ -242,12 +242,11 @@ void register_$struct.name$_type_identifier(
                         "$struct.scopedname$ contains forward declarations (not yet supported).");
     $endif$
 }
-$endif$
 >>
 
 typedef_decl(ctx, parent, typedefs, typedefs_type, declarator_type) ::= <<
 $typedefs : { typedef |
-void register_$typedef.name$_type_identifier(
+void register_$typedef.nameForTypeObjectRegistration$_type_identifier(
         TypeIdentifierPair& type_ids_$typedef.name$)
 {
     $! TODO(jlbueno): annotated collections aliases are considered non-anonymous collections.
@@ -315,9 +314,8 @@ void register_$typedef.name$_type_identifier(
 >>
 
 union_type(ctx, parent, union, extensions, switch_type) ::= <<
-$if(!union.declaredInsideInterface)$
 // TypeIdentifier is returned by reference: dependent structures/unions are registered in this same method
-void register_$union.name$_type_identifier(
+void register_$union.nameForTypeObjectRegistration$_type_identifier(
         TypeIdentifierPair& type_ids_$union.name$)
 {
     $if (union.nonForwardedContent)$
@@ -335,9 +333,9 @@ void register_$union.name$_type_identifier(
         if (return_code_$union.name$ != eprosima::fastdds::dds::RETCODE_OK)
         {
             $if (union.discriminator.typecode.isAliasType)$
-            $union.discriminator.typecode.scope$::register_$union.discriminator.typecode.name$_type_identifier(type_ids_$union.name$);
+            $add_namespace(union.discriminator.typecode)$::register_$union.discriminator.typecode.nameForTypeObjectRegistration$_type_identifier(type_ids_$union.name$);
             $elseif (union.discriminator.typecode.isEnumType)$
-            $union.discriminator.typecode.scope$::register_$union.discriminator.typecode.name$_type_identifier(type_ids_$union.name$);
+            $add_namespace(union.discriminator.typecode)$::register_$union.discriminator.typecode.nameForTypeObjectRegistration$_type_identifier(type_ids_$union.name$);
             $else$
             EPROSIMA_LOG_ERROR(XTYPES_TYPE_REPRESENTATION,
                     "Union discriminator TypeIdentifier unknown to TypeObjectRegistry.");
@@ -380,17 +378,66 @@ void register_$union.name$_type_identifier(
                         "$union.scopedname$ contains forward declarations (not yet supported).");
     $endif$
 }
+>>
+
+exception(ctx, parent, exception, extensions) ::= <<
+$content_for_struct_type(ctx, exception.typeCode)$
+>>
+
+interface(ctx, parent, interface, export_list) ::= <<
+
+$export_list$
+
+namespace detail {
+
+$interface.operations : { operation | $operation_details(interface, operation)$ }; separator="\n"$
+
+}  // namespace detail
+
+$if(!interface.annotatedAsNested)$
+$content_for_struct_type(ctx, interface.requestTypeCode)$
+$content_for_struct_type(ctx, interface.replyTypeCode)$
 $endif$
 >>
 
 /***** Utils *****/
+operation_details(interface, operation) ::= <<
+//{ $operation.name$
+$operation_in_struct(interface, operation)$
+
+$operation.inputparam : { param | $if (param.annotationFeed)$$operation_feed_struct(interface, operation, param)$$endif$ }$
+
+$operation_out_struct(interface, operation)$
+
+$operation_result_struct(interface, operation)$
+
+//}  // $operation.name$
+
+>>
+
+operation_in_struct(interface, operation) ::= <<
+$content_for_struct_type(ctx, operation.inTypeCode)$
+>>
+
+operation_feed_struct(interface, operation, param) ::= <<
+$content_for_struct_type(ctx, param.feedTypeCode)$
+>>
+
+operation_out_struct(interface, operation) ::= <<
+$content_for_struct_type(ctx, operation.outTypeCode)$
+>>
+
+operation_result_struct(interface, operation) ::= <<
+$content_for_struct_type(ctx, operation.resultTypeCode)$
+>>
+
 register_type(ctx, object) ::= <<
 $if (object.isTypeDeclaration)$
 $if ((object.typeCode.isStructType || object.typeCode.isUnionType) && !object.typeCode.forwarded)$
-$if (!object.scope.empty)$$object.scope$::$endif$register_$object.name$_type_identifier(type_id);
+$add_namespace(object)$::register_$object.nameForTypeObjectRegistration$_type_identifier(type_id);
 $endif$
 $elseif (object.isAnnotation)$
-$if (!object.scope.empty)$$object.scope$::$endif$register_$object.name$_type_identifier(type_id);
+$add_namespace(object)$::register_$object.nameForTypeObjectRegistration$_type_identifier(type_id);
 $endif$
 >>
 
@@ -444,7 +491,7 @@ $endif$
         $get_type_identifier_registry(typename=annotation.scopedname, name=annotation.name)$
         if (return_code_$annotation.name$ != eprosima::fastdds::dds::RETCODE_OK)
         {
-            $annotation.annotationDeclaration.scope$::register_$annotation.annotationDeclaration.name$_type_identifier(type_ids_$annotation.annotationDeclaration.name$);
+            $annotation.annotationDeclaration.scope$::register_$annotation.annotationDeclaration.nameForTypeObjectRegistration$_type_identifier(type_ids_$annotation.annotationDeclaration.name$);
         }
         if (!tmp_applied_annotation_parameter_seq_$member.name$.empty())
         {
@@ -511,9 +558,9 @@ annotation_parameter(param, parent) ::= <<
     if (return_code_$param.name$ != eprosima::fastdds::dds::RETCODE_OK)
     {
         $if (param.typecode.isAliasType)$
-        $param.typecode.scope$::register_$param.typecode.name$_type_identifier(type_ids_$param.name$);
+        $add_namespace(param.typecode)$::register_$param.typecode.nameForTypeObjectRegistration$_type_identifier(type_ids_$param.name$);
         $elseif (param.typecode.isEnumType)$
-        $param.typecode.scope$::register_$param.typecode.name$_type_identifier(type_ids_$param.name$);
+        $add_namespace(param.typecode)$::register_$param.typecode.nameForTypeObjectRegistration$_type_identifier(type_ids_$param.name$);
         $elseif (param.typecode.isStringType)$
         $register_string_type(string=param.typecode, name=param.name)$
         $elseif (param.typecode.isWStringType)$
@@ -902,13 +949,13 @@ check_register_type_identifier(type, message, name) ::= <<
 if (eprosima::fastdds::dds::RETCODE_OK != return_code_$name$)
 {
     $if (type.isAliasType)$
-    $type.scope$::register_$type.name$_type_identifier(type_ids_$name$);
+    $add_namespace(type)$::register_$type.nameForTypeObjectRegistration$_type_identifier(type_ids_$name$);
     $elseif (type.isStructType)$
-    $type.scope$::register_$type.name$_type_identifier(type_ids_$name$);
+    $add_namespace(type)$::register_$type.nameForTypeObjectRegistration$_type_identifier(type_ids_$name$);
     $elseif (type.isUnionType)$
-    $type.scope$::register_$type.name$_type_identifier(type_ids_$name$);
+    $add_namespace(type)$::register_$type.nameForTypeObjectRegistration$_type_identifier(type_ids_$name$);
     $elseif (type.isBitsetType)$
-    $type.scope$::register_$type.name$_type_identifier(type_ids_$name$);
+    $add_namespace(type)$::register_$type.nameForTypeObjectRegistration$_type_identifier(type_ids_$name$);
     $elseif (type.isSequenceType)$
     $register_sequence_type(sequence=type, name=name)$
     $elseif (type.isArrayType)$
@@ -916,9 +963,9 @@ if (eprosima::fastdds::dds::RETCODE_OK != return_code_$name$)
     $elseif (type.isMapType)$
     $register_map_type(map=type, name=name)$
     $elseif (type.isEnumType)$
-    $type.scope$::register_$type.name$_type_identifier(type_ids_$name$);
+    $add_namespace(type)$::register_$type.nameForTypeObjectRegistration$_type_identifier(type_ids_$name$);
     $elseif (type.isBitmaskType)$
-    $type.scope$::register_$type.name$_type_identifier(type_ids_$name$);
+    $add_namespace(type)$::register_$type.nameForTypeObjectRegistration$_type_identifier(type_ids_$name$);
     $elseif (type.isStringType)$
     $register_string_type(string=type, name=name)$
     $elseif (type.isWStringType)$
@@ -972,6 +1019,10 @@ $! TODO(jlbueno) Annotated collections not yet supported !$
 CollectionElementFlag element_flags_$collection_name$ = 0;
 PlainCollectionHeader header_$collection_name$ = TypeObjectUtils::build_plain_collection_header(equiv_kind_$collection_name$, element_flags_$collection_name$);
 >>
+
+add_namespace(type) ::= <%
+$if (!type.namespace.empty)$::$type.namespace$$endif$
+%>
 
 //{ Fast DDS-Gen extensions
 module_conversion(ctx, parent, modules, definition_list) ::= <<

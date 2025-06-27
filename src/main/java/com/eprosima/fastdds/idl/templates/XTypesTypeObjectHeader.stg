@@ -68,43 +68,41 @@ namespace $annotation.name$ {
 
 } // namespace $annotation.name$
 
-$register_type_identifier(typename=annotation.name)$
+$register_type_identifier(typename=annotation.nameForTypeObjectRegistration)$
 >>
 
 bitmask_type(ctx, parent, bitmask) ::= <<
-$if(!bitmask.declaredInsideInterface)$
-$register_type_identifier(typename=bitmask.name)$
-$endif$
+$register_type_identifier(typename=bitmask.nameForTypeObjectRegistration)$
 >>
 
 bitset_type(ctx, parent, bitset) ::= <<
-$if(!bitset.declaredInsideInterface)$
-$register_type_identifier(typename=bitset.name)$
-$endif$
+$register_type_identifier(typename=bitset.nameForTypeObjectRegistration)$
 >>
 
 enum_type(ctx, parent, enum) ::= <<
-$if(!enum.declaredInsideInterface)$
-$register_type_identifier(typename=enum.name)$
-$endif$
+$register_type_identifier(typename=enum.nameForTypeObjectRegistration)$
 >>
 
 struct_type(ctx, parent, struct, member_list) ::= <<
-$if(!struct.declaredInsideInterface)$
-$register_type_identifier(typename=struct.name)$
-$endif$
+$register_type_identifier(typename=struct.nameForTypeObjectRegistration)$
 >>
 
 typedef_decl(ctx, parent, typedefs, typedefs_type, declarator_type) ::= <<
 $typedefs : { typedef |
-$register_type_identifier(typename=typedef.name)$
+$register_type_identifier(typename=typedef.nameForTypeObjectRegistration)$
 
 }; separator="\n"$
 >>
 
 union_type(ctx, parent, union, extensions, switch_type) ::= <<
-$if(!union.declaredInsideInterface)$
-$register_type_identifier(typename=union.name)$
+$register_type_identifier(typename=union.nameForTypeObjectRegistration)$
+>>
+
+interface(ctx, parent, interface, export_list) ::= <<
+$export_list$
+$if(!interface.annotatedAsNested)$
+$register_type_identifier(typename=interface.requestTypeCode.nameForTypeObjectRegistration)$
+$register_type_identifier(typename=interface.replyTypeCode.nameForTypeObjectRegistration)$
 $endif$
 >>
 
@@ -116,7 +114,7 @@ register_type_identifier(typename) ::= <<
  *        Hash TypeIdentifiers require to fill the TypeObject information and hash it, consequently, the TypeObject is
  *        indirectly registered as well.
  *
- * @param[out] TypeIdentifier of the registered type.
+ * @param[out] type_ids TypeIdentifier of the registered type.
  *             The returned TypeIdentifier corresponds to the complete TypeIdentifier in case of hashed TypeIdentifiers.
  *             Invalid TypeIdentifier is returned in case of error.
  */
