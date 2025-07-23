@@ -29,6 +29,7 @@ $if(ctx.cdr)$
 #include <fastcdr/Cdr.h>
 #include <fastcdr/CdrSizeCalculator.hpp>
 
+#include <fastdds/dds/core/policy/QosPolicies.hpp>
 $endif$
 
 #include <fastcdr/exceptions/BadParamException.h>
@@ -49,6 +50,53 @@ $"\n"$
 struct_type(ctx, parent, struct, extensions, member_list) ::= <<
 $member_list$
 $if(ctx.anyCdr)$
+
+eProsima_user_DllExport bool is_$struct.cScopedname$_cdr_plain(
+        eprosima::fastdds::dds::DataRepresentationId_t data_representation)
+{
+    $if(struct.isPlain)$
+    if (data_representation == eprosima::fastdds::dds::DataRepresentationId_t::XCDR2_DATA_REPRESENTATION)
+    {
+        $if(struct.members)$
+        return $struct.maxXCDRv2PlainTypeSerializedSize$ULL ==
+               (detail::$struct.name$_offset_of<$struct.scopedname$, detail::$struct.name$_f>() +
+               sizeof($last(struct.members).typecode.cppTypename$));
+        $elseif(struct.inheritance)$
+        $if(struct.inheritance.isPlain)$
+        return $struct.maxXCDRv2PlainTypeSerializedSize$ULL ==
+               (detail::$struct.inheritance.name$_offset_of<$struct.inheritance.scopedname$, detail::$struct.inheritance.name$_f>() +
+               sizeof($last(struct.inheritance.members).typecode.cppTypename$));
+        $else$
+        return true;
+        $endif$
+        $else$
+        return true;
+        $endif$
+    }
+    else
+    {
+        $if(struct.members)$
+        return $struct.maxXCDRv1PlainTypeSerializedSize$ULL ==
+            (detail::$struct.name$_offset_of<$struct.scopedname$, detail::$struct.name$_f>() +
+                sizeof($last(struct.members).typecode.cppTypename$));
+        $elseif(struct.inheritance)$
+        $if(struct.inheritance.isPlain)$
+        return $struct.maxXCDRv1PlainTypeSerializedSize$ULL ==
+           (detail::$struct.inheritance.name$_offset_of<$struct.inheritance.scopedname$, detail::$struct.inheritance.name$_f>() +
+               sizeof($last(struct.inheritance.members).typecode.cppTypename$));
+        $else$
+        return true;
+        $endif$
+        $else$
+        return true;
+        $endif$
+    }
+    $else$
+    static_cast<void>(data_representation);
+    return false;
+    $endif$
+}
+
 template<>
 eProsima_user_DllExport size_t calculate_serialized_size(
         eprosima::fastcdr::CdrSizeCalculator& calculator,
