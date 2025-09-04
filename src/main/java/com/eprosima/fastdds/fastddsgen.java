@@ -1035,18 +1035,16 @@ public class fastddsgen
                                     maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/InterfaceDetails.stg"), m_replace);
                     }
 
-                    if (ctx.isThereIsStructOrUnion() || ctx.isThereIsException())
+                    if (returnedValue &=
+                            Utils.writeFile(output_dir + ctx.getFilename() + "CdrAux.hpp",
+                                maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/TypesCdrAuxHeader.stg"), m_replace))
                     {
-                        if (returnedValue &=
-                                Utils.writeFile(output_dir + ctx.getFilename() + "CdrAux.hpp",
-                                    maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/TypesCdrAuxHeader.stg"), m_replace))
-                        {
-                            project.addProjectIncludeFile(relative_dir + ctx.getFilename() + "CdrAux.hpp");
-                            returnedValue &=
-                                Utils.writeFile(output_dir + ctx.getFilename() + "CdrAux.ipp",
-                                        maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/TypesCdrAuxHeaderImpl.stg"), m_replace);
-                        }
+                        project.addProjectIncludeFile(relative_dir + ctx.getFilename() + "CdrAux.hpp");
+                        returnedValue &=
+                            Utils.writeFile(output_dir + ctx.getFilename() + "CdrAux.ipp",
+                                    maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/TypesCdrAuxHeaderImpl.stg"), m_replace);
                     }
+
                     returnedValue &=
                         Utils.writeFile(output_dir + ctx.getFilename() + "PubSubTypes.hpp",
                                 maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/DDSPubSubTypeHeader.stg"), m_replace);
@@ -1056,15 +1054,13 @@ public class fastddsgen
                                 maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/DDSPubSubTypeSource.stg"), m_replace))
                     {
                         project.addCommonSrcFile(relative_dir + ctx.getFilename() + "PubSubTypes.cxx");
-                        if (ctx.existsLastStructure() || ctx.isThereIsInterface())
+
+                        if (m_python)
                         {
-                            if (m_python)
-                            {
-                                System.out.println("Generating Swig interface files...");
-                                returnedValue &= Utils.writeFile(
-                                        output_dir + ctx.getFilename() + "PubSubTypes.i",
-                                        maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/DDSPubSubTypeSwigInterface.stg"), m_replace);
-                            }
+                            System.out.println("Generating Swig interface files...");
+                            returnedValue &= Utils.writeFile(
+                                    output_dir + ctx.getFilename() + "PubSubTypes.i",
+                                    maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/DDSPubSubTypeSwigInterface.stg"), m_replace);
                         }
                     }
 
