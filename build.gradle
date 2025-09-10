@@ -30,7 +30,10 @@ import org.gradle.api.tasks.options.Option;
  * @version 2.0.0
  * @since 2020-03-31
  */
-public class InstallPath extends DefaultTask {
+public abstract class InstallPath extends DefaultTask {
+
+    @Inject abstract FileSystemOperations getFs() 
+
     private String path = "";
 
     /**
@@ -56,9 +59,9 @@ public class InstallPath extends DefaultTask {
      * @param ouput destination directory
      */
     private void copy(String input, String output) {
-        project.copy {
-            from project.file(input)
-            into project.file(output)
+        fs.copy {
+            from input
+            into output
         }
     }
 
@@ -97,7 +100,7 @@ dependencies {
 }
 
 task submodulesUpdate(type: Exec) {
-    description 'Updates (and inits) git submodules'
+    description = 'Updates (and inits) git submodules'
     commandLine 'git', 'submodule', 'update', '--init'
 }
 
@@ -113,10 +116,13 @@ task copyResources {
     outputDir.exists() || outputDir.mkdirs()
     File versionFile = new File("${project.buildDir}/resources/main/version")
     outputs.file versionFile
+    // Store the message into a variable, because referencing extras from the task action
+    // is not compatible with the configuration cache.
+    def hasCustomVersion = project.hasProperty('customversion')
     doLast {
         // Create version file
         Properties pversion = new Properties()
-        project.hasProperty('customversion')
+        hasCustomVersion
             ? pversion.setProperty('version', project.customversion.toString())
             : pversion.setProperty('version', version_str)
         versionFile.withWriter {
@@ -146,7 +152,7 @@ sourceSets {
 }
 
 jar {
-    duplicatesStrategy 'exclude'
+    duplicatesStrategy = 'exclude'
     from { configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) } }
     archiveBaseName = 'fastddsgen'
     manifest {
