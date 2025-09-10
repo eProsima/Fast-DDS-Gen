@@ -62,6 +62,122 @@ $endif$
 %import(module="fastdds") "fastdds/dds/core/LoanableTypedCollection.hpp"
 %import(module="fastdds") "fastdds/dds/core/LoanableSequence.hpp"
 
+<<<<<<< HEAD
+=======
+$if(ctx.thereIsInterface)$
+%import(module="fastdds") "fastdds/dds/rpc/exceptions/RpcException.hpp"
+%import(module="fastdds") "fastdds/dds/rpc/exceptions/RpcOperationError.hpp"
+%import(module="fastdds") "fastdds/dds/rpc/interfaces/RpcServer.hpp"
+
+%exception {
+    try
+    {
+        \$action
+    }
+    catch (const eprosima::fastdds::dds::rpc::RpcException& ex)
+    {
+        SWIG_exception(SWIG_RuntimeError, ex.what());
+    }
+    catch (const std::exception& ex)
+    {
+        SWIG_exception(SWIG_RuntimeError, ex.what());
+    }
+    catch (...)
+    {
+        SWIG_exception(SWIG_RuntimeError,"Unknown exception");
+    }
+}
+
+$if(ctx.thereIsOutputFeed)$
+%import(module="fastdds") "fastdds/dds/rpc/interfaces/RpcServerWriter.hpp"
+%ignore eprosima::fastdds::dds::rpc::RpcClientReader::read(T&);
+%ignore eprosima::fastdds::dds::rpc::RpcClientReader::read(T&,eprosima::fastdds::dds::Duration_t&);
+%import(module="fastdds") "fastdds/dds/rpc/interfaces/RpcClientReader.hpp"
+%extend eprosima::fastdds::dds::rpc::RpcClientReader {
+    std::pair<bool, T> read(
+        const eprosima::fastdds::dds::Duration_t& timeout = eprosima::fastdds::dds::c_TimeInfinite)
+    {
+        std::pair<bool, T> ret_val{};
+        if (eprosima::fastdds::dds::c_TimeInfinite == timeout)
+        {
+            ret_val.first = self->read(ret_val.second);
+        }
+        else
+        {
+            ret_val.first = self->read(ret_val.second, timeout);
+        }
+        return ret_val;
+    }
+}
+
+$ctx.outputFeedTypes : {feed_type | $output_feed(feed_type)$}; separator="\n\n"$
+$endif$
+
+$if(ctx.thereIsNonFeedOperation)$
+// Code for std::future taken from https://github.com/swig/swig/issues/1828#issuecomment-648449092
+namespace eprosima::fastdds::dds::rpc
+{
+template <class R>
+class RpcFuture {
+ public:
+    RpcFuture() noexcept;
+    RpcFuture(RpcFuture &&) noexcept;
+    RpcFuture(const RpcFuture& rhs) = delete;
+    ~RpcFuture();
+    RpcFuture& operator=(const RpcFuture& rhs) = delete;
+    RpcFuture& operator=(RpcFuture&&) noexcept;
+
+    // retrieving the value
+    R get();
+
+    // functions to check state
+    bool valid() const noexcept;
+    void wait() const;
+
+/*
+    template <class Rep, class Period>
+    future_status wait_for(const chrono::duration<Rep, Period>& rel_time) const;
+    template <class Clock, class Duration>
+    future_status wait_until(const chrono::time_point<Clock, Duration>& abs_time) const;
+*/
+};
+
+}
+
+$ctx.outputNonFeedTypes : {non_feed_type | $output_non_feed(non_feed_type)$}; separator="\n\n"$
+$endif$
+
+$if(ctx.thereIsInputFeed)$
+%import(module="fastdds") "fastdds/dds/rpc/interfaces/RpcClientWriter.hpp"
+%import(module="fastdds") "fastdds/dds/rpc/interfaces/RpcStatusCode.hpp"
+
+%ignore eprosima::fastdds::dds::rpc::RpcServerReader::read(T&);
+%ignore eprosima::fastdds::dds::rpc::RpcServerReader::read(T&,eprosima::fastdds::dds::Duration_t&);
+%import(module="fastdds") "fastdds/dds/rpc/interfaces/RpcServerReader.hpp"
+%extend eprosima::fastdds::dds::rpc::RpcServerReader {
+    std::pair<bool, T> read(
+        const eprosima::fastdds::dds::Duration_t& timeout = eprosima::fastdds::dds::c_TimeInfinite)
+    {
+        std::pair<bool, T> ret_val{};
+        if (eprosima::fastdds::dds::c_TimeInfinite == timeout)
+        {
+            ret_val.first = self->read(ret_val.second);
+        }
+        else
+        {
+            ret_val.first = self->read(ret_val.second, timeout);
+        }
+        return ret_val;
+    }
+}
+
+$ctx.inputFeedTypes : {feed_type | $input_feed(feed_type)$}; separator="\n\n"$
+$endif$
+
+%exception;
+$endif$
+
+>>>>>>> b1a003e (Add fixed string getter (#492))
 %define %traits_penumn(Type...)
   %fragment(SWIG_Traits_frag(Type),"header",
         fragment="StdTraits") {
@@ -202,6 +318,11 @@ $if(member.typecode.isStringType && member.typecode.isBounded)$
         eprosima::fastcdr::fixed_string<$member.typecode.maxsize$> tmp(value);
         \$self->$member.name$(tmp);
     }
+
+    std::string $member.name$_str() const
+    {
+        return std::string(\$self->$member.name$(), strnlen(\$self->$member.name$(), $member.typecode.maxsize$));
+    }
 }
 $endif$
 
@@ -241,3 +362,57 @@ bitset_type(ctx, parent, bitset, extensions) ::= <<
 enum_type(ctx, parent, enum) ::= <<
 %traits_penumn(enum $enum.cppTypename$);
 >>
+<<<<<<< HEAD
+=======
+
+interface(ctx, parent, interface, export_list) ::= <<
+
+$export_list$
+
+%shared_ptr($interface.scopedname$);
+$if(!interface.annotatedAsNested)$
+%shared_ptr($interface.scopedname$Server_IServerImplementation);
+%shared_ptr($interface.scopedname$ServerImplementation);
+%feature("director") $interface.scopedname$ServerImplementation;
+$endif$
+>>
+
+output_non_feed(type) ::= <<
+%shared_ptr(eprosima::fastdds::dds::rpc::RpcFuture<$type.cppTypename$>);
+%template($type.formatedCppTypename$_rpc_future) eprosima::fastdds::dds::rpc::RpcFuture<$type.cppTypename$>;
+
+$!
+// Combine the typemap from shared_ptr
+// https://github.com/swig/swig/blob/b96b955ca15a01f0425fb26c234528530923202a/Lib/python/boost_shared_ptr.i#L41-L44
+// with the use of the 'optimal' attribute to avoid the need for a copy constructor, inspired by
+// https://github.com/swig/swig/issues/1828#issuecomment-648449092
+!$
+%typemap(out, optimal="1") eprosima::fastdds::dds::rpc::RpcFuture<$type.cppTypename$> {
+  std::shared_ptr<\$1_ltype> *smartresult = new std::shared_ptr<\$1_ltype>(new \$1_ltype(\$1));
+  \$result = SWIG_NewPointerObj(SWIG_as_voidptr(smartresult), \$descriptor(std::shared_ptr< eprosima::fastdds::dds::rpc::RpcFuture<$type.cppTypename$\>> *), SWIG_POINTER_OWN);
+}
+>>
+
+output_feed(type) ::= <<
+%shared_ptr(eprosima::fastdds::dds::rpc::RpcClientReader<$type.cppTypename$>);
+%template($type.formatedCppTypename$_client_reader_result) std::pair<bool, $type.cppTypename$>;
+%template($type.formatedCppTypename$_client_reader) eprosima::fastdds::dds::rpc::RpcClientReader<$type.cppTypename$>;
+
+%template($type.formatedCppTypename$_server_writer) eprosima::fastdds::dds::rpc::RpcServerWriter<$type.cppTypename$>;
+>>
+
+input_feed(type) ::= <<
+%template($type.formatedCppTypename$_server_reader_result) std::pair<bool, $type.cppTypename$>;
+%template($type.formatedCppTypename$_server_reader) eprosima::fastdds::dds::rpc::RpcServerReader<$type.cppTypename$>;
+
+%shared_ptr(eprosima::fastdds::dds::rpc::RpcClientWriter<$type.cppTypename$>);
+%template($type.formatedCppTypename$_rpc_client_writer) eprosima::fastdds::dds::rpc::RpcClientWriter<$type.cppTypename$>;
+%typemap(in,numinputs=0) std::shared_ptr<eprosima::fastdds::dds::rpc::RpcClientWriter<$type.cppTypename$\>>& %{
+    \$1 = new std::shared_ptr<eprosima::fastdds::dds::rpc::RpcClientWriter<$type.cppTypename$\>>();
+%}
+%typemap(argout) std::shared_ptr<eprosima::fastdds::dds::rpc::RpcClientWriter<$type.cppTypename$\>>& (PyObject* tmp) %{
+    tmp = SWIG_NewPointerObj(\$1, \$1_descriptor, SWIG_POINTER_OWN);
+    \$result = SWIG_Python_AppendOutput(\$result, tmp);
+%}
+>>
+>>>>>>> b1a003e (Add fixed string getter (#492))
