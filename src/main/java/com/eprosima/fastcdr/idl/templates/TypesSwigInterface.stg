@@ -154,10 +154,10 @@ class RpcFuture {
     ~RpcFuture();
     RpcFuture& operator=(const RpcFuture& rhs) = delete;
     RpcFuture& operator=(RpcFuture&&) noexcept;
- 
+
     // retrieving the value
     R get();
- 
+
     // functions to check state
     bool valid() const noexcept;
     void wait() const;
@@ -350,6 +350,11 @@ $if(member.typecode.isStringType && member.typecode.isBounded)$
         eprosima::fastcdr::fixed_string<$member.typecode.maxsize$> tmp(value);
         \$self->$member.name$(tmp);
     }
+
+    std::string $member.name$_str() const
+    {
+        return std::string(\$self->$member.name$(), strnlen(\$self->$member.name$(), $member.typecode.maxsize$));
+    }
 }
 $endif$
 
@@ -406,7 +411,7 @@ output_non_feed(type) ::= <<
 %shared_ptr(eprosima::fastdds::dds::rpc::RpcFuture<$type.cppTypename$>);
 %template($type.formatedCppTypename$_rpc_future) eprosima::fastdds::dds::rpc::RpcFuture<$type.cppTypename$>;
 
-$! 
+$!
 // Combine the typemap from shared_ptr
 // https://github.com/swig/swig/blob/b96b955ca15a01f0425fb26c234528530923202a/Lib/python/boost_shared_ptr.i#L41-L44
 // with the use of the 'optimal' attribute to avoid the need for a copy constructor, inspired by
