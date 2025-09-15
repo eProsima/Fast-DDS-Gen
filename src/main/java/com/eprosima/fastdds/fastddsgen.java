@@ -302,7 +302,7 @@ public class fastddsgen
                 if (count < args.length)
                 {
                     String pathStr = args[count++];
-                    if (!isIncludePathDuplicated(pathStr)) 
+                    if (!isIncludePathDuplicated(pathStr))
                     {
                         m_includePaths.add("-I".concat(pathStr));
                     }
@@ -548,35 +548,35 @@ public class fastddsgen
         System.out.println(m_appName + " version " + version);
     }
 
-    private boolean isIncludePathDuplicated(String pathToCheck) 
+    private boolean isIncludePathDuplicated(String pathToCheck)
     {
-        try 
+        try
         {
             Path path = Paths.get(pathToCheck);
             String absPath = path.toAbsolutePath().toString();
             boolean isDuplicateFound = false;
-            for (String includePath : m_includePaths) 
+            for (String includePath : m_includePaths)
             {
                 // include paths are prefixed with "-I"
-                if (includePath.length() <= 2) 
+                if (includePath.length() <= 2)
                 {
                     continue;
                 }
                 String absIncludePath = Paths.get(includePath.substring(2)).toAbsolutePath().toString();
-                if (absPath.toLowerCase().equals(absIncludePath.toLowerCase())) 
+                if (absPath.toLowerCase().equals(absIncludePath.toLowerCase()))
                 {
                     isDuplicateFound = true;
                     break;
                 }
             }
-        
-            if (isDuplicateFound) 
+
+            if (isDuplicateFound)
             {
                 return true;
             }
-        
-        } 
-        catch (InvalidPathException | IOError | SecurityException ex) 
+
+        }
+        catch (InvalidPathException | IOError | SecurityException ex)
         {
             // path operations failed, just returning false
         }
@@ -1107,65 +1107,56 @@ public class fastddsgen
 
         final String METHOD_NAME = "genSolution";
         boolean returnedValue = true;
-        if (m_atLeastOneStructure == true)
+        if (m_exampleOption != null)
         {
-            if (m_exampleOption != null)
+            System.out.println("Generating solution for arch " + m_exampleOption + "...");
+
+            if (m_exampleOption.equals("CMake") || m_test)
             {
-                System.out.println("Generating solution for arch " + m_exampleOption + "...");
-
-                if (m_exampleOption.equals("CMake") || m_test)
+                System.out.println("Generating CMakeLists solution");
+                returnedValue = genCMakeLists(solution);
+            }
+            else if (m_exampleOption.substring(3, 6).equals("Win"))
+            {
+                System.out.println("Generating Windows solution");
+                if (m_exampleOption.startsWith("i86"))
                 {
-                    System.out.println("Generating CMakeLists solution");
-                    returnedValue = genCMakeLists(solution);
+                    returnedValue = genVS(solution, null, "16", "142");
                 }
-                else if (m_exampleOption.substring(3, 6).equals("Win"))
+                else if (m_exampleOption.startsWith("x64"))
                 {
-                    System.out.println("Generating Windows solution");
-                    if (m_exampleOption.startsWith("i86"))
+                    for (int index = 0; index < m_vsconfigurations.length; index++)
                     {
-                        returnedValue = genVS(solution, null, "16", "142");
+                        m_vsconfigurations[index].setPlatform("x64");
                     }
-                    else if (m_exampleOption.startsWith("x64"))
-                    {
-                        for (int index = 0; index < m_vsconfigurations.length; index++)
-                        {
-                            m_vsconfigurations[index].setPlatform("x64");
-                        }
-                        returnedValue = genVS(solution, "x64", "16", "142");
-                    }
-                    else
-                    {
-                        returnedValue = false;
-                    }
+                    returnedValue = genVS(solution, "x64", "16", "142");
                 }
-                else if (m_exampleOption.substring(3, 8).equals("Linux"))
+                else
                 {
-                    System.out.println("Generating makefile solution");
-
-                    if (m_exampleOption.startsWith("i86"))
-                    {
-                        returnedValue = genMakefile(solution, "-m32");
-                    }
-                    else if (m_exampleOption.startsWith("x64"))
-                    {
-                        returnedValue = genMakefile(solution, "-m64");
-                    }
-                    else if (m_exampleOption.startsWith("arm"))
-                    {
-                        returnedValue = genMakefile(solution, "");
-                    }
-                    else
-                    {
-                        returnedValue = false;
-                    }
+                    returnedValue = false;
                 }
             }
-        }
-        else
-        {
-            System.out.println(
-                ColorMessage.warning() +
-                "No structure found in any of the provided IDL; no example files have been generated");
+            else if (m_exampleOption.substring(3, 8).equals("Linux"))
+            {
+                System.out.println("Generating makefile solution");
+
+                if (m_exampleOption.startsWith("i86"))
+                {
+                    returnedValue = genMakefile(solution, "-m32");
+                }
+                else if (m_exampleOption.startsWith("x64"))
+                {
+                    returnedValue = genMakefile(solution, "-m64");
+                }
+                else if (m_exampleOption.startsWith("arm"))
+                {
+                    returnedValue = genMakefile(solution, "");
+                }
+                else
+                {
+                    returnedValue = false;
+                }
+            }
         }
 
         return returnedValue;
