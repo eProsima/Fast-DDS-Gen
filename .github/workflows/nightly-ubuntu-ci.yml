@@ -71,18 +71,3 @@ jobs:
       run-build: true
       run-tests: true
       use-ccache: false
-
-  nightly-ubuntu-ci-2_5_x:
-    uses: eProsima/Fast-DDS-Gen/.github/workflows/reusable-ubuntu-ci.yml@2.5.x
-    with:
-      os-version: 'ubuntu-22.04'
-      java-version: 'openjdk-11-jdk'
-      label: 'nightly-ubuntu-ci-2.5.x'
-      fastddsgen-branch: '2.5.x'
-      fastdds-branch: '2.10.x'
-      fastcdr-branch: '1.0.x'
-      fastdds-python-branch: '1.2.x'
-      discovery-server-branch: 'v1.2.1'
-      run-build: true
-      run-tests: true
-      use-ccache: false
