@@ -131,6 +131,7 @@ jobs:
         with:
           remote_repository: eProsima/Fast-DDS
           fallback_branch: ${{ inputs.fastdds-branch }}
+          skip_base: true
 
       - name: Get Fast CDR branch
         id: get_fastcdr_branch
@@ -138,6 +139,7 @@ jobs:
         with:
           remote_repository: eProsima/Fast-CDR
           fallback_branch: ${{ inputs.fastcdr-branch }}
+          skip_base: true
 
       - name: Get Fast DDS Python branch
         id: get_fastdds_python_branch
@@ -145,6 +147,10 @@ jobs:
         with:
           remote_repository: eProsima/Fast-DDS-python
           fallback_branch: ${{ inputs.fastdds-python-branch }}
+<<<<<<< HEAD
+=======
+          skip_base: true
+>>>>>>> 39951e5 (Fix CI external repo getters (#498))
 
       - name: Get Discovery Server branch
         id: get_discovery_server_branch
@@ -152,6 +158,10 @@ jobs:
         with:
           remote_repository: eProsima/Discovery-Server
           fallback_branch: ${{ inputs.discovery-server-branch }}
+<<<<<<< HEAD
+=======
+          skip_base: true
+>>>>>>> 39951e5 (Fix CI external repo getters (#498))
 
       - name: Download Fast CDR, Fast DDS Python, and Discovery Server
         run: |
