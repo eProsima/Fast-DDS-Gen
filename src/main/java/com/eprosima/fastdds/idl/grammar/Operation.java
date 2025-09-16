@@ -84,9 +84,7 @@ public class Operation extends com.eprosima.idl.parser.tree.Operation
             }
             else
             {
-                // Take note that there is at least one input feed
-                m_context.inputFeedAdded(p);
-                m_hasInputFeeds = true;
+                throw new ParseException(null, "Support for input feeds is part of Fast DDS Pro");
             }
         }
 
