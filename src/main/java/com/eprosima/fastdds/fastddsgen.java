@@ -964,6 +964,7 @@ public class fastddsgen
                                 Utils.writeFile(output_dir + ctx.getFilename() + ".i",
                                     maintemplates.getTemplate("com/eprosima/fastcdr/idl/templates/TypesSwigInterface.stg"), m_replace))
                         {
+                            project.setSwigInterfaceFile(relative_dir + ctx.getFilename() + ".i");
                         }
                     }
                 }
