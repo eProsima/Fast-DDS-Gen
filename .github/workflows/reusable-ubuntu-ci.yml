@@ -100,13 +100,18 @@ jobs:
       - name: Install apt packages
         uses: eProsima/eProsima-CI/ubuntu/install_apt_packages@v0
         with:
-          packages: libasio-dev libtinyxml2-dev libssl-dev swig ${{ inputs.java-version }}
+          packages: libasio-dev libtinyxml2-dev libssl-dev swig
 
-      - name: Configure Java to ${{ inputs.java-version }}
-        shell: bash
+      - name: Configure Java to ${{ inputs.java-version }} using setup-java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin' # Alternatives: 'zulu', 'corretto', etc.
+          java-version: '${{ inputs.java-version }}'
+
+      - name: Verify Java version
         run: |
-          jv=$(echo ${{ inputs.java-version }} | sed -r 's/.*-([0-9]*)-.*/\1/g'); jvs=$(update-alternatives --list java | grep "$jv" | head -1); sudo update-alternatives --set java "$jvs"
-          jv=$(echo ${{ inputs.java-version }} | sed -r 's/.*-([0-9]*)-.*/\1/g'); jvs=$(update-alternatives --list javac | grep "$jv" | head -1); sudo update-alternatives --set javac "$jvs"
+          java -version
+          echo $JAVA_HOME
 
       - name: Install colcon
         uses: eProsima/eProsima-CI/multiplatform/install_colcon@v0

@@ -10,7 +10,7 @@ jobs:
     uses: eProsima/Fast-DDS-Gen/.github/workflows/reusable-ubuntu-ci.yml@2.1.x
     with:
       os-version: 'ubuntu-20.04'
-      java-version: 'openjdk-11-jdk'
+      java-version: '17'
       label: 'weekly-ubuntu-ci-2.1.x'
       fastddsgen-branch: '2.1.x'
       fastdds-branch: '2.6.x'
