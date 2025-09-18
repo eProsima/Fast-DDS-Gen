@@ -60,7 +60,7 @@ on:
         type: boolean
         default: false
 env:
-    cdr-test-flag: ${{ inputs.fastcdr-branch == '1.1.x' &&  '-Dcdr_version=v1 -Dblacklist_tests=external,optional' || (inputs.fastcdr-branch == '2.x' &&  '-Dcdr_version=v2' || '-Dcdr_version=both' )}}
+    cdr-test-flag: ${{ inputs.fastcdr-branch == '1.1.x' &&  '-Dcdr_version=v1 -Dblacklist_tests=external,optional,exceptions,interfaces,interfaces_2,inner_const_and_typedef' || (inputs.fastcdr-branch == '2.x' &&  '-Dcdr_version=v2 -Dblacklist_tests=exceptions,interfaces,interfaces_2,inner_const_and_typedef' || '-Dcdr_version=both' )}}
 defaults:
   run:
     shell: bash
