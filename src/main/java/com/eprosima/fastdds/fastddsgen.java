@@ -988,40 +988,38 @@ public class fastddsgen
                 }
 
                 System.out.println("Generating TopicDataTypes files...");
-                if (ctx.isThereIsStructOrUnion())
+                if (returnedValue &=
+                        Utils.writeFile(output_dir + ctx.getFilename() + "CdrAux.hpp",
+                        maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/TypesCdrAuxHeader.stg"), m_replace))
                 {
-                    if (returnedValue &=
-                            Utils.writeFile(output_dir + ctx.getFilename() + "CdrAux.hpp",
-                            maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/TypesCdrAuxHeader.stg"), m_replace))
-                    {
-                        project.addProjectIncludeFile(relative_dir + ctx.getFilename() + "CdrAux.hpp");
-                        returnedValue &=
-                                Utils.writeFile(output_dir + ctx.getFilename() + "CdrAux.ipp",
-                                    maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/TypesCdrAuxHeaderImpl.stg"), m_replace);
-                    }
+                    project.addProjectIncludeFile(relative_dir + ctx.getFilename() + "CdrAux.hpp");
+                    returnedValue &=
+                            Utils.writeFile(output_dir + ctx.getFilename() + "CdrAux.ipp",
+                                maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/TypesCdrAuxHeaderImpl.stg"), m_replace);
                 }
                 returnedValue &=
                         Utils.writeFile(output_dir + ctx.getFilename() + "PubSubTypes.h",
                             maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/DDSPubSubTypeHeader.stg"), m_replace);
-                project.addProjectIncludeFile(relative_dir + ctx.getFilename() + "PubSubTypes.h");
+                project.addCommonIncludeFile(relative_dir + ctx.getFilename() + "PubSubTypes.h");
+
+                if (returnedValue &=
+                        Utils.writeFile(output_dir + ctx.getFilename() + "PubSubTypes.cxx",
+                            maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/DDSPubSubTypeSource.stg"), m_replace))
+                {
+                    project.addCommonSrcFile(relative_dir + ctx.getFilename() + "PubSubTypes.cxx");
+                    if (m_python)
+                    {
+                        System.out.println("Generating Swig interface files...");
+                        returnedValue &= Utils.writeFile(
+                                output_dir + ctx.getFilename() + "PubSubTypes.i",
+                                maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/DDSPubSubTypeSwigInterface.stg"), m_replace);
+                    }
+                }
+
                 if (ctx.existsLastStructure())
                 {
                     m_atLeastOneStructure = true;
                     project.setHasStruct(true);
-
-                    if (returnedValue &=
-                            Utils.writeFile(output_dir + ctx.getFilename() + "PubSubTypes.cxx",
-                                maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/DDSPubSubTypeSource.stg"), m_replace))
-                    {
-                        project.addProjectSrcFile(relative_dir + ctx.getFilename() + "PubSubTypes.cxx");
-                        if (m_python)
-                        {
-                            System.out.println("Generating Swig interface files...");
-                            returnedValue &= Utils.writeFile(
-                                    output_dir + ctx.getFilename() + "PubSubTypes.i",
-                                    maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/DDSPubSubTypeSwigInterface.stg"), m_replace);
-                        }
-                    }
 
                     if (m_exampleOption != null)
                     {
@@ -1191,44 +1189,35 @@ public class fastddsgen
 
         final String METHOD_NAME = "genSolution";
         boolean returnedValue = true;
-        if (m_atLeastOneStructure == true)
+        if (m_exampleOption != null)
         {
-            if (m_exampleOption != null)
-            {
-                System.out.println("Generating solution for arch " + m_exampleOption + "...");
+            System.out.println("Generating solution for arch " + m_exampleOption + "...");
 
-                if (m_exampleOption.equals("CMake") || m_test)
+            if (m_exampleOption.equals("CMake") || m_test)
+            {
+                System.out.println("Generating CMakeLists solution");
+                returnedValue = genCMakeLists(solution);
+            }
+            else if (m_exampleOption.substring(3, 6).equals("Win"))
+            {
+                System.out.println("Generating Windows solution");
+                if (m_exampleOption.startsWith("i86"))
                 {
-                    System.out.println("Generating CMakeLists solution");
-                    returnedValue = genCMakeLists(solution);
+                    returnedValue = genVS(solution, null, "16", "142");
                 }
-                else if (m_exampleOption.substring(3, 6).equals("Win"))
+                else if (m_exampleOption.startsWith("x64"))
                 {
-                    System.out.println("Generating Windows solution");
-                    if (m_exampleOption.startsWith("i86"))
+                    for (int index = 0; index < m_vsconfigurations.length; index++)
                     {
-                        returnedValue = genVS(solution, null, "16", "142");
+                        m_vsconfigurations[index].setPlatform("x64");
                     }
-                    else if (m_exampleOption.startsWith("x64"))
-                    {
-                        for (int index = 0; index < m_vsconfigurations.length; index++)
-                        {
-                            m_vsconfigurations[index].setPlatform("x64");
-                        }
-                        returnedValue = genVS(solution, "x64", "16", "142");
-                    }
-                    else
-                    {
-                        returnedValue = false;
-                    }
+                    returnedValue = genVS(solution, "x64", "16", "142");
+                }
+                else
+                {
+                    returnedValue = false;
                 }
             }
-        }
-        else
-        {
-            System.out.println(
-                ColorMessage.warning() +
-                "No structure found in any of the provided IDL; no example files have been generated");
         }
 
         return returnedValue;
