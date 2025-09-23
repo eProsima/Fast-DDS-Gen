@@ -1953,15 +1953,17 @@ $if(object.typecode.valueTypeCode.isType_c ||
     object.typecode.valueTypeCode.isWStringType ||
     object.typecode.keyTypeCode.isStringType ||
     object.typecode.keyTypeCode.isWStringType)$
-uint32_t seq_length = 0;
-dcdr \>> seq_length;
-$preffix$$object.name$.clear();
-for (uint32_t i = 0; i < seq_length; ++i)
 {
-$object_map_key_deserialization(ctx=ctx, keyTypeCode=object.typecode.keyTypeCode)$
+    uint32_t seq_length = 0;
+    dcdr \>> seq_length;
+    $preffix$$object.name$.clear();
+    for (uint32_t i = 0; i < seq_length; ++i)
+    {
+    $object_map_key_deserialization(ctx=ctx, keyTypeCode=object.typecode.keyTypeCode)$
 
-$object_map_value_deserialization(ctx=ctx, name=[preffix, object.name], keyTypeCode=object.typecode.keyTypeCode,
-        valueTypeCode=object.typecode.valueTypeCode)$
+    $object_map_value_deserialization(ctx=ctx, name=[preffix, object.name], keyTypeCode=object.typecode.keyTypeCode,
+            valueTypeCode=object.typecode.valueTypeCode)$
+    }
 }
 $else$
     dcdr \>> $preffix$$object.name$;
