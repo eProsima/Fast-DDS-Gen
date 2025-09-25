@@ -46,6 +46,9 @@ $ctx.directIncludeDependencies : {include | %include "$include$.i"}; separator="
 %include <fastcdr/config.h>
 #if FASTCDR_VERSION_MAJOR > 1
 %import(module="fastdds") "fastcdr/xcdr/optional.hpp"
+$if(ctx.thereIsString)$
+%import(module="fastdds") "fastcdr/cdr/fixed_size_string.hpp"
+$endif$
 #endif
 %import(module="fastdds") "fastdds/dds/core/LoanableCollection.hpp"
 %import(module="fastdds") "fastdds/dds/core/LoanableTypedCollection.hpp"
@@ -204,6 +207,20 @@ $endif$
 $else$
 %ignore $struct_name$::$member.name$();
 %rename("%s") $struct_name$::$member.name$() const;
+
+$if(member.typecode.isStringType && member.typecode.isBounded)$
+#if FASTCDR_VERSION_MAJOR > 1
+%template(fixed_string_$member.typecode.maxsize$) eprosima::fastcdr::fixed_string<$member.typecode.maxsize$>;
+%extend $struct_name$
+{
+    void $member.name$(const std::string& value)
+    {
+        eprosima::fastcdr::fixed_string<$member.typecode.maxsize$> tmp(value);
+        \$self->$member.name$(tmp);
+    }
+}
+#endif
+$endif$
 
 $endif$
 
