@@ -169,6 +169,7 @@ compileJava {
 }
 
 task install(type: InstallPath, group: "Install", description: "Install fastddsgen script and fastddsgen.jar")
+install.dependsOn assemble
 
 test {
     useJUnitPlatform()
