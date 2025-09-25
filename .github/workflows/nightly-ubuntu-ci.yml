@@ -27,7 +27,7 @@ jobs:
       run-tests: true
       use-ccache: false
 
-  nightly-ubuntu-ci-4_1_x:
+  nightly-ubuntu-ci-4_1_x-fast-3_3_x:
       strategy:
         fail-fast: false
         matrix:
@@ -38,8 +38,29 @@ jobs:
       with:
         os-version: 'ubuntu-22.04'
         java-version: ${{ matrix.java-version }}
-        label: 'nightly-ubuntu-ci-4.1.x'
+        label: 'nightly-ubuntu-ci-4.1.x-3.3.x'
         fastddsgen-branch: '4.1.x'
+        fastdds-branch: '3.3.x'
+        fastcdr-branch: '2.3.x'
+        fastdds-python-branch: '2.3.x'
+        discovery-server-branch: 'v2.0.0'
+        run-build: true
+        run-tests: true
+        use-ccache: false
+
+  nightly-ubuntu-ci-4_0_x-fast-3_2_x:
+      strategy:
+        fail-fast: false
+        matrix:
+          java-version:
+            - 'openjdk-11-jdk'
+            - 'openjdk-19-jdk'
+      uses: eProsima/Fast-DDS-Gen/.github/workflows/reusable-ubuntu-ci.yml@4.0.x
+      with:
+        os-version: 'ubuntu-22.04'
+        java-version: ${{ matrix.java-version }}
+        label: 'nightly-ubuntu-ci-4.1.x-3.2.x'
+        fastddsgen-branch: '4.0.x'
         fastdds-branch: '3.2.x'
         fastcdr-branch: '2.3.x'
         fastdds-python-branch: '2.2.x'
