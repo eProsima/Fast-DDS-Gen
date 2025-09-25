@@ -45,9 +45,7 @@ $ctx.directIncludeDependencies : {include | %include "$include$.i"}; separator="
 
 %include <fastcdr/config.h>
 #if FASTCDR_VERSION_MAJOR > 1
-$if(ctx.thereIsOptionalAnnotation)$
 %import(module="fastdds") "fastcdr/xcdr/optional.hpp"
-$endif$
 $if(ctx.thereIsString)$
 %import(module="fastdds") "fastcdr/cdr/fixed_size_string.hpp"
 $endif$
