@@ -17,6 +17,7 @@ package com.eprosima.fastdds.idl.grammar;
 import com.eprosima.fastdds.idl.grammar.Operation;
 import com.eprosima.fastdds.idl.parser.typecode.EnumTypeCode;
 import com.eprosima.fastdds.idl.parser.typecode.StructTypeCode;
+import com.eprosima.idl.parser.exception.ParseException;
 import com.eprosima.idl.parser.typecode.Member;
 import com.eprosima.idl.parser.typecode.EnumMember;
 import com.eprosima.idl.parser.typecode.TypeCode.ExtensibilityKind;
@@ -40,7 +41,7 @@ public class Interface extends com.eprosima.idl.parser.tree.Interface
             Operation op = (Operation)exp;
             if (op.isAnnotationFeed())
             {
-                m_hasOutputFeeds = true;
+                throw new ParseException(null, "Support for result feeds is part of Fast DDS Pro");
             }
 
             if (op.getOutputparam().size() > 0)
