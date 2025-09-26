@@ -202,6 +202,11 @@ $if(member.typecode.isStringType && member.typecode.isBounded)$
         eprosima::fastcdr::fixed_string<$member.typecode.maxsize$> tmp(value);
         \$self->$member.name$(tmp);
     }
+
+    std::string $member.name$_str() const
+    {
+        return std::string(\$self->$member.name$(), strnlen(\$self->$member.name$(), $member.typecode.maxsize$));
+    }
 }
 $endif$
 
