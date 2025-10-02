@@ -215,6 +215,14 @@ jobs:
           cmake_build_type: ${{ matrix.cmake-build-type }}
           workspace: ${{ github.workspace }}
 
+      - name: Clean workspace to save space
+        run: |
+          rm -rf ${{ github.workspace }}/build
+          rm -rf ${{ github.workspace }}/src/fastcdr
+          rm -rf ${{ github.workspace }}/src/fastdds
+          rm -rf ${{ github.workspace }}/src/fastdds_python
+          rm -rf ${{ github.workspace }}/src/discovery_server
+
       - name: Test fastddsgen
         if: ${{ inputs.run-tests == true }}
         run: |
