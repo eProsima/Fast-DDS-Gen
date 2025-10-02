@@ -11,22 +11,22 @@ on:
         description: 'Branch or tag of Fast DDS repository'
         required: false
         type: string
-        default: 'master'
+        default: '3.3.x'
       fastcdr-branch:
         description: 'Branch or tag of Fast CDR repository'
         required: false
         type: string
-        default: 'master'
+        default: '2.3.x'
       fastdds-python-branch:
         description: 'Branch or tag of Fast DDS Python repository'
         required: false
         type: string
-        default: 'main'
+        default: '2.3.x'
       discovery-server-branch:
         description: 'Branch or tag of Discovery Server repository'
         required: false
         type: string
-        default: 'master'
+        default: '2.0.x'
       run-tests:
         description: 'Run test suite of Fast DDS Gen'
         required: false
@@ -68,10 +68,10 @@ jobs:
       java-version: ${{ matrix.java-version }}
       label: 'ubuntu-ci-${{ matrix.java-version }}'
       fastddsgen-branch: ${{ inputs.fastddsgen-branch || github.ref }}
-      fastdds-branch: ${{ inputs.fastdds-branch || 'master' }}
-      fastcdr-branch: ${{ inputs.fastcdr-branch || 'master' }}
-      fastdds-python-branch: ${{ inputs.fastdds-python-branch || 'main' }}
-      discovery-server-branch: ${{ inputs.discovery-server-branch || 'master' }}
+      fastdds-branch: ${{ inputs.fastdds-branch || '3.3.x' }}
+      fastcdr-branch: ${{ inputs.fastcdr-branch || '2.3.x' }}
+      fastdds-python-branch: ${{ inputs.fastdds-python-branch || '2.3.x' }}
+      discovery-server-branch: ${{ inputs.discovery-server-branch || '2.0.x' }}
       run-build: ${{ !(github.event_name == 'pull_request') || !contains(github.event.pull_request.labels.*.name, 'skip-ci') }}
       run-tests: ${{ (inputs.run-tests == true) || ((github.event_name == 'pull_request') && (!contains(github.event.pull_request.labels.*.name, 'no-test'))) }}
       use-ccache: ${{ (inputs.use-ccache == true) || false }}
