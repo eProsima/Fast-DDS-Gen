@@ -23,22 +23,22 @@ on:
         description: 'Branch or tag of Fast DDS repository'
         required: false
         type: string
-        default: 'master'
+        default: '3.2.x'
       fastcdr-branch:
         description: 'Branch or tag of Fast CDR repository'
         required: false
         type: string
-        default: 'master'
+        default: '2.3.x'
       fastdds-python-branch:
         description: 'Branch or tag of Fast DDS Python repository'
         required: false
         type: string
-        default: 'main'
+        default: '2.2.x'
       discovery-server-branch:
         description: 'Branch or tag of Discovery Server repository'
         required: false
         type: string
-        default: 'master'
+        default: '2.0.x'
       run-build:
         description: 'Build Fast DDS Gen'
         required: false
@@ -142,14 +142,14 @@ jobs:
         uses: eProsima/eProsima-CI/ubuntu/get_related_branch_from_repo@v0
         with:
           remote_repository: eProsima/Fast-DDS-python
-          fallback_branch: main
+          fallback_branch: ${{ inputs.fastdds-python-branch }}
 
       - name: Get Discovery Server branch
         id: get_discovery_server_branch
         uses: eProsima/eProsima-CI/ubuntu/get_related_branch_from_repo@v0
         with:
           remote_repository: eProsima/Discovery-Server
-          fallback_branch: master
+          fallback_branch: ${{ inputs.discovery-server-branch }}
 
       - name: Download Fast CDR, Fast DDS Python, and Discovery Server
         run: |
