@@ -82,6 +82,9 @@ message(STATUS "Configuring $project.name$...")
 $if(!project.commonSrcFiles_escaped.empty)$
 add_library($project.name$_lib $project.commonSrcFiles_escaped; separator=" "$)
 target_link_libraries($project.name$_lib $libraries; separator=" "$)
+if(BUILD_SHARED_LIBS)
+    target_compile_definitions($project.name$_lib PRIVATE EPROSIMA_USER_DLL_EXPORT)
+endif()
 $endif$
 
 $if(!project.projectSrcFiles_escaped.empty)$
