@@ -34,12 +34,20 @@ $solution.projects : {$pub_sub_execs(project=it, libraries=solution.libraries, t
 pub_sub_execs(project, libraries, test) ::= <<
 
 message(STATUS "Configuring $project.name$...")
+<<<<<<< HEAD
 add_library($project.name$_lib $project.commonSrcFiles : {$it$}; separator=" "$)
 target_link_libraries($project.name$_lib $solution.libraries : {$it$}; separator=" "$)
 
 add_executable($project.name$ $project.projectSrcFiles : {$it$}; separator=" "$)
 target_link_libraries($project.name$ $solution.libraries : {$it$}; separator=" "$
         $project.name$_lib $project.dependencies : {$it$_lib}; separator=" "$)
+=======
+$if(!project.commonSrcFiles_escaped.empty)$
+add_library($project.name$_lib $project.commonSrcFiles_escaped; separator=" "$)
+target_compile_definitions($project.name$_lib PRIVATE \$<\$<BOOL:\${BUILD_SHARED_LIBS}>:EPROSIMA_USER_DLL_EXPORT>)
+target_link_libraries($project.name$_lib $libraries; separator=" "$)
+$endif$
+>>>>>>> 564b231 (Fix windows build on cmake generated example with shared libs (#525))
 
 
 $if(test)$
