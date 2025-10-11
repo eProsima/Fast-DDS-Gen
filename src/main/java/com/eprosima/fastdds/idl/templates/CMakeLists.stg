@@ -49,6 +49,7 @@ pub_sub_execs(project, libraries, test) ::= <<
 
 message(STATUS "Configuring $project.name$...")
 add_library($project.name$_lib $project.commonSrcFiles : { file | $file$}; separator=" "$)
+target_compile_definitions($project.name$_lib PRIVATE \$<\$<BOOL:\${BUILD_SHARED_LIBS}>:EPROSIMA_USER_DLL_EXPORT>)
 target_link_libraries($project.name$_lib $solution.libraries : { library | $library$}; separator=" "$)
 
 $if(!project.projectSrcFiles.empty)$
