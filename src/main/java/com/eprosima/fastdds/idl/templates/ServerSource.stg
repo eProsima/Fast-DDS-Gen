@@ -641,7 +641,7 @@ $endif$
 
 operation_feed_reader(op, param) ::= <<
 struct $op.name$_$param.name$_reader :
-    public frpc::RpcServerReader<int32_t>,
+    public frpc::RpcServerReader<$paramRetType(param.typecode)$>,
     public IInputFeedProcessor
 {
     $op.name$_$param.name$_reader() = default;
@@ -684,7 +684,7 @@ struct $op.name$_$param.name$_reader :
     }
 
     bool read(
-            $param.typecode.cppTypename$& value) override
+            $paramRetType(param.typecode)$& value) override
     {
         bool ret_val = false;
         std::unique_lock<std::mutex> lock(mtx_);
