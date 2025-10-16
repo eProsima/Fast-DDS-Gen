@@ -110,10 +110,6 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
         // Create default @Key annotation.
         AnnotationDeclaration keyann = this.createAnnotationDeclaration(Annotation.eprosima_key_str, null);
         keyann.addMember(new AnnotationMember(Annotation.value_str, new PrimitiveTypeCode(Kind.KIND_BOOLEAN), Annotation.true_str));
-
-        // Create default @feed annotation.
-        AnnotationDeclaration feed_ann = this.createAnnotationDeclaration(com.eprosima.fastdds.idl.grammar.Annotation.rpc_feed_str, null);
-        feed_ann.addMember(new AnnotationMember(Annotation.value_str, new PrimitiveTypeCode(Kind.KIND_BOOLEAN), Annotation.true_str));
     }
 
     public void setTypelimitation(

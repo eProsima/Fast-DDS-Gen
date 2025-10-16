@@ -17,6 +17,8 @@ package com.eprosima.fastdds;
 import com.eprosima.fastcdr.idl.generator.TypesGenerator;
 import com.eprosima.fastdds.exceptions.BadArgumentException;
 import com.eprosima.fastdds.idl.grammar.Context;
+import com.eprosima.fastdds.idl.grammar.ContextCreator;
+import com.eprosima.fastdds.idl.grammar.ContextCreatorInterface;
 import com.eprosima.fastdds.solution.Project;
 import com.eprosima.fastdds.solution.Solution;
 import com.eprosima.fastdds.util.Utils;
@@ -146,6 +148,9 @@ public class fastddsgen
     // Specifies whether the TypeObject Support files should be generated.
     private boolean generate_typeobjectsupport_ = true;
 
+    // Context factory
+    private ContextCreatorInterface m_ctxFactory = null;
+
     /*
      * ----------------------------------------------------------------------------------------
      *
@@ -155,6 +160,14 @@ public class fastddsgen
     public fastddsgen(
             String [] args) throws BadArgumentException
     {
+        this(args, new ContextCreator());
+    }
+
+    public fastddsgen(
+            String [] args,
+            ContextCreatorInterface ctx_creator) throws BadArgumentException
+    {
+        m_ctxFactory = ctx_creator;
 
         int count = 0;
         String arg;
@@ -758,7 +771,8 @@ public class fastddsgen
             // Create template manager
             TemplateManager tmanager = new TemplateManager();
 
-            Context ctx = new Context(tmanager, idlFilename, m_includePaths, m_subscribercode, m_publishercode,
+            Context ctx = m_ctxFactory.createContext(
+                            tmanager, idlFilename, m_includePaths, m_subscribercode, m_publishercode,
                             m_localAppProduct, m_typesc, m_type_ros2, gen_api_, generate_typeobjectsupport_);
 
             String relative_dir = ctx.getRelativeDir(dependant_idl_dir);
