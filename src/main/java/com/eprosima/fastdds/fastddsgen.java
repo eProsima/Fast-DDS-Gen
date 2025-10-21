@@ -149,7 +149,7 @@ public class fastddsgen
     private boolean generate_typeobjectsupport_ = true;
 
     // Context factory
-    private ContextCreatorInterface m_ctxFactory = null;
+    private ContextCreatorInterface ctx_factory_ = null;
 
     /*
      * ----------------------------------------------------------------------------------------
@@ -167,7 +167,7 @@ public class fastddsgen
             String [] args,
             ContextCreatorInterface ctx_creator) throws BadArgumentException
     {
-        m_ctxFactory = ctx_creator;
+        ctx_factory_ = ctx_creator;
 
         int count = 0;
         String arg;
@@ -771,7 +771,7 @@ public class fastddsgen
             // Create template manager
             TemplateManager tmanager = new TemplateManager();
 
-            Context ctx = m_ctxFactory.createContext(
+            Context ctx = ctx_factory_.createContext(
                             tmanager, idlFilename, m_includePaths, m_subscribercode, m_publishercode,
                             m_localAppProduct, m_typesc, m_type_ros2, gen_api_, generate_typeobjectsupport_);
 
