@@ -167,6 +167,11 @@ public class fastddsgen
             String [] args,
             ContextCreatorInterface ctx_creator) throws BadArgumentException
     {
+        if (ctx_creator == null)
+        {
+            throw new BadArgumentException("Context creator cannot be null");
+        }
+
         ctx_factory_ = ctx_creator;
 
         int count = 0;
