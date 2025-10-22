@@ -638,11 +638,14 @@ $else$
                 const auto& result = reply.$operation.name$.value();
                 if (result.result.has_value())
                 {
-                    const auto& out = result.result.value();
                     $if(operation.outputparam)$
+                    const auto& out = result.result.value();
                     promise.set_value(out);
+                    $elseif(operation.rettype)$
+                    const auto& out = result.result.value();
+                    promise.set_value(out.return_);
                     $else$
-                    promise.set_value($if(operation.rettype)$out.return_$endif$);
+                    promise.set_value();
                     $endif$
                     return;
                 }
