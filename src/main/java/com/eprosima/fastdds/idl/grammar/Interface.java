@@ -172,10 +172,10 @@ public class Interface extends com.eprosima.idl.parser.tree.Interface
         return m_remoteExceptionCode_t_type;
     }
 
-    private Context m_context = null;
-    private boolean m_hasOutputFeeds = false;
-    private boolean m_has_operations_with_output_arguments = false;
-    private StructTypeCode m_request_type = null;
-    private StructTypeCode m_reply_type = null;
-    static private EnumTypeCode m_remoteExceptionCode_t_type = null;
+    protected Context m_context = null;
+    protected boolean m_hasOutputFeeds = false;
+    protected boolean m_has_operations_with_output_arguments = false;
+    protected StructTypeCode m_request_type = null;
+    protected StructTypeCode m_reply_type = null;
+    static protected EnumTypeCode m_remoteExceptionCode_t_type = null;
 }
