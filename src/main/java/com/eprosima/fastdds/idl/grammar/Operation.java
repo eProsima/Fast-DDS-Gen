@@ -221,8 +221,8 @@ public class Operation extends com.eprosima.idl.parser.tree.Operation
         return m_result_type;
     }
 
-    private Context m_context = null;
-    private StructTypeCode m_in_type = null;
-    private StructTypeCode m_out_type = null;
-    private StructTypeCode m_result_type = null;
+    protected Context m_context = null;
+    protected StructTypeCode m_in_type = null;
+    protected StructTypeCode m_out_type = null;
+    protected StructTypeCode m_result_type = null;
 }
