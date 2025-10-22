@@ -39,11 +39,6 @@ public class Interface extends com.eprosima.idl.parser.tree.Interface
         if (exp instanceof Operation)
         {
             Operation op = (Operation)exp;
-            if (op.isAnnotationFeed())
-            {
-                throw new ParseException(null, "Support for result feeds is part of Fast DDS Pro");
-            }
-
             if (op.getOutputparam().size() > 0)
             {
                 m_has_operations_with_output_arguments = true;
