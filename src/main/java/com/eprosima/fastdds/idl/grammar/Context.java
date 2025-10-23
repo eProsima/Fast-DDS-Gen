@@ -875,48 +875,48 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
 
     //// Java block ////
     // Java package name.
-    private String m_package = "";
-    private String m_onlypackage = "";
+    protected String m_package = "";
+    protected String m_onlypackage = "";
     // Java package dir.
-    private String m_packageDir = "";
-    private boolean activateFusion_ = false;
+    protected String m_packageDir = "";
+    protected boolean activateFusion_ = false;
     //// End Java block
 
-    private boolean cdr_v1_templates = false;
+    protected boolean cdr_v1_templates = false;
 
-    private boolean is_generating_api_ = false;
+    protected boolean is_generating_api_ = false;
 
-    private Map<String, List<String>> modules_conversion = Stream.of(
+    protected Map<String, List<String>> modules_conversion = Stream.of(
         new AbstractMap.SimpleEntry<>("dds", Arrays.asList("eprosima", "fastdds", "dds")),
         new AbstractMap.SimpleEntry<>("DDS", Arrays.asList("eprosima", "fastdds", "dds")),
         new AbstractMap.SimpleEntry<>("XTypes", Arrays.asList("xtypes")))
         .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
-    private boolean there_is_at_least_one_array = false;
+    protected boolean there_is_at_least_one_array = false;
 
-    private boolean there_is_at_least_one_bitset = false;
+    protected boolean there_is_at_least_one_bitset = false;
 
-    private boolean there_is_at_least_one_external_annotation = false;
+    protected boolean there_is_at_least_one_external_annotation = false;
 
-    private boolean there_is_at_least_one_map = false;
+    protected boolean there_is_at_least_one_map = false;
 
-    private boolean there_is_at_least_one_optional_annotation = false;
+    protected boolean there_is_at_least_one_optional_annotation = false;
 
-    private boolean there_is_at_least_one_sequence = false;
+    protected boolean there_is_at_least_one_sequence = false;
 
-    private boolean there_is_at_least_one_string = false;
+    protected boolean there_is_at_least_one_string = false;
 
-    private boolean there_is_at_least_one_struct = false;
+    protected boolean there_is_at_least_one_struct = false;
 
-    private boolean there_is_at_least_one_union = false;
+    protected boolean there_is_at_least_one_union = false;
 
-    private boolean there_is_at_least_one_exception = false;
+    protected boolean there_is_at_least_one_exception = false;
 
-    private Map<String, TypeNamePair> m_input_feed_types = new HashMap<String, TypeNamePair>();
+    protected Map<String, TypeNamePair> m_input_feed_types = new HashMap<String, TypeNamePair>();
 
-    private Map<String, TypeNamePair> m_output_feed_types = new HashMap<String, TypeNamePair>();
+    protected Map<String, TypeNamePair> m_output_feed_types = new HashMap<String, TypeNamePair>();
 
-    private Map<String, TypeNamePair> m_output_non_feed_types = new HashMap<String, TypeNamePair>();
+    protected Map<String, TypeNamePair> m_output_non_feed_types = new HashMap<String, TypeNamePair>();
 
-    private boolean there_is_at_least_one_interface = false;
+    protected boolean there_is_at_least_one_interface = false;
 }

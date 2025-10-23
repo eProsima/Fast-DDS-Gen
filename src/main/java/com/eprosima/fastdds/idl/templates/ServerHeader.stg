@@ -29,6 +29,12 @@ $fileHeader(ctx=ctx,  file=[ctx.filename, "Server.hpp"], description=["Server im
 #include <fastdds/dds/domain/qos/ReplierQos.hpp>
 #include <fastdds/dds/rpc/exceptions.hpp>
 #include <fastdds/dds/rpc/interfaces.hpp>
+$if(ctx.thereIsInputFeed)$
+#include <fastdds/dds/rpc/interfaces/RpcServerReader.hpp>
+$endif$
+$if(ctx.thereIsOutputFeed)$
+#include <fastdds/dds/rpc/interfaces/RpcServerWriter.hpp>
+$endif$
 #include <fastdds/rtps/common/Guid.hpp>
 #include <fastdds/rtps/common/RemoteLocators.hpp>
 

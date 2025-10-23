@@ -67,28 +67,7 @@ public class Operation extends com.eprosima.idl.parser.tree.Operation
 
     public boolean isHasInputFeeds()
     {
-        return m_hasInputFeeds;
-    }
-
-    @Override
-    public void add(com.eprosima.idl.parser.tree.Param param)
-    {
-        Param p = (Param)param;
-        // Process feed annotation
-        if (p.isAnnotationFeed())
-        {
-            if (p.isOutput())
-            {
-                // Fail if parameter is out and feed
-                throw new ParseException(null, "Output parameter " + p.getName() + " has '@feed' annotation.");
-            }
-            else
-            {
-                throw new ParseException(null, "Support for input feeds is part of Fast DDS Pro");
-            }
-        }
-
-        super.add(param);
+        return false;
     }
 
     public StructTypeCode getInTypeCode()
@@ -242,9 +221,8 @@ public class Operation extends com.eprosima.idl.parser.tree.Operation
         return m_result_type;
     }
 
-    private Context m_context = null;
-    private StructTypeCode m_in_type = null;
-    private StructTypeCode m_out_type = null;
-    private StructTypeCode m_result_type = null;
-    private boolean m_hasInputFeeds = false;
+    protected Context m_context = null;
+    protected StructTypeCode m_in_type = null;
+    protected StructTypeCode m_out_type = null;
+    protected StructTypeCode m_result_type = null;
 }

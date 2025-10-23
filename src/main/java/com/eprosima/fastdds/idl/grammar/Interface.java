@@ -39,11 +39,6 @@ public class Interface extends com.eprosima.idl.parser.tree.Interface
         if (exp instanceof Operation)
         {
             Operation op = (Operation)exp;
-            if (op.isAnnotationFeed())
-            {
-                throw new ParseException(null, "Support for result feeds is part of Fast DDS Pro");
-            }
-
             if (op.getOutputparam().size() > 0)
             {
                 m_has_operations_with_output_arguments = true;
@@ -60,7 +55,7 @@ public class Interface extends com.eprosima.idl.parser.tree.Interface
      */
     public boolean isWithOutputFeeds()
     {
-        return m_hasOutputFeeds;
+        return false;
     }
 
     /*!
@@ -111,7 +106,7 @@ public class Interface extends com.eprosima.idl.parser.tree.Interface
                 });
             });
 
-            if (m_hasOutputFeeds)
+            if (isWithOutputFeeds())
             {
                 // Optional boolean to indicate if the feed is cancelled
                 Member feed_cancel = new Member(m_context.createPrimitiveTypeCode(
@@ -177,10 +172,9 @@ public class Interface extends com.eprosima.idl.parser.tree.Interface
         return m_remoteExceptionCode_t_type;
     }
 
-    private Context m_context = null;
-    private boolean m_hasOutputFeeds = false;
-    private boolean m_has_operations_with_output_arguments = false;
-    private StructTypeCode m_request_type = null;
-    private StructTypeCode m_reply_type = null;
-    static private EnumTypeCode m_remoteExceptionCode_t_type = null;
+    protected Context m_context = null;
+    protected boolean m_has_operations_with_output_arguments = false;
+    protected StructTypeCode m_request_type = null;
+    protected StructTypeCode m_reply_type = null;
+    static protected EnumTypeCode m_remoteExceptionCode_t_type = null;
 }
