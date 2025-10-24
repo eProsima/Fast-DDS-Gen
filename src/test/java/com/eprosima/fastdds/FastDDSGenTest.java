@@ -38,7 +38,7 @@ public class FastDDSGenTest
                         OUTPUT_PATH + "/idls", "CMake");
         tests.removeTests(IDL.ARRAY_NESTED, IDL.SEQUENCE_NESTED);
         boolean testResult = tests.runTests();
-        System.exit(testResult ? 0 : -1);
+        assertEquals(true, testResult);
     }
 
 }
