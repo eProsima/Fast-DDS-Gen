@@ -145,6 +145,6 @@ public class FastDDSGenTest
         tests.removeTests("basic_inner_types");
 
         boolean testResult = tests.runTests();
-        System.exit(testResult ? 0 : -1);
+        assertEquals(true, testResult);
     }
 }
