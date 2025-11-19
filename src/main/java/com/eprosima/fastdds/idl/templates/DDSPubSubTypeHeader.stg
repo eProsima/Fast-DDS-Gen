@@ -190,8 +190,8 @@ public:
 
 private:
 
-    unsigned char* key_buffer_;
 $if(struct.hasKey)$
+    unsigned char* key_buffer_ = nullptr;
     std::mutex compute_key_mtx_;
 $endif$
 
