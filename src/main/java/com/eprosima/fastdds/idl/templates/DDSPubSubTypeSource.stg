@@ -37,7 +37,6 @@ using InstanceHandle_t = eprosima::fastdds::rtps::InstanceHandle_t;
 using DataRepresentationId_t = eprosima::fastdds::dds::DataRepresentationId_t;
 
 $definitions; separator="\n"$
-
 $if(ctx.thereIsStructOrUnion || ctx.thereIsInterface)$
 // Include auxiliary functions like for serializing/deserializing.
 #include "$ctx.filename$CdrAux.ipp"
@@ -47,7 +46,7 @@ $endif$
 
 module(ctx, parent, module, definition_list) ::= <<
 namespace $module.name$ {
-    $definition_list$
+$definition_list$
 } // namespace $module.name$
 
 >>
@@ -85,7 +84,8 @@ bool $struct.name$PubSubType::serialize(
         SerializedPayload_t& payload,
         DataRepresentationId_t data_representation)
 {
-    const ::$struct.scopedname$* p_type = static_cast<const ::$struct.scopedname$*>(data);
+    const ::$struct.scopedname$* p_type =
+            static_cast<const ::$struct.scopedname$*>(data);
 
     // Object that manages the raw buffer.
     eprosima::fastcdr::FastBuffer fastbuffer(reinterpret_cast<char*>(payload.data), payload.max_size);
@@ -105,7 +105,7 @@ bool $struct.name$PubSubType::serialize(
         ser.serialize_encapsulation();
         // Serialize the object.
         ser << *p_type;
-        ser.set_dds_cdr_options({0,0});
+        ser.set_dds_cdr_options({0, 0});
     }
     catch (eprosima::fastcdr::exception::Exception& /*exception*/)
     {
@@ -124,7 +124,8 @@ bool $struct.name$PubSubType::deserialize(
     try
     {
         // Convert DATA to pointer of your type
-        ::$struct.scopedname$* p_type = static_cast<::$struct.scopedname$*>(data);
+        ::$struct.scopedname$* p_type =
+                static_cast<::$struct.scopedname$*>(data);
 
         // Object that manages the raw buffer.
         eprosima::fastcdr::FastBuffer fastbuffer(reinterpret_cast<char*>(payload.data), payload.length);
@@ -157,9 +158,10 @@ uint32_t $struct.name$PubSubType::calculate_serialized_size(
             data_representation == DataRepresentationId_t::XCDR_DATA_REPRESENTATION ?
             eprosima::fastcdr::CdrVersion::XCDRv1 :eprosima::fastcdr::CdrVersion::XCDRv2);
         size_t current_alignment {0};
-        return static_cast<uint32_t>(calculator.calculate_serialized_size(
-                    *static_cast<const ::$struct.scopedname$*>(data), current_alignment)) +
-                4u /*encapsulation*/;
+        const ::$struct.scopedname$* p_type =
+                static_cast<const ::$struct.scopedname$*>(data);
+        auto calc_size = calculator.calculate_serialized_size(*p_type, current_alignment);
+        return static_cast<uint32_t>(calc_size) + 4u /*encapsulation*/;
     }
     catch (eprosima::fastcdr::exception::Exception& /*exception*/)
     {
@@ -205,7 +207,8 @@ bool $struct.name$PubSubType::compute_key(
 {
 $if(struct.hasKey)$
     std::lock_guard<std::mutex> guard(compute_key_mtx_);
-    const ::$struct.scopedname$* p_type = static_cast<const ::$struct.scopedname$*>(data);
+    const ::$struct.scopedname$* p_type =
+            static_cast<const ::$struct.scopedname$*>(data);
 
     // Ensure the key buffer is reserved
     unsigned char* key_buffer = get_key_buffer_nts();
@@ -219,7 +222,10 @@ $if(struct.hasKey)$
             $struct.cScopedname$_max_key_cdr_typesize);
 
     // Object that serializes the data.
-    eprosima::fastcdr::Cdr ser(fastbuffer, eprosima::fastcdr::Cdr::BIG_ENDIANNESS, eprosima::fastcdr::CdrVersion::XCDRv2);
+    eprosima::fastcdr::Cdr ser(
+        fastbuffer,
+        eprosima::fastcdr::Cdr::BIG_ENDIANNESS,
+        eprosima::fastcdr::CdrVersion::XCDRv2);
     ser.set_encoding_flag(eprosima::fastcdr::EncodingAlgorithmFlag::PLAIN_CDR2);
     eprosima::fastcdr::serialize_key(ser, *p_type);
     if (force_md5 || $struct.cScopedname$_max_key_cdr_typesize > 16)
@@ -272,7 +278,7 @@ void $struct.name$PubSubType::register_type_object_representation()
     register_$struct.name$_type_identifier(type_identifiers_);
     $else$
     EPROSIMA_LOG_WARNING(XTYPES_TYPE_REPRESENTATION,
-        "TypeObject type representation support disabled in generated code");
+            "TypeObject type representation support disabled in generated code");
     $endif$
 }
 $endif$
@@ -347,7 +353,7 @@ public:
             ser.serialize_encapsulation();
             // Serialize the object.
             ser << *p_type;
-            ser.set_dds_cdr_options({0,0});
+            ser.set_dds_cdr_options({0, 0});
         }
         catch (eprosima::fastcdr::exception::Exception& /*exception*/)
         {
@@ -399,9 +405,9 @@ public:
                 data_representation == DataRepresentationId_t::XCDR_DATA_REPRESENTATION ?
                 eprosima::fastcdr::CdrVersion::XCDRv1 : eprosima::fastcdr::CdrVersion::XCDRv2);
             size_t current_alignment {0};
-            return static_cast<uint32_t>(calculator.calculate_serialized_size(
-                        *static_cast<const type*>(data), current_alignment)) +
-                    4u /*encapsulation*/;
+            const type* p_type = static_cast<const type*>(data);
+            auto calc_size = calculator.calculate_serialized_size(*p_type, current_alignment);
+            return static_cast<uint32_t>(calc_size) + 4u /*encapsulation*/;
         }
         catch (eprosima::fastcdr::exception::Exception& /*exception*/)
         {
@@ -449,7 +455,7 @@ $if (ctx.generateTypeObjectSupport)$
         register_$interface.name$_$suffix$_type_identifier(type_identifiers_);
 $else$
         EPROSIMA_LOG_WARNING(XTYPES_TYPE_REPRESENTATION,
-            "TypeObject type representation support disabled in generated code");
+                "TypeObject type representation support disabled in generated code");
 $endif$
     }
 
