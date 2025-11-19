@@ -175,16 +175,13 @@ bool $struct.name$PubSubType::compute_key(
         InstanceHandle_t& handle,
         bool force_md5)
 {
-    if (!is_compute_key_provided)
-    {
-        return false;
-    }
-
+$if(struct.hasKey)$
     ::$struct.scopedname$ data;
     if (deserialize(payload, static_cast<void*>(&data)))
     {
         return compute_key(static_cast<void*>(&data), handle, force_md5);
     }
+$endif$
 
     return false;
 }
@@ -194,11 +191,7 @@ bool $struct.name$PubSubType::compute_key(
         InstanceHandle_t& handle,
         bool force_md5)
 {
-    if (!is_compute_key_provided)
-    {
-        return false;
-    }
-
+$if(struct.hasKey)$
     const ::$struct.scopedname$* p_type = static_cast<const ::$struct.scopedname$*>(data);
 
     // Object that manages the raw buffer.
@@ -227,6 +220,9 @@ bool $struct.name$PubSubType::compute_key(
         }
     }
     return true;
+$else$
+    return false;
+$endif$
 }
 
 void $struct.name$PubSubType::register_type_object_representation()
