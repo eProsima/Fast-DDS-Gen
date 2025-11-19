@@ -183,6 +183,10 @@ $if(struct.hasKey)$
     {
         return compute_key(static_cast<void*>(&data), handle, force_md5);
     }
+$else$
+    static_cast<void>(payload);
+    static_cast<void>(handle);
+    static_cast<void>(force_md5);
 $endif$
 
     return false;
@@ -224,6 +228,10 @@ $if(struct.hasKey)$
     }
     return true;
 $else$
+    static_cast<void>(data);
+    static_cast<void>(handle);
+    static_cast<void>(force_md5);
+
     return false;
 $endif$
 }
