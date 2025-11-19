@@ -21,6 +21,8 @@ $fileHeader(ctx=ctx,  file=[ctx.filename, "PubSubTypes.cpp"], description=["This
 
 #include "$ctx.filename$PubSubTypes.hpp"
 
+#include <mutex>
+
 #include <fastdds/dds/log/Log.hpp>
 #include <fastdds/rtps/common/CdrSerialization.hpp>
 
@@ -192,6 +194,7 @@ bool $struct.name$PubSubType::compute_key(
         bool force_md5)
 {
 $if(struct.hasKey)$
+    std::lock_guard<std::mutex> guard(compute_key_mtx_);
     const ::$struct.scopedname$* p_type = static_cast<const ::$struct.scopedname$*>(data);
 
     // Object that manages the raw buffer.
