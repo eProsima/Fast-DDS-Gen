@@ -211,12 +211,13 @@ $if(struct.hasKey)$
     eprosima::fastcdr::serialize_key(ser, *p_type);
     if (force_md5 || $struct.cScopedname$_max_key_cdr_typesize > 16)
     {
-        md5_.init();
-        md5_.update(key_buffer_, static_cast<unsigned int>(ser.get_serialized_data_length()));
-        md5_.finalize();
+        eprosima::fastdds::MD5 md5;
+        md5.init();
+        md5.update(key_buffer_, static_cast<unsigned int>(ser.get_serialized_data_length()));
+        md5.finalize();
         for (uint8_t i = 0; i < 16; ++i)
         {
-            handle.value[i] = md5_.digest[i];
+            handle.value[i] = md5.digest[i];
         }
     }
     else

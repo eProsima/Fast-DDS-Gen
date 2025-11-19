@@ -190,7 +190,6 @@ public:
 
 private:
 
-    eprosima::fastdds::MD5 md5_;
     unsigned char* key_buffer_;
 $if(struct.hasKey)$
     std::mutex compute_key_mtx_;
