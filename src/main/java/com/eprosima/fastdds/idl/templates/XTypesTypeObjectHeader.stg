@@ -1,0 +1,139 @@
+// Copyright 2023 Proyectos y Sistemas de Mantenimiento SL (eProsima).
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+group XTypesTypeObjectHeader;
+
+import "eprosima.stg"
+
+main(ctx, definitions) ::= <<
+$fileHeader(ctx=ctx, file=[ctx.filename, "TypeObjectSupport.hpp"], description=["Header file containing the API required to register the TypeObject representation of the described types in the IDL file"])$
+
+#ifndef FAST_DDS_GENERATED__$ctx.headerGuardName$_TYPE_OBJECT_SUPPORT_HPP
+#define FAST_DDS_GENERATED__$ctx.headerGuardName$_TYPE_OBJECT_SUPPORT_HPP
+
+#include <fastdds/dds/xtypes/type_representation/TypeObject.hpp>
+
+$ctx.directIncludeDependencies : { include | #include "$include$TypeObjectSupport.hpp"}; separator="\n"$
+
+#if defined(_WIN32)
+#if defined(EPROSIMA_USER_DLL_EXPORT)
+#define eProsima_user_DllExport __declspec( dllexport )
+#else
+#define eProsima_user_DllExport
+#endif  // EPROSIMA_USER_DLL_EXPORT
+#else
+#define eProsima_user_DllExport
+#endif  // _WIN32
+
+#ifndef DOXYGEN_SHOULD_SKIP_THIS_PUBLIC
+
+$definitions; separator=""$
+
+#endif // DOXYGEN_SHOULD_SKIP_THIS_PUBLIC
+
+#endif // FAST_DDS_GENERATED__$ctx.headerGuardName$_TYPE_OBJECT_SUPPORT_HPP
+
+>>
+
+module(ctx, parent, module, definition_list) ::= <<
+namespace $module.name$ {
+$definition_list$
+} // namespace $module.name$
+
+>>
+
+definition_list(definitions) ::= <<
+$definitions; separator="\n"$
+>>
+
+annotation(ctx, annotation) ::= <<
+
+namespace $annotation.name$ {
+
+$annotation.enums : { enum | $enum_type(ctx=ctx, parent=annotation, enum=enum)$}; separator="\n"$
+
+$annotation.typeDefs : { typedef | $typedef_decl(ctx=ctx, parent=annotation, typedefs=typedef, typedefs_type="", declarator_type="")$}; separator="\n"$
+
+$annotation.constDecls : { const | $const_decl(ctx=ctx, parent=annotation, const=const, const_type="")$}; separator="\n"$
+
+} // namespace $annotation.name$
+
+$register_type_identifier(typename=annotation.nameForTypeObjectRegistration)$
+>>
+
+bitmask_type(ctx, parent, bitmask) ::= <<
+$register_type_identifier(typename=bitmask.nameForTypeObjectRegistration)$
+>>
+
+bitset_type(ctx, parent, bitset) ::= <<
+$register_type_identifier(typename=bitset.nameForTypeObjectRegistration)$
+>>
+
+enum_type(ctx, parent, enum) ::= <<
+$register_type_identifier(typename=enum.nameForTypeObjectRegistration)$
+>>
+
+struct_type(ctx, parent, struct, member_list) ::= <<
+$register_type_identifier(typename=struct.nameForTypeObjectRegistration)$
+>>
+
+typedef_decl(ctx, parent, typedefs, typedefs_type, declarator_type) ::= <<
+$typedefs : { typedef |
+$register_type_identifier(typename=typedef.nameForTypeObjectRegistration)$
+
+}; separator="\n"$
+>>
+
+union_type(ctx, parent, union, extensions, switch_type) ::= <<
+$register_type_identifier(typename=union.nameForTypeObjectRegistration)$
+>>
+
+interface(ctx, parent, interface, export_list) ::= <<
+$export_list$
+$if(!interface.annotatedAsNested)$
+$register_type_identifier(typename=interface.requestTypeCode.nameForTypeObjectRegistration)$
+$register_type_identifier(typename=interface.replyTypeCode.nameForTypeObjectRegistration)$
+$endif$
+>>
+
+/***** Utils *****/
+register_type_identifier(typename) ::= <<
+/**
+ * @brief Register $typename$ related TypeIdentifier.
+ *        Fully-descriptive TypeIdentifiers are directly registered.
+ *        Hash TypeIdentifiers require to fill the TypeObject information and hash it, consequently, the TypeObject is
+ *        indirectly registered as well.
+ *
+ * @param[out] type_ids TypeIdentifier of the registered type.
+ *             The returned TypeIdentifier corresponds to the complete TypeIdentifier in case of hashed TypeIdentifiers.
+ *             Invalid TypeIdentifier is returned in case of error.
+ */
+eProsima_user_DllExport void register_$typename$_type_identifier(
+        eprosima::fastdds::dds::xtypes::TypeIdentifierPair& type_ids);
+
+>>
+
+//{ Fast DDS-Gen extensions
+module_conversion(ctx, parent, modules, definition_list) ::= <<
+$modules : { module |
+namespace $module.name$ {
+}; separator="\n"$
+
+$definition_list$
+
+$reverse(modules) : { module |
+\} // namespace $module.name$
+}; separator="\n"$
+>>
+//}

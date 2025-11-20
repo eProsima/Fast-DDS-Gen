@@ -1,0 +1,153 @@
+// Copyright 2025 Proyectos y Sistemas de Mantenimiento SL (eProsima).
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+group InterfaceDetails;
+
+import "eprosima.stg"
+
+main(ctx, definitions) ::= <<
+$fileHeader(ctx=ctx,  file=[ctx.filename, "_details.hpp"], description=["This header file contains support data structures for RPC communication."])$
+
+#ifndef FAST_DDS_GENERATED__$ctx.headerGuardName$_DETAILS_HPP
+#define FAST_DDS_GENERATED__$ctx.headerGuardName$_DETAILS_HPP
+
+#include <fastcdr/xcdr/optional.hpp>
+#include <fastdds/dds/rpc/RemoteExceptionCode_t.hpp>
+#include <fastdds/dds/rpc/interfaces/RpcStatusCode.hpp>
+
+#include "$ctx.filename$.hpp"
+
+$definitions; separator="\n"$
+
+#endif //FAST_DDS_GENERATED__$ctx.headerGuardName$_DETAILS_HPP
+>>
+
+struct_type(ctx, parent, struct, member_list) ::= <<>>
+
+union_type(ctx, parent, union, switch_type) ::= <<>>
+
+bitmask_type(ctx, parent, bitmask) ::= <<>>
+
+bitset_type(ctx, parent, bitset) ::= <<>>
+
+module(ctx, parent, module, definition_list) ::= <<
+namespace $module.name$ {
+$definition_list$
+}  // namespace $module.name$
+>>
+
+interface(ctx, parent, interface, export_list) ::= <<
+namespace detail {
+
+//{ $interface.name$ interface
+
+$interface.operations : { operation | $operation_details(interface, operation)$ }; separator="\n"$
+
+$if(!interface.annotatedAsNested)$
+//{ top level
+
+struct $interface.name$_Request
+{
+    $interface.all_operations : { operation | $operation_request_members(interface, operation)$ }; separator="\n"$
+    $if(interface.withOutputFeeds)$eprosima::fastcdr::optional<bool\> feed_cancel_;$endif$
+};
+
+struct $interface.name$_Reply
+{
+    $interface.all_operations : { operation | $operation_reply_members(interface, operation)$ }; separator="\n"$
+    eprosima::fastcdr::optional<eprosima::fastdds::dds::rpc::RemoteExceptionCode_t\> remoteEx;
+};
+
+//}  // top level
+$endif$
+
+//}  // $interface.name$ interface
+
+} // namespace detail
+>>
+
+operation_details(interface, operation) ::= <<
+//{ $operation.name$
+$operation_in_struct(interface, operation)$
+
+$operation.inputparam : { param | $if (param.annotationFeed)$$operation_feed_struct(interface, operation, param)$$endif$ }$
+
+$if(!operation.outputparam)$$operation_out_struct(interface, operation)$$endif$
+
+$operation_result_struct(interface, operation)$
+
+//}  // $operation.name$
+
+>>
+
+operation_in_struct(interface, operation) ::= <<
+struct $interface.name$_$operation.name$_In
+{
+    $if(operation.inputparam)$
+    $operation.inputparam : { param | $if (!param.annotationFeed)$$parameter_declaration(param)$$endif$ }; separator="\n"$
+    $endif$
+};
+>>
+
+operation_feed_struct(interface, operation, param) ::= <<
+struct $interface.name$_$operation.name$_$param.name$_Feed
+{
+    eprosima::fastcdr::optional<$param.typecode.cppTypename$> value;
+    eprosima::fastcdr::optional<eprosima::fastdds::dds::rpc::RpcStatusCode> finished_;
+};
+>>
+
+operation_out_struct(interface, operation) ::= <<
+struct $interface.name$_$operation.name$_Out
+{
+    $if(operation.annotationFeed)$
+    eprosima::fastcdr::optional<$operation.rettypeparam.typecode.cppTypename$\> $operation.rettypeparam.name$;
+    eprosima::fastcdr::optional<bool\> finished_;
+    $else$
+    $if([operation.outputparam, operation.rettypeparam])$
+    $[operation.outputparam, operation.rettypeparam]:{param | $parameter_declaration(param)$}; separator="\n"$
+    $endif$
+    $endif$
+};
+>>
+
+operation_result_struct(interface, operation) ::= <<
+struct $interface.name$_$operation.name$_Result
+{
+    eprosima::fastcdr::optional<$operation.outTypeCode.cppTypename$\> result;
+    $operation.exceptions : { exception |$operation_result_exception(typename=exception.scopedname, name=[exception.formatedScopedname, "_ex"])$}; separator="\n"$
+};
+>>
+
+parameter_declaration(param) ::= <%
+$param.typecode.cppTypename$ $param.name$;
+%>
+
+operation_result_exception(typename, name) ::= <%
+eprosima::fastcdr::optional<$typename$> $name$;
+%>
+
+operation_request_members(interface, operation) ::= <%
+eprosima::fastcdr::optional<$operation.inTypeCode.scopedname$> $operation.name$;
+$operation.inputparam : { param | $if (param.annotationFeed)$$operation_request_feed(interface, operation, param)$$endif$ }$
+%>
+
+operation_request_feed(interface, operation, param) ::= <<
+
+eprosima::fastcdr::optional<$param.feedTypeCode.scopedname$\> $operation.name$_$param.name$;
+>>
+
+operation_reply_members(interface, operation) ::= <<
+eprosima::fastcdr::optional<$operation.resultTypeCode.scopedname$\> $operation.name$;
+>>
