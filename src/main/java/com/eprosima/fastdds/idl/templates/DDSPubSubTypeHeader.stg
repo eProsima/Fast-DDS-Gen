@@ -23,6 +23,8 @@ $fileHeader(ctx=ctx,  file=[ctx.filename, "PubSubTypes.hpp"], description=["This
 #ifndef FAST_DDS_GENERATED__$ctx.headerGuardName$_PUBSUBTYPES_HPP
 #define FAST_DDS_GENERATED__$ctx.headerGuardName$_PUBSUBTYPES_HPP
 
+#include <mutex>
+
 #include <fastdds/dds/core/policy/QosPolicies.hpp>
 $if(ctx.thereIsInterface)$
 #include <fastdds/dds/rpc/ServiceTypeSupport.hpp>
@@ -48,10 +50,9 @@ $"\n"$
 >>
 
 module(ctx, parent, module, definition_list) ::= <<
-namespace $module.name$
-{
-    $definition_list$
-} // namespace $module.name$
+namespace $module.name$ {
+$definition_list$
+}  // namespace $module.name$
 >>
 
 typedef_decl(ctx, parent, typedefs, typedefs_type, declarator_type) ::= <<
@@ -188,8 +189,12 @@ public:
 
 private:
 
-    eprosima::fastdds::MD5 md5_;
-    unsigned char* key_buffer_;
+$if(struct.hasKey)$
+    unsigned char* key_buffer_ = nullptr;
+    std::mutex compute_key_mtx_;
+
+    unsigned char* get_key_buffer_nts();
+$endif$
 
 $if(struct.isPlain)$
 

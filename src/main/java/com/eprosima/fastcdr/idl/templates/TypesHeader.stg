@@ -114,11 +114,12 @@ $definition_list$
 annotation(ctx, annotation) ::= <<
 $if(annotation.enums || annotation.typeDefs || annotation.constDecls)$
 namespace $annotation.name$ {
-    $annotation.enums : { enum | $enum_type(ctx=ctx, parent=annotation, enum=enum)$}; separator="\n"$
 
-    $annotation.typeDefs : { typedef | $typedef_decl(ctx=ctx, parent=annotation, typedefs=typedef, typedefs_type="", declarator_type="")$}; separator="\n"$
+$annotation.enums : { enum | $enum_type(ctx=ctx, parent=annotation, enum=enum)$}; separator="\n"$
 
-    $annotation.constDecls : { const | $const_decl(ctx=ctx, parent=annotation, const=const, const_type="")$}; separator="\n"$
+$annotation.typeDefs : { typedef | $typedef_decl(ctx=ctx, parent=annotation, typedefs=typedef, typedefs_type="", declarator_type="")$}; separator="\n"$
+
+$annotation.constDecls : { const | $const_decl(ctx=ctx, parent=annotation, const=const, const_type="")$}; separator="\n"$
 
 } // namespace $annotation.name$
 $endif$
