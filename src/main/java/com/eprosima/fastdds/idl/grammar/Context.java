@@ -23,13 +23,10 @@ import com.eprosima.idl.parser.typecode.TypeCode;
 import com.eprosima.idl.parser.typecode.Member;
 import com.eprosima.idl.parser.typecode.MapTypeCode;
 import com.eprosima.idl.parser.typecode.MemberedTypeCode;
-<<<<<<< HEAD
 import com.eprosima.idl.parser.typecode.SequenceTypeCode;
 import com.eprosima.idl.parser.typecode.EnumTypeCode;
-=======
 import com.eprosima.log.ColorMessage;
 import java.io.InputStream;
->>>>>>> a2ff4a4 (Sign the generated code with the Fast DDS-Gen version (#458))
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map.Entry;
