@@ -57,7 +57,7 @@ jobs:
     with:
       # It would be desirable to have a matrix of ubuntu OS for this job, but due to the issue opened in this ticket:
       # https://github.com/orgs/community/discussions/128118 , it has been set as a single OS job.
-      os-version: 'ubuntu-20.04'
+      os-version: 'ubuntu-22.04'
       java-version: 'openjdk-11-jdk'
       label: 'ubuntu-ci-openjdk-11-jdk'
       fastddsgen-branch: ${{ inputs.fastddsgen-branch || github.ref }}

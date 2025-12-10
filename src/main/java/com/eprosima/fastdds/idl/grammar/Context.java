@@ -25,6 +25,8 @@ import com.eprosima.idl.parser.typecode.MapTypeCode;
 import com.eprosima.idl.parser.typecode.MemberedTypeCode;
 import com.eprosima.idl.parser.typecode.SequenceTypeCode;
 import com.eprosima.idl.parser.typecode.EnumTypeCode;
+import com.eprosima.log.ColorMessage;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map.Entry;
@@ -222,6 +224,25 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
     public String getProduct()
     {
         return "fastcdr";
+    }
+
+    public String getVersion()
+    {
+        try
+        {
+            InputStream input = this.getClass().getClassLoader().getResourceAsStream("version");
+            byte[] b = new byte[input.available()];
+            input.read(b);
+            String text = new String(b);
+            int beginindex = text.indexOf("=");
+            return text.substring(beginindex + 1).trim();
+        }
+        catch (Exception ex)
+        {
+            System.out.println(ColorMessage.error() + "Getting version. " + ex.getMessage());
+        }
+
+        return "";
     }
 
     public String getNamespace()
