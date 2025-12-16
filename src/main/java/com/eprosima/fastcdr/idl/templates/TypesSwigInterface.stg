@@ -15,7 +15,7 @@
 group TypesSwigInterface;
 
 main(ctx, definitions) ::= <<
-$fileHeader(file=[ctx.filename, ".i"], description=["This header file contains the SWIG interface of the described types in the IDL file."])$
+$fileHeader(ctx=ctx, file=[ctx.filename, ".i"], description=["This header file contains the SWIG interface of the described types in the IDL file."])$
 
 %module $ctx.filename$
 

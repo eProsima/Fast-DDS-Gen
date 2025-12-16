@@ -15,7 +15,7 @@
 group TypesHeader;
 
 main(ctx, definitions) ::= <<
-$fileHeader(file=[ctx.filename, ".h"], description=["This header file contains the declaration of the described types in the IDL file."])$
+$fileHeader(ctx=ctx, file=[ctx.filename, ".h"], description=["This header file contains the declaration of the described types in the IDL file."])$
 
 #ifndef _FAST_DDS_GENERATED_$ctx.headerGuardName$_H_
 #define _FAST_DDS_GENERATED_$ctx.headerGuardName$_H_
