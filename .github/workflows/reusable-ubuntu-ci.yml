@@ -115,6 +115,8 @@ jobs:
         run: |
           jv=$(echo ${{ inputs.java-version }} | sed -r 's/.*-([0-9]*)-.*/\1/g'); jvs=$(update-alternatives --list java | grep "$jv" | head -1); sudo update-alternatives --set java "$jvs"
           jv=$(echo ${{ inputs.java-version }} | sed -r 's/.*-([0-9]*)-.*/\1/g'); jvs=$(update-alternatives --list javac | grep "$jv" | head -1); sudo update-alternatives --set javac "$jvs"
+          java --version
+          javac --version
 
       - name: Install colcon
         uses: eProsima/eProsima-CI/multiplatform/install_colcon@v0
