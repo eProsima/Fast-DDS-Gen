@@ -92,20 +92,20 @@ repositories {
 
 dependencies {
     implementation files('thirdparty/idl-parser/build/libs/idlparser-4.2.0.jar')
-    testImplementation('org.junit.jupiter:junit-jupiter-api:5.5.2')
-    testRuntimeOnly('org.junit.jupiter:junit-jupiter-engine:5.5.2')
+    testImplementation('org.junit.jupiter:junit-jupiter:5.14.1')
+    testRuntimeOnly('org.junit.platform:junit-platform-launcher')
 }
 
 task submodulesUpdate(type: Exec) {
-    description 'Updates (and inits) git submodules'
-    commandLine 'git', 'submodule', 'update', '--init'
+    description = 'Updates (and inits) git submodules'
+    commandLine = ['git', 'submodule', 'update', '--init']
 }
 
 task buildIDLParser(type: GradleBuild) {
     dir = 'thirdparty/idl-parser'
     tasks = ['clean', 'build']
 }
-buildIDLParser.dependsOn submodulesUpdate
+//buildIDLParser.dependsOn submodulesUpdate
 
 task copyResources {
     // Copy platforms file
@@ -146,7 +146,7 @@ sourceSets {
 }
 
 jar {
-    duplicatesStrategy 'exclude'
+    duplicatesStrategy = 'exclude'
     from { configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) } }
     archiveBaseName = 'fastddsgen'
     manifest {
