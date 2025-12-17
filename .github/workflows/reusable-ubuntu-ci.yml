@@ -89,6 +89,9 @@ jobs:
           number: ${{ github.event.number }}
           repo: eProsima/Fast-DDS-Gen
 
+      - name: Free disk space
+        uses: eProsima/eProsima-CI/ubuntu/free_disk_space@v0
+
       - name: Sync eProsima/Fast-DDS-Gen repository
         uses: eProsima/eProsima-CI/external/checkout@v0
         with:
@@ -224,7 +227,7 @@ jobs:
 
       - name: Colcon build
         continue-on-error: false
-        uses: eProsima/eProsima-CI/multiplatform/colcon_build@v0
+        uses: eProsima/eProsima-CI/ubuntu/colcon_build@v0
         with:
           colcon_meta_file: ${{ github.workspace }}/src/fastddsgen/.github/workflows/config/build.meta
           colcon_build_args_default: '--event-handlers=console_direct+'
