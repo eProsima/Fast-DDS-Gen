@@ -1,7 +1,11 @@
 names:
     fastdds:
         cmake-args:
-            - "-DEPROSIMA_BUILD_TESTS=ON"
+            - -DEPROSIMA_BUILD_TESTS=ON
     fastdds_python:
         cmake-args:
-            - "-DBUILD_TESTING=ON"
+            - -DBUILD_TESTING=ON
+            - -DCMAKE_CXX_FLAGS_INIT="-Wall"
+    fastdds_python_examples:
+        cmake-args:
+            - -DCMAKE_CXX_FLAGS_INIT="-Wall"

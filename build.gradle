@@ -1,4 +1,4 @@
-// Copyright 2016-2020 Proyectos y Sistemas de Mantenimiento SL (eProsima).
+// Copyright 2016-2025 Proyectos y Sistemas de Mantenimiento SL (eProsima).
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -92,13 +92,13 @@ repositories {
 
 dependencies {
     implementation files('thirdparty/idl-parser/build/libs/idlparser-4.2.0.jar')
-    testImplementation('org.junit.jupiter:junit-jupiter-api:5.5.2')
-    testRuntimeOnly('org.junit.jupiter:junit-jupiter-engine:5.5.2')
+    testImplementation('org.junit.jupiter:junit-jupiter:5.14.1')
+    testRuntimeOnly('org.junit.platform:junit-platform-launcher')
 }
 
 task submodulesUpdate(type: Exec) {
-    description 'Updates (and inits) git submodules'
-    commandLine 'git', 'submodule', 'update', '--init'
+    description = 'Updates (and inits) git submodules'
+    commandLine = ['git', 'submodule', 'update', '--init']
 }
 
 task buildIDLParser(type: GradleBuild) {
@@ -146,7 +146,7 @@ sourceSets {
 }
 
 jar {
-    duplicatesStrategy 'exclude'
+    duplicatesStrategy = 'exclude'
     from { configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) } }
     archiveBaseName = 'fastddsgen'
     manifest {
