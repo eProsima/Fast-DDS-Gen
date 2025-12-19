@@ -57,7 +57,7 @@ jobs:
       matrix:
         java-version:
           - 'openjdk-11-jdk'
-          - 'openjdk-19-jdk'
+          - 'openjdk-17-jdk'
 
     if: ${{ !(github.event_name == 'pull_request') || !contains(github.event.pull_request.labels.*.name, 'conflicts') }}
     uses: ./.github/workflows/reusable-ubuntu-ci.yml
