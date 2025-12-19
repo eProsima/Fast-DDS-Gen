@@ -33,7 +33,7 @@ jobs:
         matrix:
           java-version:
             - 'openjdk-11-jdk'
-            - 'openjdk-19-jdk'
+            - 'openjdk-17-jdk'
       uses: eProsima/Fast-DDS-Gen/.github/workflows/reusable-ubuntu-ci.yml@4.2.x
       with:
         os-version: 'ubuntu-22.04'
@@ -54,7 +54,7 @@ jobs:
         matrix:
           java-version:
             - 'openjdk-11-jdk'
-            - 'openjdk-19-jdk'
+            - 'openjdk-17-jdk'
       uses: eProsima/Fast-DDS-Gen/.github/workflows/reusable-ubuntu-ci.yml@4.1.x
       with:
         os-version: 'ubuntu-22.04'
@@ -75,7 +75,7 @@ jobs:
         matrix:
           java-version:
             - 'openjdk-11-jdk'
-            - 'openjdk-19-jdk'
+            - 'openjdk-17-jdk'
       uses: eProsima/Fast-DDS-Gen/.github/workflows/reusable-ubuntu-ci.yml@4.0.x
       with:
         os-version: 'ubuntu-22.04'
@@ -96,7 +96,7 @@ jobs:
       matrix:
         java-version:
           - 'openjdk-11-jdk'
-          - 'openjdk-19-jdk'
+          - 'openjdk-17-jdk'
         fastcdr-branch:
           - '1.1.x'
           - '2.x'
