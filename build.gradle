@@ -17,7 +17,7 @@ apply plugin: 'java-library'
 apply plugin: 'eclipse' // Eclipse integration
 
 description = """"""
-def version_str = "4.2.0"
+def version_str = "4.3.0"
 
 import org.apache.tools.ant.taskdefs.condition.Os;
 import org.gradle.api.tasks.options.Option;
@@ -91,7 +91,7 @@ repositories {
 }
 
 dependencies {
-    implementation files('thirdparty/idl-parser/build/libs/idlparser-4.2.0.jar')
+    implementation files('thirdparty/idl-parser/build/libs/idlparser-4.3.0.jar')
     testImplementation('org.junit.jupiter:junit-jupiter:5.14.1')
     testRuntimeOnly('org.junit.platform:junit-platform-launcher')
 }
