@@ -80,7 +80,7 @@ jobs:
       with:
         os-version: 'ubuntu-22.04'
         java-version: ${{ matrix.java-version }}
-        label: 'nightly-ubuntu-ci-4.1.x-3.2.x'
+        label: 'nightly-ubuntu-ci-4.0.x-3.2.x'
         fastddsgen-branch: '4.0.x'
         fastdds-branch: '3.2.x'
         fastcdr-branch: '2.3.x'
