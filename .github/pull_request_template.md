@@ -17,7 +17,11 @@
     In case of bug fixes, please provide the list of supported branches where this fix should be also merged.
     Please uncomment following line, adjusting the corresponding target branches for the backport.
 -->
+<<<<<<< HEAD
 <!-- @Mergifyio backport 4.1.x 4.0.x 3.3.x 2.1.x -->
+=======
+<!-- @Mergifyio backport 4.2.x 4.0.x 3.3.x 2.1.x -->
+>>>>>>> 662d9dd (Update 'RELEASE_SUPPORT.md' with EOL of 4.1.x (#554))
 
 <!-- If an issue is already opened, please uncomment next line with the corresponding issue number. -->
 <!-- Fixes #(issue) -->
