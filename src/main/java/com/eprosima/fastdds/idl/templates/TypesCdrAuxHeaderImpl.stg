@@ -29,6 +29,7 @@ $if(ctx.cdr)$
 #include <fastcdr/Cdr.h>
 #include <fastcdr/CdrSizeCalculator.hpp>
 
+#include <fastdds/dds/core/policy/QosPolicies.hpp>
 $endif$
 
 #include <fastcdr/exceptions/BadParamException.h>
@@ -49,6 +50,53 @@ $"\n"$
 struct_type(ctx, parent, struct, extensions, member_list) ::= <<
 $member_list$
 $if(ctx.anyCdr)$
+
+eProsima_user_DllExport bool is_$struct.cScopedname$_cdr_plain(
+        eprosima::fastdds::dds::DataRepresentationId_t data_representation)
+{
+    $if(struct.isPlain)$
+    if (data_representation == eprosima::fastdds::dds::DataRepresentationId_t::XCDR2_DATA_REPRESENTATION)
+    {
+        $if(struct.members)$
+        return $struct.maxXCDRv2PlainTypeSerializedSize$ULL ==
+               (detail::$struct.name$_offset_of<$struct.scopedname$, detail::$struct.name$_f>() +
+               sizeof($last(struct.members).typecode.cppTypename$));
+        $elseif(struct.inheritance)$
+        $if(struct.inheritance.isPlain)$
+        return $struct.maxXCDRv2PlainTypeSerializedSize$ULL ==
+               (detail::$struct.inheritance.name$_offset_of<$struct.inheritance.scopedname$, detail::$struct.inheritance.name$_f>() +
+               sizeof($last(struct.inheritance.members).typecode.cppTypename$));
+        $else$
+        return true;
+        $endif$
+        $else$
+        return true;
+        $endif$
+    }
+    else
+    {
+        $if(struct.members)$
+        return $struct.maxXCDRv1PlainTypeSerializedSize$ULL ==
+            (detail::$struct.name$_offset_of<$struct.scopedname$, detail::$struct.name$_f>() +
+                sizeof($last(struct.members).typecode.cppTypename$));
+        $elseif(struct.inheritance)$
+        $if(struct.inheritance.isPlain)$
+        return $struct.maxXCDRv1PlainTypeSerializedSize$ULL ==
+           (detail::$struct.inheritance.name$_offset_of<$struct.inheritance.scopedname$, detail::$struct.inheritance.name$_f>() +
+               sizeof($last(struct.inheritance.members).typecode.cppTypename$));
+        $else$
+        return true;
+        $endif$
+        $else$
+        return true;
+        $endif$
+    }
+    $else$
+    static_cast<void>(data_representation);
+    return false;
+    $endif$
+}
+
 template<>
 eProsima_user_DllExport size_t calculate_serialized_size(
         eprosima::fastcdr::CdrSizeCalculator& calculator,
@@ -108,6 +156,44 @@ eProsima_user_DllExport void serialize(
     scdr.end_serialize_type(current_state);
 }
 
+#if FASTCDR_VERSION_MAJOR > 2
+template<>
+eProsima_user_DllExport void serialize_array(
+        eprosima::fastcdr::Cdr& scdr,
+        const $struct.scopedname$* array_ptr,
+        const std::size_t array_size)
+{
+    if (array_size > 0)
+    {
+        using namespace ::eprosima::fastdds::dds;
+        DataRepresentationId_t data_representation = (scdr.get_cdr_version() == eprosima::fastcdr::CdrVersion::XCDRv1 ?
+                    DataRepresentationId_t::XCDR_DATA_REPRESENTATION : DataRepresentationId_t::XCDR2_DATA_REPRESENTATION);
+
+        if (is_$struct.cScopedname$_cdr_plain(data_representation) &&
+                sizeof($struct.scopedname$) == $struct.cScopedname$_max_cdr_typesize)
+        {
+            // Serialize the first element
+            // to ensure correct alignment
+            scdr.serialize(
+                array_ptr[0]);
+
+            ++array_ptr;
+
+            std::memcpy(
+                scdr.get_current_position(),
+                array_ptr,
+                (array_size - 1) * sizeof($struct.scopedname$));
+
+            scdr.jump((array_size -1) * sizeof($struct.scopedname$));
+        }
+        else
+        {
+            scdr.serialize_array(array_ptr, array_size);
+        }
+    }
+}
+#endif // FASTCDR_VERSION_MAJOR > 2
+
 template<>
 eProsima_user_DllExport void deserialize(
         eprosima::fastcdr::Cdr& cdr,
@@ -146,6 +232,42 @@ eProsima_user_DllExport void deserialize(
                 $endif$
             });
 }
+
+#if FASTCDR_VERSION_MAJOR > 2
+template<>
+eProsima_user_DllExport void deserialize_array(
+        eprosima::fastcdr::Cdr& scdr,
+        $struct.scopedname$* array_ptr,
+        const std::size_t array_size)
+{
+    if (array_size > 0)
+    {
+        using namespace ::eprosima::fastdds::dds;
+        DataRepresentationId_t data_representation = (scdr.get_cdr_version() == eprosima::fastcdr::CdrVersion::XCDRv1 ?
+                    DataRepresentationId_t::XCDR_DATA_REPRESENTATION : DataRepresentationId_t::XCDR2_DATA_REPRESENTATION);
+
+        if (is_$struct.cScopedname$_cdr_plain(data_representation) &&
+            sizeof($struct.scopedname$) == $struct.cScopedname$_max_cdr_typesize)
+        {
+            // Deserialize the first element
+            // accounting for alignment
+            scdr.deserialize_array(&array_ptr[0], 1);
+            ++array_ptr;
+
+            std::memcpy(
+                reinterpret_cast<char*>(array_ptr),
+                scdr.get_current_position(),
+                (array_size - 1) * sizeof($struct.scopedname$));
+
+            scdr.jump((array_size - 1) * sizeof($struct.scopedname$));
+        }
+        else
+        {
+            scdr.deserialize_array(array_ptr, array_size);
+        }
+    }
+}
+#endif // FASTCDR_VERSION_MAJOR > 2
 
 void serialize_key(
         eprosima::fastcdr::Cdr& scdr,
@@ -245,6 +367,19 @@ eProsima_user_DllExport void serialize(
     scdr << bitset;
 }
 
+#if FASTCDR_VERSION_MAJOR > 2
+template<>
+eProsima_user_DllExport void serialize_array(
+        eprosima::fastcdr::Cdr& scdr,
+        const $bitset.scopedname$* array_ptr,
+        const std::size_t array_size)
+{
+    // Optimization for serialization
+    // of arrays of bitsets not yet supported
+    scdr.serialize_array(array_ptr, array_size);
+}
+#endif // FASTCDR_VERSION_MAJOR > 2
+
 template<>
 eProsima_user_DllExport void deserialize(
         eprosima::fastcdr::Cdr& dcdr,
@@ -264,6 +399,19 @@ eProsima_user_DllExport void deserialize(
     bitset \>>= $bitfield.spec.bitSize$;
     }; separator="\n"$
 }
+
+#if FASTCDR_VERSION_MAJOR > 2
+template<>
+eProsima_user_DllExport void deserialize_array(
+        eprosima::fastcdr::Cdr& scdr,
+        $bitset.scopedname$* array_ptr,
+        const std::size_t array_size)
+{
+    // Optimization for deserialization
+    // of arrays of bitsets not yet supported
+    scdr.deserialize_array(array_ptr, array_size);
+}
+#endif // FASTCDR_VERSION_MAJOR > 2
 $endif$
 >>
 
@@ -349,6 +497,19 @@ eProsima_user_DllExport void serialize(
     scdr.end_serialize_type(current_state);
 }
 
+#if FASTCDR_VERSION_MAJOR > 2
+template<>
+eProsima_user_DllExport void serialize_array(
+        eprosima::fastcdr::Cdr& scdr,
+        const $union.scopedname$* array_ptr,
+        const std::size_t array_size)
+{
+    // Optimization for serialization
+    // of arrays of unions not yet supported
+    scdr.serialize_array(array_ptr, array_size);
+}
+#endif // FASTCDR_VERSION_MAJOR > 2
+
 template<>
 eProsima_user_DllExport void deserialize(
         eprosima::fastcdr::Cdr& cdr,
@@ -414,6 +575,19 @@ eProsima_user_DllExport void deserialize(
                 return ret_value;
             });
 }
+
+#if FASTCDR_VERSION_MAJOR > 2
+template<>
+eProsima_user_DllExport void deserialize_array(
+        eprosima::fastcdr::Cdr& scdr,
+        $union.scopedname$* array_ptr,
+        const std::size_t array_size)
+{
+    // Optimization for deserialization
+    // of arrays of unions not yet supported
+    scdr.deserialize_array(array_ptr, array_size);
+}
+#endif // FASTCDR_VERSION_MAJOR > 2
 $endif$
 >>
 
