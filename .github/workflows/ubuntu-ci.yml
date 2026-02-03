@@ -57,7 +57,7 @@ jobs:
       matrix:
         java-version:
           - 'openjdk-11-jdk'
-          - 'openjdk-19-jdk'
+          - 'openjdk-17-jdk'
         fastcdr-branch:
           - '1.1.x'
           - '2.x'
