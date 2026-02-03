@@ -919,7 +919,6 @@ public class fastddsgen
                                     Utils.writeFile(output_dir + ctx.getFilename() + ".cxx",
                                         maintemplates.getTemplate("com/eprosima/fastcdr/idl/templates/TypesSource.stg"), m_replace)))
                         {
-<<<<<<< HEAD
                             if (CdrVersion.Select.V2 == cdr_version_ || (returnedValue =
                                         Utils.writeFile(output_dir + ctx.getFilename() + (CdrVersion.Select.BOTH == cdr_version_ ? "v1" : "") + ".cxx",
                                             maintemplates.getTemplate("com/eprosima/fastcdr/idl/templates/TypesSourcev1.stg"), m_replace)))
@@ -953,13 +952,10 @@ public class fastddsgen
                                             Utils.writeFile(output_dir + ctx.getFilename() + ".i",
                                                 maintemplates.getTemplate("com/eprosima/fastcdr/idl/templates/TypesSwigInterface.stg"), m_replace))
                                     {
-
+                                        project.setSwigInterfaceFile(relative_dir + ctx.getFilename() + ".i");
                                     }
                                 }
                             }
-=======
-                            project.setSwigInterfaceFile(relative_dir + ctx.getFilename() + ".i");
->>>>>>> 9bc63a8 (Escape folder separator in generated `CMakeLists.txt` (#466))
                         }
                     }
                 }

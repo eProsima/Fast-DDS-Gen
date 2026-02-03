@@ -48,18 +48,10 @@ $solution.projects : { project | $pub_sub_execs(project=project, libraries=solut
 pub_sub_execs(project, libraries, test) ::= <<
 
 message(STATUS "Configuring $project.name$...")
-<<<<<<< HEAD
-add_library($project.name$_lib $project.commonSrcFiles : { file | $file$}; separator=" "$)
-target_compile_definitions($project.name$_lib PRIVATE \$<\$<BOOL:\${BUILD_SHARED_LIBS}>:EPROSIMA_USER_DLL_EXPORT>)
-target_link_libraries($project.name$_lib $solution.libraries : { library | $library$}; separator=" "$)
 
-$if(!project.projectSrcFiles.empty)$
-add_executable($project.name$ $project.projectSrcFiles : { file | $file$}; separator=" "$)
-target_link_libraries($project.name$ $solution.libraries : { library | $library$}; separator=" "$
-        $project.name$_lib $project.dependencies : { dep | $dep$_lib}; separator=" "$)
-=======
 $if(!project.commonSrcFiles_escaped.empty)$
 add_library($project.name$_lib $project.commonSrcFiles_escaped; separator=" "$)
+target_compile_definitions($project.name$_lib PRIVATE \$<\$<BOOL:\${BUILD_SHARED_LIBS}>:EPROSIMA_USER_DLL_EXPORT>)
 target_link_libraries($project.name$_lib $libraries; separator=" "$)
 $endif$
 
@@ -68,7 +60,6 @@ add_executable($project.name$ $project.projectSrcFiles_escaped; separator=" "$)
 target_link_libraries($project.name$ $libraries; separator=" "$
         $project.name$_lib $project.dependencies : { dep | $dep$_lib}; separator=" "$
         )
->>>>>>> 9bc63a8 (Escape folder separator in generated `CMakeLists.txt` (#466))
 $endif$
 
 $if(test)$
@@ -88,20 +79,13 @@ add_executable($project.name$SerializationTest
 )
 target_link_libraries($project.name$SerializationTest
         GTest::gtest_main
-<<<<<<< HEAD
-        $solution.libraries : { library | $library$}; separator=" "$
-        $project.name$_lib $project.dependencies : { dep | $dep$_lib}; separator=" "$)
-=======
         $libraries; separator=" "$
         $project.name$_lib $project.dependencies : { dep | $dep$_lib}; separator=" "$
         )
->>>>>>> 9bc63a8 (Escape folder separator in generated `CMakeLists.txt` (#466))
 gtest_discover_tests($project.name$SerializationTest)
 
 $endif$
 
-<<<<<<< HEAD
-=======
 
 >>
 
@@ -117,5 +101,4 @@ target_link_libraries($project.name$TypeObjectTestingTest
         $project.name$_lib $project.dependencies : { dep | $dep$_lib}; separator=" "$)
 gtest_discover_tests($project.name$TypeObjectTestingTest)
 $endif$
->>>>>>> 9bc63a8 (Escape folder separator in generated `CMakeLists.txt` (#466))
 >>
