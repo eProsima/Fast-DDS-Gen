@@ -66,7 +66,7 @@ public class InstallPath extends DefaultTask {
      * Install Task Action that copies the script and jar files
      */
     @TaskAction
-    private void install() {
+    public void install() {
         if (Os.isFamily(Os.FAMILY_WINDOWS)) {
             final String install_path = (path != null && !path.isEmpty()) ? path : "C:\\Program Files\\fastddsgen\\";
 
