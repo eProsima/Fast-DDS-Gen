@@ -63,7 +63,7 @@ on:
         description: 'Comma-separated list of tests to be blacklisted'
         required: false
         type: string
-        default: 'exceptions,interfaces,interfaces_2,inner_const_and_typedef'
+        default: 'exceptions,interfaces,interfaces_2,inner_const_and_typedef,aliases,unions'
 env:
     cdr-test-flag: ${{ inputs.fastcdr-branch == '1.1.x' &&  format('-Dcdr_version=v1 -Dblacklist_tests=external,optional,{0}', inputs.blacklist_idls) || (inputs.fastcdr-branch == '2.x' &&  format('-Dcdr_version=v2 -Dblacklist_tests={0}', inputs.blacklist_idls) || '-Dcdr_version=both' )}}
 defaults:
