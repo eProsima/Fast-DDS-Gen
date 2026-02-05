@@ -144,8 +144,6 @@ public class FastDDSGenTest
         tests.addCMakeArguments("-DCMAKE_BUILD_TYPE=Debug");
         // Remove tests that are not supported
         tests.removeTests("basic_inner_types");
-        tests.removeTests("annotations");
-        tests.removeTests("unions");
 
         boolean testResult = tests.runTests();
         assertEquals(true, testResult);

@@ -63,7 +63,12 @@ on:
         description: 'Comma-separated list of tests to be blacklisted'
         required: false
         type: string
-        default: 'exceptions,interfaces,interfaces_2,inner_const_and_typedef,aliases,unions'
+        default: 'exceptions,interfaces,interfaces_2,inner_const_and_typedef'
+      python_blacklist_idls:
+        description: 'Comma-separated list of tests to be blacklisted when running fastddsgen with the -python argument'
+        required: false
+        type: string
+        default: 'aliases,unions'
 env:
     cdr-test-flag: ${{ inputs.fastcdr-branch == '1.1.x' &&  format('-Dcdr_version=v1 -Dblacklist_tests=external,optional,{0}', inputs.blacklist_idls) || (inputs.fastcdr-branch == '2.x' &&  format('-Dcdr_version=v2 -Dblacklist_tests={0}', inputs.blacklist_idls) || '-Dcdr_version=both' )}}
 defaults:
@@ -242,4 +247,21 @@ jobs:
         run: |
           source ${{ github.workspace }}/install/local_setup.bash
           cd ${{ github.workspace }}/src/fastddsgen/thirdparty/dds-types-test/IDL
-          find . -path "*.idl*" -exec fastddsgen -python {} +
+
+          # Example: python_blacklist_idls='file1,file1'
+          IFS=',' read -r -a BL <<< "${{ env.python_blacklist_idls }}"
+
+          # Build exclusion: ! ( -name file1.idl -o -name file2.idl )
+          EXCL=()
+          for f in "${BL[@]}"; do
+            [[ -n "$f" ]] && EXCL+=(-name "${f}.idl" -o)
+          done
+          # Drop trailing -o if present
+          ((${#EXCL[@]})) && unset 'EXCL[${#EXCL[@]}-1]'
+
+          # Run find: match *.idl files, exclude blacklist, and batch fastddsgen calls
+          if ((${#EXCL[@]})); then
+            find . -type f -name '*.idl' ! \( "${EXCL[@]}" \) -exec fastddsgen -python {} +
+          else
+            find . -type f -name '*.idl' -exec fastddsgen -python {} +
+          fi
