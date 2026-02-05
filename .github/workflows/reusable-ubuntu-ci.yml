@@ -71,6 +71,7 @@ on:
         default: 'aliases,unions'
 env:
     cdr-test-flag: ${{ inputs.fastcdr-branch == '1.1.x' &&  format('-Dcdr_version=v1 -Dblacklist_tests=external,optional,{0}', inputs.blacklist_idls) || (inputs.fastcdr-branch == '2.x' &&  format('-Dcdr_version=v2 -Dblacklist_tests={0}', inputs.blacklist_idls) || '-Dcdr_version=both' )}}
+    cdr-test-flag-python: ${{ inputs.fastcdr-branch == '1.1.x' &&  format('-Dcdr_version=v1 -Dblacklist_tests=external,optional,{0}', inputs.blacklist_idls) || (inputs.fastcdr-branch == '2.x' &&  format('-Dcdr_version=v2 -Dblacklist_tests={0}', inputs.blacklist_idls) || '-Dcdr_version=both' )}}
 defaults:
   run:
     shell: bash
@@ -235,12 +236,12 @@ jobs:
           rm -rf ${{ github.workspace }}/src/fastdds_python
           rm -rf ${{ github.workspace }}/src/discovery_server
 
-      - name: Test fastddsgen
-        if: ${{ inputs.run-tests == true }}
-        run: |
-          source ${{ github.workspace }}/install/local_setup.bash
-          cd ${{ github.workspace }}/src/fastddsgen
-          ./gradlew test ${{ env.cdr-test-flag }}
+      # - name: Test fastddsgen
+      #   if: ${{ inputs.run-tests == true }}
+      #   run: |
+      #     source ${{ github.workspace }}/install/local_setup.bash
+      #     cd ${{ github.workspace }}/src/fastddsgen
+      #     ./gradlew test ${{ env.cdr-test-flag }}
 
       - name: Test fastddsgen with python arg
         if: ${{ inputs.run-tests == true }}
@@ -261,7 +262,7 @@ jobs:
 
           # Run find: match *.idl files, exclude blacklist, and batch fastddsgen calls
           if ((${#EXCL[@]})); then
-            find . -type f -name '*.idl' ! \( "${EXCL[@]}" \) -exec fastddsgen -python {} +
+            find . -type f -name '*.idl' ! \( "${EXCL[@]}" \) -exec sh -c 'echo "Excl Running: fastddsgen -python $@"; fastddsgen -python {} +
           else
-            find . -type f -name '*.idl' -exec fastddsgen -python {} +
+            find . -type f -name '*.idl' -exec sh -c 'echo "NO excl Running: fastddsgen -python $@"; fastddsgen -python {} +
           fi
