@@ -142,6 +142,7 @@ public class FastDDSGenTest
                 list_tests,
                 blacklist_tests);
         tests.addCMakeArguments("-DCMAKE_BUILD_TYPE=Debug");
+        // Remove tests that are not supported
         tests.removeTests("basic_inner_types");
 
         boolean testResult = tests.runTests();
