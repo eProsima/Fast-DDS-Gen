@@ -42,7 +42,7 @@ jobs:
         fastddsgen-branch: '4.2.x'
         fastdds-branch: '3.4.x'
         fastcdr-branch: '2.3.x'
-        fastdds-python-branch: '2.3.x'
+        fastdds-python-branch: '2.4.x'
         discovery-server-branch: 'v2.0.0'
         run-build: true
         run-tests: true
