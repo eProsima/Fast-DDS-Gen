@@ -438,7 +438,7 @@ eProsima_user_DllExport size_t calculate_serialized_size(
                                 current_alignment)};
 
     std::string msg = data.what();
-    calculator.calculate_member_serialized_size(eprosima::fastcdr::MemberId(0), msg, current_alignment);
+    calculated_size += calculator.calculate_member_serialized_size(eprosima::fastcdr::MemberId(0), msg, current_alignment);
 
     $exception.members : { member | $if(!member.annotationNonSerialized)$
     calculated_size += calculator.calculate_member_serialized_size(eprosima::fastcdr::MemberId($member.index$ + 1),
