@@ -381,26 +381,6 @@ void register_$union.nameForTypeObjectRegistration$_type_identifier(
 }
 >>
 
-exception(ctx, parent, exception, extensions) ::= <<
-$content_for_struct_type(ctx, exception.typeCode)$
->>
-
-interface(ctx, parent, interface, export_list) ::= <<
-
-$export_list$
-
-namespace detail {
-
-$interface.operations : { operation | $operation_details(interface, operation)$ }; separator="\n"$
-
-}  // namespace detail
-
-$if(!interface.annotatedAsNested)$
-$content_for_struct_type(ctx, interface.requestTypeCode)$
-$content_for_struct_type(ctx, interface.replyTypeCode)$
-$endif$
->>
-
 /***** Utils *****/
 operation_details(interface, operation) ::= <<
 //{ $operation.name$

@@ -329,22 +329,6 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
         }
     }
 
-    @Override
-    public com.eprosima.idl.parser.tree.Exception createException(
-            String name,
-            Token token)
-    {
-        if (isInScopedFile())
-        {
-            there_is_at_least_one_exception = true;
-        }
-
-        Exception ex = new Exception(this, getScopeFile(), isInScopedFile(), getScope(), name, token);
-        addException(ex);
-        return ex;
-    }
-
-
     public boolean isClient()
     {
         return m_subscribercode;
@@ -496,88 +480,6 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
     public boolean isThereIsStructOrUnion()
     {
         return there_is_at_least_one_struct || there_is_at_least_one_union;
-    }
-
-    public boolean isThereIsException()
-    {
-        return there_is_at_least_one_exception;
-    }
-
-    public boolean isThereIsInterface()
-    {
-        return there_is_at_least_one_interface;
-    }
-
-    public void inputFeedAdded(
-            Param p)
-    {
-        TypeNamePair type_pair = new TypeNamePair(p.getTypecode());
-        m_input_feed_types.putIfAbsent(type_pair.cppTypename, type_pair);
-    }
-
-    /*!
-     * @ingroup api_for_stg
-     * @brief This function returns the list of types used in input feeds.
-     */
-    public ArrayList<TypeNamePair> getInputFeedTypes()
-    {
-        return new ArrayList<TypeNamePair>(m_input_feed_types.values());
-    }
-
-    public boolean isThereIsInputFeed()
-    {
-        return !m_input_feed_types.isEmpty();
-    }
-
-    public boolean isThereIsOutputFeed()
-    {
-        return !m_output_feed_types.isEmpty();
-    }
-
-    public boolean isThereIsNonFeedOperation()
-    {
-        return !m_output_non_feed_types.isEmpty();
-    }
-
-    public void operationAdded(
-            Operation op)
-    {
-        TypeNamePair type_pair;
-        if (op.getOutputparam().size() > 0)
-        {
-            type_pair = new TypeNamePair(op.getOutTypeCode());
-        }
-        else
-        {
-            type_pair = new TypeNamePair(op.getRettype());
-        }
-
-        if (op.isAnnotationFeed())
-        {
-            m_output_feed_types.putIfAbsent(type_pair.cppTypename, type_pair);
-        }
-        else
-        {
-            m_output_non_feed_types.putIfAbsent(type_pair.cppTypename, type_pair);
-        }
-    }
-
-    /*!
-     * @ingroup api_for_stg
-     * @brief This function returns the list of types used in output feeds.
-     */
-    public ArrayList<TypeNamePair> getOutputFeedTypes()
-    {
-        return new ArrayList<TypeNamePair>(m_output_feed_types.values());
-    }
-
-    /*!
-     * @ingroup api_for_stg
-     * @brief This function returns the list of types used as operation return types.
-     */
-    public ArrayList<TypeNamePair> getOutputNonFeedTypes()
-    {
-        return new ArrayList<TypeNamePair>(m_output_non_feed_types.values());
     }
 
     /*** Functions inherited from FastCDR Context ***/
@@ -842,37 +744,6 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
         return super.getAnnotationDeclaration(name);
     }
 
-    @Override
-    public Interface createInterface(
-            String name,
-            Token token)
-    {
-        Interface interfaceObject = new com.eprosima.fastdds.idl.grammar.Interface(
-                this, getScopeFile(), isInScopedFile(), getScope(), name, token);
-        there_is_at_least_one_interface = true;
-        addInterface(interfaceObject);
-        return interfaceObject;
-    }
-
-    @Override
-    public Operation createOperation(
-            String name,
-            Token token)
-    {
-        Operation operationObject = new Operation(this, getScopeFile(), isInScopedFile(), null, name, token);
-        return operationObject;
-    }
-
-    @Override
-    public Param createParam(
-            String name,
-            TypeCode typecode,
-            Param.Kind kind)
-    {
-        Param paramObject = new Param(name, typecode, kind);
-        return paramObject;
-    }
-
     //// Java block ////
     // Java package name.
     protected String m_package = "";
@@ -909,14 +780,4 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
     protected boolean there_is_at_least_one_struct = false;
 
     protected boolean there_is_at_least_one_union = false;
-
-    protected boolean there_is_at_least_one_exception = false;
-
-    protected Map<String, TypeNamePair> m_input_feed_types = new HashMap<String, TypeNamePair>();
-
-    protected Map<String, TypeNamePair> m_output_feed_types = new HashMap<String, TypeNamePair>();
-
-    protected Map<String, TypeNamePair> m_output_non_feed_types = new HashMap<String, TypeNamePair>();
-
-    protected boolean there_is_at_least_one_interface = false;
 }
