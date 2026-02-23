@@ -14,8 +14,6 @@
 
 package com.eprosima.fastdds.idl.grammar;
 
-import com.eprosima.fastdds.idl.grammar.Operation;
-import com.eprosima.fastdds.idl.grammar.Param;
 import com.eprosima.fastdds.idl.parser.typecode.AliasTypeCode;
 import com.eprosima.fastdds.idl.parser.typecode.ArrayTypeCode;
 import com.eprosima.fastdds.idl.parser.typecode.BitmaskTypeCode;
