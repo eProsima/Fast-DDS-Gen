@@ -1067,6 +1067,7 @@ public class fastddsgen
                                     output_dir + ctx.getFilename() + "PubSubTypes.i",
                                     maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/DDSPubSubTypeSwigInterface.stg"), m_replace);
                         }
+                    }
                     if (ctx.existsLastStructure())
                     {
                         m_atLeastOneStructure = true;
