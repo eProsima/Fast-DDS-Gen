@@ -99,14 +99,6 @@ union_type(ctx, parent, union, extensions, switch_type) ::= <<
 $register_type_identifier(typename=union.nameForTypeObjectRegistration)$
 >>
 
-interface(ctx, parent, interface, export_list) ::= <<
-$export_list$
-$if(!interface.annotatedAsNested)$
-$register_type_identifier(typename=interface.requestTypeCode.nameForTypeObjectRegistration)$
-$register_type_identifier(typename=interface.replyTypeCode.nameForTypeObjectRegistration)$
-$endif$
->>
-
 /***** Utils *****/
 register_type_identifier(typename) ::= <<
 /**

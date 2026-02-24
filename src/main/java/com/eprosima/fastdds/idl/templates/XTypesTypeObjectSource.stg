@@ -32,9 +32,6 @@ $fileHeader(ctx=ctx, file=[ctx.filename, "TypeObjectSupport.cxx"], description=[
 #include <fastdds/dds/xtypes/type_representation/ITypeObjectRegistry.hpp>
 #include <fastdds/dds/xtypes/type_representation/TypeObject.hpp>
 #include <fastdds/dds/xtypes/type_representation/TypeObjectUtils.hpp>
-$if(ctx.thereIsInterface || ctx.thereIsException)$
-#include <fastdds/dds/rpc/RPCTypeObjectSupport.hpp>
-$endif$
 
 #include "$ctx.filename$.hpp"
 
@@ -379,26 +376,6 @@ void register_$union.nameForTypeObjectRegistration$_type_identifier(
                         "$union.scopedname$ contains forward declarations (not yet supported).");
     $endif$
 }
->>
-
-exception(ctx, parent, exception, extensions) ::= <<
-$content_for_struct_type(ctx, exception.typeCode)$
->>
-
-interface(ctx, parent, interface, export_list) ::= <<
-
-$export_list$
-
-namespace detail {
-
-$interface.operations : { operation | $operation_details(interface, operation)$ }; separator="\n"$
-
-}  // namespace detail
-
-$if(!interface.annotatedAsNested)$
-$content_for_struct_type(ctx, interface.requestTypeCode)$
-$content_for_struct_type(ctx, interface.replyTypeCode)$
-$endif$
 >>
 
 /***** Utils *****/
