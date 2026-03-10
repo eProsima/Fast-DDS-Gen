@@ -21,7 +21,7 @@ jobs:
       fastddsgen-branch: 'master'
       fastdds-branch: 'master'
       fastcdr-branch: 'master'
-      fastdds-python-branch: 'main'
+      fastdds-python-branch: 'master'
       discovery-server-branch: 'master'
       run-build: true
       run-tests: true

@@ -33,7 +33,7 @@ on:
         description: 'Branch or tag of Fast DDS Python repository'
         required: false
         type: string
-        default: 'main'
+        default: 'master'
       discovery-server-branch:
         description: 'Branch or tag of Discovery Server repository'
         required: false
