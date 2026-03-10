@@ -21,7 +21,7 @@ on:
         description: 'Branch or tag of Fast DDS Python repository'
         required: false
         type: string
-        default: 'main'
+        default: 'master'
       discovery-server-branch:
         description: 'Branch or tag of Discovery Server repository'
         required: false
@@ -70,7 +70,7 @@ jobs:
       fastddsgen-branch: ${{ inputs.fastddsgen-branch || github.ref }}
       fastdds-branch: ${{ inputs.fastdds-branch || 'master' }}
       fastcdr-branch: ${{ inputs.fastcdr-branch || 'master' }}
-      fastdds-python-branch: ${{ inputs.fastdds-python-branch || 'main' }}
+      fastdds-python-branch: ${{ inputs.fastdds-python-branch || 'master' }}
       discovery-server-branch: ${{ inputs.discovery-server-branch || 'master' }}
       run-build: ${{ !(github.event_name == 'pull_request') || !contains(github.event.pull_request.labels.*.name, 'skip-ci') }}
       run-tests: ${{ (inputs.run-tests == true) || ((github.event_name == 'pull_request') && (!contains(github.event.pull_request.labels.*.name, 'no-test'))) }}
