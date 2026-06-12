@@ -20,7 +20,7 @@ jobs:
       label: 'nightly-ubuntu-ci-master'
       fastddsgen-branch: 'master'
       fastdds-branch: 'master'
-      fastcdr-branch: 'master'
+      fastcdr-branch: '2.3.x'
       fastdds-python-branch: 'master'
       discovery-server-branch: 'master'
       run-build: true
@@ -78,7 +78,7 @@ jobs:
           - 'openjdk-17-jdk'
         fastcdr-branch:
           - '1.1.x'
-          - '2.x'
+          - '2.3.x'
     uses: eProsima/Fast-DDS-Gen/.github/workflows/reusable-ubuntu-ci.yml@3.3.x
     with:
       os-version: 'ubuntu-22.04'
