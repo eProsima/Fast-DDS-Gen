@@ -28,7 +28,7 @@ on:
         description: 'Branch or tag of Fast CDR repository'
         required: false
         type: string
-        default: 'master'
+        default: '2.3.x'
       fastdds-python-branch:
         description: 'Branch or tag of Fast DDS Python repository'
         required: false
