@@ -88,13 +88,10 @@ jobs:
           number: ${{ github.event.number }}
           repo: eProsima/Fast-DDS-Gen
 
-<<<<<<< HEAD
-=======
       - name: Free disk space
         if: ${{ inputs.run-build == true }}
         uses: eProsima/eProsima-CI/ubuntu/free_disk_space@v0
 
->>>>>>> 724b278 (Make `skip-ci` label report required statuses as pass (#581))
       - name: Sync eProsima/Fast-DDS-Gen repository
         if: ${{ inputs.run-build == true }}
         uses: eProsima/eProsima-CI/external/checkout@v0
@@ -126,8 +123,6 @@ jobs:
         run: |
           jv=$(echo ${{ inputs.java-version }} | sed -r 's/.*-([0-9]*)-.*/\1/g'); jvs=$(update-alternatives --list java | grep "$jv" | head -1); sudo update-alternatives --set java "$jvs"
           jv=$(echo ${{ inputs.java-version }} | sed -r 's/.*-([0-9]*)-.*/\1/g'); jvs=$(update-alternatives --list javac | grep "$jv" | head -1); sudo update-alternatives --set javac "$jvs"
-<<<<<<< HEAD
-=======
           export JAVA_HOME=$(dirname $(dirname `readlink -f /etc/alternatives/java`))
           echo JAVA_HOME="$JAVA_HOME" >> $GITHUB_ENV
 
@@ -137,7 +132,6 @@ jobs:
           java -version
           javac --version
           echo $JAVA_HOME
->>>>>>> 724b278 (Make `skip-ci` label report required statuses as pass (#581))
 
       - name: Install colcon
         if: ${{ inputs.run-build == true }}
@@ -246,12 +240,8 @@ jobs:
 
       - name: Colcon build
         continue-on-error: false
-<<<<<<< HEAD
-        uses: eProsima/eProsima-CI/multiplatform/colcon_build@v0
-=======
         if: ${{ inputs.run-build == true }}
         uses: eProsima/eProsima-CI/ubuntu/colcon_build@v0
->>>>>>> 724b278 (Make `skip-ci` label report required statuses as pass (#581))
         with:
           colcon_meta_file: ${{ github.workspace }}/src/fastddsgen/.github/workflows/config/build.meta
           colcon_build_args_default: '--event-handlers=console_direct+'
