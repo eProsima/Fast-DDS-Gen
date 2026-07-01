@@ -289,19 +289,13 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
     {
         super.addTypeDeclaration(typedecl);
 
-<<<<<<< HEAD
-        if (typedecl.getTypeCode().getKind() == Kind.KIND_STRUCT && typedecl.isInScope())
-=======
         String scope = typedecl.getScope();
         if (scope != null && !scope.isEmpty())
         {
             last_declaration_scope_ = scope;
         }
 
-        boolean is_nested = typedecl.isAnnotatedAsNested();
-
-        if (typedecl.getTypeCode().getKind() == Kind.KIND_STRUCT && typedecl.isInScope() && !is_nested)
->>>>>>> 72f89a0 (Improve generated header guards (#587))
+        if (typedecl.getTypeCode().getKind() == Kind.KIND_STRUCT && typedecl.isInScope())
         {
             Annotation topicann = typedecl.getAnnotations().get("Topic");
 
@@ -780,11 +774,7 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
 
     private boolean there_is_at_least_one_struct = false;
 
-<<<<<<< HEAD
     private boolean there_is_at_least_one_union = false;
-=======
-    protected boolean there_is_at_least_one_union = false;
 
-    protected String last_declaration_scope_ = null;
->>>>>>> 72f89a0 (Improve generated header guards (#587))
+    private String last_declaration_scope_ = null;
 }
