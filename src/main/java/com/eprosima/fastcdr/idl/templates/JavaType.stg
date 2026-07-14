@@ -33,6 +33,32 @@ public class $interface.name$
 }
 >>
 
+// NOTE: converted from an anonymous "{ member | ... }" subtemplate to a
+// NAMED template. Named templates are delimited with << >> instead of
+// { }, so the literal Java "{" / "}" of the setter/getter bodies below
+// no longer collide with StringTemplate's own subtemplate delimiters.
+// This is what was causing:
+//   "mismatched input '}' expecting LDELIM"
+struct_member_accessors(member) ::= <<
+$if(!member.typecode.isType_e)$
+public void set$member.javaName$($member.typecode.javaTypename$ $member.name$)
+{
+    $member.name$_ = $member.name$;
+}
+$endif$
+
+public $member.typecode.javaTypename$ get$member.javaName$()
+{
+    return $member.name$_;
+}
+>>
+
+struct_member_equals(member) ::= <<
+$if(member.typecode.primitive)$returnedValue &= this.$member.name$_ == otherMyClass.$member.name$_;
+$else$returnedValue &= this.$member.name$_.equals(otherMyClass.$member.name$_);
+$endif$
+>>
+
 struct_type(ctx, parent, struct, extension, member_list) ::= <<
 $member_list$
 public class $struct.name$
@@ -44,20 +70,7 @@ public class $struct.name$
         }; separator="\n"$
     }
 
-    $struct.members : { member |
-    $if(!member.typecode.isType_e)$
-    public void set$member.javaName$($member.typecode.javaTypename$ $member.name$)
-    {
-        $member.name$_ = $member.name$;
-    }
-    $endif$
-
-    public $member.typecode.javaTypename$ get$member.javaName$()
-    {
-        return $member.name$_;
-    }
-
-    }; separator="\n"$
+    $struct.members:struct_member_accessors(); separator="\n"$
 
     @Override
     public boolean equals(Object other)
@@ -68,11 +81,7 @@ public class $struct.name$
         $struct.name$ otherMyClass = ($struct.name$)other;
         boolean returnedValue = true;
 
-        $struct.members : { member |
-        $if(member.typecode.primitive)$returnedValue &= this.$member.name$_ == otherMyClass.$member.name$_;
-        $else$returnedValue &= this.$member.name$_.equals(otherMyClass.$member.name$_);
-        $endif$
-        }; separator="\n"$
+        $struct.members:struct_member_equals(); separator="\n"$
 
         return returnedValue;
     }
@@ -91,6 +100,68 @@ $declarators$
 >>
 
 bitset_type(ctx, parent, bitset, extension) ::= <<>>
+
+// Same fix applied here: the discriminator-aware setter (with its
+// method body braces) and the per-member equals check (with its
+// nested if-block braces) are pulled out into named templates.
+union_member_setter(union, member) ::= <<
+$if(!member.typecode.isType_e)$
+public void set$member.javaName$($member.typecode.javaTypename$ $member.name$)
+{
+    $member.name$_ = $member.name$;
+
+    $if(member.default)$
+        d__ = $union.javaDefaultvalue$;
+    $else$
+        d__ = $first(member.javaLabels)$;
+    $endif$
+}
+
+public void set$member.javaName$($union.discriminator.typecode.javaTypename$ discriminator, $member.typecode.javaTypename$ $member.name$)
+    throws Exception
+{
+    $if(member.default)$
+    if($[union.javaDefaultvalue, member.javaLabels] : {label | discriminator == $label$}; separator=" || "$)
+    $else$
+    if($member.javaLabels : {label | discriminator == $label$}; separator=" || "$)
+    $endif$
+    {
+        $member.name$_ = $member.name$;
+        d__ = discriminator;
+        return;
+    }
+
+    throw new Exception("Given discriminator is not a valid value for member $member.name$");
+}
+$endif$
+
+public $member.typecode.javaTypename$ get$member.javaName$()
+    throws Exception
+{
+    $if(member.default)$
+    if($[union.javaDefaultvalue, member.javaLabels] : {label | d__ == $label$}; separator=" || "$)
+    $else$
+    if($member.javaLabels : {label | d__ == $label$}; separator=" || "$)
+    $endif$
+        return $member.name$_;
+
+    throw new Exception("Union member not selected by discriminator");
+}
+>>
+
+union_member_equals(union, member) ::= <<
+$if(member.default)$
+if($[union.javaDefaultvalue, member.javaLabels] : {label | d__ == $label$}; separator=" || "$)
+$else$
+if($member.javaLabels : {label | d__ == $label$}; separator=" || "$)
+$endif$
+{
+    if(this.$member.name$_ == otherMyClass.$member.name$_)
+        return true;
+    else
+        return false;
+}
+>>
 
 union_type(ctx, parent, union, extension, switch_type) ::= <<
 $switch_type$
@@ -114,51 +185,7 @@ public class $union.name$
         return d__;
     }
 
-    $union.members : { member |
-    $if(!member.typecode.isType_e)$
-    public void set$member.javaName$($member.typecode.javaTypename$ $member.name$)
-    {
-        $member.name$_ = $member.name$;
-
-        $if(member.default)$
-            d__ = $union.javaDefaultvalue$;
-        $else$
-            d__ = $first(member.javaLabels)$;
-        $endif$
-    }
-
-    public void set$member.javaName$($union.discriminator.typecode.javaTypename$ discriminator, $member.typecode.javaTypename$ $member.name$)
-        throws Exception
-    {
-        $if(member.default)$
-        if($[union.javaDefaultvalue, member.javaLabels] : {label | discriminator == $label$}; separator=" || "$)
-        $else$
-        if($member.javaLabels : {label | discriminator == $label$}; separator=" || "$)
-        $endif$
-        {
-            $member.name$_ = $member.name$;
-            d__ = discriminator;
-            return;
-        }
-
-        throw new Exception("Given discriminator is not a valid value for member $member.name$");
-    }
-    $endif$
-
-    public $member.typecode.javaTypename$ get$member.javaName$()
-        throws Exception
-    {
-        $if(member.default)$
-        if($[union.javaDefaultvalue, member.javaLabels] : {label | d__ == $label$}; separator=" || "$)
-        $else$
-        if($member.javaLabels : {label | d__ == $label$}; separator=" || "$)
-        $endif$
-            return $member.name$_;
-
-        throw new Exception("Union member not selected by discriminator");
-    }
-
-    }; separator="\n"$
+    $union.members : { m | $union_member_setter(union, m)$ }; separator="\n"$
 
     @Override
     public boolean equals(Object other)
@@ -170,19 +197,7 @@ public class $union.name$
 
         if(this.d__ == otherMyClass.d__)
         {
-            $union.members : { member |
-                $if(member.default)$
-                if($[union.javaDefaultvalue, member.javaLabels] : {label | d__ == $label$}; separator=" || "$)
-                $else$
-                if($member.javaLabels : {label | d__ == $label$}; separator=" || "$)
-                $endif$
-                {
-                    if(this.$member.name$_ == otherMyClass.$member.name$_)
-                        return true;
-                    else
-                        return false;
-                }
-        }; separator="\n"$
+            $union.members : { m | $union_member_equals(union, m)$ }; separator="\n"$
         }
 
         return false;

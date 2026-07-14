@@ -38,7 +38,7 @@ public class TypesGenerator
         tmanager_ = tmanager;
         outputDir_ = outputDir;
         replace_ = replace;
-        stg_ = tmanager_.createStringTemplateGroup("JavaType");
+        stg_ = tmanager_.createStringTemplateGroup("com/eprosima/fastcdr/idl/templates/JavaType.stg");
     }
 
     /*!
@@ -54,7 +54,7 @@ public class TypesGenerator
         if(returnedValue)
         {
             // Create gradle build script.
-            STGroup gradlestg = tmanager_.createStringTemplateGroup("gradle");
+            STGroup gradlestg = tmanager_.createStringTemplateGroup("com/eprosima/fastcdr/idl/templates/gradle.stg");
             ST gradlest = gradlestg.getInstanceOf("main");
             gradlest.add("name", libraryName);
 

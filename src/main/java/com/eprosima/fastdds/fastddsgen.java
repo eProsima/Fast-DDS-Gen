@@ -1163,7 +1163,7 @@ public class fastddsgen
                 {
                     System.out.println("Generating file " + output_dir + ctx.getFilename() + "PubSub.java");
                     if (!Utils.writeFile(outputDir + File.separator + ctx.getFilename() + "PubSub.java",
-                            maintemplates.getTemplate("JavaSource"), m_replace))
+                            maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/JavaSource.stg"), m_replace))
                     {
                         return null;
                     }
@@ -1176,7 +1176,7 @@ public class fastddsgen
                 }
 
                 if (Utils.writeFile(output_dir + ctx.getFilename() + "PubSubJNII.hpp",
-                        maintemplates.getTemplate("JNIHeader"),
+                        maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/JNIHeader.stg"),
                         m_replace))
                 {
                     project.addJniIncludeFile(relative_dir + ctx.getFilename() + "PubSubJNII.hpp");
@@ -1186,7 +1186,7 @@ public class fastddsgen
                     return null;
                 }
 
-                TemplateST jnisourceTemplate = maintemplates.getTemplate("JNISource");
+                TemplateST jnisourceTemplate = maintemplates.getTemplate("com/eprosima/fastdds/idl/templates/JNISource.stg");
                 if (Utils.writeFile(output_dir + ctx.getFilename() + "PubSubJNI.cxx", jnisourceTemplate, m_replace))
                 {
                     project.addJniSrcFile(relative_dir + ctx.getFilename() + "PubSubJNI.cxx");
@@ -1605,7 +1605,6 @@ public class fastddsgen
         String headerfile = m_outputDir + Util.getIDLFileNameOnly(idlFilename) + "PubSubJNI.hpp";
         int exitVal = -1;
         String javac = null;
-        String javah = null;
 
         // First call javac
         if (m_os.contains("Windows"))
@@ -1662,27 +1661,13 @@ public class fastddsgen
 
         lineCommand = new ArrayList<String>();
 
-        if (m_os.contains("Windows"))
-        {
-            javah = "javah.exe";
-        }
-        else if (m_os.contains("Linux") || m_os.contains("Mac"))
-        {
-            javah = "javah";
-        }
-
         // Add command
-        lineCommand.add(javah);
-        lineCommand.add("-jni");
-        if (m_tempDir != null)
-        {
-            lineCommand.add("-cp");
-            lineCommand.add(m_tempDir);
-        }
-        lineCommand.add("-o");
-        lineCommand.add(headerfile);
-        lineCommand.add((!m_package.isEmpty() ? m_package + "." : "") +
-                Util.getIDLFileNameOnly(idlFilename) + "PubSub");
+        lineCommand.add(javac);
+        lineCommand.add("-h");
+        lineCommand.add(m_outputDir);
+        lineCommand.add(javafile);
+//        lineCommand.add("-o");
+//        lineCommand.add(headerfile);
 
         lineCommandArray = new String[lineCommand.size()];
         lineCommandArray = (String[])lineCommand.toArray(lineCommandArray);

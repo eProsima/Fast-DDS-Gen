@@ -23,34 +23,54 @@ $if(!ctx.isPackageEmpty)$
 package $ctx.onlyPackage$;
 $endif$
 
+/**
+ * JNI wrapper for the $struct.name$ DDS participant.
+ *
+ * <p>Native method signatures must match the symbol names exported by
+ * {@code $ctx.filename$_lib.dll}.  The mapping is:
+ * Java_$ctx.packageUnder$$struct.name$PubSub_<mangled-name>
+ *
+ * <p>The native library is loaded from the {@code java.library.path}, which
+ * should point to the {@code native/} directory that contains the DLLs.
+ */
 public class $ctx.filename$PubSub
 {
     static
     {
-        System.loadLibrary("$ctx.filename$PubSubJNI");
+        System.loadLibrary("$ctx.filename$_lib");
     }
 
-    private native long create_participant();
+    // -----------------------------------------------------------------------
+    // DomainParticipant lifecycle
+    // -----------------------------------------------------------------------
 
-    public boolean isInit() { return (participant_ != 0); }
+    private native long create_participant(int domainId);
+    private native void delete_participant(long participantPtr);
+
+    private long participantPtr_ = 0;
+
+    public $ctx.filename$PubSub(int domainId)
+    {
+        participantPtr_ = create_participant(domainId);
+    }
 
     public $ctx.filename$PubSub()
     {
-        participant_ = create_participant();
+        this(0);
     }
 
-    private native void delete_participant(long participant);
+    public boolean isInit() {
+        return (participantPtr_ != 0);
+    }
 
     public void dispose()
     {
-        if(participant_ != 0)
+        if(participantPtr_ != 0)
         {
-            delete_participant(participant_);
-            participant_ = 0;
+            delete_participant(participantPtr_);
+            participantPtr_ = 0;
         }
     }
-
-    private long participant_ = 0;
 
     $definitions; separator="\n"$
 }
@@ -59,32 +79,83 @@ public class $ctx.filename$PubSub
 struct_type(ctx, parent, struct, member_list) ::= <<
 $member_list$
 $if(struct.isTopic)$
+// -----------------------------------------------------------------------
+// Listener interface called from the native subscriber thread
+// -----------------------------------------------------------------------
+
 public interface $struct.name$Listener
 {
     public void receive($ctx.package$$struct.javaScopedname$ data);
 };
 
-private native long $struct.name$_create_subscriber_internal(long participant, $struct.name$Listener listener);
+// -----------------------------------------------------------------------
+// Subscriber
+// -----------------------------------------------------------------------
 
-public boolean is$struct.name$Init() { return ($struct.name$_ != 0); }
+private native long $struct.name$_create_subscriber_internal(long participantPtr, $struct.name$Listener listener);
+private native void $struct.name$_delete_subscriber_internal(long subscriberPtr);
+
+private long subscriberPtr_ = 0;
+
+public boolean isSubscriberInit() {
+    return subscriberPtr_ != 0;
+}
 
 public void $struct.name$_create_subscriber($struct.name$Listener listener)
 {
-    $struct.name$_ = $struct.name$_create_subscriber_internal(participant_, listener);
+    subscriberPtr_ = $struct.name$_create_subscriber_internal(participantPtr_, listener);
 }
 
-private native void $struct.name$_delete_subscriber_internal(long pointer);
 
 public void $struct.name$_delete_subscriber()
 {
-    if($struct.name$_ != 0)
+    if(subscriberPtr_ != 0)
     {
-        $struct.name$_delete_subscriber_internal($struct.name$_);
-        $struct.name$_ = 0;
+        $struct.name$_delete_subscriber_internal(subscriberPtr_);
+        subscriberPtr_ = 0;
     }
 }
 
-private long $struct.name$_ = 0;
+// -----------------------------------------------------------------------
+// Publisher
+// -----------------------------------------------------------------------
 
+private native long  $struct.name$_create_publisher_internal(long participantPtr);
+private native void  $struct.name$_delete_publisher_internal(long publisherPtr);
+private native boolean $struct.name$_publish_internal(long publisherPtr, $struct.name$ sample);
+private native void  $struct.name$_stop_publisher_internal(long publisherPtr);
+
+private long publisherPtr_ = 0;
+
+public boolean isPublisherInit() {
+    return publisherPtr_ != 0;
+}
+
+public void $struct.name$_create_publisher() {
+    publisherPtr_ = $struct.name$_create_publisher_internal(participantPtr_);
+}
+
+/**
+ * Publish one sample.  Blocks up to 5 s if no subscriber is matched yet
+ * (handled inside the native layer).
+ *
+ * @return {@code true} if the write succeeded
+ */
+public boolean $struct.name$_publish($struct.name$ sample) {
+    return publisherPtr_ != 0 && $struct.name$_publish_internal(publisherPtr_, sample);
+}
+
+public void $struct.name$_stop_publisher() {
+    if (publisherPtr_ != 0) {
+        $struct.name$_stop_publisher_internal(publisherPtr_);
+    }
+}
+
+public void $struct.name$_delete_publisher() {
+    if (publisherPtr_ != 0) {
+        $struct.name$_delete_publisher_internal(publisherPtr_);
+        publisherPtr_ = 0;
+    }
+}
 $endif$
 >>

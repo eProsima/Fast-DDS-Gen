@@ -21,20 +21,30 @@ $fileHeader(ctx=ctx,  file=[ctx.filename, "JNI.cxx"], description=[""])$
 
 $ctx.directIncludeDependencies : {include | #include "$include$PubSubJNII.hpp"}; separator="\n"$
 #include "$ctx.filename$PubSubJNII.hpp"
+#include "$ctx.filename$PubSubTypes.hpp"
 
-#include <fastrtps/participant/Participant.h>
-#include <fastrtps/attributes/ParticipantAttributes.h>
-#include <fastrtps/subscriber/Subscriber.h>
-#include <fastrtps/attributes/SubscriberAttributes.h>
-#include <fastrtps/Domain.h>
-#include <fastrtps/TopicDataType.h>
-#include <fastrtps/subscriber/SubscriberListener.h>
-#include <fastrtps/subscriber/SampleInfo.h>
+#include <fastdds/dds/domain/DomainParticipant.hpp>
+#include <fastdds/dds/domain/DomainParticipantFactory.hpp>
+#include <fastdds/dds/domain/qos/DomainParticipantQos.hpp>
+#include <fastdds/dds/publisher/Publisher.hpp>
+#include <fastdds/dds/publisher/DataWriter.hpp>
+#include <fastdds/dds/publisher/DataWriterListener.hpp>
+#include <fastdds/dds/subscriber/Subscriber.hpp>
+#include <fastdds/dds/subscriber/DataReader.hpp>
+#include <fastdds/dds/subscriber/DataReaderListener.hpp>
+#include <fastdds/dds/subscriber/SampleInfo.hpp>
+#include <fastdds/dds/topic/Topic.hpp>
+#include <fastdds/dds/topic/TypeSupport.hpp>
+#include <fastdds/dds/core/ReturnCode.hpp>
+#include <fastdds/dds/log/Log.hpp>
 #include <fastcdr/FastBuffer.h>
 #include <fastcdr/Cdr.h>
 
-using namespace eprosima::fastdds;
-using namespace eprosima::fastdds::rtps;
+#include <cstdlib>
+#include <cstring>
+#include <atomic>
+#include <condition_variable>
+#include <mutex>
 
 #ifndef JNIEXPORT
 #define JNIEXPORT
@@ -44,45 +54,11 @@ using namespace eprosima::fastdds::rtps;
 #define JNICALL
 #endif
 
-class $ctx.filename$PubSubJNI
-{
-    public:
-
-        $ctx.filename$PubSubJNI() : participant_(NULL)
-        {
-            ParticipantAttributes PParam;
-            PParam.rtps.builtin.domainId = 0;
-            PParam.rtps.builtin.leaseDuration = c_TimeInfinite;
-            PParam.rtps.setName("Participant_subscriber"); //You can put the name you want
-            participant_ = Domain::createParticipant(PParam);
-        }
-
-        virtual ~$ctx.filename$PubSubJNI()
-        {
-            if(participant_ != NULL)
-                Domain::removeParticipant(participant_);
-        }
-
-        Participant* getParticipant() { return participant_;}
-
-    private:
-
-        Participant *participant_;
-};
-
-extern "C" JNIEXPORT jlong JNICALL Java_$ctx.packageUnder$$ctx.jniFilename$PubSub_create_1participant(JNIEnv *env,
-        jobject obj)
-{
-    return (jlong)new $ctx.filename$PubSubJNI();
-}
-
-extern "C" JNIEXPORT void JNICALL Java_$ctx.packageUnder$$ctx.jniFilename$PubSub_delete_1participant(JNIEnv *env,
-        jobject obj, jlong pointer)
-{
-    delete ($ctx.filename$PubSubJNI*)pointer;
-}
+using namespace eprosima::fastdds::dds;
+using namespace eprosima::fastdds::rtps;
 
 $definitions; separator="\n"$
+
 >>
 
 typedef_decl(ctx, parent, typedefs, typedefs_type, declarator_type) ::= <<
@@ -113,269 +89,403 @@ $endif$
 
 struct_type(ctx, parent, struct, member_list) ::= <<
 $member_list$
+// ---------------------------------------------------------------------------- 
+// Helper functions to copy between Java and C++ $struct.name$ objects
+// ---------------------------------------------------------------------------- 
+
 bool $struct.name$_copy($struct.scopedname$ &dst, jobject src, JNIEnv *env)
 {
-    jclass except = env->FindClass("java/lang/Exception");
-    jclass $struct.name$Class = env->GetObjectClass(src);
-
-    if($struct.name$Class == NULL)
-    {
-        env->ThrowNew(except, "Cannot obtains $ctx.package$$struct.javaScopedname$ class");
-        return false;
-    }
-
-    $struct.members : { member |
-    // $member.name$
-    $extractMember(ctx=ctx, parent=struct, member=member)$
-
-    }; separator="\n"$
-
-    return true;
+	jclass exceptClass = env->FindClass("java/lang/Exception");
+	jclass $struct.name$Class = env->GetObjectClass(src);
+	if ($struct.name$Class == nullptr) {
+		env->ThrowNew(exceptClass, "Cannot find class $ctx.package$$struct.javaScopedname$");
+		return false;
+	}
+	$struct.members : { member |
+	$extractMember(ctx=ctx, parent=struct, member=member)$
+	}; separator="\n"$
+	return true;
 }
 
 bool $struct.name$_copy(jobject dst, $struct.scopedname$ &src, JNIEnv *env)
 {
-    jclass except = env->FindClass("java/lang/Exception");
-    jclass $struct.name$Class = env->GetObjectClass(dst);
-
-    if($struct.name$Class == NULL)
-    {
-        env->ThrowNew(except, "Cannot obtains $ctx.package$$struct.javaScopedname$ class");
-        return false;
-    }
-
-    $struct.members : { member |
-    // $member.name$
-    $insertMember(ctx=ctx, parent=struct, member=member)$
-
-    }; separator="\n"$
-
-    return true;
+	jclass exceptClass = env->FindClass("java/lang/Exception");
+	jclass $struct.name$Class = env->GetObjectClass(dst);
+	if ($struct.name$Class == nullptr) {
+		env->ThrowNew(exceptClass, "Cannot find class $ctx.package$$struct.javaScopedname$");
+		return false;
+	}
+	$struct.members : { member |
+	$insertMember(ctx=ctx, parent=struct, member=member)$
+	}; separator="\n"$
+	return true;
 }
 
-class $struct.name$PubSubJNI : public TopicDataType, public SubscriberListener
+// ---------------------------------------------------------------------------- 
+// Publisher JNI implementation
+// ---------------------------------------------------------------------------- 
+class $struct.name$PublisherJNI : public DataWriterListener
 {
-    public:
+public:
+	$struct.name$PublisherJNI(DomainParticipant* participant)
+		: participant_(participant)
+		, publisher_(nullptr)
+		, topic_(nullptr)
+		, writer_(nullptr)
+		, type_(new $struct.scopedname$PubSubType())
+		, matched_(0)
+		, stop_(false)
+	{
+		type_.register_type(participant_);
+		PublisherQos pubQos = PUBLISHER_QOS_DEFAULT;
+		publisher_ = participant_->create_publisher(pubQos, nullptr, StatusMask::none());
+		if (!publisher_) {
+			EPROSIMA_LOG_ERROR($struct.name$_JNI, "Failed to create publisher");
+			return;
+		}
+		TopicQos topicQos = TOPIC_QOS_DEFAULT;
+		topic_ = participant_->create_topic("$struct.scopedname$Topic", type_.get_type_name(), topicQos);
+		if (!topic_) {
+			EPROSIMA_LOG_ERROR($struct.name$_JNI, "Failed to create topic");
+			return;
+		}
+		DataWriterQos writerQos = DATAWRITER_QOS_DEFAULT;
+		writerQos.reliability().kind = ReliabilityQosPolicyKind::RELIABLE_RELIABILITY_QOS;
+		writerQos.durability().kind = DurabilityQosPolicyKind::TRANSIENT_LOCAL_DURABILITY_QOS;
+		writerQos.history().kind = HistoryQosPolicyKind::KEEP_ALL_HISTORY_QOS;
+		writer_ = publisher_->create_datawriter(topic_, writerQos, this, StatusMask::all());
+		if (!writer_) {
+			EPROSIMA_LOG_ERROR($struct.name$_JNI, "Failed to create data writer");
+		}
+	}
 
-        $struct.name$PubSubJNI(Participant *participant, JavaVM *vm, jint version,
-                jobject listener, jmethodID receiveId) : subscriber_(NULL),
-        vm_(vm), version_(version), listener_(listener), receiveId_(receiveId)
-        {
-            setName("$struct.scopedname$");
-            m_typeSize = ((uint32_t)$struct.scopedname$::getMaxCdrSerializedSize() + 3 & ~3) + 4 /*encapsulation*/;
-            m_isGetKeyDefined = $struct.scopedname$::isKeyDefined();
-            m_keyBuffer = (unsigned char*)malloc($struct.scopedname$::getKeyMaxCdrSerializedSize()>16 ? $struct.scopedname$::getKeyMaxCdrSerializedSize() : 16);
+	~$struct.name$PublisherJNI() override
+	{
+		if (writer_ != nullptr) {
+			publisher_->delete_datawriter(writer_);
+		}
+		if (topic_ != nullptr) {
+			participant_->delete_topic(topic_);
+		}
+		if (publisher_ != nullptr) {
+			participant_->delete_publisher(publisher_);
+		}
+	}
 
-            //Register the type
-            Domain::registerType(participant,(TopicDataType*)this);
+	void on_publication_matched(DataWriter* /*writer*/, const PublicationMatchedStatus& info) override
+	{
+		std::lock_guard<std::mutex> lock(mutex_);
+		matched_ = info.current_count;
+		cv_.notify_all();
+	}
 
-            // Create Subscriber
-            SubscriberAttributes Rparam;
-            Rparam.topic.topicKind = $if(struct.hasKey)$WITH_KEY$else$NO_KEY$endif$;
-            Rparam.topic.topicDataType = getName();
-            Rparam.topic.topicName = "$struct.scopedname$PubSubTopic";
-            subscriber_ = Domain::createSubscriber(participant, Rparam, this);
-        }
+	bool publish(const $struct.scopedname$& sample)
+	{
+		std::unique_lock<std::mutex> lock(mutex_);
+		cv_.wait_for(lock, std::chrono::seconds(5), [this]() { return matched_ > 0 || stop_.load(); });
+		if (stop_.load() || matched_ == 0) {
+			return false;
+		}
+		ReturnCode_t ret = writer_->write(&sample);
+		return (ret == RETCODE_OK);
+	}
 
-        virtual ~$struct.name$PubSubJNI()
-        {
-            if(subscriber_ != NULL)
-                Domain::removeSubscriber(subscriber_);
-        }
+	void stop()
+	{
+		stop_.store(true);
+		cv_.notify_all();
+	}
 
-        bool serialize(const void* const data, SerializedPayload_t *payload)
-        {
-            $struct.scopedname$ *p_type = ($struct.scopedname$*) data;
-            eprosima::fastcdr::FastBuffer fastbuffer((char*) payload->data, payload->max_size);
-            eprosima::fastcdr::Cdr ser(fastbuffer, eprosima::fastcdr::Cdr::DEFAULT_ENDIAN,
-                    eprosima::fastcdr::Cdr::DDS_CDR);
-            payload->encapsulation = ser.endianness() == eprosima::fastcdr::Cdr::BIG_ENDIANNESS ? CDR_BE : CDR_LE;
-            // Serialize encapsulation
-            ser.serialize_encapsulation();
-            p_type->serialize(ser);
-            payload->length = (uint16_t)ser.get_serialized_data_length();
-            return true;
-        }
-
-        bool deserialize(SerializedPayload_t* payload, void* data)
-        {
-            $struct.scopedname$* p_type = ($struct.scopedname$*) data;
-            eprosima::fastcdr::FastBuffer fastbuffer((char*)payload->data, payload->length);
-            eprosima::fastcdr::Cdr deser(fastbuffer, eprosima::fastcdr::Cdr::DEFAULT_ENDIAN,
-                    eprosima::fastcdr::Cdr::DDS_CDR); // Object that deserializes the data.
-            // Deserialize encapsulation.
-            deser.read_encapsulation();
-            payload->encapsulation = deser.endianness() == eprosima::fastcdr::Cdr::BIG_ENDIANNESS ? CDR_BE : CDR_LE;
-            p_type->deserialize(deser);
-            return true;
-        }
-
-        void* createData()
-        {
-            return (void*)new $struct.scopedname$();
-        }
-
-        void deleteData(void* data)
-        {
-            delete(($struct.scopedname$*)data);
-        }
-
-        bool getKey(const void* const data, InstanceHandle_t* handle, bool force_md5)
-        {
-            if(!m_isGetKeyDefined)
-                return false;
-            $struct.scopedname$* p_type = ($struct.scopedname$*) data;
-            eprosima::fastcdr::FastBuffer fastbuffer((char*)m_keyBuffer,$struct.scopedname$::getKeyMaxCdrSerializedSize());
-            eprosima::fastcdr::Cdr ser(fastbuffer, eprosima::fastcdr::Cdr::BIG_ENDIANNESS);
-            p_type->serializeKey(ser);
-            if(force_md5 || $struct.scopedname$::getKeyMaxCdrSerializedSize()>16)
-            {
-                m_md5.init();
-                m_md5.update(m_keyBuffer,(unsigned int)ser.get_serialized_data_length());
-                m_md5.finalize();
-                for(uint8_t i = 0;i<16;++i)    	{
-                    handle->value[i] = m_md5.digest[i];
-                }
-            }
-            else    {
-                for(uint8_t i = 0;i<16;++i)    	{
-                    handle->value[i] = m_keyBuffer[i];
-                }
-            }
-            return true;
-        }
-
-        void onSubscriptionMatched(Subscriber* sub,MatchingInfo& info)
-        {
-        }
-
-        void onNewDataMessage(Subscriber* sub)
-        {
-            JNIEnv *env;
-            int getEnvStat = vm_->GetEnv((void**)&env, version_);
-            if(getEnvStat == JNI_EDETACHED)
-            {
-                if(vm_->AttachCurrentThread((void**)&env, NULL) != 0)
-                {
-                }
-            }
-            else if(getEnvStat == JNI_OK)
-            {
-            }
-            else if(getEnvStat == JNI_EVERSION)
-            {
-            }
-
-            jclass except = env->FindClass("java/lang/Exception");
-
-            $struct.scopedname$ data;
-            SampleInfo_t info;
-
-            while(sub->takeNextData(&data, &info))
-            {
-                if(info.sampleKind == ALIVE)
-                {
-
-                    jclass dataClass = env->FindClass("$ctx.packageDir$$struct.jniScopedname$");
-
-                    if(dataClass == NULL)
-                    {
-                        env->ThrowNew(except, "Cannot obtains $ctx.package$$struct.javaScopedname$ class");
-                        return;
-                    }
-
-                    jmethodID dataConstructor = env->GetMethodID(dataClass, "<init>", "()V");
-
-                    if(dataConstructor == NULL)
-                    {
-                        env->ThrowNew(except, "Cannot find constructor of $ctx.package$$struct.javaScopedname$ class");
-                        return;
-                    }
-
-                    jobject dataObj = env->NewObject(dataClass, dataConstructor);
-
-                    if(dataObj == NULL)
-                    {
-                        env->ThrowNew(except, "Cannot create an object of $ctx.package$$struct.javaScopedname$ class");
-                        return;
-                    }
-
-                    if(! $struct.name$_copy(dataObj, data, env))
-                        return;
-
-                    env->CallVoidMethod(listener_, receiveId_, dataObj);
-
-                }
-            }
-
-            if(env->ExceptionCheck())
-            {
-                env->ExceptionDescribe();
-            }
-
-            vm_->DetachCurrentThread();
-        }
-
-        Subscriber* getSubscriber() { return subscriber_;}
-
-
-    private:
-
-        Subscriber *subscriber_;
-        JavaVM *vm_;
-        jint version_;
-        jobject listener_;
-        jmethodID receiveId_;
-        MD5 m_md5;
-        unsigned char* m_keyBuffer;
+private:
+	DomainParticipant* participant_;
+	Publisher* publisher_;
+	Topic* topic_;
+	DataWriter* writer_;
+	TypeSupport type_;
+	std::mutex mutex_;
+	std::condition_variable cv_;
+	int matched_;
+	std::atomic<bool> stop_;
 };
 
-extern "C" JNIEXPORT jlong JNICALL Java_$ctx.packageUnder$$ctx.jniFilename$PubSub_$struct.name$_1create_1subscriber_1internal(JNIEnv *env,
-        jobject obj, jlong participant, jobject listener)
+// ----------------------------------------------------------------------------
+// DomainParticipant holder
+// ----------------------------------------------------------------------------
+class $ctx.filename$PubSubJNI
 {
-    jclass except = env->FindClass("java/lang/Exception");
-    $ctx.filename$PubSubJNI *p = ($ctx.filename$PubSubJNI*)participant;
+public:
+	$ctx.filename$PubSubJNI(int domain_id = 0)
+		: participant_(nullptr)
+	{
+		DomainParticipantQos qos = PARTICIPANT_QOS_DEFAULT;
+		qos.name("$ctx.filename$JNIParticipant");
+		participant_ = DomainParticipantFactory::get_instance()->create_participant(domain_id, qos);
+	}
 
-    JavaVM *g_vm = NULL;
-    if(env->GetJavaVM(&g_vm) != 0)
-    {
-        env->ThrowNew(except, "Cannot obtain the pointer for the Java VM");
-        return 0;
-    }
+	~$ctx.filename$PubSubJNI()
+	{
+		if (participant_ != nullptr) {
+			DomainParticipantFactory::get_instance()->delete_participant(participant_);
+		}
+	}
 
-    jint version = env->GetVersion();
+	DomainParticipant* getParticipant() { return participant_; }
 
-    jobject g_obj = env->NewGlobalRef(listener);
+private:
+	DomainParticipant* participant_;
+};
 
-    if(g_obj == NULL)
-    {
-        env->ThrowNew(except, "Cannot obtain a global reference of class of the listener of $struct.javaScopedname$ topic");
-        return 0;
-    }
-
-    jclass $struct.name$Class = env->GetObjectClass(g_obj);
-
-    if($struct.name$Class == NULL)
-    {
-        env->ThrowNew(except, "Cannot obtain the class of the listener of $struct.javaScopedname$ topic");
-        return 0;
-    }
-
-    jmethodID $struct.name$ReceiveId = env->GetMethodID($struct.name$Class, "receive", "(L$ctx.packageDir$$struct.jniScopedname$;)V");
-
-    if($struct.name$ReceiveId == NULL)
-    {
-        env->ThrowNew(except, "Cannot obtain receive method of the listener of $struct.javaScopedname$ topic");
-        return 0;
-    }
-
-    return (jlong)new $struct.name$PubSubJNI(p->getParticipant(), g_vm, version, g_obj, $struct.name$ReceiveId);
+extern "C" JNIEXPORT jlong JNICALL
+Java_$ctx.packageUnder$$ctx.jniFilename$PubSub_create_1participant(
+	JNIEnv* /*env*/,
+	jobject /*obj*/,
+	jint domain_id)
+{
+	return reinterpret_cast<jlong>(new $ctx.filename$PubSubJNI(domain_id));
 }
 
-extern "C" JNIEXPORT void JNICALL Java_$ctx.packageUnder$$ctx.jniFilename$PubSub_$struct.name$_1delete_1subscriber_1internal(JNIEnv *env,
-        jobject obj, jlong pointer)
+extern "C" JNIEXPORT void JNICALL
+Java_$ctx.packageUnder$$ctx.jniFilename$PubSub_delete_1participant(
+	JNIEnv* /*env*/,
+	jobject /*obj*/,
+	jlong ptr)
 {
-    delete ($struct.name$PubSubJNI*)pointer;
+	delete reinterpret_cast<$ctx.filename$PubSubJNI*>(ptr);
+}
+
+extern "C" JNIEXPORT jlong JNICALL
+Java_$ctx.packageUnder$$ctx.jniFilename$PubSub_$struct.name$_1create_1publisher_1internal(
+	JNIEnv* /*env*/,
+	jobject /*obj*/,
+	jlong participant_ptr)
+{
+	auto* participant_holder = reinterpret_cast<$ctx.filename$PubSubJNI*>(participant_ptr);
+	if (!participant_holder) {
+		return 0;
+	}
+	auto* pub = new $struct.name$PublisherJNI(participant_holder->getParticipant());
+	return reinterpret_cast<jlong>(pub);
+}
+
+extern "C" JNIEXPORT void JNICALL
+Java_$ctx.packageUnder$$ctx.jniFilename$PubSub_$struct.name$_1delete_1publisher_1internal(
+	JNIEnv* /*env*/,
+	jobject /*obj*/,
+	jlong pub_ptr)
+{
+	delete reinterpret_cast<$struct.name$PublisherJNI*>(pub_ptr);
+}
+
+extern "C" JNIEXPORT jboolean JNICALL
+Java_$ctx.packageUnder$$ctx.jniFilename$PubSub_$struct.name$_1publish_1internal(
+	JNIEnv* env,
+	jobject /*obj*/,
+	jlong pub_ptr,
+	jobject j_sample)
+{
+	auto* pub = reinterpret_cast<$struct.name$PublisherJNI*>(pub_ptr);
+	if (!pub) {
+		return JNI_FALSE;
+	}
+	$struct.scopedname$ cpp_sample;
+	if (!$struct.name$_copy(cpp_sample, j_sample, env)) {
+		return JNI_FALSE;
+	}
+	return pub->publish(cpp_sample) ? JNI_TRUE : JNI_FALSE;
+}
+
+extern "C" JNIEXPORT void JNICALL
+Java_$ctx.packageUnder$$ctx.jniFilename$PubSub_$struct.name$_1stop_1publisher_1internal(
+	JNIEnv* /*env*/,
+	jobject /*obj*/,
+	jlong pub_ptr)
+{
+	auto* pub = reinterpret_cast<$struct.name$PublisherJNI*>(pub_ptr);
+	if (pub) {
+		pub->stop();
+	}
+}
+
+// ---------------------------------------------------------------------------- 
+// Subscriber JNI implementation
+// ---------------------------------------------------------------------------- 
+class $struct.name$SubscriberJNIListener : public DataReaderListener
+{
+public:
+	// Constructor receives an already-created global reference
+	$struct.name$SubscriberJNIListener(JavaVM* vm, jint version, jobject java_listener_global_ref)
+		: vm_(vm)
+		, version_(version)
+		, java_listener_(java_listener_global_ref)
+	{
+	}
+
+	~$struct.name$SubscriberJNIListener() override
+	{
+		// Global ref ownership belongs to the enclosing subscriber holder
+	}
+
+	void on_data_available(DataReader* reader) override
+	{
+		JNIEnv* env;
+		jint attachResult = vm_->GetEnv((void**)&env, version_);
+		bool needDetach = false;
+		if (attachResult == JNI_EDETACHED) {
+			if (vm_->AttachCurrentThread((void**)&env, nullptr) != JNI_OK) {
+				EPROSIMA_LOG_ERROR($struct.name$_JNI, "Failed to attach thread to JVM");
+				return;
+			}
+			needDetach = true;
+		}
+		$struct.scopedname$ sample;
+		SampleInfo info;
+		if (reader->take_next_sample(&sample, &info) == RETCODE_OK) {
+			if (info.instance_state == ALIVE_INSTANCE_STATE && info.valid_data) {
+				jclass dataClass = env->FindClass("$ctx.packageDir$$struct.jniScopedname$");
+				if (dataClass) {
+					jmethodID ctor = env->GetMethodID(dataClass, "<init>", "()V");
+					jobject jdata = env->NewObject(dataClass, ctor);
+					if (jdata && $struct.name$_copy(jdata, sample, env)) {
+						jclass listenerClass = env->GetObjectClass(java_listener_);
+						jmethodID receiveMethod = env->GetMethodID(listenerClass, "receive", "(L$ctx.packageDir$$struct.jniScopedname$;)V");
+						if (receiveMethod) {
+							env->CallVoidMethod(java_listener_, receiveMethod, jdata);
+						}
+						env->DeleteLocalRef(jdata);
+					}
+					env->DeleteLocalRef(dataClass);
+				}
+			}
+		}
+		if (needDetach) {
+			vm_->DetachCurrentThread();
+		}
+	}
+
+	void on_subscription_matched(DataReader* /*reader*/, const SubscriptionMatchedStatus& info) override
+	{
+		(void)info;
+	}
+
+private:
+	JavaVM* vm_;
+	jint version_;
+	jobject java_listener_; // global reference (owned by enclosing class)
+};
+
+// Subscriber holder - owns the global reference and deletes it on destruction
+class $struct.name$SubscriberJNI
+{
+public:
+	$struct.name$SubscriberJNI(DomainParticipant* participant, JavaVM* vm, jint version, jobject global_listener)
+		: participant_(participant)
+		, subscriber_(nullptr)
+		, topic_(nullptr)
+		, reader_(nullptr)
+		, type_(new $struct.scopedname$PubSubType())
+		, listener_(nullptr)
+		, global_listener_ref_(global_listener)
+		, vm_(vm)
+	{
+		type_.register_type(participant_);
+		SubscriberQos subQos = SUBSCRIBER_QOS_DEFAULT;
+		subscriber_ = participant_->create_subscriber(subQos, nullptr, StatusMask::none());
+		if (!subscriber_) {
+			EPROSIMA_LOG_ERROR($struct.name$_JNI, "Failed to create subscriber");
+			return;
+		}
+		TopicQos topicQos = TOPIC_QOS_DEFAULT;
+		topic_ = participant_->create_topic("$struct.scopedname$Topic", type_.get_type_name(), topicQos);
+		if (!topic_) {
+			EPROSIMA_LOG_ERROR($struct.name$_JNI, "Failed to create topic");
+			return;
+		}
+		DataReaderQos readerQos = DATAREADER_QOS_DEFAULT;
+		readerQos.reliability().kind = ReliabilityQosPolicyKind::RELIABLE_RELIABILITY_QOS;
+		readerQos.durability().kind = DurabilityQosPolicyKind::TRANSIENT_LOCAL_DURABILITY_QOS;
+		readerQos.history().kind = HistoryQosPolicyKind::KEEP_ALL_HISTORY_QOS;
+		listener_ = new $struct.name$SubscriberJNIListener(vm, version, global_listener_ref_);
+		reader_ = subscriber_->create_datareader(topic_, readerQos, listener_, StatusMask::all());
+		if (!reader_) {
+			EPROSIMA_LOG_ERROR($struct.name$_JNI, "Failed to create data reader");
+		}
+	}
+
+	~$struct.name$SubscriberJNI()
+	{
+		if (reader_ != nullptr) {
+			subscriber_->delete_datareader(reader_);
+		}
+		if (listener_ != nullptr) {
+			delete listener_;
+		}
+		if (topic_ != nullptr) {
+			participant_->delete_topic(topic_);
+		}
+		if (subscriber_ != nullptr) {
+			participant_->delete_subscriber(subscriber_);
+		}
+		// Delete the global reference now that the DataReader is torn down
+		if (global_listener_ref_ != nullptr) {
+			JNIEnv* env = nullptr;
+			if (vm_->GetEnv((void**)&env, JNI_VERSION_1_6) == JNI_OK) {
+				env->DeleteGlobalRef(global_listener_ref_);
+			} else {
+				if (vm_->AttachCurrentThread((void**)&env, nullptr) == JNI_OK) {
+					env->DeleteGlobalRef(global_listener_ref_);
+					vm_->DetachCurrentThread();
+				} else {
+					EPROSIMA_LOG_ERROR($struct.name$_JNI, "Failed to delete global reference");
+				}
+			}
+		}
+	}
+
+private:
+	DomainParticipant* participant_;
+	Subscriber* subscriber_;
+	Topic* topic_;
+	DataReader* reader_;
+	TypeSupport type_;
+	$struct.name$SubscriberJNIListener* listener_;
+	jobject global_listener_ref_; // owned here
+	JavaVM* vm_;
+};
+
+extern "C" JNIEXPORT jlong JNICALL
+Java_$ctx.packageUnder$$ctx.jniFilename$PubSub_$struct.name$_1create_1subscriber_1internal(
+	JNIEnv* env,
+	jobject /*obj*/,
+	jlong participant_ptr,
+	jobject java_listener)
+{
+	auto* participant_holder = reinterpret_cast<$ctx.filename$PubSubJNI*>(participant_ptr);
+	if (!participant_holder) {
+		return 0;
+	}
+	JavaVM* vm = nullptr;
+	if (env->GetJavaVM(&vm) != JNI_OK) {
+		EPROSIMA_LOG_ERROR($struct.name$_JNI, "Failed to get JavaVM");
+		return 0;
+	}
+	// Create global reference (single call site for NewGlobalRef)
+	jobject global_listener = env->NewGlobalRef(java_listener);
+	if (!global_listener) {
+		EPROSIMA_LOG_ERROR($struct.name$_JNI, "Failed to create global reference for listener");
+		return 0;
+	}
+	auto* sub = new $struct.name$SubscriberJNI(
+		participant_holder->getParticipant(), vm, env->GetVersion(), global_listener);
+	return reinterpret_cast<jlong>(sub);
+}
+
+extern "C" JNIEXPORT void JNICALL
+Java_$ctx.packageUnder$$ctx.jniFilename$PubSub_$struct.name$_1delete_1subscriber_1internal(
+	JNIEnv* /*env*/,
+	jobject /*obj*/,
+	jlong sub_ptr)
+{
+	delete reinterpret_cast<$struct.name$SubscriberJNI*>(sub_ptr);
 }
 >>
 
@@ -395,37 +505,37 @@ $endif$
 extractStructMember(ctx, parent, member) ::= <<
 jfieldID $member.name$Id = env->GetFieldID($parent.name$Class, "$member.name$_", "L$ctx.packageDir$$member.typecode.jniScopedname$;");
 
-if($member.name$Id == NULL)
+if ($member.name$Id == nullptr)
 {
-    env->ThrowNew(except, "Cannot obtains the field $member.name$ from $ctx.package$$parent.javaScopedname$ class");
+    env->ThrowNew(exceptClass, "Cannot obtains the field $member.name$ from $ctx.package$$parent.javaScopedname$ class");
     return false;
 }
 
 jobject $member.name$Obj = env->GetObjectField(src, $member.name$Id);
 
-if($member.name$Obj == NULL)
+if ($member.name$Obj == nullptr)
 {
     jclass nexcept = env->FindClass("java/lang/NullPointerException");
     env->ThrowNew(nexcept, "Null pointer for member $member.name$ in $parent.javaScopedname$ class");
     return false;
 }
 
-if(!$member.typecode.name$_copy(dst.$member.name$(), $member.name$Obj, env))
+if (!$member.typecode.name$_copy(dst.$member.name$(), $member.name$Obj, env))
     return false;
 >>
 
 extractSequenceMember(ctx, parent, member) ::= <<
 jfieldID $member.name$Id = env->GetFieldID($parent.name$Class, "$member.name$_", "Ljava/util/ArrayList;");
 
-if($member.name$Id == NULL)
+if ($member.name$Id == nullptr)
 {
-    env->ThrowNew(except, "Cannot obtains the field $member.name$ from $ctx.package$$parent.javaScopedname$ class");
+    env->ThrowNew(exceptClass, "Cannot obtains the field $member.name$ from $ctx.package$$parent.javaScopedname$ class");
     return false;
 }
 
 jobject $member.name$Obj = env->GetObjectField(src, $member.name$Id);
 
-if($member.name$Obj == NULL)
+if ($member.name$Obj == nullptr)
 {
     jclass nexcept = env->FindClass("java/lang/NullPointerException");
     env->ThrowNew(nexcept, "Null pointer for member $member.name$ in $parent.javaScopedname$ class");
@@ -434,25 +544,25 @@ if($member.name$Obj == NULL)
 
 jclass $member.name$Class = env->GetObjectClass($member.name$Obj);
 
-if($member.name$Class == NULL)
+if ($member.name$Class == nullptr)
 {
-    env->ThrowNew(except, "Cannot obtain the class field $member.name$ from $ctx.package$$parent.javaScopedname$ class");
+    env->ThrowNew(exceptClass, "Cannot obtain the class field $member.name$ from $ctx.package$$parent.javaScopedname$ class");
     return false;
 }
 
 jmethodID $member.name$SizeId = env->GetMethodID($member.name$Class, "size", "()I");
 
-if($member.name$SizeId == NULL)
+if ($member.name$SizeId == nullptr)
 {
-    env->ThrowNew(except, "Cannot obtain size method of field $member.name$ from $ctx.package$$parent.javaScopedname$ class");
+    env->ThrowNew(exceptClass, "Cannot obtain size method of field $member.name$ from $ctx.package$$parent.javaScopedname$ class");
     return false;
 }
 
 jmethodID $member.name$GetId = env->GetMethodID($member.name$Class, "get", "(I)Ljava/lang/Object;");
 
-if($member.name$GetId == NULL)
+if ($member.name$GetId == nullptr)
 {
-    env->ThrowNew(except, "Cannot obtain get method of field $member.name$ from $ctx.package$$parent.javaScopedname$ class");
+    env->ThrowNew(exceptClass, "Cannot obtain get method of field $member.name$ from $ctx.package$$parent.javaScopedname$ class");
     return false;
 }
 
@@ -467,34 +577,37 @@ for(jint i = 0; i < $member.name$_size; ++i)
 extractStringMember(ctx, parent, member) ::= <<
 jfieldID $member.name$Id = env->GetFieldID($parent.name$Class, "$member.name$_", "Ljava/lang/String;");
 
-if($member.name$Id == NULL)
+if ($member.name$Id == nullptr)
 {
-    env->ThrowNew(except, "Cannot obtains the field $member.name$ from $ctx.package$$parent.javaScopedname$ class");
+    env->ThrowNew(exceptClass, "Cannot obtains the field $member.name$ from $ctx.package$$parent.javaScopedname$ class");
     return false;
 }
 
 jstring $member.name$Obj = (jstring)env->GetObjectField(src, $member.name$Id);
 
-if($member.name$Obj != NULL)
+if ($member.name$Obj != nullptr)
 {
-    const char *_in_$member.name$ = env->GetStringUTFChars($member.name$Obj, NULL);
+    const char *_in_$member.name$ = env->GetStringUTFChars($member.name$Obj, nullptr);
     dst.$member.name$(_in_$member.name$);
     env->ReleaseStringUTFChars($member.name$Obj, _in_$member.name$);
 }
-
+else
+{
+    dst.message("");
+}
 >>
 
 extractPrimitiveMember(ctx, parent, member) ::= <<
 jfieldID $member.name$Id = env->GetFieldID($parent.name$Class, "$member.name$_", "$typeSignature.(member.typecode.stType)$");
 
-if($member.name$Id == NULL)
+if ($member.name$Id == nullptr)
 {
-    env->ThrowNew(except, "Cannot obtains the field $member.name$ from $ctx.package$$parent.javaScopedname$ class");
+    env->ThrowNew(exceptClass, "Cannot obtains the field $member.name$ from $ctx.package$$parent.javaScopedname$ class");
     return false;
 }
 
 $if(member.typecode.isType_7)$
-if(env->$typeGetFunction.(member.typecode.stType)$(src, $member.name$Id) == 0)
+if (env->$typeGetFunction.(member.typecode.stType)$(src, $member.name$Id) == 0)
     dst.$member.name$(false);
 else
     dst.$member.name$(true);
@@ -518,55 +631,55 @@ $endif$
 insertStructMember(ctx, parent, member) ::= <<
 jfieldID $member.name$Id = env->GetFieldID($parent.name$Class, "$member.name$_", "L$ctx.packageDir$$member.typecode.jniScopedname$;");
 
-if($member.name$Id == NULL)
+if ($member.name$Id == nullptr)
 {
-    env->ThrowNew(except, "Cannot obtains the field $member.name$ from $ctx.package$$parent.javaScopedname$ class");
+    env->ThrowNew(exceptClass, "Cannot obtains the field $member.name$ from $ctx.package$$parent.javaScopedname$ class");
     return false;
 }
 
 jobject $member.name$Obj = env->GetObjectField(dst, $member.name$Id);
 
-if($member.name$Obj == NULL)
+if ($member.name$Obj == nullptr)
 {
-    env->ThrowNew(except, "Cannot obtains the field object of $member.name$ from $ctx.package$$parent.javaScopedname$ class");
+    env->ThrowNew(exceptClass, "Cannot obtains the field object of $member.name$ from $ctx.package$$parent.javaScopedname$ class");
     return false;
 }
 
-if(!$member.typecode.name$_copy($member.name$Obj, src.$member.name$(), env))
+if (!$member.typecode.name$_copy($member.name$Obj, src.$member.name$(), env))
     return false;
 >>
 
 insertSequenceMember(ctx, parent, member) ::= <<
 jfieldID $member.name$Id = env->GetFieldID($parent.name$Class, "$member.name$_", "Ljava/util/ArrayList;");
 
-if($member.name$Id == NULL)
+if ($member.name$Id == nullptr)
 {
-    env->ThrowNew(except, "Cannot obtains the field $member.name$ from $ctx.package$$parent.javaScopedname$ class");
+    env->ThrowNew(exceptClass, "Cannot obtains the field $member.name$ from $ctx.package$$parent.javaScopedname$ class");
     return false;
 }
 
 jobject $member.name$Obj = env->GetObjectField(dst, $member.name$Id);
 
-if($member.name$Obj == NULL)
+if ($member.name$Obj == nullptr)
 {
-    env->ThrowNew(except, "Cannot obtains the field object of $member.name$ from $ctx.package$$parent.javaScopedname$ class");
+    env->ThrowNew(exceptClass, "Cannot obtains the field object of $member.name$ from $ctx.package$$parent.javaScopedname$ class");
 
     return false;
 }
 
 jclass $member.name$Class = env->GetObjectClass($member.name$Obj);
 
-if($member.name$Class == NULL)
+if ($member.name$Class == nullptr)
 {
-    env->ThrowNew(except, "Cannot obtain the class field $member.name$ from $ctx.package$$parent.javaScopedname$ class");
+    env->ThrowNew(exceptClass, "Cannot obtain the class field $member.name$ from $ctx.package$$parent.javaScopedname$ class");
     return false;
 }
 
 jmethodID $member.name$AddId = env->GetMethodID($member.name$Class, "add", "(Ljava/lang/Object;)Z");
 
-if($member.name$AddId == NULL)
+if ($member.name$AddId == nullptr)
 {
-    env->ThrowNew(except, "Cannot obtain add method of field $member.name$ from $ctx.package$$parent.javaScopedname$ class");
+    env->ThrowNew(exceptClass, "Cannot obtain add method of field $member.name$ from $ctx.package$$parent.javaScopedname$ class");
     return false;
 }
 
@@ -579,26 +692,28 @@ for(size_t i = 0; i < src.$member.name$().size(); ++i)
 insertStringMember(ctx, parent, member) ::= <<
 jfieldID $member.name$Id = env->GetFieldID($parent.name$Class, "$member.name$_", "Ljava/lang/String;");
 
-if($member.name$Id == NULL)
+if ($member.name$Id == nullptr)
 {
-    env->ThrowNew(except, "Cannot obtains the field $member.name$ from $ctx.package$$parent.javaScopedname$ class");
+    env->ThrowNew(exceptClass, "Cannot obtains the field $member.name$ from $ctx.package$$parent.javaScopedname$ class");
     return false;
 }
 
-env->SetObjectField(dst, $member.name$Id, env->NewStringUTF(src.$member.name$().c_str()));
+jstring jmsg = env->NewStringUTF(src.$member.name$().c_str());
+env->SetObjectField(dst, $member.name$Id, jmsg);
+env->DeleteLocalRef(jmsg);
 >>
 
 insertPrimitiveMember(ctx, parent, member) ::= <<
 jfieldID $member.name$Id = env->GetFieldID($parent.name$Class, "$member.name$_", "$typeSignature.(member.typecode.stType)$");
 
-if($member.name$Id == NULL)
+if ($member.name$Id == nullptr)
 {
-    env->ThrowNew(except, "Cannot obtains the field $member.name$ from $ctx.package$$parent.javaScopedname$ class");
+    env->ThrowNew(exceptClass, "Cannot obtains the field $member.name$ from $ctx.package$$parent.javaScopedname$ class");
     return false;
 }
 
 $if(member.typecode.isType_7)$
-if(src.$member.name$())
+if (src.$member.name$())
     env->$typeSetFunction.(member.typecode.stType)$(dst, $member.name$Id, 1);
 else
     env->$typeSetFunction.(member.typecode.stType)$(dst, $member.name$Id, 0);
@@ -620,14 +735,14 @@ $endif$
 extractFromSequenceStruct(sequence, name, dst) ::= <<
 $sequence.contentTypeCode.scopedname$ data;
 jobject jdata = env->CallObjectMethod($name$Obj, $name$GetId, i);
-if(!$sequence.contentTypeCode.name$_copy(data, jdata, env))
+if (!$sequence.contentTypeCode.name$_copy(data, jdata, env))
     return false;
 $dst$.push_back(data);
 >>
 
 extractFromSequenceString(sequence, name, dst) ::= <<
 jstring str = (jstring)env->CallObjectMethod($name$Obj, $name$GetId, i);
-const char *_in_data = env->GetStringUTFChars(str, NULL);
+const char *_in_data = env->GetStringUTFChars(str, nullptr);
 $dst$.push_back(_in_data);
 env->ReleaseStringUTFChars(str, _in_data);
 >>
@@ -645,29 +760,29 @@ $endif$
 insertFromSequenceStruct(sequence, name, src) ::= <<
 jclass dataClass = env->FindClass("$ctx.packageDir$$sequence.contentTypeCode.jniScopedname$");
 
-if(dataClass == NULL)
+if (dataClass == nullptr)
 {
-    env->ThrowNew(except, "Cannot obtains $ctx.package$$sequence.contentTypeCode.javaScopedname$ class");
+    env->ThrowNew(exceptClass, "Cannot obtains $ctx.package$$sequence.contentTypeCode.javaScopedname$ class");
     return false;
 }
 
 jmethodID dataConstructor = env->GetMethodID(dataClass, "<init>", "()V");
 
-if(dataConstructor == NULL)
+if (dataConstructor == nullptr)
 {
-    env->ThrowNew(except, "Cannot find constructor of $ctx.package$$sequence.contentTypeCode.javaScopedname$ class");
+    env->ThrowNew(exceptClass, "Cannot find constructor of $ctx.package$$sequence.contentTypeCode.javaScopedname$ class");
     return false;
 }
 
 jobject dataObj = env->NewObject(dataClass, dataConstructor);
 
-if(dataObj == NULL)
+if (dataObj == nullptr)
 {
-    env->ThrowNew(except, "Cannot create an object of $ctx.package$$sequence.contentTypeCode.javaScopedname$ class");
+    env->ThrowNew(exceptClass, "Cannot create an object of $ctx.package$$sequence.contentTypeCode.javaScopedname$ class");
     return false;
 }
 
-if(!$sequence.contentTypeCode.name$_copy(dataObj, $src$[i], env))
+if (!$sequence.contentTypeCode.name$_copy(dataObj, $src$[i], env))
         return false;
 
 env->CallVoidMethod($name$Obj, $name$AddId, dataObj);
@@ -680,25 +795,25 @@ env->CallVoidMethod($name$Obj, $name$AddId, env->NewStringUTF($src$[i].c_str()))
 extractSequence(ctx, parent) ::= <<
 jclass seqClass = env->GetObjectClass(src);
 
-if(seqClass == NULL)
+if (seqClass == nullptr)
 {
-    env->ThrowNew(except, "Cannot obtain the class field of java.util.ArrayList");
+    env->ThrowNew(exceptClass, "Cannot obtain the class field of java.util.ArrayList");
     return false;
 }
 
 jmethodID seqSizeId = env->GetMethodID(seqClass, "size", "()I");
 
-if(seqSizeId == NULL)
+if (seqSizeId == nullptr)
 {
-    env->ThrowNew(except, "Cannot obtain size method of java.util.ArrayList class");
+    env->ThrowNew(exceptClass, "Cannot obtain size method of java.util.ArrayList class");
     return false;
 }
 
 jmethodID seqGetId = env->GetMethodID(seqClass, "get", "(I)Ljava/lang/Object;");
 
-if(seqGetId == NULL)
+if (seqGetId == nullptr)
 {
-    env->ThrowNew(except, "Cannot obtain get method of java.util.ArrayList class");
+    env->ThrowNew(exceptClass, "Cannot obtain get method of java.util.ArrayList class");
     return false;
 }
 
@@ -714,17 +829,17 @@ for(jint i = 0; i < seq_size; ++i)
 insertSequence(ctx, parent) ::= <<
 jclass seqClass = env->GetObjectClass(dst);
 
-if(seqClass == NULL)
+if (seqClass == nullptr)
 {
-    env->ThrowNew(except, "Cannot obtain the class java.util.ArrayList");
+    env->ThrowNew(exceptClass, "Cannot obtain the class java.util.ArrayList");
     return false;
 }
 
 jmethodID seqAddId = env->GetMethodID(seqClass, "add", "(Ljava/lang/Object;)Z");
 
-if(seqAddId == NULL)
+if (seqAddId == nullptr)
 {
-    env->ThrowNew(except, "Cannot obtain add method of java.util.ArrayList class");
+    env->ThrowNew(exceptClass, "Cannot obtain add method of java.util.ArrayList class");
     return false;
 }
 
@@ -743,13 +858,13 @@ ret =  env->NewStringUTF(_ret.c_str());
 $else$
 $if(operation.rettype.isType_e)$
 jclass retClass = env->FindClass("java/util/ArrayList");
-if(retClass == NULL)
-    env->ThrowNew(except, "Cannot obtains java.util.ArrayList class");
+if (retClass == nullptr)
+    env->ThrowNew(exceptClass, "Cannot obtains java.util.ArrayList class");
 $createReturnValueAux(typecode=typecode, class="java.util.ArrayList")$
 $else$
 jclass retClass = env->FindClass("$ctx.packageDir$$typecode.jniScopedname$");
-if(retClass == NULL)
-    env->ThrowNew(except, "Cannot obtains $ctx.package$$typecode.javaScopedname$ class");
+if (retClass == nullptr)
+    env->ThrowNew(exceptClass, "Cannot obtains $ctx.package$$typecode.javaScopedname$ class");
 $createReturnValueAux(typecode=typecode, class=[ctx.packageDir, typecode.javaScopedname])$
 $endif$
 
@@ -759,11 +874,11 @@ $endif$
 
 createReturnValueAux(typecode, class) ::= <<
 jmethodID retConstructor = env->GetMethodID(retClass, "<init>", "()V");
-if(retConstructor == NULL)
-    env->ThrowNew(except, "Cannot find constructor of $class$ class");
+if (retConstructor == nullptr)
+    env->ThrowNew(exceptClass, "Cannot find constructor of $class$ class");
 ret = env->NewObject(retClass, retConstructor);
-if(ret == NULL)
-    env->ThrowNew(except, "Cannot find constructor of $class$ class");
+if (ret == nullptr)
+    env->ThrowNew(exceptClass, "Cannot find constructor of $class$ class");
 >>
 
 typeSignature ::= [
