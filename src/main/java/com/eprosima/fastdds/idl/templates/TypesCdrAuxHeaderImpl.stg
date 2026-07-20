@@ -119,7 +119,7 @@ eProsima_user_DllExport void deserialize(
 
     $struct.allMembers : { member |
     $if(member.annotationDefault)$
-    data.$member.name$({$member.annotationDefaultValue$\});
+    data.$member.name$({$member.annotationDefaultValue$$if(member.typecode.isType_5)$f$endif$\});
     $elseif(member.annotationOptional)$
     data.$member.name$().reset();
     $elseif(!member.annotationExternal)$
