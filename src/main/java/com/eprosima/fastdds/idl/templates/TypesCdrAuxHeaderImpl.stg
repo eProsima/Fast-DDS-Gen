@@ -124,7 +124,7 @@ eProsima_user_DllExport void deserialize(
     data.$member.name$().reset();
     $elseif(!member.annotationExternal)$
     $if(member.typecode.initialValue)$
-    data.$member.name$({$member.typecode.initialValue$\});
+    data.$member.name$($member.typecode.initialValue$);
     $elseif(member.typecode.isStringType || member.typecode.isWStringType)$
     data.$member.name$({\});
     $endif$
