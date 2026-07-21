@@ -59,18 +59,3 @@ member_array_cstring_destructor(ctx, name, loopvar, dims) ::= <<$if(rest(dims))$
 {
     free(str);
 }$endif$>>
-<<<<<<< HEAD
-=======
-
-member_default_init(member) ::= <%
-$if(member.annotationDefault)$
- {$member.annotationDefaultValue$$if(member.typecode.isType_5)$f$endif$}
-$elseif(!member.annotationOptional && !member.annotationExternal)$
-$if(member.typecode.initialValue)$
- {$member.typecode.initialValue$}
-$elseif(member.typecode.isBitsetType)$
- {}
-$endif$
-$endif$
-%>
->>>>>>> 49cb136 (Fix some warnings in generated code (#593) (#594))
