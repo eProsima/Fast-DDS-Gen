@@ -235,3 +235,11 @@ wstring_name(wstring) ::= <<
 anonymous_wstring_$if(wstring.isBounded)$$wstring.evaluatedMaxsize$$else$unbounded$endif$
 >>
 //}
+
+with_braces_if_array(member, value) ::= <%
+$if(member.typecode.isArrayType)$
+{$value$}
+$else$
+$value$
+$endif$
+%>
