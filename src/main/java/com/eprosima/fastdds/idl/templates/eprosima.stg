@@ -52,3 +52,11 @@ bitset_inherit_copy_init(parent) ::= <<$parent.scopedname$(x)>>
 bitset_inherit_move_init(parent) ::= <<$parent.scopedname$(std::move(x))>>
 
 indexName(name, loopvar) ::= <<$name$[$loopvar$]>>
+
+with_braces_if_array(member, value) ::= <%
+$if(member.typecode.isArrayType)$
+{$value$}
+$else$
+$value$
+$endif$
+%>
