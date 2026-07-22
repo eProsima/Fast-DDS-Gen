@@ -23,7 +23,12 @@ import com.eprosima.idl.util.Util;
 
 public class Project extends com.eprosima.solution.Project
 {
-    public Project(Context ctx, String file, LinkedHashSet<String> dependencies)
+    public Project(
+        Context ctx,
+        String file,
+        LinkedHashSet<String> dependencies,
+        String root_dir
+    )
     {
         super(ctx.getFilename(), file, dependencies);
 
@@ -37,6 +42,7 @@ public class Project extends com.eprosima.solution.Project
         m_jniincludefiles = new ArrayList<String>();
         m_idlincludefiles = new ArrayList<String>();
         m_idlincludefiles.addAll((LinkedHashSet<String>)dependencies);
+        m_root_dir = root_dir;
         ctx_ = ctx;
     }
 
@@ -327,6 +333,11 @@ public class Project extends com.eprosima.solution.Project
         return m_swiginterfacefile.replace("\\", "/");
     }
 
+    public String getRootDir()
+    {
+        return m_root_dir;
+    }
+
     private boolean m_containsInterfaces = false;
     private ArrayList<String> m_subscribersrcfiles = null;
     private ArrayList<String> m_subscriberincludefiles = null;
@@ -341,6 +352,7 @@ public class Project extends com.eprosima.solution.Project
     private ArrayList<String> m_idlincludefiles = null;
     private String m_swiginterfacefile = null;
     String m_guid = null;
+    private String m_root_dir = null;
 
     private Context ctx_ = null;
 }

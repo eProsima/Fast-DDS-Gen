@@ -66,6 +66,10 @@ $endif$
 // Trying to export them issues a warning
 %ignore *::operator=;
 
+// Ignore the bool operator of eprosima::fastcdr::optional, as provokes an error due to duplicate definitions on
+// eprosima::fastcdr::optional<std::vector<T> >.
+%ignore eprosima::fastcdr::optional::operator bool;
+
 $fast_macro_declarations()$
 
 $ctx.directIncludeDependencies : {include | %include "$include$.i"}; separator="\n"$
@@ -147,6 +151,14 @@ $struct.members : { member | $member_getters(struct_name=struct.scopedname, memb
     const $struct.scopedname$& __getitem__(size_t i) const
     {
         return (*self)[i];
+    }
+}
+
+%newobject $struct.scopedname$::__deepcopy__;
+%extend $struct.scopedname$
+{
+    $struct.scopedname$* __deepcopy__(PyObject *memo) {
+        return new $struct.scopedname$(*\$self);
     }
 }
 
