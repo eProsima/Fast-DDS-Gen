@@ -28,6 +28,7 @@ import com.eprosima.fastdds.idl.parser.typecode.StructTypeCode;
 import com.eprosima.fastdds.idl.parser.typecode.UnionTypeCode;
 import com.eprosima.idl.generator.manager.TemplateGroup;
 import com.eprosima.idl.generator.manager.TemplateManager;
+import com.eprosima.idl.parser.exception.RuntimeGenerationException;
 import com.eprosima.idl.parser.tree.Annotation;
 import com.eprosima.idl.parser.tree.AnnotationDeclaration;
 import com.eprosima.idl.parser.tree.AnnotationMember;
