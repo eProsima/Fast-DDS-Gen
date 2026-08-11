@@ -59,6 +59,7 @@ $if(ctx.thereIsInterface)$
 %include "std_shared_ptr.i"
 $endif$
 %include "std_string.i"
+%include "std_wstring.i"
 %include "std_vector.i"
 %include "typemaps.i"
 
@@ -154,22 +155,19 @@ $struct.members : { member | $member_getters(struct_name=struct.scopedname, memb
     }
 }
 
-%newobject $struct.scopedname$::__deepcopy__;
-%extend $struct.scopedname$
-{
-    $struct.scopedname$* __deepcopy__(PyObject *memo) {
-        return new $struct.scopedname$(*\$self);
-    }
-}
-
 >>
 
 template_sequence_name(typecode) ::= <%
 $if(typecode.isSequenceType)$
-$template_sequence_name(typecode.contentTypeCode)$_vector
+$template_sequence_name(typecode.contentTypeCode)$
+$elseif(typecode.isArrayType)$
+$template_array_name(typecode.contentTypeCode, typecode.evaluatedDimensions)$
+$elseif(typecode.isMapType)$
+$template_map_name(typecode)$
 $else$
-$typecode.noScopedCppTypename$_vector
+$typecode.noScopedCppTypenameForSwig$
 $endif$
+_vector
 %>
 
 template_sequence(typecode) ::= <<
@@ -187,14 +185,106 @@ $if(!typecode.contentTypeCode.isType_7)$
 $endif$
 $endif$
 
-%template($template_sequence_name(typecode.contentTypeCode)$) std::vector<$if(typecode.contentTypeCode.isEnumType)$enum $endif$$typecode.contentTypeCode.cppTypename$>;
+%template($template_sequence_name(typecode.contentTypeCode)$) std::vector<$if(typecode.contentTypeCode.isEnumType)$enum $endif$$typecode.contentTypeCode.cppTypenameForSwig$>;
+>>
+
+template_array_name(typecode, dimensions) ::= <%
+$if(typecode.isSequenceType)$
+$template_sequence_name(typecode.contentTypeCode)$
+$elseif(typecode.isMapType)$
+$template_map_name(typecode)$
+$elseif(typecode.isBufferType)$
+Buffer_uint8_t
+$else$
+$typecode.noScopedCppTypenameForSwig$
+$endif$
+$dimensions : {dim | _$dim$}; separator=""$
+_array
+%>
+
+template_array(typecode) ::= <<
+$if(typecode.contentTypeCode.isSequenceType)$
+$template_sequence(typecode.contentTypeCode)$
+$endif$
+
+$typecode.evaluatedDimensionsForSwig : {edims |
+%template($template_array_name(typecode.contentTypeCode, edims)$) $edims : {edim | std::array<}$$typecode.contentTypeCode.cppTypenameForSwig$$reverse(edims) : {edim | ,$edim$>}$;
+}; separator="\n"$
+>>
+
+template_map_name(typecode) ::= <%
+$if(typecode.keyTypeCode.isSequenceType)$
+$template_sequence_name(typecode.keyTypeCode.contentTypeCode)$
+$elseif(typecode.keyTypeCode.isArrayType)$
+$template_array_name(typecode.keyTypeCode.contentTypeCode, typecode.keyTypeCode.evaluatedDimensions)$
+$elseif(typecode.keyTypeCode.isBufferType)$
+Buffer_uint8_t
+$else$
+$typecode.keyTypeCode.noScopedCppTypenameForSwig$
+$endif$
+_
+$if(typecode.valueTypeCode.isSequenceType)$
+$template_sequence_name(typecode.valueTypeCode.contentTypeCode)$
+$elseif(typecode.valueTypeCode.isArrayType)$
+$template_array_name(typecode.valueTypeCode.contentTypeCode, typecode.valueTypeCode.evaluatedDimensions)$
+$elseif(typecode.valueTypeCode.isMapType)$
+$template_map_name(typecode.valueTypeCode)$
+$elseif(typecode.valueTypeCode.isBufferType)$
+Buffer_uint8_t
+$else$
+$typecode.valueTypeCode.noScopedCppTypenameForSwig$
+$endif$
+_map
+%>
+
+template_map(typecode) ::= <<
+$if(typecode.keyTypeCode.isSequenceType)$
+$template_sequence(typecode.keyTypeCode)$
+$endif$
+
+$if(typecode.valueTypeCode.isSequenceType)$
+$template_sequence(typecode.valueTypeCode)$
+$elseif(typecode.valueTypeCode.isArrayType)$
+$template_array(typecode.valueTypeCode)$
+$elseif(typecode.valueTypeCode.isMapType)$
+$template_map(typecode.valueTypeCode)$
+$endif$
+
+%template($template_map_name(typecode)$) std::map<$if(typecode.keyTypeCode.isEnumType)$enum $endif$$typecode.keyTypeCode.cppTypenameForSwig$,$if(typecode.valueTypeCode.isEnumType)$enum $endif$$typecode.valueTypeCode.cppTypenameForSwig$>;
+>>
+
+template_optional_name(typecode) ::= <%
+$if(typecode.isSequenceType)$
+$template_sequence_name(typecode.contentTypeCode)$
+$elseif(typecode.isMapType)$
+$template_map_name(typecode)$
+$elseif(typecode.isArrayType)$
+$template_array_name(typecode.contentTypeCode, typecode.evaluatedDimensions)$
+$elseif(typecode.isStringType)$
+$if(typecode.isBounded)$
+fixed_string_$typecode.maxsize$
+$else$
+string
+$endif$
+$else$
+$typecode.noScopedCppTypenameForSwig$
+$endif$
+_Opt
+%>
+
+template_optional(typecode) ::= <<
+$if(typecode.isSequenceType)$
+$template_sequence(typecode)$
+$endif$
+
+%template($template_optional_name(typecode)$) eprosima::fastcdr::optional<$typecode.cppTypename$>;
 >>
 
 member_getters(struct_name, member) ::= <<
 $if(member.annotationOptional)$
 %ignore eprosima::fastcdr::optional::value;
 %ignore eprosima::fastcdr::optional::reset;
-%template($member.typecode.noScopedCppTypename$Opt) eprosima::fastcdr::optional<$member.typecode.cppTypename$>;
+$template_optional(member.typecode)$
 %extend eprosima::fastcdr::optional<$member.typecode.cppTypename$> {
   $member.typecode.cppTypename$ get_value() const {
       return \$self->value();
@@ -218,10 +308,10 @@ $if(member.typecode.isSequenceType)$
 $template_sequence(member.typecode)$
 $elseif(member.typecode.isMapType)$
 %ignore $struct_name$::$member.name$() const;
-%template($member.typecode.keyTypeCode.cppTypename$_$member.typecode.valueTypeCode.noScopedCppTypename$_map) std::map<$if(member.typecode.keyTypeCode.isEnumType)$enum $endif$$member.typecode.keyTypeCode.cppTypename$,$if(member.typecode.valueTypeCode.isEnumType)$enum $endif$$member.typecode.valueTypeCode.cppTypename$>;
-$elseif(member.typecode.isType_f)$
+$template_map(member.typecode)$
+$elseif(member.typecode.isArrayType)$
 %ignore $struct_name$::$member.name$() const;
-%template($member.typecode.contentTypeCode.noScopedCppTypename$_$member.typecode.evaluatedDimensions$_array) std::array<$if(member.typecode.contentTypeCode.isEnumType)$enum $endif$$member.typecode.contentTypeCode.cppTypename$,$member.typecode.evaluatedDimensions$>;
+$template_array(member.typecode)$
 $if(member.typecode.contentTypeCode.primitive)$
 %extend std::array<$if(member.typecode.contentTypeCode.isEnumType)$enum $endif$$member.typecode.contentTypeCode.cppTypename$, $member.typecode.evaluatedDimensions$>
 {
@@ -247,7 +337,7 @@ $if(member.typecode.isStringType && member.typecode.isBounded)$
 
     std::string $member.name$_str() const
     {
-        return std::string(\$self->$member.name$(), strnlen(\$self->$member.name$(), $member.typecode.maxsize$));
+        return std::string(\$self->$member.name$()$if(member.annotationOptional)$.value()$endif$, strnlen(\$self->$member.name$()$if(member.annotationOptional)$.value()$endif$, $member.typecode.maxsize$));
     }
 }
 $endif$
