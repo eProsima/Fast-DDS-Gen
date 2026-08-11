@@ -42,6 +42,8 @@ if(POLICY CMP0086)
   cmake_policy(SET CMP0086 NEW)
 endif()
 
+include(GNUInstallDirs)
+
 $solution.projects : { project | $subproject_compiler(project)$}; separator="\n"$
 
 >>
@@ -174,7 +176,7 @@ install(TARGETS \${PROJECT_NAME}
     )
 install(EXPORT \${PROJECT_NAME}Targets
   FILE \${PROJECT_NAME}Targets.cmake
-  DESTINATION \${CMAKE_INSTALL_LIBDIR}/cmake/\{PROJECT_NAME}
+  DESTINATION \${CMAKE_INSTALL_LIBDIR}/cmake/\${PROJECT_NAME}
 )
 install(TARGETS \${\${PROJECT_NAME}_MODULE} DESTINATION \${PYTHON_MODULE_PATH})
 get_property(support_files TARGET \${\${PROJECT_NAME}_MODULE} PROPERTY SWIG_SUPPORT_FILES)
