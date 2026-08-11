@@ -208,7 +208,7 @@ $template_sequence(typecode.contentTypeCode)$
 $endif$
 
 $typecode.evaluatedDimensionsForSwig : {edims |
-%template($template_array_name(typecode.contentTypeCode, edims)$) $edims : {edim | std::array<}$$typecode.contentTypeCode.cppTypenameForSwig$$reverse(edims) : {edim | ,$edim$>}$;
+%template($template_array_name(typecode.contentTypeCode, edims)$) $edims : {edim | std::array<}$$if(typecode.contentTypeCode.isEnumType)$enum $endif$$typecode.contentTypeCode.cppTypenameForSwig$$reverse(edims) : {edim | ,$edim$>}$;
 }; separator="\n"$
 >>
 
