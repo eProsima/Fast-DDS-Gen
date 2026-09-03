@@ -73,7 +73,7 @@ $endif$
 
 $fast_macro_declarations()$
 
-$ctx.directIncludeDependencies : {include | %include "$include$.i"}; separator="\n"$
+$ctx.directIncludeDependencies : {include | %import "$include$.i"}; separator="\n"$
 
 %{
 #include "$ctx.filename$.hpp"
