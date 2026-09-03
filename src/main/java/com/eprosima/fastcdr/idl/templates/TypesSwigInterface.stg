@@ -70,6 +70,7 @@ $endif$
 // Ignore the bool operator of eprosima::fastcdr::optional, as provokes an error due to duplicate definitions on
 // eprosima::fastcdr::optional<std::vector<T> >.
 %ignore eprosima::fastcdr::optional::operator bool;
+%ignore eprosima::fastcdr::optional::operator ->;
 
 $fast_macro_declarations()$
 
