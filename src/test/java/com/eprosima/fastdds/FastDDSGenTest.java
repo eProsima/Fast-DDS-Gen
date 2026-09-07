@@ -241,7 +241,9 @@ public class FastDDSGenTest
         python_tests.addCMakeArguments("-DCMAKE_BUILD_TYPE=Debug");
         python_tests.removeTests("basic_inner_types");
 
-        boolean testResult = tests.runTests() && python_tests.runTests();
+        boolean cmakeTestResult = tests.runTests(FailIfErrLevel.COMPILE);
+        boolean pythonTestResult = python_tests.runTests(FailIfErrLevel.CONFIGURE);
+        boolean testResult = cmakeTestResult && pythonTestResult;
         assertEquals(true, testResult);
     }
 }
