@@ -42,8 +42,6 @@ if(POLICY CMP0086)
   cmake_policy(SET CMP0086 NEW)
 endif()
 
-include(GNUInstallDirs)
-
 $solution.projects : { project | $subproject_compiler(project)$}; separator="\n"$
 
 >>
@@ -59,6 +57,8 @@ message(STATUS "Configuring python wrapper for types in $project.name$...")
 # Type library on C++
 
 project($project.name$)
+
+include(GNUInstallDirs)
 
 find_package(fastcdr REQUIRED)
 find_package(fastdds 3 REQUIRED)
