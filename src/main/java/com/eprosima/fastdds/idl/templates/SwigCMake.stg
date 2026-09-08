@@ -58,6 +58,8 @@ message(STATUS "Configuring python wrapper for types in $project.name$...")
 
 project($project.name$)
 
+include(GNUInstallDirs)
+
 find_package(fastcdr REQUIRED)
 find_package(fastdds 3 REQUIRED)
 
@@ -78,9 +80,13 @@ add_library(\${PROJECT_NAME} SHARED
 if(WIN32)
     target_compile_definitions(\${PROJECT_NAME} PRIVATE EPROSIMA_USER_DLL_EXPORT)
 endif(WIN32)
-set_property(TARGET \${PROJECT_NAME} PROPERTY CXX_STANDARD 11)
+set_target_properties(\${PROJECT_NAME} PROPERTIES
+    CXX_STANDARD 11
+    LIBRARY_OUTPUT_DIRECTORY "\${CMAKE_CURRENT_BINARY_DIR}/$project.rootDir$"
+    )
 target_include_directories(\${PROJECT_NAME} PUBLIC
-    \${PROJECT_SOURCE_DIR}
+    \$<BUILD_INTERFACE:\${CMAKE_CURRENT_SOURCE_DIR}>
+    \$<BUILD_INTERFACE:\${CMAKE_CURRENT_SOURCE_DIR}/$project.rootDir$>
     )
 target_link_libraries(\${PROJECT_NAME}
     PUBLIC
@@ -99,7 +105,7 @@ if (NOT SWIG_FOUND)
     find_package(SWIG REQUIRED)
 endif()
 include(\${SWIG_USE_FILE})
-set(CMAKE_SWIG_FLAGS "")
+set(CMAKE_SWIG_FLAGS "-w509,404,302")
 
 find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
 set(PYTHON_INCLUDE_PATH \${Python3_INCLUDE_DIRS})
@@ -122,15 +128,26 @@ SET_SOURCE_FILES_PROPERTIES(
     USE_TARGET_INCLUDE_DIRECTORIES TRUE
     )
 
-SWIG_ADD_LIBRARY(\${\${PROJECT_NAME}_MODULE}
+swig_add_library(\${\${PROJECT_NAME}_MODULE}
     TYPE SHARED
     LANGUAGE python
-    SOURCES \${\${PROJECT_NAME}_MODULE_FILES})
+    SOURCES \${\${PROJECT_NAME}_MODULE_FILES}
+    OUTPUT_DIR \${CMAKE_CURRENT_BINARY_DIR}/$project.rootDir$
+    )
 
-set_property(TARGET \${\${PROJECT_NAME}_MODULE} PROPERTY CXX_STANDARD 11)
+set_target_properties(\${\${PROJECT_NAME}_MODULE} PROPERTIES
+    CXX_STANDARD 11
+    LIBRARY_OUTPUT_DIRECTORY "\${CMAKE_CURRENT_BINARY_DIR}/$project.rootDir$"
+    )
+
 if(UNIX AND CMAKE_SIZEOF_VOID_P EQUAL 8)
     set_property(TARGET \${\${PROJECT_NAME}_MODULE} PROPERTY SWIG_COMPILE_DEFINITIONS SWIGWORDSIZE64)
 endif()
+
+target_include_directories(\${\${PROJECT_NAME}_MODULE} PUBLIC
+    \$<BUILD_INTERFACE:\${CMAKE_CURRENT_SOURCE_DIR}>
+    \$<BUILD_INTERFACE:\${CMAKE_CURRENT_SOURCE_DIR}/$project.rootDir$>
+    )
 
 target_link_libraries(\${\${PROJECT_NAME}_MODULE}
     Python3::Module
@@ -152,10 +169,15 @@ SET (PYTHON_MODULE_PATH
 
 # Install
 install(TARGETS \${PROJECT_NAME}
+    EXPORT \${PROJECT_NAME}Targets
     RUNTIME DESTINATION bin/
     LIBRARY DESTINATION lib/
     ARCHIVE DESTINATION lib/
     )
+install(EXPORT \${PROJECT_NAME}Targets
+  FILE \${PROJECT_NAME}Targets.cmake
+  DESTINATION \${CMAKE_INSTALL_LIBDIR}/cmake/\${PROJECT_NAME}
+)
 install(TARGETS \${\${PROJECT_NAME}_MODULE} DESTINATION \${PYTHON_MODULE_PATH})
 get_property(support_files TARGET \${\${PROJECT_NAME}_MODULE} PROPERTY SWIG_SUPPORT_FILES)
 install(FILES \${support_files} DESTINATION \${PYTHON_MODULE_PATH} RENAME __init__.py)

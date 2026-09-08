@@ -7,13 +7,13 @@ They do not modify the license governing this product as a whole.
 
 This product redistributes the following third-party software.
 
-## eProsima IDL Parser 4.3.1
+## eProsima IDL Parser 4.4.0
 
-- Maven coordinates: `com.eprosima:idl-parser:4.3.1`
+- Maven coordinates: `com.eprosima:idl-parser:4.4.0`
 - Project: IDL Parser
 - License: Apache License 2.0 - Copyright 2014, Proyectos y Sistemas de Mantenimiento SL (eProsima)
-- Source: <https://github.com/eProsima/IDL-Parser/tree/4.3.x>
-- License file: <https://github.com/eProsima/IDL-Parser/blob/4.3.x/LICENSE>
+- Source: <https://github.com/eProsima/IDL-Parser/tree/4.4.x>
+- License file: <https://github.com/eProsima/IDL-Parser/blob/4.4.x/LICENSE>
 
 ### License text
 
@@ -198,7 +198,7 @@ This product redistributes the following third-party software.
 
 ## ANTLR 4 (Tool & Runtime) — version 4.13.2
 
-> Pulled in transitively by `com.eprosima:idl-parser:4.3.1`.
+> Pulled in transitively by `com.eprosima:idl-parser:4.4.0`.
 
 - Maven coordinates: `org.antlr:antlr4:4.13.2`, `org.antlr:antlr4-runtime:4.13.2`
 - Project: ANTLR 4
@@ -417,7 +417,7 @@ written authorization of the copyright holder.
 
 ## Mozilla Rhino (Rhino & Rhino Engine) — version 1.7.14
 
-> Pulled in transitively by `com.eprosima:idl-parser:4.3.1`.
+> Pulled in transitively by `com.eprosima:idl-parser:4.4.0`.
 
 - Maven coordinates: `org.mozilla:rhino-engine:1.7.14`, `org.mozilla:rhino:1.7.14`
 - Project: Rhino — JavaScript engine written in Java
