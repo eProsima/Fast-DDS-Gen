@@ -8,6 +8,7 @@ import com.eprosima.idl.parser.tree.TypeDeclaration;
 
 import com.eprosima.integration.Command;
 
+import com.eprosima.integration.Test.FailIfErrLevel;
 import com.eprosima.integration.TestManager;
 import com.eprosima.integration.TestManager.TestLevel;
 
@@ -209,7 +210,7 @@ public class FastDDSGenTest
                 TestLevel.RUN,
                 "share/fastddsgen/java/fastddsgen",
                 INPUT_PATH,
-                OUTPUT_PATH,
+                OUTPUT_PATH + "/cmake",
                 "-example CMake",
                 list_tests,
                 blacklist_tests);
@@ -234,7 +235,7 @@ public class FastDDSGenTest
                 TestLevel.COMPILE,
                 "share/fastddsgen/java/fastddsgen",
                 INPUT_PATH,
-                OUTPUT_PATH,
+                OUTPUT_PATH + "/python",
                 "-python",
                 list_tests,
                 python_blacklist_tests);
