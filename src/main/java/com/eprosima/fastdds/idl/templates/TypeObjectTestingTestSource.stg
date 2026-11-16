@@ -487,31 +487,33 @@ check_type_detail_annotations(object, type) ::= <<
 $if(object.annotationList)$
 bool verbatim_annotation = false;
 bool custom_annotations = false;
+bool placement_applied = false;
+bool language_applied = false;
+static_cast<void>(placement_applied);
+static_cast<void>(language_applied);
 $object.annotationList: { annotation |
 $if(annotation.isVerbatim)$
 verbatim_annotation = true;
 ASSERT_TRUE(type_objects.complete_type_object.complete().$type$.ann_builtin().has_value());
 ASSERT_TRUE(type_objects.complete_type_object.complete().$type$.ann_builtin().value().verbatim().has_value());
 $annotation.valueList : { verbatim_param |
-bool placement_applied = false;
-bool language_applied = false;
 $if(verbatim_param.isVerbatimPlacement)$
 placement_applied = true;
-EXPECT_EQ($verbatim_param.enumStringValue$, type_objects.complete_type_object.complete().$type$.ann_builtin().value().verbatim.value().placement());
+EXPECT_STREQ("$verbatim_param.placementEnumStringValue$", type_objects.complete_type_object.complete().$type$.ann_builtin().value().verbatim().value().placement().c_str());
 $elseif(verbatim_param.isVerbatimLanguage)$
 language_applied = true;
-EXPECT_EQ("$verbatim_param.value$", type_objects.complete_type_object.complete().$type$.ann_builtin().value().verbatim.value().language());
+EXPECT_STREQ("$verbatim_param.value$", type_objects.complete_type_object.complete().$type$.ann_builtin().value().verbatim().value().language().c_str());
 $elseif(verbatim_param.isVerbatimText)$
-EXPECT_EQ("$verbatim_param.value$", type_objects.complete_type_object.complete().$type$.ann_builtin().value().verbatim.value().text());
+EXPECT_STREQ("$verbatim_param.value$", type_objects.complete_type_object.complete().$type$.ann_builtin().value().verbatim().value().text().c_str());
 $endif$
 }; separator="\n"$
 if (!placement_applied)
 {
-    EXPECT_EQ(PlacementKindValue::BEFORE_DECLARATION, type_objects.complete_type_object.complete().$type$.ann_builtin().value().verbatim.value().placement());
+    EXPECT_STREQ("before-declaration", type_objects.complete_type_object.complete().$type$.ann_builtin().value().verbatim().value().placement().c_str());
 \}
 if (!language_applied)
 {
-    EXPECT_EQ("*", type_objects.complete_type_object.complete().$type$.ann_builtin().value().verbatim.value().language());
+    EXPECT_STREQ("*", type_objects.complete_type_object.complete().$type$.ann_builtin().value().verbatim().value().language().c_str());
 \}
 $elseif(!annotation.isBuiltin)$
 custom_annotations = true;
@@ -643,7 +645,7 @@ EXPECT_EQ($param.value$, type_objects.$type$.wchar_value());
 $endif$
 $elseif (param.typecode.isEnumType)$
 EXPECT_EQ(TK_ENUM, type_objects.$type$._d());
-EXPECT_EQ($param.value$, type_objects.$type$.enumerated_value());
+EXPECT_EQ($param.numericValue$, type_objects.$type$.enumerated_value());
 $elseif (param.typecode.isStringType)$
 EXPECT_EQ(TK_STRING8, type_objects.$type$._d());
 EXPECT_EQ("$param.value$", type_objects.$type$.string8_value().to_string());

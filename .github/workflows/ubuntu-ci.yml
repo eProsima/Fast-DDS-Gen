@@ -16,7 +16,7 @@ on:
         description: 'Branch or tag of Fast CDR repository'
         required: false
         type: string
-        default: 'master'
+        default: '2.3.x'
       fastdds-python-branch:
         description: 'Branch or tag of Fast DDS Python repository'
         required: false
@@ -69,7 +69,7 @@ jobs:
       label: 'ubuntu-ci-${{ matrix.java-version }}'
       fastddsgen-branch: ${{ inputs.fastddsgen-branch || github.ref }}
       fastdds-branch: ${{ inputs.fastdds-branch || 'master' }}
-      fastcdr-branch: ${{ inputs.fastcdr-branch || 'master' }}
+      fastcdr-branch: ${{ inputs.fastcdr-branch || '2.3.x' }}
       fastdds-python-branch: ${{ inputs.fastdds-python-branch || 'master' }}
       discovery-server-branch: ${{ inputs.discovery-server-branch || 'master' }}
       run-build: ${{ !(github.event_name == 'pull_request') || !contains(github.event.pull_request.labels.*.name, 'skip-ci') }}

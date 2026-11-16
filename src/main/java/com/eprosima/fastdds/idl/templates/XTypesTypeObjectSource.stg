@@ -500,7 +500,7 @@ annotation_parameter_value(param, type) ::= <<
 $if (type.isAliasType)$
 $annotation_parameter_value(param=param, type=param.typecode.typedefContentTypeCode)$
 $elseif (type.isEnumType)$
-AnnotationParameterValue param_value_$param.name$ = TypeObjectUtils::build_annotation_parameter_value_enum($param.value$);
+AnnotationParameterValue param_value_$param.name$ = TypeObjectUtils::build_annotation_parameter_value_enum($param.numericValue$);
 $elseif (type.isByteType)$
 AnnotationParameterValue param_value_$param.name$ = TypeObjectUtils::build_annotation_parameter_value_byte($param.value$);
 $elseif (param.typecode.isStringType)$
@@ -511,12 +511,12 @@ $endif$
 >>
 
 applied_verbatim_annotation(annotation, name) ::= <<
-PlacementKindValue placement_$name$ = BEFORE_DECLARATION;
+PlacementKind placement_$name$ = PlacementKind::BEFORE_DECLARATION;
 eprosima::fastcdr::fixed_string<32> language_$name$ = "*";
 std::string text_$name$;
 $annotation.valueList : { verbatim_param |
 $if (verbatim_param.isVerbatimPlacement)$
-placement_$name$ = $verbatim_param.enumStringValue$;
+placement_$name$ = PlacementKind::$verbatim_param.enumStringValue$;
 $elseif (verbatim_param.isVerbatimLanguage)$
 language_$name$ = "$verbatim_param.value$";
 $elseif (verbatim_param.isVerbatimText)$
@@ -908,9 +908,9 @@ CompleteMemberDetail detail_$member.name$ = TypeObjectUtils::build_complete_memb
 type_annotations(type, type_kind, name) ::= <<
 $if (type.annotationList)$
 AppliedAnnotationSeq tmp_ann_custom_$type.name$;
-eprosima::fastcdr::optional<AppliedVerbatimAnnotation> verbatim_$type.name$;
 $type.annotationList : { annotation |
 $if (annotation.isVerbatim)$
+eprosima::fastcdr::optional<AppliedVerbatimAnnotation> verbatim_$type.name$;
 $applied_verbatim_annotation(annotation=annotation, name=type.name)$
 $elseif (!annotation.isBuiltin)$
 $applied_annotation_sequence(annotation=annotation, typename=[type.scopedname, type_kind], member=type, name=name)$

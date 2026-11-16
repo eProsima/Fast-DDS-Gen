@@ -28,6 +28,7 @@ import com.eprosima.fastdds.idl.parser.typecode.StructTypeCode;
 import com.eprosima.fastdds.idl.parser.typecode.UnionTypeCode;
 import com.eprosima.idl.generator.manager.TemplateGroup;
 import com.eprosima.idl.generator.manager.TemplateManager;
+import com.eprosima.idl.parser.exception.RuntimeGenerationException;
 import com.eprosima.idl.parser.tree.Annotation;
 import com.eprosima.idl.parser.tree.AnnotationDeclaration;
 import com.eprosima.idl.parser.tree.AnnotationMember;
@@ -308,6 +309,12 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
             TypeDeclaration typedecl)
     {
         super.addTypeDeclaration(typedecl);
+
+        String scope = typedecl.getScope();
+        if (scope != null && !scope.isEmpty())
+        {
+            last_declaration_scope_ = scope;
+        }
 
         boolean is_nested = typedecl.isAnnotatedAsNested();
 
@@ -626,15 +633,28 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
 
     public String getHeaderGuardName ()
     {
-        if (m_lastStructure != null)
+        String decl_scope = null;
+        if ((m_lastStructure != null) && m_lastStructure.getHasScope())
         {
-            if (m_lastStructure.getHasScope())
-            {
-                return m_lastStructure.getScope().replaceAll("::", "_").toUpperCase() +
-                       "_" + m_fileNameUpper.replaceAll("\\.", "_");
-            }
+            decl_scope = m_lastStructure.getScope().replaceAll("::", "_");
         }
-        return m_fileNameUpper;
+        else if (last_declaration_scope_ != null && !last_declaration_scope_.isEmpty())
+        {
+            decl_scope = last_declaration_scope_.replaceAll("::", "_");
+        }
+
+        String guard_base = getScopeFile().replaceAll("/", "__").replaceAll("\\\\", "__");
+        if (decl_scope != null && !decl_scope.isEmpty())
+        {
+            guard_base = guard_base + "_" + decl_scope;
+        }
+        return getValidGuardName(guard_base);
+    }
+
+    private String getValidGuardName(
+            String value)
+    {
+        return value.toUpperCase().replaceAll("[^A-Z0-9_]", "_");
     }
 
     public String getM_lastStructureTopicDataTypeName()
@@ -778,4 +798,6 @@ public class Context extends com.eprosima.idl.context.Context implements com.epr
     protected boolean there_is_at_least_one_struct = false;
 
     protected boolean there_is_at_least_one_union = false;
+
+    protected String last_declaration_scope_ = null;
 }

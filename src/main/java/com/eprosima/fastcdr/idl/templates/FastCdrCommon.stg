@@ -62,7 +62,7 @@ member_array_cstring_destructor(ctx, name, loopvar, dims) ::= <<$if(rest(dims))$
 
 member_default_init(member) ::= <%
 $if(member.annotationDefault)$
- {$member.annotationDefaultValue$}
+ {$member.annotationDefaultValue$$if(member.typecode.isType_5)$f$endif$}
 $elseif(!member.annotationOptional && !member.annotationExternal)$
 $if(member.typecode.initialValue)$
  {$member.typecode.initialValue$}

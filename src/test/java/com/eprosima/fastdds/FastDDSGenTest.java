@@ -2,7 +2,9 @@ package test.com.eprosima.fastdds;
 
 import org.junit.jupiter.api.Test;
 
+import com.eprosima.fastdds.idl.grammar.Context;
 import com.eprosima.idl.generator.manager.TemplateManager;
+import com.eprosima.idl.parser.tree.TypeDeclaration;
 
 import com.eprosima.integration.Command;
 
@@ -99,6 +101,82 @@ public class FastDDSGenTest
 
             assertEquals("testing/", ctx.getRelativeDir(absolute_root_dir));
         }
+    }
+
+
+    @Test
+    public void Context_getHeaderGuardName_UsesFilePath_Test()
+    {
+        Context first_ctx = new Context(
+                new TemplateManager(),
+                "idl\\package_one\\common\\status_list.idl",
+                new ArrayList<String>(),
+                false,
+                false,
+                null,
+                false,
+                false,
+                false,
+                false);
+        Context second_ctx = new Context(
+                new TemplateManager(),
+                "idl/package_two/common/status_list.idl",
+                new ArrayList<String>(),
+                false,
+                false,
+                null,
+                false,
+                false,
+                false,
+                false);
+        Context third_ctx = new Context(
+                new TemplateManager(),
+                "idl/package_two/common/status/list.idl",
+                new ArrayList<String>(),
+                false,
+                false,
+                null,
+                false,
+                false,
+                false,
+                false);
+
+        assertEquals(
+                "IDL__PACKAGE_ONE__COMMON__STATUS_LIST_IDL",
+                first_ctx.getHeaderGuardName());
+        assertEquals(
+                "IDL__PACKAGE_TWO__COMMON__STATUS_LIST_IDL",
+                second_ctx.getHeaderGuardName());
+        assertEquals(
+                "IDL__PACKAGE_TWO__COMMON__STATUS__LIST_IDL",
+                third_ctx.getHeaderGuardName());
+    }
+
+    @Test
+    public void Context_getHeaderGuardName_DependsOnDeclarations_Test()
+    {
+        Context ctx = new Context(
+                new TemplateManager(),
+                "dir-one/impl-type.idl",
+                new ArrayList<String>(),
+                false,
+                false,
+                null,
+                false,
+                false,
+                false,
+                false);
+        TypeDeclaration typedecl = new TypeDeclaration(
+                ctx.getScopeFile(),
+                true,
+                "module::scope",
+                "ScopedType",
+                ctx.createAliasTypeCode("module::scope", "ScopedType"),
+                null);
+
+        ctx.addTypeDeclaration(typedecl);
+
+        assertEquals("DIR_ONE__IMPL_TYPE_IDL_MODULE_SCOPE", ctx.getHeaderGuardName());
     }
 
     @Test
