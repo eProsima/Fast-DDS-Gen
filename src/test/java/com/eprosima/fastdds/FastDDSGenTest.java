@@ -8,6 +8,7 @@ import com.eprosima.idl.parser.tree.TypeDeclaration;
 
 import com.eprosima.integration.Command;
 
+import com.eprosima.integration.Test.FailIfErrLevel;
 import com.eprosima.integration.TestManager;
 import com.eprosima.integration.TestManager.TestLevel;
 
@@ -209,14 +210,41 @@ public class FastDDSGenTest
                 TestLevel.RUN,
                 "share/fastddsgen/java/fastddsgen",
                 INPUT_PATH,
-                OUTPUT_PATH,
-                "CMake",
+                OUTPUT_PATH + "/cmake",
+                "-example CMake",
                 list_tests,
                 blacklist_tests);
         tests.addCMakeArguments("-DCMAKE_BUILD_TYPE=Debug");
         tests.removeTests("basic_inner_types");
 
-        boolean testResult = tests.runTests();
+        java.util.List<String> python_blacklist_tests = new java.util.ArrayList<>();
+        if (blacklist_tests != null)
+        {
+            python_blacklist_tests.addAll(blacklist_tests);
+        }
+        python_blacklist_tests.add("constants"); // swig not support constants with the same name in different modules
+        python_blacklist_tests.add("declarations"); // swig not support structures with the same name in different modules
+        python_blacklist_tests.add("enumerations"); // swig not support enumerations with the same name in different modules
+        python_blacklist_tests.add("exceptions"); // swig not support structures with the same name in different modules
+        python_blacklist_tests.add("external");
+        python_blacklist_tests.add("inner_const_and_typedef"); // swig not support constants with the same name in different modules
+        python_blacklist_tests.add("interfaces"); // swig not support structures with the same name in different modules
+        python_blacklist_tests.add("modules"); // swig not support structures with the same name in different modules
+
+        TestManager python_tests = new TestManager(
+                TestLevel.COMPILE,
+                "share/fastddsgen/java/fastddsgen",
+                INPUT_PATH,
+                OUTPUT_PATH + "/python",
+                "-python",
+                list_tests,
+                python_blacklist_tests);
+        python_tests.addCMakeArguments("-DCMAKE_BUILD_TYPE=Debug");
+        python_tests.removeTests("basic_inner_types");
+
+        boolean cmakeTestResult = tests.runTests(FailIfErrLevel.COMPILE);
+        boolean pythonTestResult = python_tests.runTests(FailIfErrLevel.CONFIGURE);
+        boolean testResult = cmakeTestResult && pythonTestResult;
         assertEquals(true, testResult);
     }
 }
