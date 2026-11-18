@@ -194,8 +194,6 @@ $if(typecode.isSequenceType)$
 $template_sequence_name(typecode.contentTypeCode)$
 $elseif(typecode.isMapType)$
 $template_map_name(typecode)$
-$elseif(typecode.isBufferType)$
-Buffer_uint8_t
 $else$
 $typecode.noScopedCppTypenameForSwig$
 $endif$
@@ -218,8 +216,6 @@ $if(typecode.keyTypeCode.isSequenceType)$
 $template_sequence_name(typecode.keyTypeCode.contentTypeCode)$
 $elseif(typecode.keyTypeCode.isArrayType)$
 $template_array_name(typecode.keyTypeCode.contentTypeCode, typecode.keyTypeCode.evaluatedDimensions)$
-$elseif(typecode.keyTypeCode.isBufferType)$
-Buffer_uint8_t
 $else$
 $typecode.keyTypeCode.noScopedCppTypenameForSwig$
 $endif$
@@ -230,8 +226,6 @@ $elseif(typecode.valueTypeCode.isArrayType)$
 $template_array_name(typecode.valueTypeCode.contentTypeCode, typecode.valueTypeCode.evaluatedDimensions)$
 $elseif(typecode.valueTypeCode.isMapType)$
 $template_map_name(typecode.valueTypeCode)$
-$elseif(typecode.valueTypeCode.isBufferType)$
-Buffer_uint8_t
 $else$
 $typecode.valueTypeCode.noScopedCppTypenameForSwig$
 $endif$
