@@ -207,7 +207,7 @@ enum_type(ctx, parent, enum, extension) ::= <<
 public class $enum.name$
 {
     $enum.members:{ member |
-        public static final int _$member.name$ = $i$ - 1;
+        public static final int _$member.name$ = $member.value$;
 
         public static final $enum.name$ $member.name$ = new $enum.name$(_$member.name$);
 
