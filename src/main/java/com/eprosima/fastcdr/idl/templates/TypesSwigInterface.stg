@@ -156,6 +156,14 @@ $struct.members : { member | $member_getters(struct_name=struct.scopedname, memb
     }
 }
 
+%newobject $struct.scopedname$::__deepcopy__;
+%extend $struct.scopedname$
+{
+    $struct.scopedname$* __deepcopy__(PyObject *memo) {
+        return new $struct.scopedname$(*\$self);
+    }
+}
+
 >>
 
 template_sequence_name(typecode) ::= <%
