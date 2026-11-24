@@ -74,7 +74,7 @@ $endif$
 
 $fast_macro_declarations()$
 
-$ctx.directIncludeDependencies : {include | %import "$include$.i"}; separator="\n"$
+$ctx.directIncludeDependencies : {include | %import(module="$ctx.directIncludeSwigModules.(include)$") "$include$.i"}; separator="\n"$
 
 %{
 #include "$ctx.filename$.hpp"
@@ -296,6 +296,51 @@ $template_optional(member.typecode)$
   void set_value(const $member.typecode.cppTypename$& value) {
       *\$self = value;
   }
+$if(!(member.typecode.primitive || member.typecode.isStringType || member.typecode.isWStringType || member.typecode.isBitmaskType))$
+
+  $member.typecode.cppTypename$& _value_ref() {
+      return \$self->value();
+  }
+
+  %pythoncode %{
+    def _checked_ref(self, what):
+        if not self.has_value():
+            raise ValueError("optional has no value (accessing '" + what + "')")
+        return self._value_ref()
+
+    def __getattr__(self, name):
+        # Forward to the contained value in Python, instead of through C++ operator->, so the
+        # wrapped type's %extend methods are resolved in the module that defines them.
+        if name.startswith('__') or name in ('this', 'thisown'):
+            raise AttributeError(name)
+        if not self.has_value():
+            raise AttributeError("optional has no value (accessing '" + name + "')")
+        return getattr(self._value_ref(), name)
+$if(member.typecode.isSequenceType || member.typecode.isMapType || member.typecode.isArrayType)$
+
+    def __len__(self):
+        return len(self._checked_ref('__len__'))
+
+    def __getitem__(self, key):
+        return self._checked_ref('__getitem__')[key]
+
+    def __setitem__(self, key, value):
+        self._checked_ref('__setitem__')[key] = value
+
+    def __delitem__(self, key):
+        del self._checked_ref('__delitem__')[key]
+
+    def __iter__(self):
+        # Keep the reference proxy alive in Python for the whole iteration.
+        ref = self._checked_ref('__iter__')
+        for item in ref:
+            yield item
+
+    def __contains__(self, item):
+        return item in self._checked_ref('__contains__')
+$endif$
+  %}
+$endif$
 }
 %ignore $struct_name$::$member.name$(eprosima::fastcdr::optional<$member.typecode.cppTypename$>&&);
 $else$
